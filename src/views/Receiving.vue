@@ -10,10 +10,10 @@
       <div>
         <ion-searchbar :placeholder="$t('Scan ASN to start receiving')"></ion-searchbar>
         <ion-list>
-          <ion-item>
+          <ion-item @click="() => router.push('/shipment')">
             <ion-label>
               <h2>SHPMNT_001</h2>
-              <p>5 {{ $t("items") }}</p>
+              <p>3 {{ $t("items") }}</p>
             </ion-label>
             <ion-note slot="end">{{ $t("Shipped") }}</ion-note>
           </ion-item>
@@ -58,9 +58,10 @@
 import { IonButton, IonContent, IonHeader, IonIcon, IonItem, IonLabel, IonList, IonNote, IonPage, IonSearchbar, IonTitle, IonToolbar } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { cloudDownloadOutline } from 'ionicons/icons'
+import { useRouter } from 'vue-router';
 
 export default defineComponent({
-  name: 'Home',
+  name: 'Receiving',
   components: {
     IonButton,
     IonContent,
@@ -76,8 +77,10 @@ export default defineComponent({
     IonToolbar
   },
   setup(){
+    const router = useRouter();
     return {
       cloudDownloadOutline,
+      router
     }
   }
 });

@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from '@ionic/vue-router';
 import { RouteRecordRaw } from 'vue-router';
 import Receiving from '@/views/Receiving.vue'
+import Shipment from '@/views/Shipment.vue'
 import Login from '@/views/Login.vue'
 import Settings from "@/views/Settings.vue"
 import store from '@/store'
@@ -30,6 +31,12 @@ const routes: Array<RouteRecordRaw> = [
     path: '/receiving',
     name: 'Receiving',
     component: Receiving,
+    beforeEnter: authGuard
+  },
+  {
+    path: '/shipment',
+    name: 'Shipment',
+    component: Shipment,
     beforeEnter: authGuard
   },
   {
