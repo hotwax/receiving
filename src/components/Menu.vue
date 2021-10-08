@@ -105,9 +105,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style scoped>
-ion-menu ion-item.selected ion-label {
-  color: var(--ion-color-warning);
-}
-</style>
