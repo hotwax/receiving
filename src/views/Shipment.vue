@@ -5,7 +5,7 @@
         <ion-back-button default-href="/" slot="start"></ion-back-button>
         <ion-title>Shipment Details</ion-title>
         <ion-buttons slot="end">
-          <ion-button><ion-icon :icon="add"/></ion-button>
+          <ion-button @click="addProduct"><ion-icon :icon="add"/></ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
@@ -131,10 +131,12 @@ import {
   IonThumbnail,
   IonTitle,
   IonToolbar,
+  modalController,
   alertController,
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { add, checkmarkDone } from 'ionicons/icons';
+import AddProductModal from '@/views/AddProductModal.vue'
 
 export default defineComponent({
   name: "Shipment details",
@@ -161,6 +163,13 @@ export default defineComponent({
     IonToolbar,
   },
   methods: {
+    async addProduct() {
+      const modal = await modalController
+        .create({
+          component: AddProductModal
+        })
+      return modal.present();
+    },
     async completeShipment() {
       const alert = await alertController.create({
         cssClass: "my-custom-class",
@@ -171,7 +180,7 @@ export default defineComponent({
       });
       return alert.present();
     },
-  },
+  }, 
   setup() {
     return {
       add,

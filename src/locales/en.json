@@ -1,4 +1,6 @@
 {
+  "Add a Product" : "Add a Product",
+  "Add to Shipment" : "Add to Shipment",
   "item":"item",
   "items":"items",
   "Load more shipments":"Load more shipments",
@@ -6,6 +8,7 @@
   "ReceiveAll": "ReceiveAll",
   "Receiving": "Receiving",
   "Scan ASN to start receiving": "Scan ASN to start receiving",
+  "Search SKU or product name": "Search SKU or product name",
   "Settings":"Settings",
   "Shipped":"Shipped",
   "Store":"Store",
