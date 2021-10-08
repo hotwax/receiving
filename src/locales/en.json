@@ -1,7 +1,12 @@
 {
+  "item":"item",
+  "items":"items",
+  "Load more shipments":"Load more shipments",
   "Logout":"Logout",
   "Receiving": "Receiving",
+  "Scan ASN to start receiving": "Scan ASN to start receiving",
   "Settings":"Settings",
+  "Shipped":"Shipped",
   "Store":"Store",
   "store name":"store name"
 }
