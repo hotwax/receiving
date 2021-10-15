@@ -1,0 +1,7 @@
+---
+title: Integrated updateShipment API and improved the invocation of incoming-shipments
+  API
+ticket_id: "#15dw78"
+merge_request: 17
+author: Humera Khan
+type: added
