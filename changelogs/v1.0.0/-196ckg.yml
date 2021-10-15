@@ -1,0 +1,6 @@
+---
+title: Implemented functionality to open the addProduct modal by capturing CTRL+o command
+ticket_id: "#196ckg"
+merge_request: 23
+author: Humera Khan
+type: added

@@ -1,0 +1,10 @@
+{
+  "dest": "release-builds/",
+  "icon": "src/assets/icon/linux/Receiving.png",
+  "categories": [
+    "Utility"
+  ],
+  "lintianOverrides": [
+    "changelog-file-missing-in-native-package"
+  ]
+}

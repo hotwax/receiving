@@ -1,0 +1,7 @@
+---
+title: Integrate incoming-shipments API to display the shipment list on home page,
+  also added empty state image for no-shipments
+ticket_id: "#13cf5w"
+merge_request: 11
+author: Humera Khan
+type: added

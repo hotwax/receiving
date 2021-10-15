@@ -1,0 +1,7 @@
+---
+title: Implemented settings component to list the associated facilities in dropdown
+  also implemented logout functionality
+ticket_id: "#13amwb"
+merge_request: 9
+author: Humera Khan
+type: added
