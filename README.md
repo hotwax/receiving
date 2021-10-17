@@ -16,7 +16,7 @@ HotWax Commerce receiving app
 - To test the app in browser: ionic serve
 
 https://ionicframework.com/docs/intro/cli
-To install Ionic cli, follow instructions in the link
+-To install Ionic CLI, follow instructions in the above link
 
 #### Upload instance specific build
 
@@ -34,30 +34,6 @@ To install Ionic cli, follow instructions in the link
 Following command generates the documentation:  
 `npm run compodoc`  
 Documentation is available in the documentation folder and can be viewed by opening the index.html.  
-
-### Firebase hosting deployment for browser platform
-- Setup firebase hosting at mentioned [here](https://firebase.google.com/docs/hosting)
-- Goto your project directly on terminal
-- Initialilze firebae
-    `firebase init`
-- Select hosting from options
-- Select Use existing project 
-- Select prject from list
-- It will ask some question, plesae go with default option
-- Configure hosting in case of [multiple site deployed](https://firebase.google.com/docs/hosting/multisites#define_hosting_config) for same project
-- Add target to with respect to site 
-    `firebase target:apply hosting TARGET_NAME RESOURCE_NAME`
-- Update your firebase.json file for target
-- firebase deploy --only hosting:TARGET_NAME
-- [Deploying to multiple environments](https://firebase.googleblog.com/2016/07/deploy-to-multiple-environments-with.html)
-    `$ firebase use default # sets environment to the default alias`
-    `$ firebase use production # sets environment to the production alias`
-    OR
-    `firebase deploy -P production # deploy to production alias`
-- Deploy app
-    `ionic build [--prod]`
-    `firebase use production` (In case of production)
-    `firebase deploy --only hosting:clienteling `
 
 ### Shopify app configuration and installation
 - Add API Key, Redirect URI and Scopes to environment.
