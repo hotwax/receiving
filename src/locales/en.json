@@ -1,11 +1,16 @@
 {
-  "Blank": "Blank",
-  "Click the backdrop to dismiss.": "Click the backdrop to dismiss.",
+  "Add a Product" : "Add a Product",
+  "Add to Shipment" : "Add to Shipment",
+  "item":"item",
+  "items":"items",
+  "Load more shipments":"Load more shipments",
   "Logout":"Logout",
-  "Ready to create an app?": "Ready to create an app?",
+  "ReceiveAll": "ReceiveAll",
+  "Receiving": "Receiving",
+  "Scan ASN to start receiving": "Scan ASN to start receiving",
+  "Search SKU or product name": "Search SKU or product name",
   "Settings":"Settings",
-  "Start with Ionic": "Start with Ionic",
+  "Shipped":"Shipped",
   "Store":"Store",
-  "store name":"store name",
-  "UI Components": "UI Components"
+  "store name":"store name"
 }
