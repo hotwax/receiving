@@ -1,7 +1,7 @@
 <template>
   <ion-page>
     <ion-content :fullscreen="true">
-      <div class="flex">
+      <div class="login">
         <form class="login-container" @keyup.enter="login(form)" @submit.prevent="login(form)">
           <img src="../assets/images/hc.png"/>
 
@@ -73,7 +73,7 @@ export default defineComponent({
 <style scoped>
 
 .login-container {
-  width: 375px;
+  max-width: 375px;
 }
 
 img {
@@ -81,7 +81,7 @@ img {
   padding: 16px;
 }
 
-.flex {
+.login {
   display: flex;
   justify-content: center;
   align-items: center;
