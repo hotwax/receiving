@@ -29,6 +29,3 @@ npm-debug.log*
 /platforms
 /plugins
 /www
-
-# VS Code history plugin files
-.history

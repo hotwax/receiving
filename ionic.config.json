@@ -1,7 +1,7 @@
 {
-  "name": "receiving",
+  "name": "ionicSDK",
   "integrations": {
     "capacitor": {}
   },
-  "type": "angular"
+  "type": "vue"
 }

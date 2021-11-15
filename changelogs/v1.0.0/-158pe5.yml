@@ -1,7 +1,0 @@
----
-title: Fixed an issue where acceptedQuantity is not updated on tapping receiveAll
-  button after editing the quantity
-ticket_id: "#158pe5"
-merge_request: 14
-author: Humera Khan
-type: fixed
