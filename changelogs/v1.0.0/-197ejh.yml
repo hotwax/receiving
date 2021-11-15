@@ -1,7 +1,0 @@
----
-title: Implemented functionality to search the shipment using shipmentId, also handle
-  the UI on home and shipment page as per the shipment status
-ticket_id: "#197ejh"
-merge_request: 24
-author: Humera Khan
-type: added

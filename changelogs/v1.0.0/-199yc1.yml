@@ -1,7 +1,0 @@
----
-title: Fixed an issue where addProduct modal opens on home page using CTRL+o command,
-  invoked removeEventListener method in ionViewDidLeave event
-ticket_id: "#199yc1"
-merge_request: 26
-author: Humera Khan
-type: fixed
