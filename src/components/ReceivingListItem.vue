@@ -1,37 +1,9 @@
 <template>
   <ion-list>
-    <ion-item @click="() => router.push('/shipment')">
+    <ion-item v-for="shipment in shipments" :key="shipment.id" @click="() => router.push('/shipment')">
       <ion-label>
-        <h2>SHPMNT_001</h2>
-        <p>3 {{ $t("items") }}</p>
-      </ion-label>
-      <ion-note slot="end">{{ $t("Shipped") }}</ion-note>
-    </ion-item>
-    <ion-item>
-      <ion-label>
-        <h2>SHPMNT_002</h2>
-        <p>2 {{ $t("items") }}</p>
-      </ion-label>
-      <ion-note slot="end">{{ $t("Shipped") }}</ion-note>
-    </ion-item>
-    <ion-item>
-      <ion-label>
-        <h2>SHPMNT_003</h2>
-        <p>6 {{ $t("items") }}</p>
-      </ion-label>
-      <ion-note slot="end">{{ $t("Shipped") }}</ion-note>
-    </ion-item>
-    <ion-item>
-      <ion-label>
-        <h2>SHPMNT_004</h2>
-        <p>4 {{ $t("items") }}</p>
-      </ion-label>
-      <ion-note slot="end">{{ $t("Shipped") }}</ion-note>
-    </ion-item>
-    <ion-item>
-      <ion-label>
-        <h2>SHPMNT_005</h2>
-        <p>1 {{ $t("item") }}</p>
+        <h2>{{ shipment?.id }}</h2>
+        <p>{{ shipment?.noOfItem }} {{ (shipment?.noOfItem > 1 ? 'Items' : 'Item') }}</p>
       </ion-label>
       <ion-note slot="end">{{ $t("Shipped") }}</ion-note>
     </ion-item>

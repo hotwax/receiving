@@ -10,41 +10,52 @@ import emitter from '@/event-bus'
 
 const actions: ActionTree<ProductState, RootState> = {
 
-  // Find Product
-  async findProduct ({ commit, state }, payload) {
-
-    // Show loader only when new query and not the infinite scroll
-    if (payload.viewIndex === 0) emitter.emit("presentLoader");
-
+  async findProducts ({ commit }, payload) {
     let resp;
 
     try {
-      resp = await ProductService.fetchProducts({
-        // used sku as we are currently only using sku to search for the product
-        "filters": ['sku: ' + payload.queryString],
+      resp = await ProductService.getShipments({
         "viewSize": payload.viewSize,
-        "viewIndex": payload.viewIndex
-      })
+        "viewIndex": payload.viewIndex,
+        "facilityId": payload.facilityId,
+        "statusId": 'PURCH_SHIP_SHIPPED'
+      });
 
-      // resp.data.response.numFound tells the number of items in the response
-      if (resp.status === 200 && resp.data.response.numFound > 0 && !hasError(resp)) {
-        let products = resp.data.response.docs;
-        const totalProductsCount = resp.data.response.numFound;
-
-        if (payload.viewIndex && payload.viewIndex > 0) products = state.products.list.concat(products)
-        commit(types.PRODUCT_SEARCH_UPDATED, { products: products, totalProductsCount: totalProductsCount })
+      if (resp.status === 200 && resp.data.shipments && !hasError(resp)) {
+        commit(types.PRODUCT_ITEMS, { list: resp.data.shipments })
+        return resp.data;
       } else {
-        //showing error whenever getting no products in the response or having any other error
-        showToast(translate("Product not found"));
+        showToast(translate('Something went wrong'));
+        console.error("error", resp.data._ERROR_MESSAGE_);
+        return Promise.reject(new Error(resp.data._ERROR_MESSAGE_));
       }
-      // Remove added loader only when new query and not the infinite scroll
-      if (payload.viewIndex === 0) emitter.emit("dismissLoader");
-    } catch(error){
-      console.log(error)
-      showToast(translate("Something went wrong"));
+    } catch (err) {
+      showToast(translate('Something went wrong'));
+      console.error("error", err);
+      return Promise.reject(new Error(err))
     }
-    // TODO Handle specific error
-    return resp;
+  },
+
+  async setCurrentShipping ({ commit }, payload) {
+    let resp;
+
+    try {
+      resp = await ProductService.getShipmentProducts(payload);
+
+      if (resp.status === 200 && resp.data.shipmentProducts && !hasError(resp)) {
+        commit(types.PRODUCT_CURRENT, { current: resp.data })
+        return resp.data;
+      } else {
+        showToast(translate('Something went wrong'));
+        console.error("error", resp.data._ERROR_MESSAGE_);
+        return Promise.reject(new Error(resp.data._ERROR_MESSAGE_));
+      }
+
+    } catch (err) {
+      showToast(translate('Something went wrong'));
+      console.error("error", err);
+      return Promise.reject(new Error(err))
+    }
   },
 }
 
