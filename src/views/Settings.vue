@@ -27,7 +27,7 @@
 </template>
 
 <script lang="ts">
-import { alertController, IonButton, IonContent, IonHeader,IonIcon, IonItem, IonLabel, IonPage, IonSelect, IonSelectOption, IonTitle, IonToolbar } from '@ionic/vue';
+import { alertController, IonButton, IonContent, IonHeader,IonIcon, IonItem, IonLabel,IonList, IonPage, IonSelect, IonSelectOption, IonTitle, IonToolbar } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { ellipsisVertical, personCircleOutline, storefrontOutline} from 'ionicons/icons'
 import { mapGetters, useStore } from 'vuex';
@@ -41,7 +41,8 @@ export default defineComponent({
     IonHeader, 
     IonIcon,
     IonItem, 
-    IonLabel, 
+    IonLabel,
+    IonList, 
     IonPage, 
     IonSelect, 
     IonSelectOption,
