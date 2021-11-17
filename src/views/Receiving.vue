@@ -47,6 +47,9 @@ export default defineComponent({
       queryString: ''
     }
   },
+  mounted() {
+    this.getProducts;
+  },
   computed: {
     ...mapGetters({
       products: 'product/getSearchProducts',
@@ -58,21 +61,12 @@ export default defineComponent({
         element.select();
       })
     },
-    async loadMoreProducts (event: any) {
-      this.getProducts(
-        undefined,
-        Math.ceil(this.products.length / process.env.VUE_APP_VIEW_SIZE).toString()
-      ).then(() => {
-        event.target.complete();
-      })
-    },
     async getProducts(vSize: any, vIndex: any) {
-      const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
-      const viewIndex = vIndex ? vIndex : 0;
+      const viewSize = vSize;
+      const viewIndex = vIndex;
       const payload = {
         viewSize,
         viewIndex,
-        queryString: '*' + this.queryString + '*'
       }
       if (this.queryString) {
         await this.store.dispatch("product/findProduct", payload);

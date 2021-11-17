@@ -19,10 +19,7 @@ const actions: ActionTree<ProductState, RootState> = {
 
     try {
       resp = await ProductService.getShipments({
-        "viewSize": payload.viewSize,
-        "viewIndex": payload.viewIndex,
-        "facilityId": payload.facilityId,
-        "statusId": "PURCH_SHIP_SHIPPED"
+        "filters": ['viewSize: ' + payload.viewSize , 'viewIndex' + payload.viewIndex , 'facilityId: ' + payload.facilityId , 'statusId: ' + "PURCH_SHIP_SHIPPED"] 
       })
 
       // resp.data.response.numFound tells the number of items in the response
