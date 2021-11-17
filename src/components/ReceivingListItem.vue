@@ -29,7 +29,7 @@ export default defineComponent({
     IonList,
     IonNote
   },
-  props: ["product"],
+ props: ["product"],
  methods: {
     async viewProduct () {
       await this.store.dispatch('product/setCurrent', {product: this.product});

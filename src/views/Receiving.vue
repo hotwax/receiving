@@ -68,13 +68,12 @@ export default defineComponent({
         viewSize,
         viewIndex,
       }
-      if (this.queryString) {
+      if (!this.queryString) {
         await this.store.dispatch("product/findProduct", payload);
       } else {
         showToast(translate("Enter shipment id to search"))
       }
     },
-    
   },
   setup(){
     const store = useStore();
