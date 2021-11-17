@@ -3,11 +3,11 @@ import ProductState from "./ProductState";
 import RootState from "../../RootState";
 
 const getters: GetterTree<ProductState, RootState> = {
-  getShippingProducts (state) {
-    return state.list;
+  getCurrent: (state) => {
+    return JSON.parse(JSON.stringify(state.current));
   },
-  getCurrent (state) {
-    return state.current;
+  getSearchProducts(state) {
+    return state.products.list;
   },
 };
 export default getters;

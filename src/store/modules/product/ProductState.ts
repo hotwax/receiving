@@ -1,4 +1,7 @@
 export default interface ProductState {
-  current: object;
-  list: Array<any>;
+  current: any;
+  products: {
+    list: any;
+    total: number;
+  };
 }

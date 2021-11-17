@@ -9,7 +9,10 @@ const productModule: Module<ProductState, RootState> = {
     namespaced: true,
     state: {
       current: {},
-      list: [],
+      products: {
+        list: {},
+        total: 0
+      }
     },
     getters,
     actions,

@@ -10,7 +10,7 @@
       <div>
         <ion-searchbar :placeholder="$t('Scan ASN to start receiving')"></ion-searchbar>
         
-        <ReceivingListItem />
+        <ReceivingListItem v-for="product in products" :key="product.Id" :product="product" />
 
         <div class="ion-text-center">
           <ion-button fill="outline" color="dark"><ion-icon :icon="cloudDownloadOutline" slot="start" />{{ $t("Load more shipments") }}</ion-button>
@@ -23,8 +23,11 @@
 <script lang="ts">
 import { IonButton, IonContent, IonHeader, IonIcon, IonPage, IonSearchbar, IonTitle, IonToolbar } from '@ionic/vue';
 import { defineComponent } from 'vue';
+import { mapGetters, useStore } from 'vuex'
 import { cloudDownloadOutline } from 'ionicons/icons'
 import ReceivingListItem from '@/components/ReceivingListItem.vue'
+import { translate } from '@/i18n';
+import { showToast } from '@/utils';
 
 export default defineComponent({
   name: 'Receiving',
@@ -39,9 +42,51 @@ export default defineComponent({
     IonToolbar,
     ReceivingListItem
   },
-  setup(){
+  data (){
     return {
-      cloudDownloadOutline
+      queryString: ''
+    }
+  },
+  computed: {
+    ...mapGetters({
+      products: 'product/getSearchProducts',
+    })
+  },
+  methods: {
+    selectSearchBarText(event: any) {
+      event.target.getInputElement().then((element: any) => {
+        element.select();
+      })
+    },
+    async loadMoreProducts (event: any) {
+      this.getProducts(
+        undefined,
+        Math.ceil(this.products.length / process.env.VUE_APP_VIEW_SIZE).toString()
+      ).then(() => {
+        event.target.complete();
+      })
+    },
+    async getProducts(vSize: any, vIndex: any) {
+      const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
+      const viewIndex = vIndex ? vIndex : 0;
+      const payload = {
+        viewSize,
+        viewIndex,
+        queryString: '*' + this.queryString + '*'
+      }
+      if (this.queryString) {
+        await this.store.dispatch("product/findProduct", payload);
+      } else {
+        showToast(translate("Enter shipment id to search"))
+      }
+    },
+    
+  },
+  setup(){
+    const store = useStore();
+    return {
+      cloudDownloadOutline,
+      store
     }
   }
 });

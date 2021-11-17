@@ -1,9 +1,9 @@
 <template>
   <ion-list>
-    <ion-item v-for="shipment in shipments" :key="shipment.id" @click="() => router.push('/shipment')">
+    <ion-item @click="viewProduct()">
       <ion-label>
-        <h2>{{ shipment?.id }}</h2>
-        <p>{{ shipment?.noOfItem }} {{ (shipment?.noOfItem > 1 ? 'Items' : 'Item') }}</p>
+        <h2>{{ product.id }}</h2>
+        <p>{{ product.noOfItem }}</p>
       </ion-label>
       <ion-note slot="end">{{ $t("Shipped") }}</ion-note>
     </ion-item>
@@ -19,6 +19,7 @@ import {
   IonNote
 } from '@ionic/vue'
 import { useRouter } from 'vue-router';
+import { useStore } from 'vuex';
 
 export default defineComponent({
   name: "ReceivingListItem",
@@ -28,11 +29,21 @@ export default defineComponent({
     IonList,
     IonNote
   },
-  setup(){
-    const router = useRouter();
-    return {
-      router
+  props: ["product"],
+ methods: {
+    async viewProduct () {
+      await this.store.dispatch('product/setCurrent', {product: this.product});
+      this.router.push({ path: `/shipment/${this.product.id}` })
     }
-  }
+  },
+  setup() {
+    const router = useRouter();
+    const store = useStore();
+    
+    return {
+      router,
+      store
+    }
+  },
 })
 </script>

@@ -10,7 +10,11 @@ import emitter from '@/event-bus'
 
 const actions: ActionTree<ProductState, RootState> = {
 
-  async findProducts ({ commit }, payload) {
+  async findProduct ({ commit, state }, payload) {
+
+    // Show loader only when new query and not the infinite scroll
+    if (payload.viewIndex === 0) emitter.emit("presentLoader");
+
     let resp;
 
     try {
@@ -18,45 +22,65 @@ const actions: ActionTree<ProductState, RootState> = {
         "viewSize": payload.viewSize,
         "viewIndex": payload.viewIndex,
         "facilityId": payload.facilityId,
-        "statusId": 'PURCH_SHIP_SHIPPED'
-      });
+        "statusId": "PURCH_SHIP_SHIPPED"
+      })
 
-      if (resp.status === 200 && resp.data.shipments && !hasError(resp)) {
-        commit(types.PRODUCT_ITEMS, { list: resp.data.shipments })
-        return resp.data;
+      // resp.data.response.numFound tells the number of items in the response
+      if (resp.status === 200 && resp.data.response.numFound > 0 && !hasError(resp)) {
+        let products = resp.data.response.docs;
+        const totalProductsCount = resp.data.response.numFound;
+
+        if (payload.viewIndex && payload.viewIndex > 0) products = state.products.list.concat(products)
+        commit(types.PRODUCT_SEARCH_UPDATED, { products: products, totalProductsCount: totalProductsCount })
       } else {
-        showToast(translate('Something went wrong'));
-        console.error("error", resp.data._ERROR_MESSAGE_);
-        return Promise.reject(new Error(resp.data._ERROR_MESSAGE_));
+        //showing error whenever getting no products in the response or having any other error
+        showToast(translate("Product not found"));
       }
-    } catch (err) {
-      showToast(translate('Something went wrong'));
-      console.error("error", err);
-      return Promise.reject(new Error(err))
+      // Remove added loader only when new query and not the infinite scroll
+      if (payload.viewIndex === 0) emitter.emit("dismissLoader");
+    } catch(error){
+      console.log(error)
+      showToast(translate("Something went wrong"));
     }
+    // TODO Handle specific error
+    return resp;
   },
+  async setCurrent ({ commit }, payload) {
+    let currentProduct;
 
-  async setCurrentShipping ({ commit }, payload) {
-    let resp;
+    // checking whether we are getting a product in payload or we are having a currentProduct
+    if ( currentProduct || payload.product) {
 
-    try {
-      resp = await ProductService.getShipmentProducts(payload);
+      // setting the product either with currentProduct or payload.product;
+      commit(types.PRODUCT_CURRENT_UPDATED, { product: currentProduct ? currentProduct : payload.product });
 
-      if (resp.status === 200 && resp.data.shipmentProducts && !hasError(resp)) {
-        commit(types.PRODUCT_CURRENT, { current: resp.data })
-        return resp.data;
-      } else {
-        showToast(translate('Something went wrong'));
-        console.error("error", resp.data._ERROR_MESSAGE_);
-        return Promise.reject(new Error(resp.data._ERROR_MESSAGE_));
+      return currentProduct ? currentProduct : payload.product;
+    } else {
+
+      try {
+        const query = {
+          "filters": ['shipmentId: ' + payload.queryString]
+        }
+
+        const resp = await ProductService.getShipments(query)
+  
+        if (resp.status === 200 && resp.data.response.numFound > 0 && !hasError(resp)) {
+          currentProduct = resp.data.response.docs[0];
+  
+          commit(types.PRODUCT_CURRENT_UPDATED, { product: currentProduct });
+        } else {
+          //showing error whenever getting no products in the response or having any other error
+          showToast(translate("Product not found"));
+        }
+        // Remove added loader only when new query and not the infinite scroll
+        emitter.emit("dismissLoader");
+      } catch(error){
+        console.log(error)
+        showToast(translate("Something went wrong"));
       }
-
-    } catch (err) {
-      showToast(translate('Something went wrong'));
-      console.error("error", err);
-      return Promise.reject(new Error(err))
     }
-  },
+    return currentProduct;
+  }
 }
 
 export default actions;
