@@ -7,7 +7,7 @@
     </ion-header>
     <ion-content :fullscreen="true">
       <div>
-        <ion-searchbar @ionFocus="selectSearchBarText($event)" v-model="queryString" :placeholder="$t('Scan ASN to start receiving')" v-on:keyup.enter="getProducts()"/>
+        <ion-searchbar :placeholder="$t('Scan ASN to start receiving')"/>
 
         <product-list-item v-for="product in products" :key="product.productId" :product="product"/>
 
