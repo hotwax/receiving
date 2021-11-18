@@ -13,32 +13,30 @@
     <ion-content :fullscreen="true">
       <div>
         <ion-item lines="none">
-          <h1>Shipment ID: SHPMNT_001</h1>
+          <h1>Shipment ID: {{ items.shipmentId }}</h1>
         </ion-item>
         <ion-item>
           <ion-label>
             <ion-input placeholder="Scan barcodes to receive"></ion-input>
           </ion-label>
         </ion-item>
-        <ion-card>
+        <ion-card v-for="item in items.items" :key="item.id">
           <ion-card-content>
             <ion-row>
               <ion-col size="9">
                 <ion-item lines="none">
                   <ion-thumbnail slot="start">
-                    <img
-                      src="https://cdn.shopify.com/s/files/1/0069/7384/9727/products/test-track.jpg?v=1626255137"
-                    />
+                    <Image :src="item.imageUrl" />
                   </ion-thumbnail>
                   <ion-label>
-                    <h2>Chaz Kangeroo Hoodie-XS-Green</h2>
-                    <p>12203</p>
+                    <h2>{{ item.sku }}</h2>
+                    <p>{{ item.productId }}</p>
                   </ion-label>
                 </ion-item>
               </ion-col>
               <ion-col size="3" class="ion-align-self-center">
                 <ion-item>
-                  <ion-input type="number" value="0" min="0"></ion-input>
+                  <ion-input type="number" :value="item.quantityAccepted" min="0"></ion-input>
                 </ion-item>
               </ion-col>
             </ion-row>
@@ -48,56 +46,8 @@
               {{ $t("ReceiveAll") }}
             </ion-button>
             <ion-progress-bar value="1" color="dark"></ion-progress-bar>
-            <p slot="end">5</p>
+            <p slot="end">{{ item.quantityOrdered }}</p>
           </ion-item>
-        </ion-card>
-        <ion-card>
-          <ion-card-content>
-            <ion-row>
-              <ion-col size="9">
-                <ion-item lines="none">
-                  <ion-thumbnail slot="start">
-                    <img
-                      src="https://demo-resources.hotwax.io/resources/uploads/images/product/m/h/mh01-black_main.jpg"
-                    />
-                  </ion-thumbnail>
-                  <ion-label>
-                    <h2>Chaz Kangeroo Hoodie-XS-Black</h2>
-                    <p>12209</p>
-                  </ion-label>
-                </ion-item>
-              </ion-col>
-              <ion-col size="3" class="ion-align-self-center">
-                <ion-item>
-                  <ion-input type="number" value="0" min="0"></ion-input>
-                </ion-item>
-              </ion-col>
-            </ion-row>
-          </ion-card-content>
-        </ion-card>
-        <ion-card>
-          <ion-card-content>
-            <ion-row>
-              <ion-col size="9">
-                <ion-item lines="none">
-                  <ion-thumbnail slot="start">
-                    <img
-                      src="https://demo-resources.hotwax.io/resources/uploads/images/product/m/h/mh01-gray_main.jpg"
-                    />
-                  </ion-thumbnail>
-                  <ion-label>
-                    <h2>Chaz Kangeroo Hoodie-XS-Gray</h2>
-                    <p>12204</p>
-                  </ion-label>
-                </ion-item>
-              </ion-col>
-              <ion-col size="3" class="ion-align-self-center">
-                <ion-item>
-                  <ion-input type="number" value="0" min="0"></ion-input>
-                </ion-item>
-              </ion-col>
-            </ion-row>
-          </ion-card-content>
         </ion-card>
       </div>
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
@@ -136,7 +86,10 @@ import {
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { add, checkmarkDone } from 'ionicons/icons';
+import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
+import Image from "@/components/Image.vue";
+
 
 export default defineComponent({
   name: "Shipment details",
@@ -161,6 +114,13 @@ export default defineComponent({
     IonThumbnail,
     IonTitle,
     IonToolbar,
+    Image
+  },
+  props: ["product"],
+  computed: {
+    ...mapGetters({
+      items: 'product/getCurrent'
+    }),
   },
   methods: {
     async addProduct() {
@@ -172,7 +132,6 @@ export default defineComponent({
     },
     async completeShipment() {
       const alert = await alertController.create({
-        cssClass: "my-custom-class",
         header: "Complete Shipment",
         message:
           "Make sure you have entered the correct quantities for each item before proceeding.",
@@ -182,9 +141,11 @@ export default defineComponent({
     },
   }, 
   setup() {
+    const store = useStore(); 
     return {
       add,
       checkmarkDone,
+      store
     };
   },
 });

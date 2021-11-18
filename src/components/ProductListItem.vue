@@ -1,13 +1,10 @@
 <template>
-  <ion-item button @click="viewProduct()" detail="true" lines="none">
-    <ion-thumbnail slot="start">
-      <img :src="product.mainImageUrl" />
-    </ion-thumbnail>
+  <ion-item button @click="viewProduct()">
     <ion-label>
-      <p>{{ product.productName }}</p>
-      <h3>{{ product.sku }}</h3>
-      <p>{{$filters.getFeature(product.featureHierarchy, '1/COLOR/')}} | {{$filters.getFeature(product.featureHierarchy, '1/SIZE/')}}</p>
+      <h2>{{ product.id }}</h2>
+      <p>{{ product.noOfItem }} {{ (product.noOfItem > 1 ? 'Items' : 'Item') }}</p>
     </ion-label>
+    <ion-note slot="end">{{ product.shipmentStatus }}</ion-note>
   </ion-item>
 </template>
 
@@ -15,8 +12,8 @@
 import { defineComponent } from 'vue'
 import {
   IonItem,
-  IonThumbnail,
-  IonLabel
+  IonLabel,
+  IonNote
 } from '@ionic/vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex';
@@ -25,15 +22,17 @@ export default defineComponent({
   name: "ProductListItem",
   components: {
     IonItem,
-    IonThumbnail,
-    IonLabel
+    IonLabel,
+    IonNote,
   },
   props: ["product"],
   methods: {
     async viewProduct () {
-      //TODO need to implement updateCurrentProduct action
-      await this.store.dispatch('product/updateCurrentProduct', {product: this.product});
-      this.router.push({ path: `/product/${this.product.sku}` })
+       this.store.dispatch('product/setCurrentProduct', { shipmentId: this.product.id }).then((resp) => {
+        if (resp.items) {
+          this.router.push({ path: `/shipment/${this.product.id}` });
+        }
+      });
     }
   },
   setup() {

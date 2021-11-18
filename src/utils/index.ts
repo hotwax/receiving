@@ -1,4 +1,4 @@
-import { toastController } from '@ionic/vue';
+import { toastController, loadingController } from '@ionic/vue';
 
 // TODO Use separate files for specific utilities
 
@@ -16,5 +16,7 @@ const showToast = async (message: string) => {
         })
       return toast.present();
 }
+
+
 
 export { showToast, hasError }

@@ -5,34 +5,32 @@
         <ion-title>{{ $t("Receiving") }}</ion-title>
       </ion-toolbar>
     </ion-header>
-    
     <ion-content :fullscreen="true">
       <div>
-        <ion-searchbar :placeholder="$t('Scan ASN to start receiving')"></ion-searchbar>
-        
-        <ReceivingListItem v-for="product in products" :key="product.Id" :product="product" />
+        <ion-searchbar @ionFocus="selectSearchBarText($event)" v-model="queryString" :placeholder="$t('Scan ASN to start receiving')" v-on:keyup.enter="getProducts()"/>
+
+        <product-list-item v-for="product in products" :key="product.productId" :product="product"/>
 
         <div class="ion-text-center">
-          <ion-button fill="outline" color="dark"><ion-icon :icon="cloudDownloadOutline" slot="start" />{{ $t("Load more shipments") }}</ion-button>
+          <ion-button fill="outline" color="dark"><ion-icon :icon="cloudDownloadOutline" slot="start" @click="loadMoreShipments()" />{{ $t("Load more shipments") }}</ion-button>
         </div>
-      </div> 
+        </div>
     </ion-content>
   </ion-page>
 </template>
 
 <script lang="ts">
 import { IonButton, IonContent, IonHeader, IonIcon, IonPage, IonSearchbar, IonTitle, IonToolbar } from '@ionic/vue';
-import { defineComponent } from 'vue';
-import { mapGetters, useStore } from 'vuex'
+
 import { cloudDownloadOutline } from 'ionicons/icons'
-import ReceivingListItem from '@/components/ReceivingListItem.vue'
-import { translate } from '@/i18n';
-import { showToast } from '@/utils';
+import { defineComponent } from 'vue'
+import { mapGetters, useStore } from 'vuex'
+import ProductListItem from '@/components/ProductListItem.vue'
 
 export default defineComponent({
-  name: 'Receiving',
+  name: "Receiving",
   components: {
-    IonButton,
+     IonButton,
     IonContent,
     IonHeader,
     IonIcon,
@@ -40,20 +38,21 @@ export default defineComponent({
     IonPage,
     IonTitle,
     IonToolbar,
-    ReceivingListItem
-  },
-  data (){
-    return {
-      queryString: ''
-    }
-  },
-  mounted() {
-    this.getProducts;
+    ProductListItem
   },
   computed: {
     ...mapGetters({
       products: 'product/getSearchProducts',
     })
+  },
+  data(){
+    return{
+      viewSize:'',
+      viewIndex:''
+    }
+  },
+  mounted () {
+    this.getProducts(null, null);
   },
   methods: {
     selectSearchBarText(event: any) {
@@ -62,27 +61,24 @@ export default defineComponent({
       })
     },
     async getProducts(vSize: any, vIndex: any) {
-      const viewSize = vSize;
-      const viewIndex = vIndex;
+      const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
+      const viewIndex = vIndex ? vIndex : 0;
       const payload = {
         viewSize,
         viewIndex,
       }
-      if (!this.queryString) {
-        await this.store.dispatch("product/findProduct", payload);
-      } else {
-        showToast(translate("Enter shipment id to search"))
-      }
+      await this.store.dispatch("product/findProduct", payload);
     },
   },
-  setup(){
+  setup() {
     const store = useStore();
+
     return {
       cloudDownloadOutline,
       store
     }
-  }
-});
+  },
+})
 </script>
 
 <style scoped>

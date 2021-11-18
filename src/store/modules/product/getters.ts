@@ -3,11 +3,17 @@ import ProductState from "./ProductState";
 import RootState from "../../RootState";
 
 const getters: GetterTree<ProductState, RootState> = {
-  getCurrent: (state) => {
-    return JSON.parse(JSON.stringify(state.current));
-  },
   getSearchProducts(state) {
     return state.products.list;
+  },
+  getCurrent (state) {
+    return state.current;
+  },
+  isScrollable(state) {
+    return (
+      state.products.list.length > 0 &&
+      state.products.list.length < state.products.total
+    );
   },
 };
 export default getters;

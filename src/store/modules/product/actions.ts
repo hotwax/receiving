@@ -9,17 +9,18 @@ import emitter from '@/event-bus'
 
 
 const actions: ActionTree<ProductState, RootState> = {
-
   async findProduct ({ commit, state }, payload) {
-    if (payload.viewIndex === 0) emitter.emit("presentLoader");
     let resp;
     try {
-      resp = await ProductService.getShipments({
-        "filters": ['viewSize: ' + payload.viewSize , 'viewIndex' + payload.viewIndex , 'facilityId: ' + payload.facilityId , 'statusId: ' + "PURCH_SHIP_SHIPPED"] 
+      resp = await ProductService.fetchProducts({
+        "viewSize": payload.viewSize,
+        "viewIndex": payload.viewIndex,
+        "facilityId": payload.facilityId,
+        "statusId": "PURCH_SHIP_SHIPPED"
       })
-      if (resp.status === 200 && resp.data.response.numFound > 0 && !hasError(resp)) {
-        let products = resp.data.response.docs;
-               const totalProductsCount = resp.data.response.numFound;
+      if (resp.status === 200 && resp.data.count> 0 && !hasError(resp)) {
+        let products = resp.data.docs;
+        const totalProductsCount = resp.data.count;
 
         if (payload.viewIndex && payload.viewIndex > 0) products = state.products.list.concat(products)
         commit(types.PRODUCT_SEARCH_UPDATED, { products: products, totalProductsCount: totalProductsCount })
@@ -33,32 +34,29 @@ const actions: ActionTree<ProductState, RootState> = {
     }
     return resp;
   },
+  async setCurrentProduct ({ commit }, payload) {
+    let resp;
 
-  async setCurrent ({ commit }, payload) {
-    let currentProduct;
-    if ( currentProduct || payload.product) {
-      commit(types.PRODUCT_CURRENT_UPDATED, { product: currentProduct ? currentProduct : payload.product });
-      return currentProduct ? currentProduct : payload.product;
-    } else {
-      try {
-        const query = {
-          "filters": ['shipmentId: ' + payload.queryString]
-        }
-        const resp = await ProductService.getShipments(query)
-        if (resp.status === 200 && resp.data.response.numFound > 0 && !hasError(resp)) {
-          currentProduct = resp.data.response.docs[0];
-          commit(types.PRODUCT_CURRENT_UPDATED, { product: currentProduct });
-        } else {
-          showToast(translate("Product not found"));
-        }
-        emitter.emit("dismissLoader");
-      } catch(error){
-        console.log(error)
-        showToast(translate("Something went wrong"));
+    try {
+      resp = await ProductService.getShipmentProduct({
+        "shipmentId": payload.shipmentId,
+      });
+      console.log(payload);
+      if (resp.status === 200 && resp.data.items&& !hasError(resp)) {
+        commit(types.PRODUCT_CURRENT, { current: resp.data })
+        return resp.data;
+      } else {
+        showToast(translate('Something went wrong'));
+        console.error("error", resp.data._ERROR_MESSAGE_);
+        return Promise.reject(new Error(resp.data._ERROR_MESSAGE_));
       }
+
+    } catch (err) {
+      showToast(translate('Something went wrong'));
+      console.error("error", err);
+      return Promise.reject(new Error(err))
     }
-    return currentProduct;
-  }
+  },
 }
 
 export default actions;

@@ -1,5 +1,5 @@
 export default interface ProductState {
-  current: any;
+  current: object;
   products: {
     list: any;
     total: number;
