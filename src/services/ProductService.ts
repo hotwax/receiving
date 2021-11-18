@@ -11,7 +11,7 @@ const fetchProducts = async (query: any): Promise <any>  => {
 
 const getShipmentProduct= async (query: any): Promise<any> => {
   return api({
-    url: `shipment-detail`,
+    url: "shipment-detail",
     data: query,
     method: 'post'
   });
