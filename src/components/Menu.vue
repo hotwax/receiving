@@ -2,7 +2,7 @@
     <ion-menu content-id="main-content" type="overlay" :disabled="!isUserAuthenticated">
         <ion-header>
           <ion-toolbar>
-            <ion-title>Broadway</ion-title>
+            <ion-title>{{ currentFacility.name }}</ion-title>
           </ion-toolbar>
         </ion-header>
 
@@ -67,7 +67,8 @@ export default defineComponent({
   },
   computed: {
     ...mapGetters({
-      isUserAuthenticated: 'user/isUserAuthenticated'
+      isUserAuthenticated: 'user/isUserAuthenticated',
+      currentFacility: 'user/getCurrentFacility',
     })
   },
   watch:{

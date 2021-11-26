@@ -36,7 +36,7 @@
               </ion-col>
               <ion-col size="3" class="ion-align-self-center">
                 <ion-item>
-                  <ion-input type="number" :value="item.quantityAccepted" min="0"></ion-input>
+                  <ion-input type="number" v-model="item.quantityAccepted"></ion-input>
                 </ion-item>
               </ion-col>
             </ion-row>
@@ -89,6 +89,10 @@ import { add, checkmarkDone } from 'ionicons/icons';
 import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
 import Image from "@/components/Image.vue";
+import { useRouter } from 'vue-router';
+import { showToast } from '@/utils'
+import { translate } from '@/i18n'
+
 
 
 export default defineComponent({
@@ -119,7 +123,9 @@ export default defineComponent({
   props: ["product"],
   computed: {
     ...mapGetters({
-      items: 'product/getCurrent'
+      items: 'product/getCurrent',
+      user: 'user/getCurrentFacility'
+
     }),
   },
   methods: {
@@ -135,17 +141,49 @@ export default defineComponent({
         header: "Complete Shipment",
         message:
           "Make sure you have entered the correct quantities for each item before proceeding.",
-        buttons: ["Cancel", "Complete"],
+        buttons: [
+            {
+              text: this.$t("Cancel"),
+              role: 'cancel',
+            }, 
+            {
+              text:this.$t('Complete'),
+              handler: () => {
+                this.updateShipments();
+              },
+            },],
       });
       return alert.present();
+    },
+    async updateShipments() {
+      this.items.items.filter((item: any) => {
+        if(item.quantityAccepted > 0) {
+          const payload = {
+            shipmentId: this.items.shipmentId,
+            facilityId: this.user.facilityId,
+            shipmentItemSeqId: this.items.shipmentItemSeqId,
+            productId: item.productId,
+            quantityAccepted: item.quantityAccepted,
+            locationSeqId: this.items.locationSeqId
+          }
+          this.store.dispatch('product/updateShipmentProducts', payload).then(() => {
+            this.router.push('/receiving');
+            })
+        } else {
+          showToast(translate("ZeroQuantity"))
+        }
+      }
+      )
     },
   }, 
   setup() {
     const store = useStore(); 
+    const router = useRouter();
     return {
       add,
       checkmarkDone,
-      store
+      store,
+      router
     };
   },
 });

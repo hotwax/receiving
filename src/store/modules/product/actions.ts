@@ -20,10 +20,9 @@ const actions: ActionTree<ProductState, RootState> = {
       })
       if (resp.status === 200 && resp.data.count> 0 && !hasError(resp)) {
         let products = resp.data.docs;
-        const totalProductsCount = resp.data.count;
 
         if (payload.viewIndex && payload.viewIndex > 0) products = state.products.list.concat(products)
-        commit(types.PRODUCT_SEARCH_UPDATED, { products: products, totalProductsCount: totalProductsCount })
+        commit(types.PRODUCT_SEARCH_UPDATED, { products: products })
       } else {
         showToast(translate("Product not found"));
       }
@@ -41,7 +40,6 @@ const actions: ActionTree<ProductState, RootState> = {
       resp = await ProductService.getShipmentProduct({
         "shipmentId": payload.shipmentId,
       });
-      console.log(payload);
       if (resp.status === 200 && resp.data.items&& !hasError(resp)) {
         commit(types.PRODUCT_CURRENT, { current: resp.data })
         return resp.data;
@@ -57,6 +55,35 @@ const actions: ActionTree<ProductState, RootState> = {
       return Promise.reject(new Error(err))
     }
   },
+  async updateShipmentProducts({ commit }, payload) {
+    emitter.emit("presentLoader");
+    let resp;
+    try {
+      resp = await ProductService.receiveShipmentItems({
+        "shipmentId": payload.shipmentId,
+        "facilityId": payload.facilityId,
+        "shipmentItemSeqId": payload.itemSeqId,
+        "productId": payload.productId,
+        "quantityAccepted": payload.quantityAccepted,
+        "locationSeqId": payload.locationSeqId
+      });
+      if (resp.status == 200 && !hasError(resp)) {
+        showToast(translate("Shipment Received Successfully") + ' ' + payload.shipmentId)
+        await ProductService.updateShipments({
+          "shipmentId": payload.shipmentId,
+          "statusId": "PURCH_SHIP_SHIPPED"
+        })
+        commit(types.PRODUCT_REMOVE_FROM_SHPMT_PRDTS, {shipmentId: payload.shipmentId});
+      } else {
+        showToast(translate("Something went wrong"))
+      }
+      emitter.emit("dismissLoader");
+    } catch (error) {
+      console.log(error);
+      showToast(translate("Something went wrong"));
+    } 
+    return resp;
+  }
 }
 
 export default actions;

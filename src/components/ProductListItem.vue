@@ -4,7 +4,7 @@
       <h2>{{ product.id }}</h2>
       <p>{{ product.noOfItem }} {{ (product.noOfItem > 1 ? 'Items' : 'Item') }}</p>
     </ion-label>
-    <ion-note slot="end">{{ product.shipmentStatus }}</ion-note>
+    <ion-note slot="end">{{ product.estimatedArrivalDate && product.shipmentStatus !== "Received"  ? ($filters.formatDate(product.estimatedArrivalDate)) : product.shipmentStatus }}</ion-note>
   </ion-item>
 </template>
 

@@ -9,9 +9,9 @@ const productModule: Module<ProductState, RootState> = {
     namespaced: true,
     state: {
       current: {},
+      updateShipmentProducts:{},
       products: {
-        list: {},
-        total: 0
+        list: {}
       }
     },
     getters,
