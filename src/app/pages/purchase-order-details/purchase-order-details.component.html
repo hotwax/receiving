@@ -1,0 +1,65 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ 'Purchase Order Details' | translate }}</ion-title>
+    <ion-buttons slot="primary" *ngIf="shipment.statusId === 'PURCH_SHIP_SHIPPED'">
+      <ion-button *ngIf="!(platform.is('desktop'))">
+        <ion-icon slot="icon-only" name="barcode-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end" (click)="addProduct()" *ngIf="shipment.statusId === 'PURCH_SHIP_SHIPPED'">
+      <ion-button>
+        <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+<ion-content>
+  <div>
+    <ion-item lines="none">
+      <h1>{{ 'Purchase Order ID' | translate }} : {{ shipment?.shipmentId }}</h1>
+      <ion-text color="success" slot="end" *ngIf="shipment.statusId === 'PURCH_SHIP_RECEIVED'">
+        <h1>{{ shipment?.statusDesc }}</h1>
+      </ion-text>
+    </ion-item>
+    <ion-item *ngIf="shipment.statusId === 'PURCH_SHIP_SHIPPED'">
+      <ion-input [(ngModel)]="SKU" placeholder="{{ 'ScanBarcodesToReceive' | translate }}" (keypress)="scanProduct($event, SKU)" clearInput="true"></ion-input>
+    </ion-item>
+    <ion-card *ngFor="let item of shipment.items">
+      <ion-card-content>
+        <ion-row>
+          <ion-col size="9">
+            <ion-item lines="none">
+              <ion-thumbnail slot="start">
+                <image [src]="item.imageUrl" title= "{{ item?.productName }}"></image>
+              </ion-thumbnail>
+              <ion-label>
+                <h2 [innerHTML]="item.productName" ></h2>
+                <p>{{ item?.productId }}</p>
+              </ion-label>
+            </ion-item>
+          </ion-col>
+          <ion-col size="3" class="ion-align-self-center">
+            <ion-item>
+              <ion-input [value]="item?.quantityAccepted" type="number" #qty min="0" [readonly]="shipment.statusId === 'PURCH_SHIP_RECEIVED' ? true : false" (input)="setAcceptedQuantity(item, qty.value)"></ion-input>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+      </ion-card-content>
+      <ion-item class="border-top" *ngIf="item?.quantityOrdered > 0">
+        <ion-button slot="start" fill="outline" (click)="receiveAll(item)" *ngIf="shipment.statusId === 'PURCH_SHIP_SHIPPED'">
+          {{ 'ReceiveAll' | translate}}
+        </ion-button>
+        <ion-progress-bar [value]="item.progress" color="{{ item.progress > 1 ? 'danger' : 'primary'}}"></ion-progress-bar>
+        <p slot="end">{{ item?.quantityOrdered }}</p>
+      </ion-item>
+    </ion-card>
+  </div>
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" (click)="receiveShipmentItems()" *ngIf="shipment.statusId === 'PURCH_SHIP_SHIPPED'">
+    <ion-fab-button>
+      <ion-icon name="checkmark-done"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

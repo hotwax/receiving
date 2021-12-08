@@ -36,7 +36,21 @@ const routes: Routes = [
     loadChildren: () => import('../app/pages/settings/settings.module').then( m => m.SettingsPageModule)
   },
   {
-    path: 'shopify-install',
+    path: 'purchase-order',
+    canLoad: [AuthGuard],
+    children: [
+      {
+        path: '',
+        loadChildren: () => import('../app/pages/purchase-order/purchase-order.module').then(m => m.PurchaseOrderModule),
+      },
+      {
+        path: ':id',
+        loadChildren: () => import('../app/pages/purchase-order-details/purchase-order-details.module').then( m => m.PurchaseOrderDetailsModule)
+      }
+    ]
+  },
+  {
+      path: 'shopify-install',
     loadChildren: () => import('../app/pages/shopify-install/shopify-install.module').then( m => m.ShopifyInstallPageModule)
   },
 ];
