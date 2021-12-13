@@ -36,10 +36,10 @@
             </ion-item>
           </div>
           <ion-item class="border-top">
-            <ion-button color="dark" slot="start" fill="outline">
+            <ion-button @click="receiveAll(item)" color="dark" slot="start" fill="outline">
               {{ $t("ReceiveAll") }}
             </ion-button>
-            <ion-progress-bar value="1" color="dark"></ion-progress-bar>
+            <ion-progress-bar :value="item.quantityAccepted" color="dark"></ion-progress-bar>
             <p slot="end">{{ item.quantityOrdered }}</p>
           </ion-item>
         </ion-card>
@@ -162,9 +162,16 @@ export default defineComponent({
         } else {
           showToast(translate("ZeroQuantity"))
         }
-      }
-      )
+      })
     },
+    receiveAll(item: any) {
+      this.items.items.filter((ele: any) => {
+        if(ele.itemSeqId == item.itemSeqId) {
+          ele.quantityAccepted = ele.quantityOrdered;
+          ele.progress = ele.quantityAccepted / ele.quantityOrdered
+        }
+      })
+    }
   }, 
   setup() {
     const store = useStore(); 
