@@ -21,26 +21,20 @@
           </ion-label>
         </ion-item>
         <ion-card v-for="item in items.items" :key="item.id">
-          <ion-card-content>
-            <ion-row>
-              <ion-col size="9">
-                <ion-item lines="none">
-                  <ion-thumbnail slot="start">
-                    <Image :src="item.imageUrl" />
-                  </ion-thumbnail>
-                  <ion-label>
-                    <h2>{{ item.sku }}</h2>
-                    <p>{{ item.productId }}</p>
-                  </ion-label>
-                </ion-item>
-              </ion-col>
-              <ion-col size="3" class="ion-align-self-center">
-                <ion-item>
-                  <ion-input type="number" v-model="item.quantityAccepted"></ion-input>
-                </ion-item>
-              </ion-col>
-            </ion-row>
-          </ion-card-content>
+          <div class="product-info">
+            <ion-item lines="none">
+              <ion-thumbnail slot="start">
+                <Image :src="item.imageUrl" />
+              </ion-thumbnail>
+              <ion-label>
+                <h2>{{ item.sku }}</h2>
+                <p>{{ item.productId }}</p>
+              </ion-label>
+            </ion-item>
+            <ion-item class="product-count">
+              <ion-input type="number" v-model="item.quantityAccepted"></ion-input>
+            </ion-item>
+          </div>
           <ion-item class="border-top">
             <ion-button color="dark" slot="start" fill="outline">
               {{ $t("ReceiveAll") }}
@@ -65,8 +59,6 @@ import {
   IonButton,
   IonButtons,
   IonCard,
-  IonCardContent,
-  IonCol,
   IonContent,
   IonHeader,
   IonFab,
@@ -77,7 +69,6 @@ import {
   IonLabel,
   IonPage,
   IonProgressBar,
-  IonRow,
   IonThumbnail,
   IonTitle,
   IonToolbar,
@@ -102,8 +93,6 @@ export default defineComponent({
     IonButton,
     IonButtons,
     IonCard,
-    IonCardContent,
-    IonCol,
     IonContent,
     IonHeader,
     IonFab,
@@ -114,7 +103,6 @@ export default defineComponent({
     IonLabel,
     IonPage,
     IonProgressBar,
-    IonRow,
     IonThumbnail,
     IonTitle,
     IonToolbar,
@@ -190,6 +178,7 @@ export default defineComponent({
   },
 });
 </script>
+
 <style scoped>
 ion-content div {
   max-width: 1110px;
@@ -203,5 +192,16 @@ img {
 
 .border-top {
   border-top: 1px solid #ccc;
+}
+
+.product-info {
+  display: grid;
+  grid-template-columns: auto .25fr;
+  align-items: center;
+  padding: 16px;
+}
+
+.product-count {
+  min-width: 9ch;
 }
 </style>
