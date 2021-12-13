@@ -161,12 +161,14 @@ export default defineComponent({
           const payload = {
             shipmentId: this.items.shipmentId,
             facilityId: this.user.facilityId,
-            shipmentItemSeqId: this.items.shipmentItemSeqId,
+            shipmentItemSeqId: item.itemSeqId,
             productId: item.productId,
             quantityAccepted: item.quantityAccepted,
             locationSeqId: this.items.locationSeqId
           }
+          console.log(this.items)
           this.store.dispatch('product/updateShipmentProducts', payload).then(() => {
+            console.log(payload)
             this.router.push('/receiving');
             })
         } else {

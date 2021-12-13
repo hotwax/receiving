@@ -59,20 +59,14 @@ const actions: ActionTree<ProductState, RootState> = {
     emitter.emit("presentLoader");
     let resp;
     try {
-      resp = await ProductService.receiveShipmentItems({
-        "shipmentId": payload.shipmentId,
-        "facilityId": payload.facilityId,
-        "shipmentItemSeqId": payload.itemSeqId,
-        "productId": payload.productId,
-        "quantityAccepted": payload.quantityAccepted,
-        "locationSeqId": payload.locationSeqId
-      });
+      resp = await ProductService.receiveShipmentItems(payload);
       if (resp.status == 200 && !hasError(resp)) {
         showToast(translate("Shipment Received Successfully") + ' ' + payload.shipmentId)
         await ProductService.updateShipments({
           "shipmentId": payload.shipmentId,
-          "statusId": "PURCH_SHIP_SHIPPED"
+          "statusId": "PURCH_SHIP_RECEIVED"
         })
+
         commit(types.PRODUCT_REMOVE_FROM_SHPMT_PRDTS, {shipmentId: payload.shipmentId});
       } else {
         showToast(translate("Something went wrong"))
