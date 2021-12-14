@@ -1,4 +1,4 @@
-import { toastController, loadingController } from '@ionic/vue';
+import { toastController } from '@ionic/vue';
 
 // TODO Use separate files for specific utilities
 

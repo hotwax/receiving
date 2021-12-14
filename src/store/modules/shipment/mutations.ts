@@ -16,4 +16,3 @@ const mutations: MutationTree <ShipmentState> = {
   }
 }
 export default mutations;
-

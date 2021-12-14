@@ -29,7 +29,7 @@ import ShipmentListItem from '@/components/ShipmentListItem.vue'
 export default defineComponent({
   name: "Receiving",
   components: {
-     IonButton,
+    IonButton,
     IonContent,
     IonHeader,
     IonIcon,
