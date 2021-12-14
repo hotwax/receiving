@@ -3,7 +3,7 @@
     <ion-header :translucent="true">
       <ion-toolbar>
         <ion-back-button default-href="/" slot="start"></ion-back-button>
-        <ion-title>Shipment Details</ion-title>
+        <ion-title>{{ $t("Shipment Details") }}</ion-title>
         <ion-buttons slot="end">
           <ion-button @click="addProduct"><ion-icon :icon="add"/></ion-button>
         </ion-buttons>
@@ -13,11 +13,11 @@
     <ion-content :fullscreen="true">
       <div>
         <ion-item lines="none">
-          <h1>Shipment ID: {{ items.shipmentId }}</h1>
+          <h1>{{ $t("Shipment ID") }} : {{ items.shipmentId }}</h1>
         </ion-item>
         <ion-item>
           <ion-label>
-            <ion-input placeholder="Scan barcodes to receive"></ion-input>
+            <ion-input :placeholder="$t('Scan barcodes to receive')"></ion-input>
           </ion-label>
         </ion-item>
         <ion-card v-for="item in items.items" :key="item.id">
@@ -125,7 +125,7 @@ export default defineComponent({
       const alert = await alertController.create({
         header: "Complete Shipment",
         message:
-          "Make sure you have entered the correct quantities for each item before proceeding.",
+          (translate("Make sure you have entered the correct quantities for each item before proceeding.")),
         buttons: [
           {
             text: this.$t("Cancel"),
@@ -166,7 +166,7 @@ export default defineComponent({
   setup() {
     const store = useStore(); 
     const router = useRouter();
-    
+
     return {
       add,
       checkmarkDone,
