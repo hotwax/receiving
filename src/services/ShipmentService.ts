@@ -34,7 +34,7 @@ const updateShipments = async (query: any): Promise <any> => {
 }
 
 
-export const ProductService = {
+export const ShipmentService = {
   fetchProducts,
   getShipmentProduct,
   receiveShipmentItems,

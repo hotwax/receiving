@@ -1,4 +1,4 @@
-import { ProductService } from "@/services/ProductService";
+import { ShipmentService } from "@/services/ShipmentService";
 import { ActionTree } from 'vuex'
 import RootState from '@/store/RootState'
 import ProductState from './ProductState'
@@ -12,7 +12,7 @@ const actions: ActionTree<ProductState, RootState> = {
   async findProduct ({ commit, state }, payload) {
     let resp;
     try {
-      resp = await ProductService.fetchProducts({
+      resp = await ShipmentService.fetchProducts({
         "viewSize": payload.viewSize,
         "viewIndex": payload.viewIndex,
         "facilityId": payload.facilityId,
@@ -37,7 +37,7 @@ const actions: ActionTree<ProductState, RootState> = {
     let resp;
 
     try {
-      resp = await ProductService.getShipmentProduct({
+      resp = await ShipmentService.getShipmentProduct({
         "shipmentId": payload.shipmentId,
       });
       if (resp.status === 200 && resp.data.items&& !hasError(resp)) {
@@ -59,10 +59,10 @@ const actions: ActionTree<ProductState, RootState> = {
     emitter.emit("presentLoader");
     let resp;
     try {
-      resp = await ProductService.receiveShipmentItems(payload);
+      resp = await ShipmentService.receiveShipmentItems(payload);
       if (resp.status == 200 && !hasError(resp)) {
         showToast(translate("Shipment Received Successfully") + ' ' + payload.shipmentId)
-        await ProductService.updateShipments({
+        await ShipmentService.updateShipments({
           "shipmentId": payload.shipmentId,
           "statusId": "PURCH_SHIP_RECEIVED"
         })
