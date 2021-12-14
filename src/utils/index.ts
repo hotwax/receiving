@@ -17,6 +17,4 @@ const showToast = async (message: string) => {
       return toast.present();
 }
 
-
-
 export { showToast, hasError }
