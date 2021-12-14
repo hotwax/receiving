@@ -1,8 +1,8 @@
 import { GetterTree } from "vuex";
-import ProductState from "./ProductState";
+import ShipmentState from "./ShipmentState";
 import RootState from "../../RootState";
 
-const getters: GetterTree<ProductState, RootState> = {
+const getters: GetterTree<ShipmentState, RootState> = {
   getSearchProducts(state) {
     return state.products.list;
   },

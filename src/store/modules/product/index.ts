@@ -2,10 +2,10 @@ import actions from './actions'
 import getters from './getters'
 import mutations from './mutations'
 import { Module } from 'vuex'
-import ProductState from './ProductState'
+import ShipmentState from './ShipmentState'
 import RootState from '../../RootState'
 
-const productModule: Module<ProductState, RootState> = {
+const productModule: Module<ShipmentState, RootState> = {
     namespaced: true,
     state: {
       current: {},

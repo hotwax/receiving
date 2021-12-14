@@ -1,4 +1,4 @@
-export default interface ProductState {
+export default interface ShipmentState {
   current: object;
   updateShipmentProducts: any;
   products: {

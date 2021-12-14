@@ -1,8 +1,8 @@
 import { MutationTree } from 'vuex'
-import ProductState from './ProductState'
+import ShipmentState from './ShipmentState'
 import * as types from './mutation-types'
 
-const mutations: MutationTree <ProductState> = {
+const mutations: MutationTree <ShipmentState> = {
   [types.PRODUCT_SEARCH_UPDATED] (state, payload) {
     payload.products.map((shipment: any) => {
       state.products.list[shipment.id] = shipment;

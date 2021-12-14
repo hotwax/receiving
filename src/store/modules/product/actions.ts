@@ -1,14 +1,14 @@
 import { ShipmentService } from "@/services/ShipmentService";
 import { ActionTree } from 'vuex'
 import RootState from '@/store/RootState'
-import ProductState from './ProductState'
+import ShipmentState from './ShipmentState'
 import * as types from './mutation-types'
 import { hasError, showToast } from '@/utils'
 import { translate } from '@/i18n'
 import emitter from '@/event-bus'
 
 
-const actions: ActionTree<ProductState, RootState> = {
+const actions: ActionTree<ShipmentState, RootState> = {
   async findProduct ({ commit, state }, payload) {
     let resp;
     try {
