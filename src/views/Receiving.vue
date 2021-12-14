@@ -52,7 +52,7 @@ export default defineComponent({
     }
   },
   mounted () {
-    this.getShipments(null, null);
+    this.getShipments();
   },
   methods: {
     selectSearchBarText(event: any) {
