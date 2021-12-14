@@ -111,7 +111,7 @@ export default defineComponent({
   props: ["product"],
   computed: {
     ...mapGetters({
-      items: 'product/getCurrent',
+      items: 'shipment/getCurrent',
       user: 'user/getCurrentFacility'
 
     }),
@@ -155,7 +155,7 @@ export default defineComponent({
             locationSeqId: this.items.locationSeqId
           }
           console.log(this.items)
-          this.store.dispatch('product/updateShipmentProducts', payload).then(() => {
+          this.store.dispatch('shipment/updateShipmentProducts', payload).then(() => {
             console.log(payload)
             this.router.push('/receiving');
             })

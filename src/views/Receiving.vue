@@ -41,7 +41,7 @@ export default defineComponent({
   },
   computed: {
     ...mapGetters({
-      products: 'product/getSearchProducts',
+      products: 'shipment/getSearchProducts',
       user: 'user/getCurrentFacility'
     })
   },
@@ -68,7 +68,7 @@ export default defineComponent({
         viewIndex,
         facilityId: this.user.facilityId
       }
-      await this.store.dispatch("product/findShipment", payload);
+      await this.store.dispatch("shipment/findShipment", payload);
     },
   },
   setup() {
