@@ -5,12 +5,12 @@ import { Module } from 'vuex'
 import ShipmentState from './ShipmentState'
 import RootState from '../../RootState'
 
-const productModule: Module<ShipmentState, RootState> = {
+const shipmentModule: Module<ShipmentState, RootState> = {
     namespaced: true,
     state: {
       current: {},
       updateShipmentProducts:{},
-      products: {
+      shipments: {
         list: {}
       }
     },
@@ -19,4 +19,4 @@ const productModule: Module<ShipmentState, RootState> = {
     mutations,
 }
 
-export default productModule;
+export default shipmentModule;

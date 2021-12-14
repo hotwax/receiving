@@ -4,7 +4,7 @@ import RootState from "../../RootState";
 
 const getters: GetterTree<ShipmentState, RootState> = {
   getSearchProducts(state) {
-    return state.products.list;
+    return state.shipments.list;
   },
   getCurrent (state) {
     return state.current;

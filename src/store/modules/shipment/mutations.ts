@@ -3,19 +3,16 @@ import ShipmentState from './ShipmentState'
 import * as types from './mutation-types'
 
 const mutations: MutationTree <ShipmentState> = {
-  [types.PRODUCT_SEARCH_UPDATED] (state, payload) {
-    payload.products.map((shipment: any) => {
-      state.products.list[shipment.id] = shipment;
+  [types.SHIPMENT_SEARCH_UPDATED] (state, payload) {
+    payload.shipments.map((shipment: any) => {
+      state.shipments.list[shipment.id] = shipment;
     })
   },
-  [types.PRODUCT_CURRENT] (state, payload) {
+  [types.SHIPMENT_CURRENT] (state, payload) {
     state.current = payload.current;
   },
-  [types.PRODUCT_ADD_TO_SHPMT_PRDTS] (state, payload) {
-      state.updateShipmentProducts = payload.products;
-  },
-  [types.PRODUCT_REMOVE_FROM_SHPMT_PRDTS] (state, payload) {
-     delete state.products.list[payload.shipmentId];
+  [types.SHIPMENT_REMOVE_FROM_SHPMT_PRDTS] (state, payload) {
+     delete state.shipments.list[payload.shipmentId];
   }
 }
 export default mutations;

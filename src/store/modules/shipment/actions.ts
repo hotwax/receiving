@@ -19,10 +19,10 @@ const actions: ActionTree<ShipmentState, RootState> = {
         "statusId": "PURCH_SHIP_SHIPPED"
       })
       if (resp.status === 200 && resp.data.count> 0 && !hasError(resp)) {
-        let products = resp.data.docs;
+        let shipments = resp.data.docs;
 
-        if (payload.viewIndex && payload.viewIndex > 0) products = state.products.list.concat(products)
-        commit(types.PRODUCT_SEARCH_UPDATED, { products: products })
+        if (payload.viewIndex && payload.viewIndex > 0) shipments = state.shipments.list.concat(shipments)
+        commit(types.SHIPMENT_SEARCH_UPDATED, { shipments: shipments })
       } else {
         showToast(translate("Product not found"));
       }
@@ -33,7 +33,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
     }
     return resp;
   },
-  async setCurrentProduct ({ commit }, payload) {
+  async setCurrentShipment ({ commit }, payload) {
     let resp;
 
     try {
@@ -41,7 +41,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
         "shipmentId": payload.shipmentId,
       });
       if (resp.status === 200 && resp.data.items&& !hasError(resp)) {
-        commit(types.PRODUCT_CURRENT, { current: resp.data })
+        commit(types.SHIPMENT_CURRENT, { current: resp.data })
         return resp.data;
       } else {
         showToast(translate('Something went wrong'));
@@ -67,7 +67,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
           "statusId": "PURCH_SHIP_RECEIVED"
         })
 
-        commit(types.PRODUCT_REMOVE_FROM_SHPMT_PRDTS, {shipmentId: payload.shipmentId});
+        commit(types.SHIPMENT_REMOVE_FROM_SHPMT_PRDTS, {shipmentId: payload.shipmentId});
       } else {
         showToast(translate("Something went wrong"))
       }
