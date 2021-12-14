@@ -66,7 +66,6 @@ const actions: ActionTree<ShipmentState, RootState> = {
           "shipmentId": payload.shipmentId,
           "statusId": "PURCH_SHIP_RECEIVED"
         })
-
         commit(types.SHIPMENT_REMOVE_FROM_SHPMT_PRDTS, {shipmentId: payload.shipmentId});
       } else {
         showToast(translate("Something went wrong"))
