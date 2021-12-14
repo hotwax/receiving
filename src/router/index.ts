@@ -4,6 +4,7 @@ import Receiving from '@/views/Receiving.vue'
 import Shipment from '@/views/Shipment.vue'
 import Login from '@/views/Login.vue'
 import Settings from "@/views/Settings.vue"
+import PurchaseOrders from "@/views/PurchaseOrders.vue"
 import store from '@/store'
 
 const authGuard = (to: any, from: any, next: any) => {
@@ -49,6 +50,12 @@ const routes: Array<RouteRecordRaw> = [
     path: "/settings",
     name: "Settings",
     component: Settings,
+    beforeEnter: authGuard
+  },
+  {
+    path: '/purchase-orders',
+    name: 'PurchaseOrders',
+    component: PurchaseOrders,
     beforeEnter: authGuard
   }
 ]

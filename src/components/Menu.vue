@@ -17,7 +17,7 @@
                 class="hydrated"
                 :class="{ selected: selectedIndex === i }"
               >
-                <ion-icon slot="start" :ios="p.iosIcon" :md="p.mdIcon"></ion-icon>
+                <ion-icon slot="start" :ios="p.iosIcon" :md="p.mdIcon" />
                 <ion-label>{{ p.title }}</ion-label>
               </ion-item>
             </ion-menu-toggle>
@@ -41,8 +41,7 @@ import {
 } from "@ionic/vue";
 import { defineComponent, ref } from "vue";
 import { mapGetters } from "vuex";
-
-import { downloadOutline, settings } from "ionicons/icons";
+import { calendar, downloadOutline, settings } from "ionicons/icons";
 import { useStore } from "@/store";
 
 export default defineComponent({
@@ -89,18 +88,25 @@ export default defineComponent({
         mdIcon: downloadOutline,
       },
       {
+        title: "Purchase Orders",
+        url: "/purchase-orders",
+        iosIcon: calendar,
+        mdIcon: calendar
+      },
+      {
         title: "Settings",
         url: "/settings",
         iosIcon: settings,
         mdIcon: settings,
-      },
+      }
     ];
     return {
       selectedIndex,
       appPages,
       downloadOutline,
       settings,
-      store
+      store,
+      calendar
     };
   },
 });
