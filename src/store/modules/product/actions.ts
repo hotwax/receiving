@@ -9,7 +9,7 @@ import emitter from '@/event-bus'
 
 
 const actions: ActionTree<ShipmentState, RootState> = {
-  async findProduct ({ commit, state }, payload) {
+  async findShipment ({ commit, state }, payload) {
     let resp;
     try {
       resp = await ShipmentService.fetchProducts({

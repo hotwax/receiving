@@ -68,7 +68,7 @@ export default defineComponent({
         viewIndex,
         facilityId: this.user.facilityId
       }
-      await this.store.dispatch("product/findProduct", payload);
+      await this.store.dispatch("product/findShipment", payload);
     },
   },
   setup() {
