@@ -21,7 +21,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
         let shipments = resp.data.docs;
 
         if (payload.viewIndex && payload.viewIndex > 0) shipments = state.shipments.list.concat(shipments)
-        commit(types.SHIPMENT_SEARCH_UPDATED, { shipments: shipments })
+        commit(types.SHIPMENT_SEARCH_UPDATED, { shipments })
       } else {
         showToast(translate("Product not found"));
       }

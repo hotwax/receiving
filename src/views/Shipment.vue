@@ -152,9 +152,7 @@ export default defineComponent({
             quantityAccepted: item.quantityAccepted,
             locationSeqId: this.items.locationSeqId
           }
-          console.log(this.items)
           this.store.dispatch('shipment/updateShipmentProducts', payload).then(() => {
-            console.log(payload)
             this.router.push('/receiving');
             })
         } else {
