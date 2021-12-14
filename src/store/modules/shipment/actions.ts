@@ -37,9 +37,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
     let resp;
 
     try {
-      resp = await ShipmentService.getShipmentProduct({
-        "shipmentId": payload.shipmentId,
-      });
+      resp = await ShipmentService.getShipmentProduct(payload);
       if (resp.status === 200 && resp.data.items&& !hasError(resp)) {
         commit(types.SHIPMENT_CURRENT, { current: resp.data })
         return resp.data;
