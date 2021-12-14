@@ -9,7 +9,7 @@
       <div>
         <ion-searchbar :placeholder="$t('Scan ASN to start receiving')"/>
 
-        <product-list-item v-for="product in products" :key="product.productId" :product="product"/>
+        <shipment-list-item v-for="product in products" :key="product.productId" :product="product"/>
 
         <div class="ion-text-center">
           <ion-button fill="outline" color="dark"><ion-icon :icon="cloudDownloadOutline" slot="start" @click="loadMoreShipments()" />{{ $t("Load more shipments") }}</ion-button>
@@ -24,7 +24,7 @@ import { IonButton, IonContent, IonHeader, IonIcon, IonPage, IonSearchbar, IonTi
 import { cloudDownloadOutline } from 'ionicons/icons'
 import { defineComponent } from 'vue'
 import { mapGetters, useStore } from 'vuex'
-import ProductListItem from '@/components/ProductListItem.vue'
+import ShipmentListItem from '@/components/ShipmentListItem.vue'
 
 export default defineComponent({
   name: "Receiving",
@@ -37,7 +37,7 @@ export default defineComponent({
     IonPage,
     IonTitle,
     IonToolbar,
-    ProductListItem
+    ShipmentListItem
   },
   computed: {
     ...mapGetters({

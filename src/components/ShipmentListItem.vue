@@ -19,7 +19,7 @@ import { useRouter } from 'vue-router'
 import { useStore } from 'vuex';
 
 export default defineComponent({
-  name: "ProductListItem",
+  name: "ShipmentListItem",
   components: {
     IonItem,
     IonLabel,
