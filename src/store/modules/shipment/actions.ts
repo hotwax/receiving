@@ -12,7 +12,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
   async findShipment ({ commit, state }, payload) {
     let resp;
     try {
-      resp = await ShipmentService.fetchProducts({
+      resp = await ShipmentService.fetchShipments({
         "viewSize": payload.viewSize,
         "viewIndex": payload.viewIndex,
         "facilityId": payload.facilityId,

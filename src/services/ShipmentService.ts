@@ -1,6 +1,6 @@
 import api from '@/api';
 
-const fetchProducts = async (query: any): Promise <any>  => {
+const fetchShipments = async (query: any): Promise <any>  => {
   return api({
     url: "incoming-shipments", 
     method: "post",
@@ -35,7 +35,7 @@ const updateShipments = async (query: any): Promise <any> => {
 
 
 export const ShipmentService = {
-  fetchProducts,
+  fetchShipments,
   getShipmentProduct,
   receiveShipmentItems,
   updateShipments
