@@ -9,7 +9,7 @@
       <div>
         <ion-searchbar :placeholder="$t('Scan ASN to start receiving')"/>
 
-        <shipment-list-item v-for="product in products" :key="product.productId" :product="product"/>
+        <shipment-list-item v-for="shipment in shipments" :key="shipment.productId" :shipment="shipment"/>
 
         <div class="ion-text-center">
           <ion-button fill="outline" color="dark"><ion-icon :icon="cloudDownloadOutline" slot="start" @click="loadMoreShipments()" />{{ $t("Load more shipments") }}</ion-button>
@@ -41,7 +41,7 @@ export default defineComponent({
   },
   computed: {
     ...mapGetters({
-      products: 'shipment/getSearchProducts',
+      shipments: 'shipment/getSearchProducts',
       user: 'user/getCurrentFacility'
     })
   },
@@ -52,7 +52,7 @@ export default defineComponent({
     }
   },
   mounted () {
-    this.getProducts(null, null);
+    this.getShipments(null, null);
   },
   methods: {
     selectSearchBarText(event: any) {
@@ -60,7 +60,7 @@ export default defineComponent({
         element.select();
       })
     },
-    async getProducts(vSize: any, vIndex: any) {
+    async getShipments(vSize: any, vIndex: any) {
       const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
       const viewIndex = vIndex ? vIndex : 0;
       const payload = {

@@ -1,10 +1,10 @@
 <template>
-  <ion-item button @click="viewProduct()">
+  <ion-item button @click="viewShipment()">
     <ion-label>
-      <h2>{{ product.id }}</h2>
-      <p>{{ product.noOfItem }} {{ (product.noOfItem > 1 ? 'Items' : 'Item') }}</p>
+      <h2>{{ shipment.id }}</h2>
+      <p>{{ shipment.noOfItem }} {{ (shipment.noOfItem > 1 ? 'Items' : 'Item') }}</p>
     </ion-label>
-    <ion-note slot="end">{{ product.estimatedArrivalDate && product.shipmentStatus !== "Received"  ? ($filters.formatDate(product.estimatedArrivalDate)) : product.shipmentStatus }}</ion-note>
+    <ion-note slot="end">{{ shipment.estimatedArrivalDate && shipment.shipmentStatus !== "Received"  ? ($filters.formatDate(shipment.estimatedArrivalDate)) : shipment.shipmentStatus }}</ion-note>
   </ion-item>
 </template>
 
@@ -25,12 +25,12 @@ export default defineComponent({
     IonLabel,
     IonNote,
   },
-  props: ["product"],
+  props: ["shipment"],
   methods: {
-    async viewProduct () {
-       this.store.dispatch('shipment/setCurrentProduct', { shipmentId: this.product.id }).then((resp) => {
+    async viewShipment () {
+       this.store.dispatch('shipment/setCurrentProduct', { shipmentId: this.shipment.id }).then((resp) => {
         if (resp.items) {
-          this.router.push({ path: `/shipment/${this.product.id}` });
+          this.router.push({ path: `/shipment/${this.shipment.id}` });
         }
       });
     }
