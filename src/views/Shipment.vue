@@ -84,8 +84,6 @@ import { useRouter } from 'vue-router';
 import { showToast } from '@/utils'
 import { translate } from '@/i18n'
 
-
-
 export default defineComponent({
   name: "Shipment details",
   components: {
@@ -113,7 +111,6 @@ export default defineComponent({
     ...mapGetters({
       items: 'shipment/getCurrent',
       user: 'user/getCurrentFacility'
-
     }),
   },
   methods: {
@@ -130,16 +127,17 @@ export default defineComponent({
         message:
           "Make sure you have entered the correct quantities for each item before proceeding.",
         buttons: [
-            {
-              text: this.$t("Cancel"),
-              role: 'cancel',
-            }, 
-            {
-              text:this.$t('Complete'),
-              handler: () => {
-                this.updateShipments();
-              },
-            },],
+          {
+            text: this.$t("Cancel"),
+            role: 'cancel',
+          }, 
+          {
+            text:this.$t('Complete'),
+            handler: () => {
+              this.updateShipments();
+            },
+          }
+        ],
       });
       return alert.present();
     },
@@ -162,13 +160,13 @@ export default defineComponent({
         } else {
           showToast(translate("ZeroQuantity"))
         }
-      }
-      )
+      })
     },
   }, 
   setup() {
     const store = useStore(); 
     const router = useRouter();
+    
     return {
       add,
       checkmarkDone,
