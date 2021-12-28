@@ -5,12 +5,22 @@
   "items":"items",
   "Load more shipments":"Load more shipments",
   "Logout":"Logout",
+  "Make sure you have entered the correct quantities for each item before proceeding.": "Make sure you have entered the correct quantities for each item before proceeding.",
+  "Product not found": "Product not found",
   "ReceiveAll": "ReceiveAll",
   "Receiving": "Receiving",
   "Scan ASN to start receiving": "Scan ASN to start receiving",
+  "Scan barcodes to receive": "Scan barcodes to receive",
   "Search SKU or product name": "Search SKU or product name",
   "Settings":"Settings",
+  "Shipment Details": "Shipment Details",
+  "Shipment ID": "Shipment ID",
+  "Shipment Received Successfully": "Shipment Received Successfully",
   "Shipped":"Shipped",
+  "Something went wrong":"Something went wrong",
+  "Sorry, your username or password is incorrect. Please try again.": "Sorry, your username or password is incorrect. Please try again.",
   "Store":"Store",
-  "store name":"store name"
+  "store name":"store name",
+  "Time zone updated successfully": "Time zone updated successfully",
+  "ZeroQuantity": "ZeroQuantity"
 }

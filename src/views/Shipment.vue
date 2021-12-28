@@ -3,7 +3,7 @@
     <ion-header :translucent="true">
       <ion-toolbar>
         <ion-back-button default-href="/" slot="start"></ion-back-button>
-        <ion-title>Shipment Details</ion-title>
+        <ion-title>{{ $t("Shipment Details") }}</ion-title>
         <ion-buttons slot="end">
           <ion-button @click="addProduct"><ion-icon :icon="add"/></ion-button>
         </ion-buttons>
@@ -13,34 +13,34 @@
     <ion-content :fullscreen="true">
       <div>
         <ion-item lines="none">
-          <h1>Shipment ID: SHPMNT_001</h1>
+          <h1>{{ $t("Shipment ID") }} : {{ items.shipmentId }}</h1>
         </ion-item>
         <ion-item>
           <ion-label>
-            <ion-input placeholder="Scan barcodes to receive"></ion-input>
+            <ion-input :placeholder="$t('Scan barcodes to receive')"></ion-input>
           </ion-label>
         </ion-item>
-        <ion-card>
+        <ion-card v-for="item in items.items" :key="item.id">
           <div class="product-info">
             <ion-item lines="none">
               <ion-thumbnail slot="start">
-                <img src="https://cdn.shopify.com/s/files/1/0069/7384/9727/products/test-track.jpg?v=1626255137" />
+                <Image :src="item.imageUrl" />
               </ion-thumbnail>
               <ion-label>
-                <h2>Chaz Kangeroo Hoodie-XS-Green</h2>
-                <p>12203</p>
+                <h2>{{ item.productName }}</h2>
+                <p>{{ item.productId }}</p>
               </ion-label>
             </ion-item>
             <ion-item class="product-count">
-              <ion-input type="number" value="0" min="0"></ion-input>
+              <ion-input type="number" min="0" v-model="item.quantityAccepted"></ion-input>
             </ion-item>
           </div>
-          <ion-item class="border-top">
-            <ion-button color="dark" slot="start" fill="outline">
+          <ion-item class="border-top" v-if="item.quantityOrdered > 0">
+            <ion-button @click="receiveAll(item)" color="dark" slot="start" fill="outline">
               {{ $t("ReceiveAll") }}
             </ion-button>
-            <ion-progress-bar value="1" color="dark"></ion-progress-bar>
-            <p slot="end">5</p>
+            <ion-progress-bar :value="item.quantityAccepted/item.quantityOrdered" color="dark"></ion-progress-bar>
+            <p slot="end">{{ item.quantityOrdered }}</p>
           </ion-item>
         </ion-card>
       </div>
@@ -77,7 +77,12 @@ import {
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { add, checkmarkDone } from 'ionicons/icons';
+import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
+import Image from "@/components/Image.vue";
+import { useRouter } from 'vue-router';
+import { showToast } from '@/utils'
+import { translate } from '@/i18n'
 
 export default defineComponent({
   name: "Shipment details",
@@ -99,6 +104,17 @@ export default defineComponent({
     IonThumbnail,
     IonTitle,
     IonToolbar,
+    Image
+  },
+  props: ["product"],
+  computed: {
+    progress() {
+      return 0;
+    },
+    ...mapGetters({
+      items: 'shipment/getCurrent',
+      user: 'user/getCurrentFacility'
+    }),
   },
   methods: {
     async addProduct() {
@@ -110,19 +126,61 @@ export default defineComponent({
     },
     async completeShipment() {
       const alert = await alertController.create({
-        cssClass: "my-custom-class",
         header: "Complete Shipment",
         message:
-          "Make sure you have entered the correct quantities for each item before proceeding.",
-        buttons: ["Cancel", "Complete"],
+          (translate("Make sure you have entered the correct quantities for each item before proceeding.")),
+        buttons: [
+          {
+            text: this.$t("Cancel"),
+            role: 'cancel',
+          }, 
+          {
+            text:this.$t('Complete'),
+            handler: () => {
+              this.updateShipments();
+            },
+          }
+        ],
       });
       return alert.present();
     },
+    async updateShipments() {
+      this.items.items.filter((item: any) => {
+        if(item.quantityAccepted > 0) {
+          const payload = {
+            shipmentId: this.items.shipmentId,
+            facilityId: this.user.facilityId,
+            shipmentItemSeqId: item.itemSeqId,
+            productId: item.productId,
+            quantityAccepted: item.quantityAccepted,
+            locationSeqId: this.items.locationSeqId
+          }
+          this.store.dispatch('shipment/updateShipmentProducts', payload).then(() => {
+            this.router.push('/receiving');
+            })
+        } else {
+          showToast(translate("ZeroQuantity"))
+        }
+      })
+    },
+    receiveAll(item: any) {
+      this.items.items.filter((ele: any) => {
+        if(ele.itemSeqId == item.itemSeqId) {
+          ele.quantityAccepted = ele.quantityOrdered;
+          ele.progress = ele.quantityAccepted / ele.quantityOrdered
+        }
+      })
+    },
   }, 
   setup() {
+    const store = useStore(); 
+    const router = useRouter();
+
     return {
       add,
       checkmarkDone,
+      store,
+      router
     };
   },
 });
