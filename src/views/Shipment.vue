@@ -27,19 +27,19 @@
                 <Image :src="item.imageUrl" />
               </ion-thumbnail>
               <ion-label>
-                <h2>{{ item.sku }}</h2>
+                <h2>{{ item.productName }}</h2>
                 <p>{{ item.productId }}</p>
               </ion-label>
             </ion-item>
             <ion-item class="product-count">
-              <ion-input type="number" v-model="item.quantityAccepted"></ion-input>
+              <ion-input type="number" min="0" v-model="item.quantityAccepted"></ion-input>
             </ion-item>
           </div>
-          <ion-item class="border-top">
+          <ion-item class="border-top" v-if="item.quantityOrdered > 0">
             <ion-button @click="receiveAll(item)" color="dark" slot="start" fill="outline">
               {{ $t("ReceiveAll") }}
             </ion-button>
-            <ion-progress-bar :value="item.quantityAccepted" color="dark"></ion-progress-bar>
+            <ion-progress-bar :value="item.quantityAccepted/item.quantityOrdered" color="dark"></ion-progress-bar>
             <p slot="end">{{ item.quantityOrdered }}</p>
           </ion-item>
         </ion-card>
@@ -108,6 +108,9 @@ export default defineComponent({
   },
   props: ["product"],
   computed: {
+    progress() {
+      return 0;
+    },
     ...mapGetters({
       items: 'shipment/getCurrent',
       user: 'user/getCurrentFacility'
@@ -167,7 +170,7 @@ export default defineComponent({
           ele.progress = ele.quantityAccepted / ele.quantityOrdered
         }
       })
-    }
+    },
   }, 
   setup() {
     const store = useStore(); 
