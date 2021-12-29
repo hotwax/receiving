@@ -14,7 +14,7 @@
         <div class="ion-text-center">
           <ion-button fill="outline" color="dark"><ion-icon :icon="cloudDownloadOutline" slot="start" @click="loadMoreShipments()" />{{ $t("Load more shipments") }}</ion-button>
         </div>
-        </div>
+      </div>
     </ion-content>
   </ion-page>
 </template>
@@ -69,6 +69,7 @@ export default defineComponent({
         facilityId: this.user.facilityId
       }
       await this.store.dispatch("shipment/findShipment", payload);
+      console.log(this.shipments)
     },
   },
   setup() {

@@ -113,7 +113,8 @@ export default defineComponent({
     },
     ...mapGetters({
       items: 'shipment/getCurrent',
-      user: 'user/getCurrentFacility'
+      user: 'user/getCurrentFacility',
+      products: 'product/getCurrent'
     }),
   },
   methods: {
