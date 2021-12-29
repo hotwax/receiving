@@ -27,7 +27,7 @@ import { mapGetters, useStore } from 'vuex'
 import ShipmentListItem from '@/components/ShipmentListItem.vue'
 
 export default defineComponent({
-  name: 'Receiving',
+  name: "Receiving",
   components: {
     IonButton,
     IonContent,
