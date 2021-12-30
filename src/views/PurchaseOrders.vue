@@ -5,12 +5,11 @@
         <ion-title>{{ $t("Purchase Orders") }}</ion-title>
       </ion-toolbar>
     </ion-header>
-    
     <ion-content :fullscreen="true">
       <div>
         <ion-searchbar :placeholder="$t('Search')" />
       </div>
-      <PurchaseOrderItem />
+      <PurchaseOrderItem v-for="(order, index) in orders" :key="index" :purchaseOrder="order" />
     </ion-content>
   </ion-page>
 </template>
@@ -19,7 +18,7 @@
 import { IonContent, IonHeader, IonPage, IonSearchbar, IonTitle, IonToolbar } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { useRouter } from 'vue-router';
-import { useStore } from 'vuex';
+import { mapGetters, useStore } from 'vuex';
 import PurchaseOrderItem from '@/components/PurchaseOrderItem.vue'
 
 export default defineComponent({
@@ -33,8 +32,33 @@ export default defineComponent({
     IonToolbar,
     PurchaseOrderItem
   },
+  computed: {
+    ...mapGetters({
+      orders: 'purchaseOrder/getPurchaseOrders',
+      totalOrders: 'purchaseOrder/getTotalPurchaseOrder'
+    })
+  },
+  methods: {
+    async getPurchaseOrder(){
+      const paylaod = {
+        "json": {
+          "params": {
+            "rows": 10,
+            "group": true,
+            "group.field": "orderId",
+            "group.limit": 10000
+          },
+          "query": "docType:ORDER", 
+          "filter": [
+            "orderTypeId: PURCHASE_ORDER"
+          ]
+        }
+      }
+      this.store.dispatch('purchaseOrder/findPurchaseOrders', paylaod);
+    }
+  },
   mounted () {
-    this.store.dispatch('purchaseOrder/findPurchaseOrders');
+    this.getPurchaseOrder();
   },
   setup () {
     const router = useRouter();

@@ -1,10 +1,11 @@
 import api from '@/api';
 
-const fetchPurchaseOrders = async (): Promise <any>  => {
+const fetchPurchaseOrders = async (payload: any): Promise <any>  => {
   return api({
    // TODO: We can replace this with any API
-    url: "purchase-orders", 
-    method: "GET"
+    url: "/solr-query", 
+    method: "POST",
+    data: payload
   });
 }
 

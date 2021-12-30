@@ -11,7 +11,7 @@ import emitter from '@/event-bus'
 const actions: ActionTree<PurchaseOrderState, RootState> = {
 
   // Find Product
-  async findPurchaseOrders ({ commit, state }) {
+  async findPurchaseOrders ({ commit, state }, payload) {
 
     // Show loader only when new query and not the infinite scroll
     // if (payload.viewIndex === 0) emitter.emit("presentLoader");
@@ -19,11 +19,15 @@ const actions: ActionTree<PurchaseOrderState, RootState> = {
     let resp;
 
     try {
-      resp = await PurchaseOrdersService.fetchPurchaseOrders()
+      resp = await PurchaseOrdersService.fetchPurchaseOrders(payload)
 
       // resp.data.response.numFound tells the number of items in the response
+      const orders = resp.data.grouped.orderId.groups
       if (resp.status === 200 && !hasError(resp)) {
-        console.log(resp);
+        commit(types.PURCHASE_ORDER_UPDATED, {
+          list: orders,
+          total: orders.length
+        })
       } else {
         //showing error whenever getting no products in the response or having any other error
         showToast(translate("Product not found"));
