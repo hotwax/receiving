@@ -39,11 +39,12 @@ export default defineComponent({
     })
   },
   methods: {
-    async getPurchaseOrder(){
+    async getPurchaseOrder(vRow?: any){
+      vRow = vRow ? vRow : process.env.VUE_APP_VIEW_ROW;
       const paylaod = {
         "json": {
           "params": {
-            "rows": 10,
+            "rows": vRow,
             "group": true,
             "group.field": "orderId",
             "group.limit": 10000

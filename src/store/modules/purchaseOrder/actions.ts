@@ -22,8 +22,8 @@ const actions: ActionTree<PurchaseOrderState, RootState> = {
       resp = await PurchaseOrdersService.fetchPurchaseOrders(payload)
 
       // resp.data.response.numFound tells the number of items in the response
-      const orders = resp.data.grouped.orderId.groups
-      if (resp.status === 200 && !hasError(resp)) {
+      if (resp.status === 200 && !hasError(resp) && resp.data.grouped) {
+        const orders = resp.data.grouped.orderId.groups
         commit(types.PURCHASE_ORDER_UPDATED, {
           list: orders,
           total: orders.length
