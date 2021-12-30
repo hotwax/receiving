@@ -51,7 +51,7 @@ export default defineComponent({
   data(){
     return{
       viewSize:'',
-      viewIndex:0
+      viewIndex:'',
     }
   },
   mounted () {
@@ -74,7 +74,7 @@ export default defineComponent({
       await this.store.dispatch("shipment/findShipment", payload);
     },
     loadMoreShipments(){
-      this.getShipments(process.env.VUE_APP_VIEW_SIZE ,++this.viewIndex)
+      this.getShipments(process.env.VUE_APP_VIEW_SIZE , Math.ceil(Object.getOwnPropertyNames(this.shipments).length / process.env.VUE_APP_VIEW_SIZE));
     }
   },
   setup() {
