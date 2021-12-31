@@ -2,10 +2,12 @@
   <ion-page>
     <ion-header :translucent="true">
       <ion-toolbar>
-        <ion-back-button default-href="/" slot="start"></ion-back-button>
+        <ion-back-button default-href="/" slot="start" />
         <ion-title>{{$t("Purchase Order Details")}}</ion-title>
         <ion-buttons slot="end">
-          <ion-button @click="addProduct"><ion-icon :icon="add"/></ion-button>
+          <ion-button @click="addProduct">
+            <ion-icon :icon="add"/>
+          </ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
@@ -16,9 +18,9 @@
           <h1>{{$t("Purchase Order")}}: PO10291</h1>
         </ion-item>
         <ion-item>
-          {{$t("Scan Items")}}
+          <ion-label>{{$t("Scan Items")}}</ion-label>
           <ion-label>
-            <ion-input placeholder="Scan barcodes to receive"></ion-input>
+            <ion-input placeholder="Scan barcodes to receive" />
           </ion-label>
         </ion-item>
         <ion-card>
@@ -28,7 +30,7 @@
                 <img src="https://cdn.shopify.com/s/files/1/0069/7384/9727/products/test-track.jpg?v=1626255137" />
               </ion-thumbnail>
               <ion-label>
-                <h2>Chaz Kangeroo Hoodie-XS-Green</h2>
+                <ion-label>Chaz Kangeroo Hoodie-XS-Green</ion-label>
                 <p>12203</p>
               </ion-label>
             </ion-item>
@@ -81,7 +83,7 @@ import { add, checkmarkDone } from 'ionicons/icons';
 import AddProductModal from '@/views/AddProductModal.vue'
 
 export default defineComponent({
-  name: "Shipment details",
+  name: "Purchase order details",
   components: {
     IonBackButton,
     IonButton,
