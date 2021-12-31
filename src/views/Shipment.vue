@@ -24,11 +24,11 @@
           <div class="product-info">
             <ion-item lines="none">
               <ion-thumbnail slot="start">
-                <Image :src="item.imageUrl" />
+                <Image :src="getProduct(item.productId).mainImageUrl" />
               </ion-thumbnail>
               <ion-label>
-                <h2>{{ item.productName }}</h2>
-                <p>{{ item.productId }}</p>
+                <h2>{{ getProduct(item.productId).productName }}</h2> 
+                <p>{{ getProduct(item.productId).productId }}</p>
               </ion-label>
             </ion-item>
             <ion-item class="product-count">
@@ -113,7 +113,8 @@ export default defineComponent({
     },
     ...mapGetters({
       items: 'shipment/getCurrent',
-      user: 'user/getCurrentFacility'
+      user: 'user/getCurrentFacility',
+      getProduct: 'product/getProduct'
     }),
   },
   methods: {
