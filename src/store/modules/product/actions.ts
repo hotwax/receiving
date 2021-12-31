@@ -30,7 +30,6 @@ const actions: ActionTree<ProductState, RootState> = {
       "filters": ['productId: (' + productIdFilter + ')']
     })
     if (resp.status === 200 && !hasError(resp)) {
-      console.log(resp)
       const products = resp.data.response.docs;
       // Handled empty response in case of failed query
       if (resp.data) commit(types.PRODUCT_CURRENT, { products });
