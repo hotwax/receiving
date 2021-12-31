@@ -114,13 +114,8 @@ export default defineComponent({
     ...mapGetters({
       items: 'shipment/getCurrent',
       user: 'user/getCurrentFacility',
-      products: 'product/getCurrent',
       getProduct: 'product/getProduct'
     }),
-  },
-  mounted() {
-    console.log(this.items);
-    console.log(this.products)
   },
   methods: {
     async addProduct() {
