@@ -13,9 +13,15 @@ const actions: ActionTree<ProductState, RootState> = {
    * Set Current Product
    */
   async setCurrentProduct ( {commit, state}, { productIds }) {
+    const cachedProductIds = Object.keys(state.current)
     const productIdFilter = productIds.reduce((filter: string, productId: any) => {
       if (filter !== '') filter += ' OR '
-      return filter += productId;
+      // If product already exist in cached products skip
+      if (cachedProductIds.includes(productId)) {
+        return filter;
+      } else {
+        return filter += productId;
+      }
     }, '');
 
     if(productIdFilter === '') return;
@@ -25,6 +31,7 @@ const actions: ActionTree<ProductState, RootState> = {
     })
     if (resp.status === 200 && !hasError(resp)) {
       const products = resp.data.response.docs;
+      // Handled empty response in case of failed query
       if (resp.data) commit(types.PRODUCT_CURRENT, { products });
     }
 

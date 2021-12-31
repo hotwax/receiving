@@ -3,4 +3,4 @@ import RootState from './RootState'
 
 const actions: ActionTree<RootState, RootState> = {}
 
-export default actions
+export default actions;
