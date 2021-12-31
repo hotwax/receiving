@@ -11,7 +11,8 @@ const purchaseOrderModule: Module<PurchaseOrderState, RootState> = {
       purchaseOrders: {
         list: {},
         total: 0
-      }
+      },
+      current: {}
     },
     getters,
     actions,

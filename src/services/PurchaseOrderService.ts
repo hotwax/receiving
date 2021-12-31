@@ -9,14 +9,15 @@ const fetchPurchaseOrders = async (payload: any): Promise <any>  => {
   });
 }
 
-const fetchPODetails = async (query: any): Promise <any> => {
+const fetchPODetails = async (payload: any): Promise <any> => {
   return api({
-    url: "purchase-orders/13150",
-    method: "GET",
-    data: query
+    url: "/solr-query",
+    method: "POST",
+    data: payload
   })
 }
 
 export const PurchaseOrdersService = {
-  fetchPurchaseOrders
+  fetchPurchaseOrders,
+  fetchPODetails
 }

@@ -8,6 +8,9 @@ const getters: GetterTree<PurchaseOrderState, RootState> = {
   },
   getTotalPurchaseOrder(state) {
     return state.purchaseOrders.total;
+  },
+  getOrderDetails(state) {
+    return state.current
   }
 };
 export default getters;

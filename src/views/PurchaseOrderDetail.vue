@@ -18,7 +18,7 @@
     <ion-content :fullscreen="true">
       <div>
         <ion-item lines="none">
-          <h1>{{$t("Purchase Order")}}: PO10291</h1>
+          <h1>{{$t("Purchase Order")}}: {{ orderDetail[0]?.externalOrderId }}</h1>
         </ion-item>
         <ion-item>
           <ion-label>{{$t("Scan Items")}}</ion-label>
@@ -26,15 +26,16 @@
             <ion-input placeholder="Scan barcodes to receive" />
           </ion-label>
         </ion-item>
-        <ion-card>
+        <ion-card v-for="(item, index) in orderDetail" :key="index">
           <div class="product-info">
             <ion-item lines="none">
               <ion-thumbnail slot="start">
-                <img src="https://cdn.shopify.com/s/files/1/0069/7384/9727/products/test-track.jpg?v=1626255137" />
+                <!-- TODO:- handle this getter when another pull request get merged -->
+                <img src="getProduct(item.productId).mainImageUrl" />
               </ion-thumbnail>
               <ion-label>
-                <ion-label>Chaz Kangeroo Hoodie-XS-Green</ion-label>
-                <p>12203</p>
+                <ion-label>{{ item.productName }}</ion-label>
+                <p>{{ item.productId }}</p>
               </ion-label>
             </ion-item>
             <ion-item class="product-count">
@@ -84,6 +85,8 @@ import {
 import { defineComponent } from 'vue';
 import { add, saveOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
+import { useStore } from 'vuex';
+import { mapGetters } from "vuex";
 
 export default defineComponent({
   name: "Purchase order details",
@@ -106,6 +109,12 @@ export default defineComponent({
     IonTitle,
     IonToolbar,
   },
+  computed: {
+    ...mapGetters({
+      orderDetail: 'purchaseOrder/getOrderDetails',
+      getProduct: 'product/getProduct'
+    })
+  },
   methods: {
     async receivingHistory() {
       const modal = await modalController
@@ -124,11 +133,33 @@ export default defineComponent({
       });
       return alert.present();
     },
+    async getorderDetails(orderId?: any){
+      const payload = {
+        "json": {
+          "params": {
+            "rows": 10,
+            "group": true,
+            "group.field": "orderId",
+            "group.limit": 10000
+          },
+          "query": "docType:ORDER", 
+          "filter": [
+              `orderTypeId: PURCHASE_ORDER AND orderId: ${orderId}`
+          ]
+        }
+      }
+      this.store.dispatch("purchaseOrder/getOrderDetails", {payload, orderId});
+    }
   }, 
+  mounted(){
+    this.getorderDetails(this.$route.params.slug);
+  },
   setup() {
+    const store = useStore();
     return {
       add,
       saveOutline,
+      store,
       timeOutline
     };
   },

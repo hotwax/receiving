@@ -41,6 +41,27 @@ const actions: ActionTree<PurchaseOrderState, RootState> = {
     // TODO Handle specific error
     return resp;
   },
+  async getOrderDetails({ commit, state }, { payload, orderId }) {
+    let resp;
+    const current = state.current as any
+    if (current.length && current[0]?.doclist && current[0]?.doclist.docs[0].orderId === orderId) 
+      return current;
+    try {
+      resp = await PurchaseOrdersService.fetchPODetails(payload);
+
+      if(resp.status === 200 && !hasError(resp) && resp.data.grouped){
+        const orderDetail = resp.data.grouped.orderId.groups[0].doclist.docs
+        commit(types.PURCHASE_ORDER_DETAIL_UPDATED, {
+          orderDetail: orderDetail
+        })
+      }
+      else{
+        showToast(translate("Something went wrong"));
+      }
+    } catch (error) {
+      showToast(translate("Something went wrong"));
+    }
+  }
 }
 
 export default actions;
