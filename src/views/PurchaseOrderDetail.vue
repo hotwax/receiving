@@ -5,7 +5,10 @@
         <ion-back-button default-href="/" slot="start" />
         <ion-title>{{$t("Purchase Order Details")}}</ion-title>
         <ion-buttons slot="end">
-          <ion-button @click="addProduct">
+          <ion-button @click="receivingHistory">
+            <ion-icon :icon="timeOutline"/>
+          </ion-button>
+          <ion-button>
             <ion-icon :icon="add"/>
           </ion-button>
         </ion-buttons>
@@ -48,8 +51,8 @@
         </ion-card>
       </div>
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button @click="completeShipment" color="dark">
-          <ion-icon :icon="checkmarkDone" />
+        <ion-fab-button @click="savePODetails">
+          <ion-icon :icon="saveOutline" />
         </ion-fab-button>
       </ion-fab>
     </ion-content>
@@ -79,8 +82,8 @@ import {
   alertController,
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
-import { add, checkmarkDone } from 'ionicons/icons';
-import AddProductModal from '@/views/AddProductModal.vue'
+import { add, saveOutline, timeOutline } from 'ionicons/icons';
+import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 
 export default defineComponent({
   name: "Purchase order details",
@@ -104,20 +107,20 @@ export default defineComponent({
     IonToolbar,
   },
   methods: {
-    async addProduct() {
+    async receivingHistory() {
       const modal = await modalController
         .create({
-          component: AddProductModal
+          component: ReceivingHistoryModal
         })
       return modal.present();
     },
-    async completeShipment() {
+    async savePODetails() {
       const alert = await alertController.create({
         cssClass: "my-custom-class",
-        header: "Complete Shipment",
+        header: "Receive inventory",
         message:
-          "Make sure you have entered the correct quantities for each item before proceeding.",
-        buttons: ["Cancel", "Complete"],
+          "Inventory can be received for purchase orders in multiple shipments. <br/><br/> Proceeding will recieve a new shipment for this purchase order but it will still be available for receiving later",
+        buttons: ["Cancel", "Proceed"],
       });
       return alert.present();
     },
@@ -125,7 +128,8 @@ export default defineComponent({
   setup() {
     return {
       add,
-      checkmarkDone,
+      saveOutline,
+      timeOutline
     };
   },
 });
