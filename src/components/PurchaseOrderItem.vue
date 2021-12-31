@@ -35,7 +35,7 @@ export default defineComponent({
     async viewPurchaseOrder () {
       //TODO need to implement updateCurrentProduct action
       // await this.store.dispatch('product/updateCurrentProduct', {product: this.product});
-      this.router.push({ path: `/purchase-order/${this.purchaseOrder.doclist.docs[0].orderId}` })
+      this.router.push({ path: `/purchase-order-details/${this.purchaseOrder.doclist.docs[0].orderId}` })
     }
   },
   setup() {
