@@ -32,6 +32,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
     try {
       resp = await ShipmentService.getShipmentProduct(payload);
       if (resp.status === 200 && resp.data.items&& !hasError(resp)) {
+        console.log(resp.data)
         commit(types.SHIPMENT_CURRENT, { current: resp.data })
         let productIds: any = new Set();
         resp.data.items.forEach((item: any) => {
@@ -76,6 +77,10 @@ const actions: ActionTree<ShipmentState, RootState> = {
       showToast(translate("Something went wrong"));
     } 
     return resp;
+  },
+  async updateShipmentProductCount({ commit }, payload){
+    console.log("start,commit",payload)
+    commit(types.UPDATE_SHIPMENT_PRODUCT_COUNT,{payload})
   }
 }
 
