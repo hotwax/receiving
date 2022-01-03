@@ -34,7 +34,7 @@
                 <img src="getProduct(item.productId).mainImageUrl" />
               </ion-thumbnail>
               <ion-label>
-                <ion-label>{{ item.productName }}</ion-label>
+                <ion-label>{{ getProduct(item.productId).productName }}</ion-label>
                 <p>{{ item.productId }}</p>
               </ion-label>
             </ion-item>
@@ -85,8 +85,7 @@ import {
 import { defineComponent } from 'vue';
 import { add, saveOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
-import { useStore } from 'vuex';
-import { mapGetters } from "vuex";
+import { useStore, mapGetters } from 'vuex';
 
 export default defineComponent({
   name: "Purchase order details",
@@ -133,7 +132,7 @@ export default defineComponent({
       });
       return alert.present();
     },
-    async getorderDetails(orderId?: any){
+    async getorderDetails(orderId?: any) {
       const payload = {
         "json": {
           "params": {
@@ -151,7 +150,7 @@ export default defineComponent({
       this.store.dispatch("purchaseOrder/getOrderDetails", {payload, orderId});
     }
   }, 
-  mounted(){
+  mounted() {
     this.getorderDetails(this.$route.params.slug);
   },
   setup() {
