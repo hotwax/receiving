@@ -10,83 +10,19 @@
     </ion-toolbar>
   </ion-header>
   <ion-content class="ion-padding">
-    <ion-searchbar
-      :placeholder="$t('Search SKU or product name')"
-    ></ion-searchbar>
-    <ion-list>
-      <ion-item>
+    <ion-searchbar @ionFocus="selectSearchBarText($event)" :placeholder="$t('Search SKU or product name')" v-model="queryString" v-on:keyup.enter="getProducts()"></ion-searchbar>
+    <div v-for="product in products" :key="product.productId">
+      <ion-item v-bind:key="product.groupValue" v-for="product in products" lines="none" @click="() => router.push({ name: 'shipment', payload: { id: product.groupValue }})">
         <ion-thumbnail slot="start">
-          <img
-            src="https://demo-resources.hotwax.io/resources/uploads/images/product/m/h/mh01-black_main.jpg"
-          />
+          <Image :src="getProducts(product.groupValue).mainImageUrl" />
         </ion-thumbnail>
         <ion-label>
-          <h2>Chaz Kangeroo Hoodie-XS-Black</h2>
-          <p>10001</p>
+          <h2>{{ getProducts(product.groupValue).productName}}</h2>
+          <p>{{ getProducts(product.groupValue ).productId}}}</p>
         </ion-label>
-        <ion-button fill="outline" color="dark">{{ $t("Add to Shipment") }}</ion-button>
+        <ion-button fill="outline" color="dark" @click="addtoShipment()">{{ $t("Add to Shipment") }}</ion-button>
       </ion-item>
-      <ion-item>
-        <ion-thumbnail slot="start">
-          <img
-            src="https://demo-resources.hotwax.io/resources/uploads/images/product/m/h/mh01-gray_main.jpg"
-          />
-        </ion-thumbnail>
-        <ion-label>
-          <h2>Chaz Kangeroo Hoodie-XS-Gray</h2>
-          <p>10002</p>
-        </ion-label>
-        <ion-button fill="outline" color="dark">{{ $t("Add to Shipment") }}</ion-button>
-      </ion-item>
-      <ion-item>
-        <ion-thumbnail slot="start">
-          <img
-            src="https://demo-resources.hotwax.io/resources/uploads/images/product/m/h/mh01-orange_main.jpg"
-          />
-        </ion-thumbnail>
-        <ion-label>
-          <h2>Chaz Kangeroo Hoodie-XS-Orange</h2>
-          <p>10003</p>
-        </ion-label>
-        <ion-icon :icon="checkmarkCircle" color="success" />
-      </ion-item>
-      <ion-item>
-        <ion-thumbnail slot="start">
-          <img
-            src="https://demo-resources.hotwax.io/resources/uploads/images/product/m/h/mh01-black_main.jpg"
-          />
-        </ion-thumbnail>
-        <ion-label>
-          <h2>Chaz Kangeroo Hoodie-XS-Black</h2>
-          <p>10004</p>
-        </ion-label>
-        <ion-button fill="outline" color="dark">{{ $t("Add to Shipment") }}</ion-button>
-      </ion-item>
-      <ion-item>
-        <ion-thumbnail slot="start">
-          <img
-            src="https://demo-resources.hotwax.io/resources/uploads/images/product/m/h/mh01-gray_main.jpg"
-          />
-        </ion-thumbnail>
-        <ion-label>
-          <h2>Chaz Kangeroo Hoodie-XS-Gray</h2>
-          <p>10005</p>
-        </ion-label>
-        <ion-button fill="outline" color="dark">{{ $t("Add to Shipment") }}</ion-button>
-      </ion-item>
-      <ion-item>
-        <ion-thumbnail slot="start">
-          <img
-            src="https://demo-resources.hotwax.io/resources/uploads/images/product/m/h/mh01-orange_main.jpg"
-          />
-        </ion-thumbnail>
-        <ion-label>
-          <h2>Chaz Kangeroo Hoodie-XS-Orange</h2>
-          <p>10006</p>
-        </ion-label>
-        <ion-button fill="outline" color="dark">{{ $t("Add to Shipment") }}</ion-button>
-      </ion-item>
-    </ion-list>
+    </div> 
   </ion-content>
 </template>
 
@@ -99,7 +35,6 @@ import {
   IonIcon,
   IonItem,
   IonLabel,
-  IonList,
   IonSearchbar,
   IonThumbnail,
   IonTitle,
@@ -108,6 +43,8 @@ import {
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { close, checkmarkCircle } from 'ionicons/icons';
+import { mapGetters } from 'vuex'
+import { useStore } from "@/store";
 
 export default defineComponent({
   name: "Modal",
@@ -119,21 +56,42 @@ export default defineComponent({
     IonIcon,
     IonItem,
     IonLabel,
-    IonList,
     IonSearchbar,
     IonThumbnail,
     IonTitle,
     IonToolbar,
   },
+  computed: {
+    ...mapGetters({
+      product:'product/getProducts'
+    })
+  },
   methods: {
     closeModal() {
       modalController.dismiss({ dismissed: true });
     },
+    async getProducts(vSize, vIndex) {
+      const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
+      const viewIndex = vIndex ? vIndex : 0;
+      const payload = {
+        viewSize,
+        viewIndex,
+        groupByField: 'parentProductId',
+      }
+      this.store.dispatch("product/findProducts", payload);
+    },
+    selectSearchBarText(event) {
+      event.target.getInputElement().then((element) => {
+        element.select();
+      })
+    },
   },
   setup() {
+    const store = useStore();
     return {
       close,
       checkmarkCircle,
+      store,
     };
   },
 });
