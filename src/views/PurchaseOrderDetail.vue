@@ -131,28 +131,8 @@ export default defineComponent({
         buttons: ["Cancel", "Proceed"],
       });
       return alert.present();
-    },
-    async getorderDetails(orderId?: any) {
-      const payload = {
-        "json": {
-          "params": {
-            "rows": 10,
-            "group": true,
-            "group.field": "orderId",
-            "group.limit": 10000
-          },
-          "query": "docType:ORDER", 
-          "filter": [
-              `orderTypeId: PURCHASE_ORDER AND orderId: ${orderId}`
-          ]
-        }
-      }
-      this.store.dispatch("purchaseOrder/getOrderDetails", {payload, orderId});
     }
   }, 
-  mounted() {
-    this.getorderDetails(this.$route.params.slug);
-  },
   setup() {
     const store = useStore();
     return {
