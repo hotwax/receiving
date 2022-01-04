@@ -42,7 +42,7 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       shipments: 'shipment/getSearchProducts',
-      user: 'user/getCurrentFacility'
+      user: 'user/getCurrentFacility',
     })
   },
   mounted () {

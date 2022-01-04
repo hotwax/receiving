@@ -33,19 +33,6 @@ const actions: ActionTree<ProductState, RootState> = {
       // TODO Handle specific error
       return resp;  
     },
-  async fetchProduct ( { commit }, { productId }) {
-    // TODO Skip if already exist
-    const resp = await ProductService.fetchProducts({
-      "filters": ['productId: ' + productId ]
-    })
-    if (resp.status === 200 && !hasError(resp)) {
-      const product = resp.data.response.docs[0];
-      // Handled empty response in case of failed query
-      if (resp.data) commit(types.PRODUCT_ADD_TO_CACHED, { product });
-    }
-    // TODO Handle specific error
-    return resp;
-  },
   async findProducts ( { commit, state, dispatch }, payload) {
     // Show loader only when new query and not the infinite scroll
     if (payload.viewIndex === 0) emitter.emit("presentLoader");

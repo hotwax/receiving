@@ -11,20 +11,18 @@
   </ion-header>
   <ion-content class="ion-padding">
     <ion-searchbar @ionFocus="selectSearchBarText($event)" :placeholder="$t('Search SKU or product name')" v-on:keyup.enter="getProduct()"></ion-searchbar>
-    <ion-list>
-      <div v-bind:key="product.productId" v-for="product in products" lines="none">
-        <ion-item>
-          <ion-thumbnail slot="start">
-            <Image :src="getProduct(product.productId).mainImageUrl" />
-          </ion-thumbnail>
-          <ion-label>
-            <h2>{{ getProduct(product.productId).productName}}</h2>
-            <p>{{ getProduct(product.productId).productId }} </p>
-          </ion-label>
-          <ion-button fill="outline" color="dark">{{ $t("Add to Shipment") }}</ion-button>
-        </ion-item>
-      </div>
-    </ion-list>
+    <div v-for="product in products" :key="product.productId">
+      <ion-item v-bind:key="product.groupValue" v-for="product in products" lines="none" @click="() => router.push({ name: 'Modal', payload: { id: product.groupValue }})">
+        <ion-thumbnail slot="start">
+          <Image :src="getProduct(product.groupValue).mainImageUrl" />
+        </ion-thumbnail>
+        <ion-label>
+          <h2>{{ getProduct(product.groupValue).productName}}</h2>
+          <p>{{ getProduct(product.groupValue ).productId}}}</p>
+        </ion-label>
+        <ion-button fill="outline" color="dark" @click="addtoShipment()">{{ $t("Add to Shipment") }}</ion-button>
+      </ion-item>
+    </div> 
   </ion-content>
 </template>
 
@@ -37,7 +35,6 @@ import {
   IonIcon,
   IonItem,
   IonLabel,
-  IonList,
   IonSearchbar,
   IonThumbnail,
   IonTitle,
@@ -46,7 +43,7 @@ import {
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { close, checkmarkCircle } from 'ionicons/icons';
-import { mapGetters } from 'vuex';
+import { mapGetters } from 'vuex'
 import { useStore } from "@/store";
 
 export default defineComponent({
@@ -59,7 +56,6 @@ export default defineComponent({
     IonIcon,
     IonItem,
     IonLabel,
-    IonList,
     IonSearchbar,
     IonThumbnail,
     IonTitle,
@@ -81,13 +77,13 @@ export default defineComponent({
     }
     this.store.dispatch("product/findProducts", payload);
   },
-  selectSearchBarText(event: any) {
-    event.target.getInputElement().then((element: any) => {
-      element.select();
-    })
-    },
     closeModal() {
       modalController.dismiss({ dismissed: true });
+    },
+    selectSearchBarText(event: any) {
+      event.target.getInputElement().then((element: any) => {
+        element.select();
+      })
     },
   },
   setup() {
@@ -95,7 +91,7 @@ export default defineComponent({
     return {
       close,
       checkmarkCircle,
-      store
+      store,
     };
   },
 });
