@@ -7,4 +7,4 @@ const getters: GetterTree <ProductState, RootState> = {
     return state.current[productId] ? state.current[productId] : 0
   }
 }
-export default getters;
+export default getters

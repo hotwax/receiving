@@ -5,7 +5,7 @@ import * as types from './mutation-types'
 const mutations: MutationTree <ProductState> = {
   [types.PRODUCT_CURRENT] (state, payload) {
     payload.products.map((product: any) => {
-      state.current[product.productId] = product
+      state.current[product.productId] = product;
     })
   }
 }
