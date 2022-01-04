@@ -180,7 +180,6 @@ export default defineComponent({
       })
     },
     updateProductCount(payload: any){
-      console.log(payload)
       this.store.dispatch('shipment/updateShipmentProductCount', payload)
     },
     async scanCode () {
