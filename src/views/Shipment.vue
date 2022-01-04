@@ -38,7 +38,7 @@
               </ion-label>
             </ion-item>
             <ion-item class="product-count">
-              <ion-input type="number" min="0" v-model="getQuantityAccepted(item)"></ion-input>
+              <ion-input type="number" min="0" v-model="item.quantityAccepted"></ion-input>
             </ion-item>
           </div>
           <ion-item class="border-top" v-if="item.quantityOrdered > 0">
@@ -122,10 +122,7 @@ export default defineComponent({
       items: 'shipment/getCurrent',
       user: 'user/getCurrentFacility',
       getProduct: 'product/getProduct'
-    }),
-    getQuantityAccepted: function(item: any){
-      return item.quantityAccepted>item.quantityOrdered ? item.quantityOrdered : item.quantityAccepted;
-    }
+    })
   },
   methods: {
     async addProduct() {
@@ -183,7 +180,8 @@ export default defineComponent({
       })
     },
     updateProductCount(payload: any){
-      this.store.dispatch('shipment/updateShipmentProductCount',{payload})
+      console.log(payload)
+      this.store.dispatch('shipment/updateShipmentProductCount', payload)
     },
     async scanCode () {
       const modal = await modalController
