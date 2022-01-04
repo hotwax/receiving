@@ -23,14 +23,14 @@
         <ion-item>
           <ion-label>{{$t("Scan Items")}}</ion-label>
           <ion-label>
-            <ion-input placeholder="Scan barcodes to receive" />
+            <ion-input :placeholder="$t('Scan barcodes to receive')" />
           </ion-label>
         </ion-item>
         <ion-card>
           <div class="product-info">
             <ion-item lines="none">
               <ion-thumbnail slot="start">
-                <img src="https://cdn.shopify.com/s/files/1/0069/7384/9727/products/test-track.jpg?v=1626255137" />
+                <Image src="https://cdn.shopify.com/s/files/1/0069/7384/9727/products/test-track.jpg?v=1626255137" />
               </ion-thumbnail>
               <ion-label>
                 <ion-label>Chaz Kangeroo Hoodie-XS-Green</ion-label>
@@ -84,10 +84,12 @@ import {
 import { defineComponent } from 'vue';
 import { add, saveOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
+import Image from "@/components/Image.vue";
 
 export default defineComponent({
   name: "Purchase order details",
   components: {
+    Image,
     IonBackButton,
     IonButton,
     IonButtons,
@@ -117,10 +119,17 @@ export default defineComponent({
     async savePODetails() {
       const alert = await alertController.create({
         cssClass: "my-custom-class",
-        header: "Receive inventory",
-        message:
-          "Inventory can be received for purchase orders in multiple shipments. <br/><br/> Proceeding will recieve a new shipment for this purchase order but it will still be available for receiving later",
-        buttons: ["Cancel", "Proceed"],
+        header: this.$t('Receive inventory'),
+        message: 
+          this.$t("Inventory can be received for purchase orders in multiple shipments. Proceeding will recieve a new shipment for this purchase order but it will still be available for receiving later", { space: '<br /><br />' }),
+        buttons: [{
+          text: this.$t('Cancel'),
+          role: 'cancel'
+        },
+        {
+          text: this.$t('Proceed'),
+          role: 'proceed'
+        }]
       });
       return alert.present();
     },
