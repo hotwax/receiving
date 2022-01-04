@@ -30,8 +30,7 @@
           <div class="product-info">
             <ion-item lines="none">
               <ion-thumbnail slot="start">
-                <!-- TODO:- handle this getter when another pull request get merged -->
-                <img src="getProduct(item.productId).mainImageUrl" />
+                <img :src="getProduct(item.productId).mainImageUrl" />
               </ion-thumbnail>
               <ion-label>
                 <ion-label>{{ getProduct(item.productId).productName }}</ion-label>
@@ -39,15 +38,15 @@
               </ion-label>
             </ion-item>
             <ion-item class="product-count">
-              <ion-input type="number" value="0" min="0"></ion-input>
+              <ion-input type="number" min="0" v-model="item.quantityAccepted" />
             </ion-item>
           </div>
-          <ion-item class="border-top">
-            <ion-button slot="start" fill="outline">
+          <ion-item class="border-top" v-if="item.quantityOrdered > 0">
+            <ion-button @click="receiveAll(item)" slot="start" fill="outline">
               {{ $t("ReceiveAll") }}
             </ion-button>
-            <ion-progress-bar value="1"></ion-progress-bar>
-            <p slot="end">5</p>
+            <ion-progress-bar :value="item.quantityAccepted/item.quantityOrdered" />
+            <p slot="end">{{ item.quantityOrdered }}</p>
           </ion-item>
         </ion-card>
       </div>
@@ -148,9 +147,18 @@ export default defineComponent({
         }
       }
       this.store.dispatch("purchaseOrder/getOrderDetails", {payload, orderId});
-    }
+    },
+    receiveAll(item: any) {
+      this.orderDetail.filter((ele: any) => {
+        if(ele.itemSeqId == item.itemSeqId) {
+          ele.quantityAccepted = ele.quantityOrdered;
+          ele.progress = ele.quantityAccepted / ele.quantityOrdered
+        }
+      })
+    },
   }, 
   mounted() {
+    this.store.dispatch('product/setCurrentProduct')
     this.getorderDetails(this.$route.params.slug);
   },
   setup() {
