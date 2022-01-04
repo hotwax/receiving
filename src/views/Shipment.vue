@@ -191,8 +191,8 @@ export default defineComponent({
           component: Scanner,
         });
         modal.onDidDismiss()
-      .then((result) => {
-        this.updateProductCount(result.role);
+        .then((result) => {
+          this.updateProductCount(result.role);
     });
       return modal.present();
     },

@@ -15,7 +15,6 @@ const mutations: MutationTree <ShipmentState> = {
     delete state.shipments.list[payload.shipmentId];
   },
   [types.UPDATE_SHIPMENT_PRODUCT_COUNT] (state, Id) {
-    console.log("id",Id.payload.payload)
     state.current.items.forEach((item: any) => {
       if(item.productId === Id.payload.payload){
         item.quantityAccepted = parseInt(item.quantityAccepted)+1;

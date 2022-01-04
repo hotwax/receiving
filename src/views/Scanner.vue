@@ -17,9 +17,7 @@
 <script>
 import { StreamBarcodeReader } from "vue-barcode-reader";
 import { IonButton,IonButtons, IonIcon, IonToolbar, modalController } from '@ionic/vue';
-import { 
-  closeOutline
-} from 'ionicons/icons';
+import { closeOutline } from 'ionicons/icons';
 export default {
   name: 'Scanner',
   components: {
