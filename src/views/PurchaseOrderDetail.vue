@@ -79,7 +79,7 @@ import {
   alertController,
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
-import { add, saveOutline, timeOutline } from 'ionicons/icons';
+import { addOutline, saveOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import Image from "@/components/Image.vue";
 
@@ -132,7 +132,7 @@ export default defineComponent({
   }, 
   setup() {
     return {
-      add,
+      addOutline,
       saveOutline,
       timeOutline
     };
