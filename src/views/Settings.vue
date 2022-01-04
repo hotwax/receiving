@@ -59,10 +59,10 @@ export default defineComponent({
     setFacility (facility: any) {
       if(this.userProfile && this.userProfile.facilities) {
         this.userProfile.facilities.map((fac: any) => {
-        if (fac.facilityId == facility['detail'].value) {
-          this.store.dispatch('user/setFacility', {'facility': fac});
-        }
-      })
+          if (fac.facilityId == facility['detail'].value) {
+            this.store.dispatch('user/setFacility', {'facility': fac});
+          }
+        })
       }
     },
     async presentAlert () {
