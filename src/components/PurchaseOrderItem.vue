@@ -1,5 +1,5 @@
 <template>
-  <ion-item button @click="viewPurchaseOrder()" lines="none">
+  <ion-item button @click="getOrderDetails(purchaseOrder.doclist.docs[0].orderId)" lines="none">
     <ion-label>
       <!-- TODO:- Handle this purchase order number property for now i have used OrderName or OrderId -->
       <h3>{{ purchaseOrder.orderName ? purchaseOrder.orderName : purchaseOrder.orderId }}</h3>
@@ -26,10 +26,23 @@ export default defineComponent({
   },
   props: ["purchaseOrder"],
   methods: {
-    async viewPurchaseOrder () {
-      //TODO need to implement updateCurrentProduct action
-      // await this.store.dispatch('product/updateCurrentProduct', {product: this.product});
-      this.router.push({ path: `/purchase-order-details/${this.purchaseOrder.doclist.docs[0].orderId}` })
+    async getOrderDetails(orderId?: any) {
+      const payload = {
+        "json": {
+          "params": {
+            "rows": 10,
+            "group": true,
+            "group.field": "orderId",
+            "group.limit": 10000
+          },
+          "query": "docType:ORDER", 
+          "filter": [
+              `orderTypeId: PURCHASE_ORDER AND orderId: ${orderId}`
+          ]
+        }
+      }
+      await this.store.dispatch("purchaseOrder/getOrderDetails", {payload, orderId})
+      this.router.push({ path: `/purchase-order-details/${orderId}` })
     }
   },
   setup() {
