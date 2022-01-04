@@ -9,7 +9,7 @@
             <ion-icon :icon="timeOutline"/>
           </ion-button>
           <ion-button>
-            <ion-icon :icon="add"/>
+            <ion-icon :icon="addOutline"/>
           </ion-button>
         </ion-buttons>
       </ion-toolbar>
@@ -22,9 +22,6 @@
         </ion-item>
         <ion-item>
           <ion-label>{{$t("Scan Items")}}</ion-label>
-          <ion-label>
-            <ion-input :placeholder="$t('Scan barcodes to receive')" />
-          </ion-label>
         </ion-item>
         <ion-card>
           <div class="product-info">
@@ -33,7 +30,7 @@
                 <Image src="https://cdn.shopify.com/s/files/1/0069/7384/9727/products/test-track.jpg?v=1626255137" />
               </ion-thumbnail>
               <ion-label>
-                <ion-label>Chaz Kangeroo Hoodie-XS-Green</ion-label>
+                Chaz Kangeroo Hoodie-XS-Green
                 <p>12203</p>
               </ion-label>
             </ion-item>
@@ -118,10 +115,9 @@ export default defineComponent({
     },
     async savePODetails() {
       const alert = await alertController.create({
-        cssClass: "my-custom-class",
         header: this.$t('Receive inventory'),
         message: 
-          this.$t("Inventory can be received for purchase orders in multiple shipments. Proceeding will recieve a new shipment for this purchase order but it will still be available for receiving later", { space: '<br /><br />' }),
+          this.$t('Inventory can be received for purchase orders in multiple shipments. Proceeding will recieve a new shipment for this purchase order but it will still be available for receiving later', { space: '<br /><br />' }),
         buttons: [{
           text: this.$t('Cancel'),
           role: 'cancel'
