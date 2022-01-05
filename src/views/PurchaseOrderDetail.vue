@@ -19,16 +19,11 @@
       <div>
         <ion-item lines="none">
           <h1>{{$t("Purchase Order")}}: {{ orderDetail[0]?.externalOrderId }}</h1>
+          <ion-chip slot="end">
+            <ion-label>{{ $filters.formatDate(orderDetail[0]?.estimatedDeliveryDate) }}</ion-label>
+          </ion-chip>
         </ion-item>
         <!-- TODO: add styling on chip -->
-        <div>
-          <ion-chip>
-            <ion-label>Arrival date</ion-label>
-          </ion-chip>
-          <ion-chip>
-            <ion-label>External ID</ion-label>
-          </ion-chip>        
-        </div>
         <ion-item slot="end">
           <ion-label>{{$t("Scan Items")}}</ion-label>
           <ion-label>
@@ -49,6 +44,7 @@
             <div class="producy-chip">
               <ion-chip outline>
                 <ion-icon :icon="checkmarkDoneOutline"/>
+                <!-- TODO: Handle this property -->
                 <ion-label>50 {{ $t("received") }}</ion-label>
               </ion-chip>
             </div>
