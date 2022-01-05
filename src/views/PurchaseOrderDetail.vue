@@ -20,7 +20,16 @@
         <ion-item lines="none">
           <h1>{{$t("Purchase Order")}}: {{ orderDetail[0]?.externalOrderId }}</h1>
         </ion-item>
-        <ion-item>
+        <!-- TODO: add styling on chip -->
+        <div>
+          <ion-chip>
+            <ion-label>Arrival date</ion-label>
+          </ion-chip>
+          <ion-chip>
+            <ion-label>External ID</ion-label>
+          </ion-chip>        
+        </div>
+        <ion-item slot="end">
           <ion-label>{{$t("Scan Items")}}</ion-label>
           <ion-label>
             <ion-input placeholder="Scan barcodes to receive" />
@@ -37,7 +46,14 @@
                 <p>{{ item.productId }}</p>
               </ion-label>
             </ion-item>
+            <div class="producy-chip">
+              <ion-chip outline>
+                <ion-icon :icon="checkmarkDoneOutline"/>
+                <ion-label>50 {{ $t("received") }}</ion-label>
+              </ion-chip>
+            </div>
             <ion-item class="product-count">
+              <ion-label position="floating" color="dark">Qty</ion-label>
               <ion-input type="number" min="0" v-model="item.quantityAccepted" />
             </ion-item>
           </div>
@@ -48,7 +64,6 @@
             <ion-progress-bar :value="item.quantityAccepted/item.quantityOrdered" />
             <p slot="end">{{ item.quantityOrdered }}</p>
           </ion-item>
-          <!-- {{item}} -->
         </ion-card>
       </div>
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
@@ -66,6 +81,7 @@ import {
   IonButton,
   IonButtons,
   IonCard,
+  IonChip,
   IonContent,
   IonHeader,
   IonFab,
@@ -83,7 +99,7 @@ import {
   alertController,
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
-import { add, saveOutline, timeOutline } from 'ionicons/icons';
+import { add, checkmarkDoneOutline, saveOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import { useStore, mapGetters } from 'vuex';
 
@@ -94,6 +110,7 @@ export default defineComponent({
     IonButton,
     IonButtons,
     IonCard,
+    IonChip,
     IonContent,
     IonHeader,
     IonFab,
@@ -175,6 +192,7 @@ export default defineComponent({
     const store = useStore();
     return {
       add,
+      checkmarkDoneOutline,
       saveOutline,
       store,
       timeOutline
@@ -200,9 +218,13 @@ img {
 
 .product-info {
   display: grid;
-  grid-template-columns: auto .25fr;
+  grid-template-columns: auto 1fr .25fr;
   align-items: center;
   padding: 16px;
+}
+
+.producy-chip {
+  justify-self: center;
 }
 
 .product-count {
