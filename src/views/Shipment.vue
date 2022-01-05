@@ -155,7 +155,7 @@ export default defineComponent({
             quantityAccepted: item.quantityAccepted,
             locationSeqId: this.items.locationSeqId
           }
-          this.store.dispatch('shipment/updateShipmentProducts', payload).then(() => {
+          this.store.dispatch('shipment/fetchShipmentDetail', payload).then(() => {
             this.router.push('/receiving');
             })
         } else {

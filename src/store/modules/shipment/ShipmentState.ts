@@ -1,6 +1,6 @@
 export default interface ShipmentState {
   current: object;
-  updateShipmentProducts: any;
+  fetchShipmentDetail: any;
   shipments: {
     list: any;
   };

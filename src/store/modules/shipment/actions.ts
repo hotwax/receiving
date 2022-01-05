@@ -15,7 +15,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
       if (resp.status === 200 && resp.data.count> 0 && !hasError(resp)) {
         let shipments = resp.data.docs;
         if (payload.viewIndex && payload.viewIndex > 0) shipments = state.shipments.list.concat(shipments)
-        commit(types.SHIPMENT_SEARCH_UPDATED, { shipments })
+        commit(types.SHIPMENT_LIST_UPDATED, { shipments })
       } else {
         showToast(translate("Product not found"));
       }
@@ -30,7 +30,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
     let resp;
 
     try {
-      resp = await ShipmentService.getShipmentProduct(payload);
+      resp = await ShipmentService.getShipmentDetail(payload);
       if (resp.status === 200 && resp.data.items&& !hasError(resp)) {
         commit(types.SHIPMENT_CURRENT, { current: resp.data })
         return resp.data;
@@ -46,11 +46,11 @@ const actions: ActionTree<ShipmentState, RootState> = {
       return Promise.reject(new Error(err))
     }
   },
-  async updateShipmentProducts({ commit }, payload) {
+  async fetchShipmentDetail({ commit }, payload) {
     emitter.emit("presentLoader");
     let resp;
     try {
-      resp = await ShipmentService.receiveShipmentItems(payload);
+      resp = await ShipmentService.receiveShipmentItem(payload);
       if (resp.status == 200 && !hasError(resp)) {
         showToast(translate("Shipment Received Successfully") + ' ' + payload.shipmentId)
         await ShipmentService.updateShipments({

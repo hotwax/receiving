@@ -9,7 +9,7 @@
       <div>
         <ion-searchbar :placeholder="$t('Scan ASN to start receiving')"/>
 
-        <ShipmentListItem v-for="shipment in shipments" :key="shipment.productId" :shipment="shipment"/>
+        <ShipmentListItem v-for="shipment in shipments" :key="shipment.shipmentId" :shipment="shipment"/>
 
         <div class="ion-text-center">
           <ion-button fill="outline" color="dark"><ion-icon :icon="cloudDownloadOutline" slot="start" @click="loadMoreShipments()" />{{ $t("Load more shipments") }}</ion-button>

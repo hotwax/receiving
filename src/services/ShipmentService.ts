@@ -9,7 +9,7 @@ const fetchShipments = async (query: any): Promise <any>  => {
   });
 }
 
-const getShipmentProduct= async (query: any): Promise<any> => {
+const getShipmentDetail= async (query: any): Promise<any> => {
   return api({
     url: "shipment-detail",
     data: query,
@@ -17,7 +17,7 @@ const getShipmentProduct= async (query: any): Promise<any> => {
   });
 }
 
-const receiveShipmentItems = async (query: any): Promise <any> => {
+const receiveShipmentItem = async (query: any): Promise <any> => {
   return api({
     url: "receiveShipmentItem",
     method: "post",
@@ -36,7 +36,7 @@ const updateShipments = async (query: any): Promise <any> => {
 
 export const ShipmentService = {
   fetchShipments,
-  getShipmentProduct,
-  receiveShipmentItems,
+  getShipmentDetail,
+  receiveShipmentItem,
   updateShipments
 }
