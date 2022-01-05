@@ -1,0 +1,6 @@
+---
+title: 'Added: example env file and added entry to ignore the env.* file'
+ticket_id: "#1xhjyw3"
+merge_request: 26
+author: Yash Maheshwari
+type: security
