@@ -18,7 +18,7 @@
     <ion-content :fullscreen="true">
       <div>
         <ion-item lines="none">
-          <h1>{{$t("Purchase Order")}}: PO10291</h1>
+          <ion-label>{{$t("Purchase Order")}}: PO10291</ion-label>
         </ion-item>
         <ion-item>
           <ion-label>{{$t("Scan Items")}}</ion-label>
