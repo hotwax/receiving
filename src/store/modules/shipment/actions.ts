@@ -46,14 +46,14 @@ const actions: ActionTree<ShipmentState, RootState> = {
       return Promise.reject(new Error(err))
     }
   },
-  async fetchShipmentDetail({ commit }, payload) {
+  async updateShipmentProducts({ commit }, payload) {
     emitter.emit("presentLoader");
     let resp;
     try {
       resp = await ShipmentService.receiveShipmentItem(payload);
       if (resp.status == 200 && !hasError(resp)) {
         showToast(translate("Shipment Received Successfully") + ' ' + payload.shipmentId)
-        await ShipmentService.updateShipments({
+        await ShipmentService.updateShipment({
           "shipmentId": payload.shipmentId,
           "statusId": "PURCH_SHIP_RECEIVED"
         })

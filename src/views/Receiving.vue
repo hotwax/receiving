@@ -46,7 +46,7 @@ export default defineComponent({
     })
   },
   mounted () {
-    this.getShipments();
+    this.getShipment();
   },
   methods: {
     selectSearchBarText(event: any) {
@@ -54,7 +54,7 @@ export default defineComponent({
         element.select();
       })
     },
-    async getShipments(vSize?: any, vIndex?: any) {
+    async getShipment(vSize?: any, vIndex?: any) {
       const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
       const viewIndex = vIndex ? vIndex : 0;
       const payload = {
