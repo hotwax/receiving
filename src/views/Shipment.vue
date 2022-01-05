@@ -137,14 +137,14 @@ export default defineComponent({
           {
             text:this.$t('Complete'),
             handler: () => {
-              this.updateShipments();
+              this.updateShipment();
             },
           }
         ],
       });
       return alert.present();
     },
-    async updateShipments() {
+    async updateShipment() {
       this.items.items.filter((item: any) => {
         if(item.quantityAccepted > 0) {
           const payload = {
