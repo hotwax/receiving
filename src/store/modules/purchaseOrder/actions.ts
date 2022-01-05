@@ -59,6 +59,9 @@ const actions: ActionTree<PurchaseOrderState, RootState> = {
     } catch (error) {
       showToast(translate("Something went wrong"));
     }
+  },
+  async receiveInventory(){
+    //TODO: implement this action to handle receive inventory.
   }
 }
 

@@ -48,6 +48,7 @@
             <ion-progress-bar :value="item.quantityAccepted/item.quantityOrdered" />
             <p slot="end">{{ item.quantityOrdered }}</p>
           </ion-item>
+          <!-- {{item}} -->
         </ion-card>
       </div>
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
@@ -123,11 +124,20 @@ export default defineComponent({
     },
     async savePODetails() {
       const alert = await alertController.create({
-        cssClass: "my-custom-class",
-        header: "Receive inventory",
-        message:
-          "Inventory can be received for purchase orders in multiple shipments. <br/><br/> Proceeding will recieve a new shipment for this purchase order but it will still be available for receiving later",
-        buttons: ["Cancel", "Proceed"],
+        header: this.$t('Receive inventory'),
+        message: 
+          this.$t('Inventory can be received for purchase orders in multiple shipments. Proceeding will recieve a new shipment for this purchase order but it will still be available for receiving later', { space: '<br /><br />' }),
+        buttons: [{
+          text: this.$t('Cancel'),
+          role: 'cancel'
+        },
+        {
+          text: this.$t('Proceed'),
+          handler: () => {
+            //TODO: this is functional need to work on this
+            this.store.dispatch('purchaseOrder/receiveInventory')
+          },
+        }]
       });
       return alert.present();
     },
