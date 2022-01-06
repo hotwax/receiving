@@ -35,14 +35,14 @@
               </ion-label>
             </ion-item>
             <ion-item class="product-count">
-              <ion-input type="number" value="0" min="0"></ion-input>
+              <ion-input type="number" value="0" min="0" />
             </ion-item>
           </div>
           <ion-item class="border-top">
             <ion-button slot="start" fill="outline">
               {{ $t("ReceiveAll") }}
             </ion-button>
-            <ion-progress-bar value="1"></ion-progress-bar>
+            <ion-progress-bar value="1" />
             <p slot="end">5</p>
           </ion-item>
         </ion-card>
@@ -84,7 +84,7 @@ import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import Image from "@/components/Image.vue";
 
 export default defineComponent({
-  name: "Purchase order details",
+  name: "PurchaseOrderDetails",
   components: {
     Image,
     IonBackButton,
