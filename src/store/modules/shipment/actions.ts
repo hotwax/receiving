@@ -26,9 +26,8 @@ const actions: ActionTree<ShipmentState, RootState> = {
     }
     return resp;
   },
-  async setCurrentShipment ({ commit }, payload) {
+  async setCurrent ({ commit }, payload) {
     let resp;
-
     try {
       resp = await ShipmentService.getShipmentDetail(payload);
       if (resp.status === 200 && resp.data.items&& !hasError(resp)) {

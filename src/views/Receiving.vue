@@ -41,7 +41,7 @@ export default defineComponent({
   },
   computed: {
     ...mapGetters({
-      shipments: 'shipment/getSearchProducts',
+      shipments: 'shipment/getShipments',
       user: 'user/getCurrentFacility'
     })
   },

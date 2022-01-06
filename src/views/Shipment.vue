@@ -106,14 +106,15 @@ export default defineComponent({
     IonToolbar,
     Image
   },
-  props: ["product"],
+  props: ["shipment"],
   computed: {
     progress() {
       return 0;
     },
     ...mapGetters({
       items: 'shipment/getCurrent',
-      user: 'user/getCurrentFacility'
+      user: 'user/getCurrentFacility',
+      product: 'product/fetchProducts'
     }),
   },
   methods: {
@@ -123,6 +124,15 @@ export default defineComponent({
           component: AddProductModal
         })
       return modal.present();
+    },
+    async fetchProducts(vSize: any, vIndex: any) {
+      const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
+      const viewIndex = vIndex ? vIndex : 0;
+      const payload = {
+        viewSize,
+        viewIndex,
+      }
+        await this.store.dispatch("product/fetchProducts", payload);
     },
     async completeShipment() {
       const alert = await alertController.create({
@@ -137,14 +147,14 @@ export default defineComponent({
           {
             text:this.$t('Complete'),
             handler: () => {
-              this.updateShipment();
+              this.updateShipments();
             },
           }
         ],
       });
       return alert.present();
     },
-    async updateShipment() {
+    async updateShipments() {
       this.items.items.filter((item: any) => {
         if(item.quantityAccepted > 0) {
           const payload = {
