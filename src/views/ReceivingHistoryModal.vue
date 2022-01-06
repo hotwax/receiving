@@ -13,7 +13,7 @@
     <ion-list>
       <ion-item>
         <ion-thumbnail slot="start">
-          <img src="https://demo-resources.hotwax.io/resources/uploads/images/product/m/h/mh01-black_main.jpg" />
+          <Image src="https://demo-resources.hotwax.io/resources/uploads/images/product/m/h/mh01-black_main.jpg" />
         </ion-thumbnail>
         <ion-label>
           User
@@ -46,10 +46,12 @@ import {
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { close } from 'ionicons/icons';
+import Image from "@/components/Image.vue";
 
 export default defineComponent({
   name: "ReceivingHistoryModal",
   components: {
+    Image,
     IonButton,
     IonButtons,
     IonContent,

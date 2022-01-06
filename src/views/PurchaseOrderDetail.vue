@@ -9,7 +9,7 @@
             <ion-icon :icon="timeOutline"/>
           </ion-button>
           <ion-button>
-            <ion-icon :icon="add"/>
+            <ion-icon :icon="addOutline"/>
           </ion-button>
         </ion-buttons>
       </ion-toolbar>
@@ -18,35 +18,35 @@
     <ion-content :fullscreen="true">
       <div>
         <ion-item lines="none">
+<<<<<<< HEAD
           <h1>{{$t("Purchase Order")}}: {{ orderDetail[0]?.externalOrderId }}</h1>
+=======
+          <ion-label>{{$t("Purchase Order")}}: PO10291</ion-label>
+>>>>>>> #1xhjpgd
         </ion-item>
         <ion-item>
           <ion-label>{{$t("Scan Items")}}</ion-label>
-          <ion-label>
-            <ion-input placeholder="Scan barcodes to receive" />
-          </ion-label>
         </ion-item>
         <ion-card v-for="(item, index) in orderDetail" :key="index">
           <div class="product-info">
             <ion-item lines="none">
               <ion-thumbnail slot="start">
-                <!-- TODO:- handle this getter when another pull request get merged -->
-                <img src="getProduct(item.productId).mainImageUrl" />
+                <Image src="https://cdn.shopify.com/s/files/1/0069/7384/9727/products/test-track.jpg?v=1626255137" />
               </ion-thumbnail>
               <ion-label>
-                <ion-label>{{ getProduct(item.productId).productName }}</ion-label>
+                {{ getProduct(item.productId).productName }}
                 <p>{{ item.productId }}</p>
               </ion-label>
             </ion-item>
             <ion-item class="product-count">
-              <ion-input type="number" value="0" min="0"></ion-input>
+              <ion-input type="number" value="0" min="0" />
             </ion-item>
           </div>
           <ion-item class="border-top">
             <ion-button slot="start" fill="outline">
               {{ $t("ReceiveAll") }}
             </ion-button>
-            <ion-progress-bar value="1"></ion-progress-bar>
+            <ion-progress-bar value="1" />
             <p slot="end">5</p>
           </ion-item>
         </ion-card>
@@ -83,13 +83,15 @@ import {
   alertController,
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
-import { add, saveOutline, timeOutline } from 'ionicons/icons';
+import { addOutline, saveOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import { useStore, mapGetters } from 'vuex';
+import Image from "@/components/Image.vue";
 
 export default defineComponent({
-  name: "Purchase order details",
+  name: "PurchaseOrderDetails",
   components: {
+    Image,
     IonBackButton,
     IonButton,
     IonButtons,
@@ -124,11 +126,17 @@ export default defineComponent({
     },
     async savePODetails() {
       const alert = await alertController.create({
-        cssClass: "my-custom-class",
-        header: "Receive inventory",
-        message:
-          "Inventory can be received for purchase orders in multiple shipments. <br/><br/> Proceeding will recieve a new shipment for this purchase order but it will still be available for receiving later",
-        buttons: ["Cancel", "Proceed"],
+        header: this.$t('Receive inventory'),
+        message: 
+          this.$t('Inventory can be received for purchase orders in multiple shipments. Proceeding will recieve a new shipment for this purchase order but it will still be available for receiving later', { space: '<br /><br />' }),
+        buttons: [{
+          text: this.$t('Cancel'),
+          role: 'cancel'
+        },
+        {
+          text: this.$t('Proceed'),
+          role: 'proceed'
+        }]
       });
       return alert.present();
     }
@@ -136,7 +144,7 @@ export default defineComponent({
   setup() {
     const store = useStore();
     return {
-      add,
+      addOutline,
       saveOutline,
       store,
       timeOutline
