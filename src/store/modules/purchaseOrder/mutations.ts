@@ -9,6 +9,13 @@ const mutations: MutationTree <PurchaseOrderState> = {
   },
   [types.PURCHASE_ORDER_DETAIL_UPDATED] (state,payload) {
     state.current = payload.orderDetail
+  },
+  [types.UPDATE_PO_PRODUCT_COUNT](state, payload) {
+    state.current.items.forEach((item: any) => {
+      if (item.productId === payload) {
+        item.quantityAccepted = parseInt(item.quantityAccepted) + 1;
+      }
+    });
   }
 }
 export default mutations;

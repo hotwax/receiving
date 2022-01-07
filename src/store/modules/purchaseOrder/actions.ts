@@ -61,8 +61,8 @@ const actions: ActionTree<PurchaseOrderState, RootState> = {
     }
     return resp;
   },
-  async updatePoProductCount({ commit, state }, payload ) {
-    // TODO: Handle api call for update PO product count here
+  async updatePoProductCount({ commit }, payload ) {
+    commit(types.UPDATE_PO_PRODUCT_COUNT, payload)
   }
 }
 
