@@ -45,27 +45,43 @@ const actions: ActionTree<ShipmentState, RootState> = {
       return Promise.reject(new Error(err))
     }
   },
-  async updateShipmentProducts({ commit }, payload) {
+  receiveShipmentItem ({ commit }, data) {
+    const payload = {
+      'shipmentId': data.shipmentId
+    }
+    return Promise.all(data.items.map((item: any) => {
+      if(item.quantityAccepted > 0) {
+        const params = {
+        ...payload,
+        shipmentId: item.shipmentId,
+        facilityId: this.state.user.currentFacility.facilityId,
+        shipmentItemSeqId: item.itemSeqId,
+        productId: item.productId,
+        quantityAccepted: item.quantityAccepted,
+        locationSeqId: item.locationSeqId
+      }
+      return ShipmentService.receiveShipmentItem({'payload': params}).catch((err) => { 
+        return err;
+      })
+    }  
+    else {
+      showToast(translate("ZeroQuantity"))
+    }
+    }))
+  },
+  async updateShipmentProducts ({ dispatch }, {payload}) {
     emitter.emit("presentLoader");
-    let resp;
-    try {
-      resp = await ShipmentService.receiveShipmentItem(payload);
+    return await dispatch("receiveShipmentItem", payload).then(async(response) => {
+    const resp = await ShipmentService.updateShipment({
+              "shipmentId": payload.shipmentId,
+              "statusId": "PURCH_SHIP_RECEIVED"
+            })
       if (resp.status == 200 && !hasError(resp)) {
-        showToast(translate("Shipment Received Successfully") + ' ' + payload.shipmentId)
-        await ShipmentService.updateShipment({
-          "shipmentId": payload.shipmentId,
-          "statusId": "PURCH_SHIP_RECEIVED"
-        })
-        commit(types.SHIPMENT_REMOVE_FROM_SHPMT_PRDTS, {shipmentId: payload.shipmentId});
-      } else {
-        showToast(translate("Something went wrong"))
+      showToast(translate("Shipment Received Successfully") + ' ' + payload.shipmentId)
       }
       emitter.emit("dismissLoader");
-    } catch (error) {
-      console.log(error);
-      showToast(translate("Something went wrong"));
-    } 
-    return resp;
+      return resp;
+    }).catch(err => err);
   }
 }
 

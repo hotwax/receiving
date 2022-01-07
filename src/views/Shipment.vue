@@ -13,14 +13,14 @@
     <ion-content :fullscreen="true">
       <div>
         <ion-item lines="none">
-          <h1>{{ $t("Shipment ID") }} : {{ items.shipmentId }}</h1>
+          <h1>{{ $t("Shipment ID") }} : {{ current.shipmentId }}</h1>
         </ion-item>
         <ion-item>
           <ion-label>
             <ion-input :placeholder="$t('Scan barcodes to receive')"></ion-input>
           </ion-label>
         </ion-item>
-        <ion-card v-for="item in items.items" :key="item.id">
+        <ion-card v-for="item in current.items" :key="item.id">
           <div class="product-info">
             <ion-item lines="none">
               <ion-thumbnail slot="start">
@@ -81,7 +81,6 @@ import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
 import Image from "@/components/Image.vue";
 import { useRouter } from 'vue-router';
-import { showToast } from '@/utils'
 import { translate } from '@/i18n'
 
 export default defineComponent({
@@ -108,11 +107,8 @@ export default defineComponent({
   },
   props: ["shipment"],
   computed: {
-    progress() {
-      return 0;
-    },
     ...mapGetters({
-      items: 'shipment/getCurrent',
+      current: 'shipment/getCurrent',
       user: 'user/getCurrentFacility',
       product: 'product/fetchProducts'
     }),
@@ -155,26 +151,12 @@ export default defineComponent({
       return alert.present();
     },
     async updateShipments() {
-      this.items.items.filter((item: any) => {
-        if(item.quantityAccepted > 0) {
-          const payload = {
-            shipmentId: this.items.shipmentId,
-            facilityId: this.user.facilityId,
-            shipmentItemSeqId: item.itemSeqId,
-            productId: item.productId,
-            quantityAccepted: item.quantityAccepted,
-            locationSeqId: this.items.locationSeqId
-          }
-          this.store.dispatch('shipment/updateShipmentProducts', payload).then(() => {
+          this.store.dispatch('shipment/updateShipmentProducts', {payload: this.current}).then(() => {
             this.router.push('/receiving');
-            })
-        } else {
-          showToast(translate("ZeroQuantity"))
-        }
-      })
+      })   
     },
     receiveAll(item: any) {
-      this.items.items.filter((ele: any) => {
+      this.current.items.filter((ele: any) => {
         if(ele.itemSeqId == item.itemSeqId) {
           ele.quantityAccepted = ele.quantityOrdered;
           ele.progress = ele.quantityAccepted / ele.quantityOrdered
