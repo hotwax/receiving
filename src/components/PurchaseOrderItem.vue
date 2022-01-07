@@ -47,8 +47,9 @@ export default defineComponent({
           ]
         }
       }
-      await this.store.dispatch("purchaseOrder/getOrderDetails", {payload, orderId})
-      this.router.push({ path: `/purchase-order-details/${orderId}` })
+      await this.store.dispatch("purchaseOrder/getOrderDetails", {payload, orderId}).then(
+        ()=> this.router.push({ path: `/purchase-order-details/${orderId}` })
+      )
     }
   },
   setup() {

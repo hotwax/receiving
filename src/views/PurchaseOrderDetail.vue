@@ -18,20 +18,25 @@
     <ion-content :fullscreen="true">
       <div>
         <ion-item lines="none">
-<<<<<<< HEAD
-          <h1>{{$t("Purchase Order")}}: {{ orderDetail[0]?.externalOrderId }}</h1>
-=======
-          <ion-label>{{$t("Purchase Order")}}: PO10291</ion-label>
->>>>>>> #1xhjpgd
+          <ion-label>{{$t("Purchase Order")}}: {{ orderDetail[0]?.externalOrderId }}</ion-label>
         </ion-item>
-        <ion-item>
-          <ion-label>{{$t("Scan Items")}}</ion-label>
-        </ion-item>
+        <div class="po-scanner">
+          <ion-item class="action-text">
+            {{$t("Scan Items")}}
+            <ion-label>
+              <ion-input :placeholder="$t('Scan barcodes to receive them')"></ion-input>
+            </ion-label>
+          </ion-item>
+          <ion-button class="action-button" fill="outline" color="secondary" expand="block">
+            <ion-icon slot="start" :icon="cameraOutline" />
+            {{ $t("Scan") }}
+          </ion-button>
+        </div>
         <ion-card v-for="(item, index) in orderDetail" :key="index">
           <div class="product-info">
             <ion-item lines="none">
               <ion-thumbnail slot="start">
-                <Image src="https://cdn.shopify.com/s/files/1/0069/7384/9727/products/test-track.jpg?v=1626255137" />
+                <Image :src="getProduct(item.productId).mainImageUrl" />
               </ion-thumbnail>
               <ion-label>
                 {{ getProduct(item.productId).productName }}
@@ -83,7 +88,7 @@ import {
   alertController,
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
-import { addOutline, saveOutline, timeOutline } from 'ionicons/icons';
+import { addOutline, cameraOutline, saveOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import { useStore, mapGetters } from 'vuex';
 import Image from "@/components/Image.vue";
@@ -145,6 +150,7 @@ export default defineComponent({
     const store = useStore();
     return {
       addOutline,
+      cameraOutline,
       saveOutline,
       store,
       timeOutline
@@ -166,6 +172,19 @@ img {
 
 .border-top {
   border-top: 1px solid #ccc;
+}
+
+.po-scanner {
+  display: flex;
+}
+
+.action-text {
+  flex: 1;
+  align-items: center;
+}
+
+.action-button {
+  flex: 1;
 }
 
 .product-info {
