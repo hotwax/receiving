@@ -10,7 +10,7 @@ const mutations: MutationTree <PurchaseOrderState> = {
   [types.PURCHASE_ORDER_DETAIL_UPDATED] (state,payload) {
     state.current = payload.orderDetail
   },
-  [types.UPDATE_PO_PRODUCT_COUNT](state, payload) {
+  [types.PURCHASE_ORDER_PRODUCT_COUNT_UPDATED](state, payload) {
     state.current.items.forEach((item: any) => {
       if (item.productId === payload) {
         item.quantityAccepted = parseInt(item.quantityAccepted) + 1;

@@ -24,7 +24,7 @@
           <ion-item class="action-text">
             {{$t("Scan Items")}}
             <ion-label>
-              <ion-input :placeholder="$t('Scan barcodes to receive them')"></ion-input>
+              <ion-input :placeholder="$t('Scan barcodes to receive them')" />
             </ion-label>
           </ion-item>
           <ion-button class="action-button" fill="outline" @click="scanCode()">
@@ -146,9 +146,6 @@ export default defineComponent({
       });
       return alert.present();
     },
-    updateProductCount(payload: any){
-      this.store.dispatch('purchaseOrder/updatePoProductCount', payload)
-    },
     async scanCode(){
       const modal = await modalController
         .create({
@@ -156,7 +153,7 @@ export default defineComponent({
         });
         modal.onDidDismiss()
           .then((result) => {
-            this.updateProductCount(result.role);
+            this.store.dispatch('purchaseOrder/updatePoProductCount', result.role)
           })
         return modal.present();
     }

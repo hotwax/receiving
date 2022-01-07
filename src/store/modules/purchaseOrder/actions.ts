@@ -62,7 +62,7 @@ const actions: ActionTree<PurchaseOrderState, RootState> = {
     return resp;
   },
   async updatePoProductCount({ commit }, payload ) {
-    commit(types.UPDATE_PO_PRODUCT_COUNT, payload)
+    commit(types.PURCHASE_ORDER_PRODUCT_COUNT_UPDATED, payload)
   }
 }
 
