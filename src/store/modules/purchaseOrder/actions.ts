@@ -60,6 +60,9 @@ const actions: ActionTree<PurchaseOrderState, RootState> = {
       showToast(translate("Something went wrong"));
     }
     return resp;
+  },
+  async updatePoProductCount({ commit, state }, payload ) {
+    // TODO: Handle api call for update PO product count here
   }
 }
 
