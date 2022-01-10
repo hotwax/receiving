@@ -132,7 +132,7 @@ export default defineComponent({
         viewSize,
         viewIndex,
       }
-        await this.store.dispatch("product/fetchProducts", payload);
+        await this.store.dispatch("product/findProducts", payload);
     },
     async completeShipment() {
       const alert = await alertController.create({
