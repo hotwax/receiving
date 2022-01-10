@@ -34,40 +34,22 @@ const actions: ActionTree<ProductState, RootState> = {
       return resp;  
     },
   async findProducts ( { commit, state, dispatch }, payload) {
-    // Show loader only when new query and not the infinite scroll
-    if (payload.viewIndex === 0) emitter.emit("presentLoader");
     let resp;
+    if (payload.viewIndex === 0) emitter.emit("presentLoader");
     try {
       resp = await ProductService.findProducts(payload)
       if (resp.status === 200 && !hasError(resp)) {
-        const products = resp.data.grouped.parentProductId;
-        // Add stock information to Stock module to show on UI
-        dispatch('getProductsInformation', { products });
-        // Handled case for infinite scroll
-        if (payload.viewIndex && payload.viewIndex > 0) products.groups = state.list.items.concat(products.groups)
+        const products = resp.data.response.docs;
+        if (payload.viewIndex && payload.viewIndex > 0) products.groups = state.list.items.concat(products)
         commit(types.PRODUCT_LIST_UPDATED, { products });
       } else {
         showToast(translate("Something went wrong"));
       }
-      // Remove added loader only when new query and not the infinite scroll
       if (payload.viewIndex === 0) emitter.emit("dismissLoader");
     } catch(error){
       showToast(translate("Something went wrong"));
     }
-    // TODO Handle specific error
     return resp;
-  },
-  async getProductsInformation  ( context , { products }) {
-    // To remove redundant value Set is used
-    let productIds: any = new Set();
-    products.groups.forEach((product: any) => {
-      productIds.add(product.groupValue);
-    });
-    // Converted to list as methods like reduce not supported
-    productIds = [...productIds]
-    if (productIds.length) {
-      this.dispatch('product/fetchProducts', { productIds })
-    }
   },
 }
 

@@ -10,15 +10,16 @@
     </ion-toolbar>
   </ion-header>
   <ion-content class="ion-padding">
-    <ion-searchbar @ionFocus="selectSearchBarText($event)" :placeholder="$t('Search SKU or product name')" v-on:keyup.enter="getProduct()"></ion-searchbar>
+    <ion-searchbar @ionFocus="selectSearchBarText($event)" :placeholder="$t('Search SKU or product name')" v-on:keyup.enter="getProducts()"></ion-searchbar>
     <div v-for="product in products" :key="product.productId">
-      <ion-item v-bind:key="product.groupValue" v-for="product in products" lines="none" @click="() => router.push({ name: 'Modal', payload: { id: product.groupValue }})">
+
+      <ion-item lines="none">
         <ion-thumbnail slot="start">
-          <Image :src="getProduct(product.groupValue).mainImageUrl" />
+          <Image :src="product.mainImageUrl" />
         </ion-thumbnail>
         <ion-label>
-          <h2>{{ getProduct(product.groupValue).productName}}</h2>
-          <p>{{ getProduct(product.groupValue ).productId}}}</p>
+          <h2>{{ product.productName}}</h2>
+          <p>{{ product.productId}}</p>
         </ion-label>
         <ion-button fill="outline" color="dark" @click="addtoShipment()">{{ $t("Add to Shipment") }}</ion-button>
       </ion-item>
@@ -67,16 +68,17 @@ export default defineComponent({
     })
   },
   methods: {
-    async getProduct(vSize?: any, vIndex?: any) {  
-    const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
-    const viewIndex = vIndex ? vIndex : 0;
-    const payload = {
-      viewSize,
-      viewIndex,
-      groupByField: 'parentProductId',
-    }
-    this.store.dispatch("product/findProducts", payload);
-  },
+    async getProducts( vSize?: any, vIndex?: any) {
+      const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
+      const viewIndex = vIndex ? vIndex : 0;
+      const payload = {
+        viewSize,
+        viewIndex,
+        groupByField: 'parentProductId',
+        groupLimit: 0,
+      }
+      return this.store.dispatch("product/findProducts", payload)
+    },
     closeModal() {
       modalController.dismiss({ dismissed: true });
     },

@@ -9,6 +9,9 @@ const mutations: MutationTree <ProductState> = {
           state.cached[product.productId] = product
         });
       }
-    }
+    },
+    [types.PRODUCT_LIST_UPDATED] (state, payload) {
+      state.list.items = payload
+  },
   }
 export default mutations;
