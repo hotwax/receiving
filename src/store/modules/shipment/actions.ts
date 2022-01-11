@@ -21,7 +21,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
       }
       if (payload.viewIndex === 0) emitter.emit("dismissLoader");
     } catch(error){
-      console.log(error)
+      console.error(error)
       showToast(translate("Something went wrong"));
     }
     return resp;
