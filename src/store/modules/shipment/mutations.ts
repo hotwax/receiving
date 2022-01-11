@@ -8,9 +8,6 @@ const mutations: MutationTree <ShipmentState> = {
   },
   [types.SHIPMENT_CURRENT_UPDATED] (state, payload) {
     state.current = payload.current;
-  },
-  [types.SHIPMENT_REMOVE_FROM_SHPMT_PRDTS] (state, payload) {
-    delete state.shipments.list[payload.shipmentId];
   }
 }
 export default mutations;

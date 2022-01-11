@@ -35,13 +35,13 @@ const actions: ActionTree<ShipmentState, RootState> = {
         return resp.data;
       } else {
         showToast(translate('Something went wrong'));
-        console.error("error", resp.data._ERROR_MESSAGE_);
+        console.log("error", resp.data._ERROR_MESSAGE_);
         return Promise.reject(new Error(resp.data._ERROR_MESSAGE_));
       }
 
     } catch (err) {
       showToast(translate('Something went wrong'));
-      console.error("error", err);
+      console.log("error", err);
       return Promise.reject(new Error(err))
     }
   },
@@ -50,7 +50,6 @@ const actions: ActionTree<ShipmentState, RootState> = {
       'shipmentId': data.shipmentId
     }
     return Promise.all(data.items.map((item: any) => {
-      if(item.quantityAccepted > 0) {
         const params = {
         ...payload,
         shipmentId: item.shipmentId,
@@ -63,21 +62,17 @@ const actions: ActionTree<ShipmentState, RootState> = {
       return ShipmentService.receiveShipmentItem({'payload': params}).catch((err) => { 
         return err;
       })
-    }  
-    else {
-      showToast(translate("ZeroQuantity"))
-    }
     }))
   },
-  async updateShipmentProducts ({ dispatch }, {payload}) {
+  async receiveShipment ({ dispatch }, {payload}) {
     emitter.emit("presentLoader");
     return await dispatch("receiveShipmentItem", payload).then(async(response) => {
-    const resp = await ShipmentService.updateShipment({
-              "shipmentId": payload.shipmentId,
-              "statusId": "PURCH_SHIP_RECEIVED"
-            })
+      const resp = await ShipmentService.receiveShipment({
+        "shipmentId": payload.shipmentId,
+        "statusId": "PURCH_SHIP_RECEIVED"
+      })
       if (resp.status == 200 && !hasError(resp)) {
-      showToast(translate("Shipment Received Successfully") + ' ' + payload.shipmentId)
+        showToast(translate("Shipment Received Successfully") + ' ' + payload.shipmentId)
       }
       emitter.emit("dismissLoader");
       return resp;

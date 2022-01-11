@@ -143,15 +143,15 @@ export default defineComponent({
           {
             text:this.$t('Complete'),
             handler: () => {
-              this.updateShipments();
+              this.receiveShipment();
             },
           }
         ],
       });
       return alert.present();
     },
-    async updateShipments() {
-          this.store.dispatch('shipment/updateShipmentProducts', {payload: this.current}).then(() => {
+    async receiveShipment() {
+          this.store.dispatch('shipment/receiveShipment', {payload: this.current}).then(() => {
             this.router.push('/receiving');
       })   
     },
