@@ -79,6 +79,9 @@ export default defineComponent({
       }
       return this.store.dispatch("product/findProducts", payload)
     },
+    async addtoShipment () {
+      await this.store.dispatch('shipment/addShipmentItem')
+    },
     closeModal() {
       modalController.dismiss({ dismissed: true });
     },

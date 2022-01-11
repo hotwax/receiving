@@ -9,8 +9,8 @@ const getters: GetterTree<ShipmentState, RootState> = {
   getCurrent (state) {
     return state.current;
   },
-  getUpdateShipmentProducts(state) {
-    return state.updateShipmentProducts;
+  getUpdateShipmentProduct(state) {
+    return state.updateShipmentProduct;
   },
 };
 export default getters;

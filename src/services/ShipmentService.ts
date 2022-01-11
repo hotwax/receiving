@@ -33,10 +33,18 @@ const updateShipments = async (query: any): Promise <any> => {
   })
 }
 
+const addShipmentItem= async (payload: any): Promise<any> => {
+  return api({
+    url: "shipment-detail",
+    data: payload,
+    method: 'post'
+  });
+}
 
 export const ShipmentService = {
   fetchShipments,
   getShipmentProduct,
   receiveShipmentItems,
-  updateShipments
+  updateShipments,
+  addShipmentItem
 }

@@ -67,7 +67,32 @@ const actions: ActionTree<ShipmentState, RootState> = {
       showToast(translate("Something went wrong"));
     } 
     return resp;
-  }
+  },
+  async addShipmentItem ({ dispatch }, shipment) {
+    emitter.emit("presentLoader");
+
+    const params = {
+      shipmentId: shipment.shipmentId,
+      statusId: 'SHIPMENT_SHIPPED'
+    }
+
+    let resp;
+
+    try {
+      resp = await ShipmentService.addShipmentItem(params)
+      // if (resp.status === 200 && !hasError(resp)) {
+      //   // showToast(translate())
+      // } else {
+      //   showToast(translate("Something went wrong"))
+      // }
+    } catch(err) {
+      console.log(err)
+      showToast(translate("Something went wrong"))
+    }
+
+    emitter.emit("dismissLoader")
+    return resp;
+  },
 }
 
 export default actions;
