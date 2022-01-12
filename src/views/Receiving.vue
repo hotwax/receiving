@@ -48,12 +48,6 @@ export default defineComponent({
       user: 'user/getCurrentFacility'
     })
   },
-  data(){
-    return{
-      viewSize:'',
-      viewIndex:'',
-    }
-  },
   mounted () {
     this.getShipments();
   },
