@@ -18,9 +18,9 @@ const actions: ActionTree<ShipmentState, RootState> = {
         "statusId": "PURCH_SHIP_SHIPPED"
       })
       if (resp.status === 200 && resp.data.count> 0 && !hasError(resp)) {
-        const shipments = resp.data.docs;
+        let shipments = resp.data.docs;
         if (!shipments.length) showToast(translate("No more shipments found")); 
-        commit(types.SHIPMENT_SEARCH_UPDATED, { shipments })
+        commit(types.SHIPMENT_LIST_UPDATED, { shipments })
       } else {
         showToast(translate("Product not found"));
       }
