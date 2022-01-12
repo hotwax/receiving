@@ -37,7 +37,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
     try {
       resp = await ShipmentService.getShipmentProduct(payload);
       if (resp.status === 200 && resp.data.items&& !hasError(resp)) {
-        commit(types.SHIPMENT_CURRENT, { current: resp.data })
+        commit(types.SHIPMENT_CURRENT_UPDATED, { current: resp.data })
         return resp.data;
       } else {
         showToast(translate('Something went wrong'));
