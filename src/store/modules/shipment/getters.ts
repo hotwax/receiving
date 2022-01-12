@@ -8,9 +8,6 @@ const getters: GetterTree<ShipmentState, RootState> = {
   },
   getCurrent (state) {
     return state.current;
-  },
-  getUpdateShipmentProducts(state) {
-    return state.updateShipmentProducts;
-  },
+  }
 };
 export default getters;

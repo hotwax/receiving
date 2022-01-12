@@ -9,7 +9,7 @@
       <div>
         <ion-searchbar :placeholder="$t('Scan ASN to start receiving')"/>
 
-        <ShipmentListItem v-for="shipment in shipments" :key="shipment.productId" :shipment="shipment"/>
+        <ShipmentListItem v-for="shipment in shipments" :key="shipment.shipmentId" :shipment="shipment"/>
 
         <div class="ion-text-center">
           <ion-button fill="outline" color="dark" @click="loadMoreShipments()">
@@ -63,7 +63,8 @@ export default defineComponent({
       const payload = {
         viewSize,
         viewIndex,
-        facilityId: this.user.facilityId
+        facilityId: this.user.facilityId,
+        statusId: "PURCH_SHIP_SHIPPED"
       }
       await this.store.dispatch("shipment/findShipment", payload);
     },
@@ -77,7 +78,7 @@ export default defineComponent({
       cloudDownloadOutline,
       store
     }
-  },
+  }
 })
 </script>
 
