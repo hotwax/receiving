@@ -26,7 +26,7 @@
             </ion-button>
           </ion-buttons>
         </ion-item>
-        <ion-card v-for="item in items.items" :key="item.id">
+        <ion-card v-for="item in current.items" :key="item.id">
           <div class="product-info">
             <ion-item lines="none">
               <ion-thumbnail slot="start">
@@ -87,7 +87,6 @@ import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
 import Image from "@/components/Image.vue";
 import { useRouter } from 'vue-router';
-import { showToast } from '@/utils'
 import { translate } from '@/i18n'
 import Scanner from "./Scanner.vue";
 
@@ -113,14 +112,12 @@ export default defineComponent({
     IonToolbar,
     Image
   },
-  props: ["product"],
+  props: ["shipment"],
   computed: {
-    progress() {
-      return 0;
-    },
     ...mapGetters({
-      items: 'shipment/getCurrent',
+      current: 'shipment/getCurrent',
       user: 'user/getCurrentFacility',
+      product: 'product/fetchProducts',
       getProduct: 'product/getProduct'
     })
   },
@@ -131,6 +128,15 @@ export default defineComponent({
           component: AddProductModal
         })
       return modal.present();
+    },
+    async fetchProducts(vSize: any, vIndex: any) {
+      const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
+      const viewIndex = vIndex ? vIndex : 0;
+      const payload = {
+        viewSize,
+        viewIndex,
+      }
+        await this.store.dispatch("product/fetchProducts", payload);
     },
     async completeShipment() {
       const alert = await alertController.create({
@@ -145,34 +151,20 @@ export default defineComponent({
           {
             text:this.$t('Complete'),
             handler: () => {
-              this.updateShipments();
+              this.receiveShipment();
             },
           }
         ],
       });
       return alert.present();
     },
-    async updateShipments() {
-      this.items.items.filter((item: any) => {
-        if(item.quantityAccepted > 0) {
-          const payload = {
-            shipmentId: this.items.shipmentId,
-            facilityId: this.user.facilityId,
-            shipmentItemSeqId: item.itemSeqId,
-            productId: item.productId,
-            quantityAccepted: item.quantityAccepted,
-            locationSeqId: this.items.locationSeqId
-          }
-          this.store.dispatch('shipment/updateShipmentProducts', payload).then(() => {
+    async receiveShipment() {
+          this.store.dispatch('shipment/receiveShipment', {payload: this.current}).then(() => {
             this.router.push('/receiving');
-            })
-        } else {
-          showToast(translate("ZeroQuantity"))
-        }
-      })
+      })   
     },
     receiveAll(item: any) {
-      this.items.items.filter((ele: any) => {
+      this.current.items.filter((ele: any) => {
         if(ele.itemSeqId == item.itemSeqId) {
           ele.quantityAccepted = ele.quantityOrdered;
           ele.progress = ele.quantityAccepted / ele.quantityOrdered
