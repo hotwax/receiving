@@ -68,7 +68,8 @@ export default defineComponent({
   },
   computed: {
     ...mapGetters({
-      products:'product/getProduct'
+      products:'product/getProduct',
+      shipment: 'shipment/addShipmentItem'
     })
   },
   methods: {
@@ -84,7 +85,11 @@ export default defineComponent({
       return this.store.dispatch("product/findProducts", payload)
     },
     async addtoShipment (productId: any) {
-      await this.store.dispatch('shipment/addShipmentItem',productId)
+      const payload = {
+        productId: 'productId',
+        quantity: 0,
+      }
+      this.store.dispatch('shipment/addShipmentItem',payload)
     },
     closeModal() {
       modalController.dismiss({ dismissed: true });

@@ -81,13 +81,14 @@ const actions: ActionTree<ShipmentState, RootState> = {
   },
   async addShipmentItem ({ dispatch }, shipment) {
     emitter.emit("presentLoader");
-    const params = {
+    const payload = {
       shipmentId: shipment.shipmentId,
-      statusId: 'SHIPMENT_SHIPPED'
+      productId: shipment.productId,
+      quantity: 0
     }
     let resp;
     try {
-      resp = await ShipmentService.addShipmentItem(params)
+      resp = await ShipmentService.addShipmentItem(payload)
     } catch(err) {
       console.log(err)
       showToast(translate("Something went wrong"))
