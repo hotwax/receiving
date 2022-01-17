@@ -17,6 +17,6 @@ const findProducts = async (query: any): Promise <any> => {
 }
 
 export const ProductService = {
-fetchProducts,
-findProducts
+    fetchProducts,
+    findProducts
 }

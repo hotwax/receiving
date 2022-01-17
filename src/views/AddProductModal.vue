@@ -11,7 +11,9 @@
   </ion-header>
   <ion-content class="ion-padding">
     <ion-searchbar @ionFocus="selectSearchBarText($event)" :placeholder="$t('Search SKU or product name')" v-on:keyup.enter="getProducts()"></ion-searchbar>
-    <div v-for="product in products" :key="product.productId">
+    
+    <div v-for="product in products.products" :key="product.productId">
+
 
       <ion-item lines="none">
         <ion-thumbnail slot="start">
@@ -21,7 +23,7 @@
           <h2>{{ product.productName}}</h2>
           <p>{{ product.productId}}</p>
         </ion-label>
-        <ion-button fill="outline" color="dark" @click="addtoShipment()">{{ $t("Add to Shipment") }}</ion-button>
+        <ion-button fill="outline" color="dark" @click="addtoShipment(shipmentId)">{{ $t("Add to Shipment") }}</ion-button>
       </ion-item>
     </div> 
   </ion-content>
@@ -46,6 +48,7 @@ import { defineComponent } from 'vue';
 import { close, checkmarkCircle } from 'ionicons/icons';
 import { mapGetters } from 'vuex'
 import { useStore } from "@/store";
+import Image from "@/components/Image.vue"
 
 export default defineComponent({
   name: "Modal",
@@ -61,6 +64,7 @@ export default defineComponent({
     IonThumbnail,
     IonTitle,
     IonToolbar,
+    Image
   },
   computed: {
     ...mapGetters({
@@ -79,8 +83,8 @@ export default defineComponent({
       }
       return this.store.dispatch("product/findProducts", payload)
     },
-    async addtoShipment () {
-      await this.store.dispatch('shipment/addShipmentItem')
+    async addtoShipment (shipmentId: any) {
+      await this.store.dispatch('shipment/addShipmentItem',shipmentId)
     },
     closeModal() {
       modalController.dismiss({ dismissed: true });

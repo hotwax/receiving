@@ -9,7 +9,6 @@ const shipmentModule: Module<ShipmentState, RootState> = {
     namespaced: true,
     state: {
       current: {},
-      updateShipmentProduct:{},
       shipments: {
         list: {}
       }
