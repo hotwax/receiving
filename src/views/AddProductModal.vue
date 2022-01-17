@@ -23,7 +23,7 @@
           <h2>{{ product.productName}}</h2>
           <p>{{ product.productId}}</p>
         </ion-label>
-        <ion-button fill="outline" color="dark" @click="addtoShipment(shipmentId)">{{ $t("Add to Shipment") }}</ion-button>
+        <ion-button fill="outline" color="dark" @click="addtoShipment(productId)">{{ $t("Add to Shipment") }}</ion-button>
       </ion-item>
     </div> 
   </ion-content>
@@ -83,8 +83,8 @@ export default defineComponent({
       }
       return this.store.dispatch("product/findProducts", payload)
     },
-    async addtoShipment (shipmentId: any) {
-      await this.store.dispatch('shipment/addShipmentItem',shipmentId)
+    async addtoShipment (productId: any) {
+      await this.store.dispatch('shipment/addShipmentItem',productId)
     },
     closeModal() {
       modalController.dismiss({ dismissed: true });
