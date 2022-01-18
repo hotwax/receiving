@@ -21,6 +21,13 @@ export class PurchaseOrdersDetails implements OnInit {
   public modalKeyListener;
   public shipment:any = {};
   public SKU: any;
+  viewSize: number = 10;
+  viewIndex: number = 0;
+  orderId: string = '';
+  field = 'orderId';
+  group: boolean = true;
+  limit = 10000;
+  orderDetails: any;
   constructor(
     public translate: TranslateService,
     private activatedRoute: ActivatedRoute,
@@ -47,14 +54,8 @@ export class PurchaseOrdersDetails implements OnInit {
       if(!paramMap.has('id')) {
         return;
       }
-      const shipmentId = paramMap.get('id');
-      let storedShipment = JSON.parse(this.storageProvider.getLocalStorageItem(shipmentId));
-      if(storedShipment) {
-       
-        this.shipment = storedShipment;
-      } else {
-        this.getShipmentDetail(shipmentId);
-      }
+      const orderId = paramMap.get('id');
+      this.getPurchaseOrderDetail(orderId, this.viewSize, this.field, this.group, this.limit);
     })
   }
 
@@ -62,22 +63,12 @@ export class PurchaseOrdersDetails implements OnInit {
     window.removeEventListener('keydown', this.modalKeyListener);
   }
 
-  getShipmentDetail(shipmentId) {
+  getPurchaseOrderDetail(orderId, viewSize, field, group, limit) {
     this.widgetProvider.presentLoader('');
-    let params = { shipmentId: shipmentId };
-    this.hcProvider.callRequest('get', 'shipment-detail', params).subscribe(
-      (data: any) => {
+    this.utilProvider.getPurchaseOrders(viewSize, field, group, limit, orderId).then((data: any) => {
         if (data) {
-          this.shipment = data;
-          this.shipment.items.map(item => {
-            if(this.shipment.statusId === 'PURCH_SHIP_RECEIVED') {
-              item.progress = 1
-            } else {
-              // After fetching shipment detail, added progress field in each items because we need to show progress as per the value of quantityAccepted
-              item.progress = 0;
-            }
-          })
-          this.storageProvider.setLocalStorageItem(shipmentId, JSON.stringify(this.shipment));
+          this.orderDetails = data[0];
+          this.storageProvider.setLocalStorageItem(orderId, JSON.stringify(this.orderDetails));
         }
         this.widgetProvider.dismissLoader();
       },

@@ -9,18 +9,18 @@
     </ion-toolbar>
 </ion-header>
 <ion-content>
-    <ng-container *ngIf="utilProvider.shipments?.length; else noShipments">
+    <ng-container *ngIf="orders?.length; else noShipments">
       <div>
         <ion-searchbar [(ngModel)]="shipmentId" placeholder="{{ 'Search' | translate }}" (keypress)="getShipment($event, shipmentId)"
           (ionClear)="clearShipment()">
         </ion-searchbar>
         <ion-list>
-          <ion-item *ngFor="let shipment of utilProvider.shipments" [routerLink]="['/purchase-orders', shipment.id]">
+          <ion-item *ngFor="let order of orders" [routerLink]="['/purchase-orders', order.orderId]">
             <ion-label>
-              <h2>Purchase Order Number</h2>
-              <p>{{ shipment?.statusId }}</p>
+              <h2>{{order?. orderId}}</h2>
+              <p>{{ order?.orderStatusId }}</p>
             </ion-label>
-            <ion-note slot="end" [color]="shipment.shipmentStatus === 'Received' ? 'success' : 'primary' ">
+            <ion-note slot="end" [color]="order.orderStatusDesc === 'Created' ? 'success' : 'primary' ">
               ETA
             </ion-note>
           </ion-item>
