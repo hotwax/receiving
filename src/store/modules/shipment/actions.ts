@@ -39,7 +39,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
 
         productIds = [...productIds]
         if(productIds.length) {
-          this.dispatch('product/setCurrentProduct', { productIds })
+          this.dispatch('product/fetchProducts', { productIds })
         }
         return resp.data;
       } else {

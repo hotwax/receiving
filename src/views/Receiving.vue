@@ -64,7 +64,6 @@ export default defineComponent({
         statusId: "PURCH_SHIP_SHIPPED"
       }
       await this.store.dispatch("shipment/findShipment", payload);
-      console.log(this.shipments)
     },
   },
   setup() {
