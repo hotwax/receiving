@@ -10,7 +10,7 @@ import emitter from '@/event-bus'
 const actions: ActionTree<ProductState, RootState> = {
 
   /**
-   * Set Current Product
+   * Fetch Cached Product
    */
   async fetchProducts ( {commit, state}, { productIds }) {
     const cachedProductIds = Object.keys(state.cached)
