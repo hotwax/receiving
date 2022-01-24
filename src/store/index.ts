@@ -5,8 +5,9 @@ import actions from './actions'
 import RootState from './RootState'
 import createPersistedState from "vuex-persistedstate";
 import userModule from './modules/user';
-import productModule from "./modules/product"
 import purchaseOrderModule from './modules/purchaseOrder'
+import shipmentModule from "./modules/shipment"
+
 
 // TODO check how to register it from the components only
 // Handle same module registering multiple time on page refresh
@@ -31,8 +32,8 @@ const store = createStore<RootState>({
     plugins: [ persistState ],
     modules: { 
         'user': userModule,
-        'product': productModule,
-        'purchaseOrder': purchaseOrderModule
+        'purchaseOrder': purchaseOrderModule,
+        'shipment': shipmentModule
     },
 })
 
