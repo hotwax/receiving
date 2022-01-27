@@ -40,7 +40,7 @@
           </div>
           <ion-item class="border-top">
             <ion-button slot="start" fill="outline">
-              {{ $t("ReceiveAll") }}
+              {{ $t("Receive All") }}
             </ion-button>
             <ion-progress-bar value="1" />
             <p slot="end">5</p>
