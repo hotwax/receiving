@@ -10,87 +10,26 @@
     </ion-toolbar>
   </ion-header>
   <ion-content class="ion-padding">
-    <ion-searchbar
-      :placeholder="$t('Search SKU or product name')"
-    ></ion-searchbar>
-    <ion-list>
-      <ion-item>
+    <ion-searchbar @ionFocus="selectSearchBarText($event)" :placeholder="$t('Search SKU or product name')" v-on:keyup.enter="getProducts()" />
+    
+    <ion-list v-for="product in products.products" :key="product.productId">
+
+
+      <ion-item lines="none">
         <ion-thumbnail slot="start">
-          <img
-            src="https://demo-resources.hotwax.io/resources/uploads/images/product/m/h/mh01-black_main.jpg"
-          />
+          <Image :src="product.mainImageUrl" />
         </ion-thumbnail>
         <ion-label>
-          <h2>Chaz Kangeroo Hoodie-XS-Black</h2>
-          <p>10001</p>
+          <h2>{{ product.productName}}</h2>
+          <p>{{ product.productId}}</p>
         </ion-label>
-        <ion-button fill="outline" color="dark">{{ $t("Add to Shipment") }}</ion-button>
+        <ion-button fill="outline" color="dark" @click="addtoShipment(productId)">{{ $t("Add to Shipment") }}</ion-button>
       </ion-item>
-      <ion-item>
-        <ion-thumbnail slot="start">
-          <img
-            src="https://demo-resources.hotwax.io/resources/uploads/images/product/m/h/mh01-gray_main.jpg"
-          />
-        </ion-thumbnail>
-        <ion-label>
-          <h2>Chaz Kangeroo Hoodie-XS-Gray</h2>
-          <p>10002</p>
-        </ion-label>
-        <ion-button fill="outline" color="dark">{{ $t("Add to Shipment") }}</ion-button>
-      </ion-item>
-      <ion-item>
-        <ion-thumbnail slot="start">
-          <img
-            src="https://demo-resources.hotwax.io/resources/uploads/images/product/m/h/mh01-orange_main.jpg"
-          />
-        </ion-thumbnail>
-        <ion-label>
-          <h2>Chaz Kangeroo Hoodie-XS-Orange</h2>
-          <p>10003</p>
-        </ion-label>
-        <ion-icon :icon="checkmarkCircle" color="success" />
-      </ion-item>
-      <ion-item>
-        <ion-thumbnail slot="start">
-          <img
-            src="https://demo-resources.hotwax.io/resources/uploads/images/product/m/h/mh01-black_main.jpg"
-          />
-        </ion-thumbnail>
-        <ion-label>
-          <h2>Chaz Kangeroo Hoodie-XS-Black</h2>
-          <p>10004</p>
-        </ion-label>
-        <ion-button fill="outline" color="dark">{{ $t("Add to Shipment") }}</ion-button>
-      </ion-item>
-      <ion-item>
-        <ion-thumbnail slot="start">
-          <img
-            src="https://demo-resources.hotwax.io/resources/uploads/images/product/m/h/mh01-gray_main.jpg"
-          />
-        </ion-thumbnail>
-        <ion-label>
-          <h2>Chaz Kangeroo Hoodie-XS-Gray</h2>
-          <p>10005</p>
-        </ion-label>
-        <ion-button fill="outline" color="dark">{{ $t("Add to Shipment") }}</ion-button>
-      </ion-item>
-      <ion-item>
-        <ion-thumbnail slot="start">
-          <img
-            src="https://demo-resources.hotwax.io/resources/uploads/images/product/m/h/mh01-orange_main.jpg"
-          />
-        </ion-thumbnail>
-        <ion-label>
-          <h2>Chaz Kangeroo Hoodie-XS-Orange</h2>
-          <p>10006</p>
-        </ion-label>
-        <ion-button fill="outline" color="dark">{{ $t("Add to Shipment") }}</ion-button>
-      </ion-item>
-    </ion-list>
+    </ion-list> 
   </ion-content>
 </template>
 
-<script>
+<script lang="ts">
 import {
   IonButton,
   IonButtons,
@@ -108,6 +47,9 @@ import {
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { close, checkmarkCircle } from 'ionicons/icons';
+import { mapGetters } from 'vuex'
+import { useStore } from "@/store";
+import Image from "@/components/Image.vue"
 
 export default defineComponent({
   name: "Modal",
@@ -124,16 +66,48 @@ export default defineComponent({
     IonThumbnail,
     IonTitle,
     IonToolbar,
+    Image
+  },
+  computed: {
+    ...mapGetters({
+      products:'product/getProduct',
+      shipment: 'shipment/addShipmentItem'
+    })
   },
   methods: {
+    async getProducts( vSize?: any, vIndex?: any) {
+      const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
+      const viewIndex = vIndex ? vIndex : 0;
+      const payload = {
+        viewSize,
+        viewIndex,
+        groupByField: 'parentProductId',
+        groupLimit: 0,
+      }
+      return this.store.dispatch("product/findProducts", payload)
+    },
+    async addtoShipment (productId: any) {
+      const payload = {
+        productId: 'productId',
+        quantity: 0,
+      }
+      this.store.dispatch('shipment/addShipmentItem',payload)
+    },
     closeModal() {
       modalController.dismiss({ dismissed: true });
     },
+    selectSearchBarText(event: any) {
+      event.target.getInputElement().then((element: any) => {
+        element.select();
+      })
+    },
   },
   setup() {
+    const store = useStore();
     return {
       close,
       checkmarkCircle,
+      store,
     };
   },
 });

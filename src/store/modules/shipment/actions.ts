@@ -77,6 +77,9 @@ const actions: ActionTree<ShipmentState, RootState> = {
       emitter.emit("dismissLoader");
       return resp;
     }).catch(err => err);
+  },
+  async addShipmentItem ({ dispatch }, shipment) {
+    console.log("add To Clicked");
   }
 }
 
