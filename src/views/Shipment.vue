@@ -37,7 +37,7 @@
           </div>
           <ion-item class="border-top" v-if="item.quantityOrdered > 0">
             <ion-button @click="receiveAll(item)" color="dark" slot="start" fill="outline">
-              {{ $t("ReceiveAll") }}
+              {{ $t("Receive All") }}
             </ion-button>
             <ion-progress-bar :value="item.quantityAccepted/item.quantityOrdered" color="dark"></ion-progress-bar>
             <p slot="end">{{ item.quantityOrdered }}</p>
