@@ -3,7 +3,7 @@
     <ion-header :translucent="true">
       <ion-toolbar>
         <ion-back-button default-href="/" slot="start" />
-        <ion-title>{{$t("Purchase Order Details")}}</ion-title>
+        <ion-title> {{$t("Purchase Order Details")}} </ion-title>
         <ion-buttons slot="end">
           <ion-button @click="receivingHistory">
             <ion-icon :icon="timeOutline"/>
@@ -21,8 +21,8 @@
           <ion-label>
             {{$t("Purchase Order")}}: PO10291
           </ion-label>
-          <ion-chip>{{$t("Arrival date")}}</ion-chip>
-          <ion-chip>{{$t("External ID")}}</ion-chip>
+          <ion-chip> {{$t("Arrival date")}} </ion-chip>
+          <ion-chip> {{$t("External ID")}} </ion-chip>
         </ion-item>
         <div class="po-scanner">
           <ion-item class="action-text">
