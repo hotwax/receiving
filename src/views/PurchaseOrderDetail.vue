@@ -6,10 +6,10 @@
         <ion-title> {{$t("Purchase Order Details")}} </ion-title>
         <ion-buttons slot="end">
           <ion-button @click="receivingHistory">
-            <ion-icon :icon="timeOutline"/>
+            <ion-icon slot="icon-only" :icon="timeOutline"/>
           </ion-button>
           <ion-button>
-            <ion-icon :icon="addOutline"/>
+            <ion-icon slot="icon-only" :icon="addOutline"/>
           </ion-button>
         </ion-buttons>
       </ion-toolbar>
@@ -17,55 +17,61 @@
 
     <ion-content>
       <div>
-        <ion-item lines="none">
-          <ion-label>
+        <ion-item lines="none" class="po-primary">
+          <h1>
             {{$t("Purchase Order")}}: PO10291
-          </ion-label>
-          <ion-chip> {{$t("Arrival date")}} </ion-chip>
-          <ion-chip> {{$t("External ID")}} </ion-chip>
+          </h1>
         </ion-item>
+        
+        <div class"po-meta">
+          <ion-chip> Arrival date </ion-chip>
+          <ion-chip> Internal ID </ion-chip>
+        </div>
+        
         <div class="po-scanner">
-          <ion-item class="action-text">
+          <ion-item>
             {{$t("Scan Items")}}
-            <ion-label>
-              <ion-input :placeholder="$t('Scan barcodes to receive')" />
-            </ion-label>
+            <ion-input :placeholder="$t('Scan barcodes to receive')" />
           </ion-item>
-          <ion-button class="action-button" fill="outline">
+          <ion-button fill="outline">
             <ion-icon slot="start" :icon="cameraOutline" />
             {{ $t("Scan") }}
           </ion-button>
         </div>
-        <ion-card>
-          <div class="product-info">
-            <ion-item lines="none">
-              <ion-thumbnail slot="start">
-                <Image src="https://cdn.shopify.com/s/files/1/0069/7384/9727/products/test-track.jpg?v=1626255137" />
-              </ion-thumbnail>
-              <ion-label>
-                Chaz Kangeroo Hoodie-XS-Green
-                <p>12203</p>
-              </ion-label>
-            </ion-item>
-            <div class="product-chip">
-              <ion-chip outline="true">
+        
+        <div class="po-items">
+          <ion-card>
+            <div class="product-info">
+              <ion-item lines="none">
+                <ion-thumbnail slot="start">
+                  <Image src="https://cdn.shopify.com/s/files/1/0069/7384/9727/products/test-track.jpg?v=1626255137" />
+                </ion-thumbnail>
+                <ion-label>
+                  Shopify SKU
+                  <p>Parent product</p>
+                </ion-label>
+              </ion-item>
+
+              <ion-chip outline="true" class"po-item-history">
                 <ion-icon :icon="checkmarkDone"/>
                 <ion-label> 50 {{ $t("received") }} </ion-label>
               </ion-chip>
+
+              <ion-item class="product-count">
+                <ion-input type="number" value="0" min="0" />
+              </ion-item>
             </div>
-            <ion-item class="product-count">
-              <ion-input type="number" value="0" min="0" />
+            <ion-item lines="none" class="border-top">
+              <ion-button slot="start" fill="outline">
+                {{ $t("Receive All") }}
+              </ion-button>
+              <ion-progress-bar value="1" />
+              <p slot="end">5 ordered</p>
             </ion-item>
-          </div>
-          <ion-item class="border-top">
-            <ion-button slot="start" fill="outline">
-              {{ $t("Receive All") }}
-            </ion-button>
-            <ion-progress-bar value="1" />
-            <p slot="end">5</p>
-          </ion-item>
-        </ion-card>
+          </ion-card>
+        </div>  
       </div>
+      
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
         <ion-fab-button @click="savePODetails">
           <ion-icon :icon="saveOutline" />
@@ -165,6 +171,9 @@ export default defineComponent({
 
 <style scoped>
 ion-content div {
+  display: grid
+  grid-template-columns: 1fr 1fr
+
   max-width: 1110px;
   margin-right: auto;
   margin-left: auto;
@@ -178,27 +187,33 @@ img {
   border-top: 1px solid #ccc;
 }
 
-.product-info {
-  display: grid;
-  grid-template-columns: auto 1fr .25fr;
-  align-items: center;
-  padding: 16px;
-}
-
-.product-chip {
-  justify-self: center;
+.po-meta {
+  display: flex;
+  gap: 8px;
 }
 
 .po-scanner {
+  grid-column: 1 / -1;
   display: flex;
 }
 
-.action-text {
+.po-scanner > * {
   flex: 1;
 }
 
-.action-button {
-  flex: 1;
+.po-items {
+  grid-column: 1 / -1;
+}
+
+.product-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr .25fr;
+  align-items: center;
+  padding: 0 16px 0 0;
+}
+
+.po-item-history {
+  justify-self: center;
 }
 
 .product-count {
