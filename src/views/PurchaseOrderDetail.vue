@@ -18,13 +18,24 @@
     <ion-content>
       <div>
         <ion-item lines="none">
-          <ion-label>{{$t("Purchase Order")}}: PO10291</ion-label>
-          <ion-chip>{{$t(("Arrival date"))}}</ion-chip>
-          <ion-chip>{{$t(("External ID"))}}</ion-chip>
+          <ion-label>
+            {{$t("Purchase Order")}}: PO10291
+          </ion-label>
+          <ion-chip>{{$t("Arrival date")}}</ion-chip>
+          <ion-chip>{{$t("External ID")}}</ion-chip>
         </ion-item>
-        <ion-item>
-          <ion-label>{{$t("Scan Items")}}</ion-label>
-        </ion-item>
+        <div class="po-scanner">
+          <ion-item class="action-text">
+            {{$t("Scan Items")}}
+            <ion-label>
+              <ion-input :placeholder="$t('Scan barcodes to receive')" />
+            </ion-label>
+          </ion-item>
+          <ion-button class="action-button" fill="outline">
+            <ion-icon slot="start" :icon="cameraOutline" />
+            {{ $t("Scan") }}
+          </ion-button>
+        </div>
         <ion-card>
           <div class="product-info">
             <ion-item lines="none">
@@ -36,10 +47,12 @@
                 <p>12203</p>
               </ion-label>
             </ion-item>
-            <ion-chip outline="true">
-              <ion-icon :icon="checkmarkDone"/>
-              <ion-label> 50 {{ $t("received") }} </ion-label>
-            </ion-chip>
+            <div class="product-chip">
+              <ion-chip outline="true">
+                <ion-icon :icon="checkmarkDone"/>
+                <ion-label> 50 {{ $t("received") }} </ion-label>
+              </ion-chip>
+            </div>
             <ion-item class="product-count">
               <ion-input type="number" value="0" min="0" />
             </ion-item>
@@ -68,6 +81,7 @@ import {
   IonButton,
   IonButtons,
   IonCard,
+  IonChip,
   IonContent,
   IonHeader,
   IonFab,
@@ -85,7 +99,7 @@ import {
   alertController,
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
-import { addOutline, checkmarkDone, saveOutline, timeOutline } from 'ionicons/icons';
+import { addOutline, cameraOutline, checkmarkDone, saveOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import Image from "@/components/Image.vue";
 
@@ -97,6 +111,7 @@ export default defineComponent({
     IonButton,
     IonButtons,
     IonCard,
+    IonChip,
     IonContent,
     IonHeader,
     IonFab,
@@ -139,6 +154,7 @@ export default defineComponent({
   setup() {
     return {
       addOutline,
+      cameraOutline,
       checkmarkDone,
       saveOutline,
       timeOutline
@@ -164,9 +180,25 @@ img {
 
 .product-info {
   display: grid;
-  grid-template-columns: auto .25fr;
+  grid-template-columns: auto 1fr .25fr;
   align-items: center;
   padding: 16px;
+}
+
+.product-chip {
+  justify-self: center;
+}
+
+.po-scanner {
+  display: flex;
+}
+
+.action-text {
+  flex: 1;
+}
+
+.action-button {
+  flex: 1;
 }
 
 .product-count {
