@@ -15,10 +15,12 @@
       </ion-toolbar>
     </ion-header>
 
-    <ion-content :fullscreen="true">
+    <ion-content>
       <div>
         <ion-item lines="none">
           <ion-label>{{$t("Purchase Order")}}: PO10291</ion-label>
+          <ion-chip>{{$t(("Arrival date"))}}</ion-chip>
+          <ion-chip>{{$t(("External ID"))}}</ion-chip>
         </ion-item>
         <ion-item>
           <ion-label>{{$t("Scan Items")}}</ion-label>
@@ -34,6 +36,10 @@
                 <p>12203</p>
               </ion-label>
             </ion-item>
+            <ion-chip outline="true">
+              <ion-icon :icon="checkmarkDone"/>
+              <ion-label> 50 {{ $t("received") }} </ion-label>
+            </ion-chip>
             <ion-item class="product-count">
               <ion-input type="number" value="0" min="0" />
             </ion-item>
@@ -79,7 +85,7 @@ import {
   alertController,
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
-import { addOutline, saveOutline, timeOutline } from 'ionicons/icons';
+import { addOutline, checkmarkDone, saveOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import Image from "@/components/Image.vue";
 
@@ -133,6 +139,7 @@ export default defineComponent({
   setup() {
     return {
       addOutline,
+      checkmarkDone,
       saveOutline,
       timeOutline
     };
