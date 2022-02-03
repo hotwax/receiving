@@ -6,7 +6,7 @@ const fetchProducts = async (query: any): Promise<any> => {
     method: "post",
     data: query,
     cache: true
-  });
+  })
 }
 
 export const ProductService = {
