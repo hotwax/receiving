@@ -8,7 +8,7 @@ import { translate } from '@/i18n'
 import emitter from '@/event-bus'
 
 const actions: ActionTree<ProductState, RootState> = {
-  async fetchProducts({ commit, state }, { productIds }) {
+  async fetchProducts ({commit, state}, { productIds }) {
     const cachedProductIds = Object.keys(state.cached)
     const productIdFilter = productIds.reduce((filter: string, productId: any) => {
       // If product already exist in cached products skip
@@ -19,7 +19,8 @@ const actions: ActionTree<ProductState, RootState> = {
         return filter += productId;
       }
     }, '');
-    if (productIdFilter === '') return;
+
+    if(productIdFilter === '') return;
     const resp = await ProductService.fetchProducts({
       "filters": ['productId: (' + productIdFilter + ')']
     })
@@ -30,6 +31,7 @@ const actions: ActionTree<ProductState, RootState> = {
         commit(types.PRODUCT_ADD_TO_CACHED_MULTIPLE, { products });
       }
     }
+    
     if (productIds.viewIndex === 0) emitter.emit("dismissLoader");
     // TODO Handle specific error
     return resp;
