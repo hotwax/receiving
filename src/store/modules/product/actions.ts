@@ -36,19 +36,31 @@ const actions: ActionTree<ProductState, RootState> = {
     // TODO Handle specific error
     return resp;
   },
-  async findProducts({ commit, state, dispatch }, payload) {
+  async findProduct({ commit }, payload) {
     let resp;
     if (payload.viewIndex === 0) emitter.emit("presentLoader");
     try {
-      resp = await ProductService.findProducts(payload)
-      if (resp.status === 200 && !hasError(resp)) {
+      resp = await ProductService.fetchProducts({
+        // used sku as we are currently only using sku to search for the product
+        "filters": ['sku: ' + payload.queryString, 'isVirtual: false'],
+        "viewSize": payload.viewSize,
+        "viewIndex": payload.viewIndex
+      })
+      if (resp.status === 200 && resp.data.response?.docs.length > 0 && !hasError(resp)) {
         const products = resp.data.response.docs;
-        if (payload.viewIndex && payload.viewIndex > 0) products.groups = state.list.items.concat(products)
-        commit(types.PRODUCT_LIST_UPDATED, { products });
-      } else {
-        showToast(translate("Something went wrong"));
+        commit(types.PRODUCT_SEARCH_UPDATED, { products });
+        let productIds: any = new Set();
+        products.forEach((item: any) => {
+          productIds.add(item.productId)
+        })
+        productIds = [...productIds]
+        if (productIds.length) {
+          this.dispatch('product/fetchProducts', { productIds });
+        } else {
+          showToast(translate("Something went wrong"));
+        }
+        if (payload.viewIndex === 0) emitter.emit("dismissLoader");
       }
-      if (payload.viewIndex === 0) emitter.emit("dismissLoader");
     } catch (error) {
       showToast(translate("Something went wrong"));
     }

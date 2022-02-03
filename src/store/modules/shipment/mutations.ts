@@ -7,7 +7,11 @@ const mutations: MutationTree <ShipmentState> = {
       state.shipments.list = payload.shipments;
   },
   [types.SHIPMENT_CURRENT_UPDATED] (state, payload) {
-    state.current = payload.current;
+    state.current.shipment = payload.current;
+    state.current.items = payload.current.items;
+  },
+  [types.SHIPMENT_CURRENT_PRODUCT_ADDED] (state, payload) {
+    state.current.items = [ ...state.current.shipment.items, payload]
   }
 }
 export default mutations;

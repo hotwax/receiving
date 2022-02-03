@@ -1,5 +1,8 @@
 export default interface ShipmentState {
-  current: object;
+  current: {
+    shipment: any;
+    items: any
+  }
   shipments: {
     list: any;
   };

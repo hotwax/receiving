@@ -8,15 +8,7 @@ const fetchProducts = async (query: any): Promise<any> => {
     cache: true
   });
 }
-const findProducts = async (query: any): Promise<any> => {
-  return api({
-    url: "searchProducts",
-    method: "post",
-    data: query
-  })
-}
 
 export const ProductService = {
-  fetchProducts,
-  findProducts
+  fetchProducts
 }

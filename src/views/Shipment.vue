@@ -13,7 +13,7 @@
     <ion-content :fullscreen="true">
       <div>
         <ion-item lines="none">
-          <h1>{{ $t("Shipment ID") }} : {{ current.shipmentId }}</h1>
+          <h1>{{ $t("Shipment ID") }} : {{ current.shipment.shipmentId }}</h1>
         </ion-item>
         <ion-item>
           <ion-label>
@@ -24,7 +24,7 @@
           <div class="product-info">
             <ion-item lines="none">
               <ion-thumbnail slot="start">
-                <Image :src="item.imageUrl" />
+                <Image :src="getProduct(item.productId).mainImageUrl" />
               </ion-thumbnail>
               <ion-label>
                 <h2>{{ item.productName }}</h2>
@@ -110,7 +110,7 @@ export default defineComponent({
     ...mapGetters({
       current: 'shipment/getCurrent',
       user: 'user/getCurrentFacility',
-      product: 'product/fetchProducts'
+      getProduct: 'product/getProduct'
     }),
   },
   methods: {

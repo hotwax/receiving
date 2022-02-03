@@ -10,7 +10,7 @@
     </ion-toolbar>
   </ion-header>
   <ion-content class="ion-padding">
-    <ion-searchbar @ionFocus="selectSearchBarText($event)" :placeholder="$t('Search SKU or product name')" v-on:keyup.enter="getProducts()" />
+    <ion-searchbar @ionFocus="selectSearchBarText($event)" v-model="queryString" :placeholder="$t('Search SKU or product name')" v-on:keyup.enter="getProducts()" />
     
     <ion-list v-for="product in products.products" :key="product.productId">
 
@@ -23,7 +23,7 @@
           <h2>{{ product.productName}}</h2>
           <p>{{ product.productId}}</p>
         </ion-label>
-        <ion-button fill="outline" color="dark" @click="addtoShipment(productId)">{{ $t("Add to Shipment") }}</ion-button>
+        <ion-button fill="outline" color="dark" @click="addtoShipment(product)">{{ $t("Add to Shipment") }}</ion-button>
       </ion-item>
     </ion-list> 
   </ion-content>
@@ -50,6 +50,8 @@ import { close, checkmarkCircle } from 'ionicons/icons';
 import { mapGetters } from 'vuex'
 import { useStore } from "@/store";
 import Image from "@/components/Image.vue"
+import { showToast } from '@/utils'
+import { translate } from '@/i18n'
 
 export default defineComponent({
   name: "Modal",
@@ -68,10 +70,14 @@ export default defineComponent({
     IonToolbar,
     Image
   },
+  data() {
+    return {
+      queryString: ''
+    }
+  },
   computed: {
     ...mapGetters({
-      products:'product/getProduct',
-      shipment: 'shipment/addShipmentItem'
+      products:'product/getSearchedProduct',
     })
   },
   methods: {
@@ -81,17 +87,17 @@ export default defineComponent({
       const payload = {
         viewSize,
         viewIndex,
-        groupByField: 'parentProductId',
-        groupLimit: 0,
+        queryString: '*' + this.queryString + '*'
       }
-      return this.store.dispatch("product/findProducts", payload)
+      if (this.queryString) {
+        await this.store.dispatch("product/findProduct", payload);
+      }
+      else {
+        showToast(translate("Enter product sku to search"))
+      }
     },
-    async addtoShipment (productId: any) {
-      const payload = {
-        productId: 'productId',
-        quantity: 0,
-      }
-      this.store.dispatch('shipment/addShipmentItem',payload)
+    async addtoShipment (product: any) {
+      this.store.dispatch('shipment/addShipmentItem', product)
     },
     closeModal() {
       modalController.dismiss({ dismissed: true });
