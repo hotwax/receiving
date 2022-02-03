@@ -1,6 +1,6 @@
-import api from '@/api';
+import api from '../api'
 
-const fetchProducts = async (query: any): Promise<any> => {
+const fetchProducts = async (query: any): Promise <any> => {
   return api({
     url: "searchProducts",
     method: "post",

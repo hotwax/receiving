@@ -1,8 +1,8 @@
 import { GetterTree } from 'vuex'
-import ProductState from './ProductState';
-import RootState from '@/store/RootState'
+import RootState from '../../RootState'
+import ProductState from './ProductState'
 
-const getters: GetterTree<ProductState, RootState> = {
+const getters: GetterTree <ProductState, RootState> = {
   getProduct: (state) => (productId: string) => {
     return state.cached[productId] ? state.cached[productId] : {};
   },
@@ -10,4 +10,4 @@ const getters: GetterTree<ProductState, RootState> = {
     return state.searchedProduct
   } 
 }
-export default getters;
+export default getters

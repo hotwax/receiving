@@ -38,7 +38,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
         });
 
         productIds = [...productIds]
-        if (productIds.length) {
+        if(productIds.length) {
           this.dispatch('product/fetchProducts', { productIds })
         }
         return resp.data;

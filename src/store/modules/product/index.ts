@@ -16,8 +16,8 @@ const productModule: Module<ProductState, RootState> = {
     searchedProduct: []
   },
   getters,
+  actions,
   mutations,
-  actions
 }
 
 export default productModule;
