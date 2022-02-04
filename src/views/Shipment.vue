@@ -182,7 +182,7 @@ export default defineComponent({
         modal.onDidDismiss()
         .then((result) => {
           this.updateProductCount(result.role);
-    });
+      });
       return modal.present();
     },
   }, 
