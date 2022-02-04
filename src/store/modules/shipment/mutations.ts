@@ -9,9 +9,9 @@ const mutations: MutationTree <ShipmentState> = {
   [types.SHIPMENT_CURRENT_UPDATED] (state, payload) {
     state.current = payload.current;
   },
-  [types.SHIPMENT_UPDATE_PRODUCT_COUNT] (state, id) {
-    state.current.items.forEach((item: any) => {
-      if(item.productId === id.payload){
+  [types.SHIPMENT_UPDATE_PRODUCT_COUNT] (state, payload) {
+    state.current.items.find((item: any) => {
+      if(item.productId === payload.id){
         item.quantityAccepted = parseInt(item.quantityAccepted)+1;
       }
     });
