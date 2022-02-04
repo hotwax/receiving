@@ -12,7 +12,7 @@ const mutations: MutationTree <ShipmentState> = {
   [types.SHIPMENT_UPDATE_PRODUCT_COUNT] (state, payload) {
     state.current.items.find((item: any) => {
       if(item.productId === payload.id){
-        item.quantityAccepted = parseInt(item.quantityAccepted)+1;
+        item.quantityAccepted = parseInt(item.quantityAccepted) + 1;
       }
     });
   } 
