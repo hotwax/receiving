@@ -32,6 +32,15 @@ const actions: ActionTree<ShipmentState, RootState> = {
       resp = await ShipmentService.getShipmentDetail(payload);
       if (resp.status === 200 && resp.data.items&& !hasError(resp)) {
         commit(types.SHIPMENT_CURRENT_UPDATED, { current: resp.data })
+        let productIds: any = new Set();
+        resp.data.items.forEach((item: any) => {
+          productIds.add(item.productId)
+        });
+
+        productIds = [...productIds]
+        if(productIds.length) {
+          this.dispatch('product/fetchProducts', { productIds })
+        }
         return resp.data;
       } else {
         showToast(translate('Something went wrong'));
