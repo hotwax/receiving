@@ -6,7 +6,11 @@ import RootState from './RootState'
 import createPersistedState from "vuex-persistedstate";
 import userModule from './modules/user';
 import shipmentModule from "./modules/shipment"
-import productModule from "./modules/product"
+import productModule from "./modules/product";
+import SecureLS from "secure-ls";
+
+
+const ls = new SecureLS({ encodingType: 'aes' , isCompression: true , encryptionSecret: process.env.VUE_APP_SECURITY_KEY});
 
 
 // TODO check how to register it from the components only
@@ -20,7 +24,20 @@ const state: any = {
 
 const persistState = createPersistedState({
     paths: ['user'],
-    fetchBeforeUse: true
+    fetchBeforeUse: true,
+    storage: {
+      getItem: key => {
+        try {
+          return ls.get(key)
+        } 
+        catch(err) {
+          ls.remove(key)
+            return ls.get(key)
+        }
+      },       
+      setItem: (key, value) => ls.set(key, value),
+      removeItem: key => ls.remove(key)
+    }
 })
 
 // Added modules here so that hydration takes place before routing
