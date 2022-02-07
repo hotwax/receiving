@@ -14,7 +14,7 @@ const mutations: MutationTree <ProductState> = {
     state.list.items = payload
   },
   [types.PRODUCT_SEARCH_UPDATED] (state, payload) {
-    state.searchedProduct = payload
+    state.searchedProduct = payload.products
   }
 }
 export default mutations;

@@ -49,21 +49,12 @@ const actions: ActionTree<ProductState, RootState> = {
       if (resp.status === 200 && resp.data.response?.docs.length > 0 && !hasError(resp)) {
         const products = resp.data.response.docs;
         commit(types.PRODUCT_SEARCH_UPDATED, { products });
-        let productIds: any = new Set();
-        products.forEach((item: any) => {
-          productIds.add(item.productId)
-        })
-        productIds = [...productIds]
-        if (productIds.length) {
-          this.dispatch('product/fetchProducts', { productIds });
-        } else {
-          showToast(translate("Something went wrong"));
-        }
-        if (payload.viewIndex === 0) emitter.emit("dismissLoader");
+        commit(types.PRODUCT_ADD_TO_CACHED_MULTIPLE, { products });
       }
     } catch (error) {
       showToast(translate("Something went wrong"));
     }
+    if (payload.viewIndex === 0) emitter.emit("dismissLoader");
     
     return resp;
   }

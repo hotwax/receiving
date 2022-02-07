@@ -12,7 +12,7 @@
   <ion-content class="ion-padding">
     <ion-searchbar @ionFocus="selectSearchBarText($event)" v-model="queryString" :placeholder="$t('Search SKU or product name')" v-on:keyup.enter="getProducts()" />
     
-    <ion-list v-for="product in products.products" :key="product.productId">
+    <ion-list v-for="product in products" :key="product.productId">
 
 
       <ion-item lines="none">
