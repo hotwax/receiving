@@ -60,7 +60,6 @@ export default defineComponent({
     async getShipments(vSize?: any, vIndex?: any) {
       const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
       const viewIndex = vIndex ? vIndex : 0;
-      console.log(vIndex);
       const payload = {
         viewSize,
         viewIndex,
