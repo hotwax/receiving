@@ -12,9 +12,9 @@ const actions: ActionTree<ShipmentState, RootState> = {
     let resp;
     try {
       resp = await ShipmentService.fetchShipments(payload)
-      if (resp.status === 200 && resp.data.count> 0 && !hasError(resp)) {
-        const shipments = resp.data.docs;
-        if (!shipments.length) showToast(translate("No more shipments found")); 
+      if (resp.status === 200 && resp.data.docs?.length > 0 && !hasError(resp)) {
+        let shipments = resp.data.docs;
+        if (payload.viewIndex && payload.viewIndex > 0) shipments = state.shipments.list.concat(shipments);
         commit(types.SHIPMENT_LIST_UPDATED, { shipments })
       } else {
         showToast(translate("Shipments not found"));
