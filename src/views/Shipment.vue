@@ -88,7 +88,7 @@ import AddProductModal from '@/views/AddProductModal.vue'
 import Image from "@/components/Image.vue";
 import { useRouter } from 'vue-router';
 import { translate } from '@/i18n'
-import Scanner from "../components/Scanner.vue";
+import Scanner from "@/components/Scanner.vue";
 
 export default defineComponent({
   name: "Shipment details",
