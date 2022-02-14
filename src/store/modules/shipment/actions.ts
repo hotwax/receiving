@@ -89,7 +89,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
   },
 
   async clearShipments({ commit }) {
-    commit(types.SHIPMENT_LIST_UPDATED, { shipments: {} })
+    commit(types.SHIPMENT_LIST_UPDATED, { shipments: [] })
     commit(types.SHIPMENT_CURRENT_UPDATED, { current: {} })
   }
 }
