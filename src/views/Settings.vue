@@ -67,6 +67,7 @@ export default defineComponent({
       if(this.userProfile && this.userProfile.facilities) {
         this.userProfile.facilities.map((fac: any) => {
           if (fac.facilityId == facility['detail'].value) {
+            this.store.dispatch('shipment/clearShipments');
             this.store.dispatch('user/setFacility', {'facility': fac});
           }
         })
@@ -93,6 +94,7 @@ export default defineComponent({
     },
     logout () {
       this.store.dispatch('user/logout').then(() => {
+        this.store.dispatch('shipment/clearShipments');
         this.router.push('/login');
       })
     }

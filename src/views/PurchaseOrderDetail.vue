@@ -23,7 +23,7 @@
           </h1>
         </ion-item>
         
-        <div class"po-meta">
+        <div class="po-meta">
           <ion-chip> Arrival date </ion-chip>
           <ion-chip> Internal ID </ion-chip>
         </div>
@@ -52,7 +52,7 @@
                 </ion-label>
               </ion-item>
 
-              <ion-chip outline="true" class"po-item-history">
+              <ion-chip outline="true" class="po-item-history">
                 <ion-icon :icon="checkmarkDone"/>
                 <ion-label> 50 {{ $t("received") }} </ion-label>
               </ion-chip>
@@ -171,9 +171,8 @@ export default defineComponent({
 
 <style scoped>
 ion-content div {
-  display: grid
-  grid-template-columns: 1fr 1fr
-
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   max-width: 1110px;
   margin-right: auto;
   margin-left: auto;
