@@ -7,16 +7,7 @@ const mutations: MutationTree <ShipmentState> = {
       state.shipments.list = payload.shipments;
   },
   [types.SHIPMENT_CURRENT_UPDATED] (state, payload) {
-    if(payload.current){
-      state.current = payload.current;
-    }  
-    if(payload.id){
-      state.current.items.find((item: any) => {
-        if(item.productId === payload.id){
-          item.quantityAccepted = parseInt(item.quantityAccepted) + 1;
-        }
-      });
-    }
+    state.current = payload.current;
   },
 }
 export default mutations;
