@@ -24,13 +24,14 @@ const actions: ActionTree<PurchaseOrderState, RootState> = {
       if (resp.status === 200 && !hasError(resp) && resp.data.grouped) {
         const orders = resp.data.grouped.orderId
         
+        if (payload.json.params.start && payload.json.params.start > 0) orders.groups = state.purchaseOrders.list.concat(orders.groups);
         commit(types.PURCHASE_ORDER_UPDATED, {
           list: orders.groups,
           total: orders.ngroups
         })
       } else {
         //showing error whenever getting no products in the response or having any other error
-        showToast(translate("Product not found"));
+        showToast(translate("Orders not found"));
       }
       // Remove added loader only when new query and not the infinite scroll
       // if (payload.viewIndex === 0) emitter.emit("dismissLoader");

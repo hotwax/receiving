@@ -9,7 +9,7 @@ const purchaseOrderModule: Module<PurchaseOrderState, RootState> = {
     namespaced: true,
     state: {
       purchaseOrders: {
-        list: {},
+        list: [],
         total: 0
       }
     },

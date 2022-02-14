@@ -1,8 +1,8 @@
 <template>
   <ion-item button @click="viewPurchaseOrder()" lines="none">
     <ion-label>
-      <!-- TODO:- Handle this purchase order number property and chacge VUE_APP_ORD_IDENT_TYPE_ID from .env file -->
-      <h3>{{ $filters.getOrderIdentificationId(purchaseOrder.doclist.docs[0]?.orderIdentifications, orderIdentificationTypeId) }}</h3>
+      <!-- TODO:- Handle this purchase order number property for now i have used OrderName or OrderId -->
+      <h3>{{ purchaseOrder.doclist.docs[0]?.orderName ? purchaseOrder.doclist.docs[0]?.orderName : purchaseOrder.doclist.docs[0]?.orderId }}</h3>
       <!-- TODO:- Handle this external PO number -->
       <p>{{purchaseOrder.doclist.docs[0].externalOrderId}}</p>
     </ion-label>
@@ -21,11 +21,6 @@ import { useStore } from 'vuex';
 
 export default defineComponent({
   name: "PurchaseOrderItem",
-  data () {
-    return {
-      orderIdentificationTypeId: process.env.VUE_APP_ORD_IDENT_TYPE_ID
-    }
-  },
   components: {
     IonItem,
     IonLabel
