@@ -73,7 +73,6 @@ export default defineComponent({
       this.store.dispatch('purchaseOrder/findPurchaseOrders', paylaod);
     },
     async loadMoreOrders(event: any) {
-      console.log(this.orders)
       this.getPurchaseOrder(
         undefined,
         Math.ceil(this.orders.length / process.env.VUE_APP_VIEW_SIZE)
