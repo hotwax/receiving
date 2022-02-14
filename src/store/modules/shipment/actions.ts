@@ -12,12 +12,12 @@ const actions: ActionTree<ShipmentState, RootState> = {
     let resp;
     try {
       resp = await ShipmentService.fetchShipments(payload)
-      if (resp.status === 200 && resp.data.count> 0 && !hasError(resp)) {
+      if (resp.status === 200 && resp.data.docs?.length > 0 && !hasError(resp)) {
         let shipments = resp.data.docs;
-        if (payload.viewIndex && payload.viewIndex > 0) shipments = state.shipments.list.concat(shipments)
+        if (payload.viewIndex && payload.viewIndex > 0) shipments = state.shipments.list.concat(shipments);
         commit(types.SHIPMENT_LIST_UPDATED, { shipments })
       } else {
-        showToast(translate("Product not found"));
+        showToast(translate("Shipments not found"));
       }
       if (payload.viewIndex === 0) emitter.emit("dismissLoader");
     } catch(error){

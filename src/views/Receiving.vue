@@ -12,7 +12,10 @@
         <ShipmentListItem v-for="shipment in shipments" :key="shipment.shipmentId" :shipment="shipment"/>
 
         <div class="ion-text-center">
-          <ion-button fill="outline" color="dark"><ion-icon :icon="cloudDownloadOutline" slot="start" @click="loadMoreShipments()" />{{ $t("Load more shipments") }}</ion-button>
+          <ion-button fill="outline" color="dark" @click="loadMoreShipments()">
+            <ion-icon :icon="cloudDownloadOutline" slot="start" />
+            {{ $t("Load more shipments") }}
+          </ion-button>
         </div>
       </div>
     </ion-content>
@@ -46,7 +49,7 @@ export default defineComponent({
     })
   },
   mounted () {
-    this.getShipment();
+    this.getShipments();
   },
   methods: {
     selectSearchBarText(event: any) {
@@ -54,7 +57,7 @@ export default defineComponent({
         element.select();
       })
     },
-    async getShipment(vSize?: any, vIndex?: any) {
+    async getShipments(vSize?: any, vIndex?: any) {
       const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
       const viewIndex = vIndex ? vIndex : 0;
       const payload = {
@@ -65,6 +68,9 @@ export default defineComponent({
       }
       await this.store.dispatch("shipment/findShipment", payload);
     },
+    loadMoreShipments() {
+      this.getShipments(process.env.VUE_APP_VIEW_SIZE, Math.ceil(this.shipments.length / process.env.VUE_APP_VIEW_SIZE));
+    }
   },
   setup() {
     const store = useStore();
