@@ -9,7 +9,7 @@
       <div>
         <ion-searchbar :placeholder="$t('Search')" v-model="queryString" @keyup.enter="getPurchaseOrder()" />
       </div>
-      <PurchaseOrderItem v-for="(order, index) in orders" :key="index" :purchaseOrder="order" />
+      <PurchaseOrderItem v-for="(order, index) in orders" :key="index" :purchaseOrder="order.doclist.docs[0]" />
       
       <ion-infinite-scroll @ionInfinite="loadMoreOrders($event)" threshold="100px" id="infinite-scroll" :disabled="!isScrolleable">
         <ion-infinite-scroll-content loading-spinner="crescent" :loading-text="$t('Loading')" />

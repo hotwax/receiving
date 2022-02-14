@@ -2,10 +2,10 @@
   <ion-item button @click="viewPurchaseOrder()" lines="none">
     <ion-label>
       <!-- TODO:- Handle this purchase order number property for now i have used OrderName or OrderId -->
-      <h3>{{ purchaseOrder.doclist.docs[0]?.orderName ? purchaseOrder.doclist.docs[0]?.orderName : purchaseOrder.doclist.docs[0]?.orderId }}</h3>
-      <p>{{purchaseOrder.doclist.docs[0].externalOrderId}}</p>
+      <h3>{{ purchaseOrder.orderName ? purchaseOrder.orderName : purchaseOrder.orderId }}</h3>
+      <p>{{purchaseOrder.externalOrderId}}</p>
     </ion-label>
-    <h6>{{ $filters.formatUtcDate(purchaseOrder.doclist.docs[0].estimatedDeliveryDate, 'YYYY-MM-DDTHH:mm:ssZ') }}</h6>
+    <h6>{{ $filters.formatUtcDate(purchaseOrder.estimatedDeliveryDate, 'YYYY-MM-DDTHH:mm:ssZ') }}</h6>
   </ion-item>
 </template>
 
@@ -27,7 +27,7 @@ export default defineComponent({
   props: ["purchaseOrder"],
   methods: {
     async viewPurchaseOrder () {
-      this.router.push({ path: `/purchase-order/${this.purchaseOrder.doclist.docs[0].orderId}` })
+      this.router.push({ path: `/purchase-order/${this.purchaseOrder.orderId}` })
     }
   },
   setup() {
