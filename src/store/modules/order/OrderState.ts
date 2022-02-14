@@ -1,4 +1,4 @@
-export default interface PurchaseOrderState {
+export default interface OrderState {
   purchaseOrders: {
     list: any;
     total: number;

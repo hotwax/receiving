@@ -1,25 +1,19 @@
-import { PurchaseOrdersService } from "@/services/PurchaseOrderService";
+import { OrderService } from "@/services/OrderService";
 import { ActionTree } from 'vuex'
 import RootState from '@/store/RootState'
-import PurchaseOrderState from './PurchaseOrderState'
+import OrderState from './OrderState'
 import * as types from './mutation-types'
 import { hasError, showToast } from '@/utils'
 import { translate } from '@/i18n'
-import emitter from '@/event-bus'
 
 
-const actions: ActionTree<PurchaseOrderState, RootState> = {
+const actions: ActionTree<OrderState, RootState> = {
 
-  // Find Product
   async findPurchaseOrders ({ commit, state }, payload) {
 
-    // Show loader only when new query and not the infinite scroll
-    // if (payload.viewIndex === 0) emitter.emit("presentLoader");
-
     let resp;
-
     try {
-      resp = await PurchaseOrdersService.fetchPurchaseOrders(payload)
+      resp = await OrderService.fetchPurchaseOrders(payload)
 
       if (resp.status === 200 && !hasError(resp) && resp.data.grouped) {
         const orders = resp.data.grouped.orderId
@@ -30,16 +24,13 @@ const actions: ActionTree<PurchaseOrderState, RootState> = {
           total: orders.ngroups
         })
       } else {
-        //showing error whenever getting no products in the response or having any other error
+        //showing error whenever not getting Orders
         showToast(translate("Orders not found"));
       }
-      // Remove added loader only when new query and not the infinite scroll
-      // if (payload.viewIndex === 0) emitter.emit("dismissLoader");
     } catch(error){
       console.log(error)
       showToast(translate("Something went wrong"));
     }
-    // TODO Handle specific error
     return resp;
   },
 }

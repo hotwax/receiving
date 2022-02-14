@@ -5,7 +5,7 @@ import actions from './actions'
 import RootState from './RootState'
 import createPersistedState from "vuex-persistedstate";
 import userModule from './modules/user';
-import purchaseOrderModule from './modules/purchaseOrder'
+import orderModule from './modules/order'
 import shipmentModule from "./modules/shipment"
 import productModule from "./modules/product"
 
@@ -33,7 +33,7 @@ const store = createStore<RootState>({
     plugins: [ persistState ],
     modules: { 
         'user': userModule,
-        'purchaseOrder': purchaseOrderModule,
+        'order': orderModule,
         'product': productModule,
         'shipment': shipmentModule
     },

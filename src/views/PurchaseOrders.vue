@@ -44,8 +44,8 @@ export default defineComponent({
   },
   computed: {
     ...mapGetters({
-      orders: 'purchaseOrder/getPurchaseOrders',
-      isScrolleable: 'purchaseOrder/isScrolleable'
+      orders: 'order/getPurchaseOrders',
+      isScrolleable: 'order/isScrolleable'
     })
   },
   methods: {
@@ -70,7 +70,7 @@ export default defineComponent({
           "filter": `docType: ORDER AND orderTypeId: PURCHASE_ORDER`
         }
       }
-      this.store.dispatch('purchaseOrder/findPurchaseOrders', paylaod);
+      this.store.dispatch('order/findPurchaseOrders', paylaod);
     },
     async loadMoreOrders(event: any) {
       this.getPurchaseOrder(

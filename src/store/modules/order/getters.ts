@@ -1,13 +1,10 @@
 import { GetterTree } from "vuex";
-import PurchaseOrderState from "./PurchaseOrderState";
+import OrderState from "./OrderState";
 import RootState from "../../RootState";
 
-const getters: GetterTree<PurchaseOrderState, RootState> = {
+const getters: GetterTree<OrderState, RootState> = {
   getPurchaseOrders(state) {
     return state.purchaseOrders.list;
-  },
-  getTotalPurchaseOrder(state) {
-    return state.purchaseOrders.total;
   },
   isScrolleable(state) {
     return state.purchaseOrders.list.length > 0 && state.purchaseOrders.list.length < state.purchaseOrders.total
