@@ -86,6 +86,11 @@ const actions: ActionTree<ShipmentState, RootState> = {
       emitter.emit("dismissLoader");
       return resp;
     }).catch(err => err);
+  },
+
+  async clearShipments({ commit }) {
+    commit(types.SHIPMENT_LIST_UPDATED, { shipments: [] })
+    commit(types.SHIPMENT_CURRENT_UPDATED, { current: {} })
   }
 }
 
