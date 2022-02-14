@@ -69,7 +69,7 @@ export default defineComponent({
       await this.store.dispatch("shipment/findShipment", payload);
     },
     loadMoreShipments(){
-      this.getShipments(process.env.VUE_APP_VIEW_SIZE , Math.ceil(Object.getOwnPropertyNames(this.shipments).length / process.env.VUE_APP_VIEW_SIZE));
+      this.getShipments(process.env.VUE_APP_VIEW_SIZE , this.shipments.length / process.env.VUE_APP_VIEW_SIZE);
     }
   },
   setup() {
