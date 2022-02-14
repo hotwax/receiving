@@ -19,6 +19,7 @@
           User
           <p>Shipment reference number</p>
         </ion-label>
+        <!-- TODO: Use appropriate css properties to align below label as like as figma design. -->
         <ion-label>
           <ion-note> 50 received | 4 rejected </ion-note>
           <ion-note > 12:30 PM 23/12/2020 </ion-note>
