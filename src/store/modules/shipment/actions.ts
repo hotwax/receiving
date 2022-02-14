@@ -27,7 +27,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
     return resp;
   },
   async updateShipmentProductCount ({ commit }, id) {
-    commit(types.SHIPMENT_UPDATE_PRODUCT_COUNT, { id })
+    commit(types.SHIPMENT_CURRENT_UPDATED, { id })
   },
   async setCurrent ({ commit }, payload) {
     let resp;
