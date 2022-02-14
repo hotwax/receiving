@@ -67,6 +67,7 @@ export default defineComponent({
       if(this.userProfile && this.userProfile.facilities) {
         this.userProfile.facilities.map((fac: any) => {
           if (fac.facilityId == facility['detail'].value) {
+            this.store.dispatch('shipment/clearShipments');
             this.store.dispatch('user/setFacility', {'facility': fac});
           }
         })
