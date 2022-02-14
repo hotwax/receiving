@@ -2,7 +2,7 @@
   "name": "receiving",
   "version": "1.0.0",
   "private": true,
-  "description": "HotWax Commece Receiving App",
+  "description": "HotWax Commerce Receiving App",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
