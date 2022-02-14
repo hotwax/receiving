@@ -94,6 +94,7 @@ export default defineComponent({
     },
     logout () {
       this.store.dispatch('user/logout').then(() => {
+        this.store.dispatch('shipment/clearShipments');
         this.router.push('/login');
       })
     }
