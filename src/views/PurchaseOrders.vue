@@ -17,7 +17,6 @@
 <script lang="ts">
 import { IonContent, IonHeader, IonPage, IonSearchbar, IonTitle, IonToolbar } from '@ionic/vue';
 import { defineComponent } from 'vue';
-import { useRouter } from 'vue-router';
 import { mapGetters, useStore } from 'vuex';
 import PurchaseOrderItem from '@/components/PurchaseOrderItem.vue'
 
@@ -40,14 +39,16 @@ export default defineComponent({
   },
   methods: {
     async getPurchaseOrder(vRow?: any){
-      vRow = vRow ? vRow : process.env.VUE_APP_VIEW_ROW;
+      const viewSize = vRow ? vRow : process.env.VUE_APP_VIEW_SIZE;
+
       const paylaod = {
         "json": {
           "params": {
-            "rows": vRow,
+            "rows": viewSize,
             "group": true,
             "group.field": "orderId",
-            "group.limit": 10000
+            "group.limit": 10000,
+            "group.ngroups": true
           },
           "query": "docType:ORDER", 
           "filter": [
@@ -62,11 +63,9 @@ export default defineComponent({
     this.getPurchaseOrder();
   },
   setup () {
-    const router = useRouter();
     const store = useStore();
 
     return {
-      router,
       store
     }
   }

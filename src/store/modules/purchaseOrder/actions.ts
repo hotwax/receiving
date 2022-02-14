@@ -21,12 +21,12 @@ const actions: ActionTree<PurchaseOrderState, RootState> = {
     try {
       resp = await PurchaseOrdersService.fetchPurchaseOrders(payload)
 
-      // resp.data.response.numFound tells the number of items in the response
       if (resp.status === 200 && !hasError(resp) && resp.data.grouped) {
-        const orders = resp.data.grouped.orderId.groups
+        const orders = resp.data.grouped.orderId
+        
         commit(types.PURCHASE_ORDER_UPDATED, {
-          list: orders,
-          total: orders.length
+          list: orders.groups,
+          total: orders.ngroups
         })
       } else {
         //showing error whenever getting no products in the response or having any other error

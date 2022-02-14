@@ -9,14 +9,6 @@ const fetchPurchaseOrders = async (payload: any): Promise <any>  => {
   });
 }
 
-const fetchPODetails = async (query: any): Promise <any> => {
-  return api({
-    url: "purchase-orders/13150",
-    method: "GET",
-    data: query
-  })
-}
-
 export const PurchaseOrdersService = {
   fetchPurchaseOrders
 }
