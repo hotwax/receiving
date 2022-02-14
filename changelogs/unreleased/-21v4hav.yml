@@ -1,0 +1,6 @@
+---
+title: 'Improved: code to add await for the getProfile action'
+ticket_id: "#21v4hav"
+merge_request: 47
+author: Yash Maheshwari
+type: fixed
