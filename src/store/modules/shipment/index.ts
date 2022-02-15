@@ -10,7 +10,7 @@ const shipmentModule: Module<ShipmentState, RootState> = {
     state: {
       current: {},
       shipments: {
-        list: {}
+        list: []
       }
     },
     getters,

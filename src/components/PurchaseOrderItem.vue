@@ -27,7 +27,7 @@ export default defineComponent({
   props: ["purchaseOrder"],
   methods: {
     async viewPurchaseOrder () {
-      this.router.push({ path: `/purchase-order-detail/${this.purchaseOrder.orderId}` })
+      this.router.push({ path: `/purchase-order/${this.purchaseOrder.orderId}` })
     }
   },
   setup() {

@@ -110,7 +110,7 @@ import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import Image from "@/components/Image.vue";
 
 export default defineComponent({
-  name: "PurchaseOrderDetail",
+  name: "PurchaseOrderDetails",
   components: {
     Image,
     IonBackButton,
