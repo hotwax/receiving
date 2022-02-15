@@ -3,7 +3,7 @@
     <ion-header :translucent="true">
       <ion-toolbar>
         <ion-menu-button slot="start" />
-        <ion-title>{{ $t("Receiving") }}</ion-title>
+        <ion-title>{{ $t("Shipments") }}</ion-title>
       </ion-toolbar>
     </ion-header>
     <ion-content :fullscreen="true">
@@ -31,7 +31,7 @@ import { mapGetters, useStore } from 'vuex'
 import ShipmentListItem from '@/components/ShipmentListItem.vue'
 
 export default defineComponent({
-  name: "Receiving",
+  name: "Shipments",
   components: {
     IonButton,
     IonContent,
