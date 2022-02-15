@@ -16,9 +16,15 @@
           <h1>{{ $t("Shipment ID") }} : {{ current.shipment.shipmentId }}</h1>
         </ion-item>
         <ion-item>
+          <ion-label>{{ $t("Scan Items") }}</ion-label>
           <ion-label>
             <ion-input :placeholder="$t('Scan barcodes to receive')"></ion-input>
           </ion-label>
+          <ion-buttons>
+            <ion-button class="action-button" fill="outline" color="secondary" @click="scanCode()">
+            <ion-icon slot="start" :icon="barcodeOutline" />{{ $t("Scan") }}
+            </ion-button>
+          </ion-buttons>
         </ion-item>
         <ion-card v-for="item in current.items" :key="item.id">
           <div class="product-info">
@@ -76,12 +82,13 @@ import {
   alertController,
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
-import { add, checkmarkDone } from 'ionicons/icons';
+import { add, checkmarkDone, barcodeOutline } from 'ionicons/icons';
 import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
 import Image from "@/components/Image.vue";
 import { useRouter } from 'vue-router';
 import { translate } from '@/i18n'
+import Scanner from "@/components/Scanner.vue";
 
 export default defineComponent({
   name: "Shipment details",
@@ -166,6 +173,20 @@ export default defineComponent({
         }
       })
     },
+    updateProductCount(payload: any){
+      this.store.dispatch('shipment/updateShipmentProductCount', payload)
+    },
+    async scanCode () {
+      const modal = await modalController
+        .create({
+          component: Scanner,
+        });
+        modal.onDidDismiss()
+        .then((result) => {
+          this.updateProductCount(result.role);
+      });
+      return modal.present();
+    },
   }, 
   setup() {
     const store = useStore(); 
@@ -173,6 +194,7 @@ export default defineComponent({
 
     return {
       add,
+      barcodeOutline,
       checkmarkDone,
       store,
       router
