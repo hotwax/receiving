@@ -3,7 +3,7 @@
     <ion-label>
       <!-- TODO:- Handle this purchase order number property for now i have used OrderName or OrderId -->
       <h3>{{ purchaseOrder.orderName ? purchaseOrder.orderName : purchaseOrder.orderId }}</h3>
-      <p>{{purchaseOrder.externalOrderId}}</p>
+      <p>{{ purchaseOrder.externalOrderId }}</p>
     </ion-label>
     <h6>{{ $filters.formatUtcDate(purchaseOrder.estimatedDeliveryDate, 'YYYY-MM-DDTHH:mm:ssZ') }}</h6>
   </ion-item>

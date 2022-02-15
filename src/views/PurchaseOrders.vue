@@ -7,7 +7,7 @@
     </ion-header>
     <ion-content :fullscreen="true">
       <div>
-        <ion-searchbar :placeholder="$t('Search')" v-model="queryString" @keyup.enter="getPurchaseOrder()" />
+        <ion-searchbar :placeholder="$t('Search')" v-model="queryString" @keyup.enter="getPurchaseOrders()" />
       </div>
       <PurchaseOrderItem v-for="(order, index) in orders" :key="index" :purchaseOrder="order.doclist.docs[0]" />
       
@@ -49,11 +49,11 @@ export default defineComponent({
     })
   },
   methods: {
-    async getPurchaseOrder(vSize?: any, vIndex?: any){
+    async getPurchaseOrders(vSize?: any, vIndex?: any){
       const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
       const viewIndex = vIndex ? vIndex : 0;
 
-      const paylaod = {
+      const payload = {
         "json": {
           "params": {
             "rows": viewSize,
@@ -62,25 +62,28 @@ export default defineComponent({
             "group.field": "orderId",
             "group.limit": 10000,
             "group.ngroups": true,
-            "defType": "edismax",
-            "q.op": "AND",
-            "qf": "orderId"
-          },
-          "query": `(*${this.queryString}*) OR "${this.queryString}"^100`,
+          } as any,
+          "query": "*:*",
           "filter": `docType: ORDER AND orderTypeId: PURCHASE_ORDER`
         }
       }
-      this.store.dispatch('order/findPurchaseOrders', paylaod);
+      if(this.queryString) {
+        payload.json.query = '*' + this.queryString + '*';
+        payload.json.params.defType = "edismax";
+        payload.json.params.qf = "orderId";
+        payload.json.params['q.op'] = "AND";
+      }
+      this.store.dispatch('order/findPurchaseOrders', payload);
     },
     async loadMoreOrders(event: any) {
-      this.getPurchaseOrder(
+      this.getPurchaseOrders(
         undefined,
         Math.ceil(this.orders.length / process.env.VUE_APP_VIEW_SIZE)
       ).then(() => event.target.complete());
     }
   },
   mounted () {
-    this.getPurchaseOrder();
+    this.getPurchaseOrders();
   },
   setup () {
     const store = useStore();
