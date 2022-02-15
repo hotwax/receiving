@@ -19,12 +19,12 @@
       <div>
         <ion-item lines="none" class="po-primary">
           <h1>
-            {{$t("Purchase Order")}}: {{ orderDetail[0]?.orderId }}
+            {{$t("Purchase Order")}}: {{ order[0]?.orderId }}
           </h1>
         </ion-item>
         
         <div class="po-meta">
-          <ion-chip>{{ orderDetail[0]?.externalOrderId }}</ion-chip>
+          <ion-chip>{{ order[0]?.externalOrderId }}</ion-chip>
         </div>
         
         <div class="po-scanner">
@@ -39,7 +39,7 @@
         </div>
         
         <div class="po-items">
-          <ion-card v-for="(item, index) in orderDetail" :key="index">
+          <ion-card v-for="(item, index) in order" :key="index">
             <div class="product-info">
               <ion-item lines="none">
                 <ion-thumbnail slot="start">
@@ -134,7 +134,7 @@ export default defineComponent({
   },
   computed: {
     ...mapGetters({
-      orderDetail: 'order/getOrderDetail',
+      order: 'order/getCurrent',
       getProduct: 'product/getProduct'
     })
   },

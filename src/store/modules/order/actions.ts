@@ -71,7 +71,7 @@ const actions: ActionTree<OrderState, RootState> = {
         const order = resp.data.grouped.orderId.groups[0].doclist.docs
 
         this.dispatch('product/fetchProductInformation', { order: order });
-        commit(types.ORDER_PRCHS_DTAIL_UPDATED, { order })
+        commit(types.ORDER_CURRENT_UPDATED, { order })
       }
       else {
         showToast(translate("Something went wrong"));
