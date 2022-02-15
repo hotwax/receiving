@@ -15,17 +15,20 @@
         <ion-item lines="none">
           <h1>{{ $t("Shipment ID") }} : {{ $route.params.id }}</h1>
         </ion-item>
-        <ion-item>
-          <ion-label>{{ $t("Scan Items") }}</ion-label>
-          <ion-label>
-            <ion-input :placeholder="$t('Scan barcodes to receive')"></ion-input>
-          </ion-label>
-          <ion-buttons>
-            <ion-button class="action-button" fill="outline" color="secondary" @click="scanCode()">
+
+        <div class="scan">
+          <ion-item>
+            <ion-label>{{ $t("Scan Items") }}</ion-label>
+            <ion-label>
+              <ion-input :placeholder="$t('Scan barcodes to receive')"></ion-input>
+            </ion-label>
+          </ion-item>
+          
+          <ion-button size="medium" expand="block" class="action-button" fill="outline" color="primary" @click="scanCode()">
             <ion-icon slot="start" :icon="barcodeOutline" />{{ $t("Scan") }}
-            </ion-button>
-          </ion-buttons>
-        </ion-item>
+          </ion-button>
+        </div>
+
         <ion-card v-for="item in current.items" :key="item.id">
           <div class="product-info">
             <ion-item lines="none">
@@ -209,6 +212,13 @@ ion-content div {
   max-width: 1110px;
   margin-right: auto;
   margin-left: auto;
+}
+
+.scan {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  align-items: end;
 }
 
 img {
