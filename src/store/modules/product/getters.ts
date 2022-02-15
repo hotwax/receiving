@@ -8,6 +8,12 @@ const getters: GetterTree <ProductState, RootState> = {
   },
   getSearchedProduct: (state) => {
     return state.searchedProduct
-  } 
+  },
+  isScrollable(state) {
+    return (
+      state.list.items.length > 0 &&
+      state.list.items.length < state.list.total
+    );
+  },
 }
 export default getters

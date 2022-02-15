@@ -13,8 +13,6 @@
     <ion-searchbar @ionFocus="selectSearchBarText($event)" v-model="queryString" :placeholder="$t('Search SKU or product name')" v-on:keyup.enter="getProducts()" />
     
     <ion-list v-for="product in products" :key="product.productId">
-
-
       <ion-item lines="none">
         <ion-thumbnail slot="start">
           <Image :src="product.mainImageUrl" />
@@ -25,6 +23,10 @@
         </ion-label>
         <ion-button fill="outline" color="dark" @click="addtoShipment(product)">{{ $t("Add to Shipment") }}</ion-button>
       </ion-item>
+
+      <ion-infinite-scroll @ionInfinite="loadMoreProducts($event)" threshold="100px" :disabled="!isScrollable">
+        <ion-infinite-scroll-content loading-spinner="crescent" :loading-text="$t('Loading')" />
+      </ion-infinite-scroll>
     </ion-list> 
   </ion-content>
 </template>
@@ -36,6 +38,8 @@ import {
   IonContent,
   IonHeader,
   IonIcon,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
   IonItem,
   IonLabel,
   IonList,
@@ -61,6 +65,8 @@ export default defineComponent({
     IonContent,
     IonHeader,
     IonIcon,
+    IonInfiniteScroll,
+    IonInfiniteScrollContent,
     IonItem,
     IonLabel,
     IonList,
@@ -77,7 +83,8 @@ export default defineComponent({
   },
   computed: {
     ...mapGetters({
-      products:'product/getSearchedProduct',
+      products: 'product/getSearchedProduct',
+      isScrollable: 'product/isScrollable'
     })
   },
   methods: {
@@ -95,6 +102,14 @@ export default defineComponent({
       else {
         showToast(translate("Enter product sku to search"))
       }
+    },
+    async loadMoreProducts(event: any) {
+      this.getProducts(
+        undefined,
+        Math.ceil(this.products.length / process.env.VUE_APP_VIEW_SIZE).toString()
+      ).then(() => {
+        event.target.complete();
+      })
     },
     async addtoShipment (product: any) {
       this.store.dispatch('shipment/addShipmentItem', product)
