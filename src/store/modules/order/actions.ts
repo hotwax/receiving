@@ -19,7 +19,7 @@ const actions: ActionTree<OrderState, RootState> = {
         const orders = resp.data.grouped.orderId
         
         if (payload.json.params.start && payload.json.params.start > 0) orders.groups = state.purchaseOrders.list.concat(orders.groups);
-        commit(types.PURCHASE_ORDERS_UPDATED, {
+        commit(types.ORDER_PURCHASE_UPDATED, {
           list: orders.groups,
           total: orders.ngroups
         })
