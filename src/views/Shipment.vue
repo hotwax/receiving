@@ -13,7 +13,7 @@
     <ion-content :fullscreen="true">
       <div>
         <ion-item lines="none">
-          <h1>{{ $t("Shipment ID") }} : {{ current.shipment.shipmentId }}</h1>
+          <h1>{{ $t("Shipment ID") }} : {{ current.shipmentId }}</h1>
         </ion-item>
         <ion-item>
           <ion-label>{{ $t("Scan Items") }}</ion-label>
