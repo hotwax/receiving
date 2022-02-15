@@ -58,7 +58,7 @@
               </ion-chip>
 
               <ion-item class="product-count">
-                <ion-input type="number" value="0" min="0" :v-model="parseInt(item.quantityAccepted)" />
+                <ion-input type="number" value="0" min="0" :v-model="item.quantityAccepted" />
               </ion-item>
               <p>{{ item.quantityAccepted }}</p>
             </div>
@@ -172,7 +172,8 @@ export default defineComponent({
         });
         modal.onDidDismiss()
           .then((result) => {
-            this.store.dispatch('purchaseOrder/updatePoProductCount', result.role)
+           this.store.dispatch('purchaseOrder/updatePoProductCount', result.role)
+           this.$forceUpdate();
           })
         return modal.present();
     }

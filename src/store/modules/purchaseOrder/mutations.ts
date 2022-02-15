@@ -8,17 +8,12 @@ const mutations: MutationTree <PurchaseOrderState> = {
     state.purchaseOrders.total = payload.total;
   },
   [types.PURCHASE_ORDER_DETAIL_UPDATED] (state,payload) {
-    state.current = payload.orderDetail
+    if(payload.orderDetail)
+    {state.current = payload.orderDetail}
+    else{
+      state.current = payload;
+    }
+    
   },
-  [types.PURCHASE_ORDER_PRODUCT_COUNT_UPDATED](state, payload) {
-    state.current.forEach((item: any) => {
-      if (item.productId === payload) {
-        console.log("First",item.quantityAccepted);
-        item.quantityAccepted = item.quantityAccepted + 1;
-        console.log(item.quantityAccepted);
-        console.log(typeof(item.quantityAccepted));
-      }
-    });
-  }
 }
 export default mutations;

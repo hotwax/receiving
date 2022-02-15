@@ -48,9 +48,12 @@ const actions: ActionTree<PurchaseOrderState, RootState> = {
       return current;
     try {
       resp = await PurchaseOrdersService.fetchPODetails(payload);
-
+      // console.log(resp);
       if(resp.status === 200 && !hasError(resp) && resp.data.grouped){
         const orderDetail = resp.data.grouped.orderId.groups[0].doclist.docs
+        orderDetail.forEach((x: any)=>{
+          x.quantityAccepted = 0;
+        })
         commit(types.PURCHASE_ORDER_DETAIL_UPDATED, { orderDetail })
         const productIds = [orderDetail[0].productId]
         this.dispatch('product/fetchProducts', { productIds });
@@ -63,8 +66,16 @@ const actions: ActionTree<PurchaseOrderState, RootState> = {
     }
     return resp;
   },
-  async updatePoProductCount({ commit }, payload ) {
-    commit(types.PURCHASE_ORDER_PRODUCT_COUNT_UPDATED, payload)
+  async updatePoProductCount({ commit, state }, payload ) {
+    state.current.forEach((item: any) => {
+      if (item.productId === payload) {
+        console.log("First",item.quantityAccepted);
+        item.quantityAccepted = item.quantityAccepted + 1;
+        console.log(item.quantityAccepted);
+        console.log(typeof(item.quantityAccepted));
+      }
+    });
+    commit(types.PURCHASE_ORDER_DETAIL_UPDATED, state.current )
   }
 }
 
