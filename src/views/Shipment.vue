@@ -23,8 +23,8 @@
               <ion-input :placeholder="$t('Scan barcodes to receive')"></ion-input>
             </ion-label>
           </ion-item>
-          
-          <ion-button size="medium" expand="block" class="action-button" fill="outline" color="primary" @click="scanCode()">
+
+          <ion-button size="medium" expand="block" class="action-button" fill="outline" @click="scanCode()">
             <ion-icon slot="start" :icon="barcodeOutline" />{{ $t("Scan") }}
           </ion-button>
         </div>
