@@ -19,7 +19,7 @@
       <div>
         <ion-item lines="none" class="po-primary">
           <h1>
-            {{$t("Purchase Order")}}: PO10291
+            {{$t("Purchase Order")}}: {{ orderDetail[0]?.externalOrderId }}
           </h1>
         </ion-item>
         
@@ -33,22 +33,22 @@
             {{$t("Scan Items")}}
             <ion-input :placeholder="$t('Scan barcodes to receive')" />
           </ion-item>
-          <ion-button fill="outline">
+          <ion-button fill="outline" @click="scanCode()">
             <ion-icon slot="start" :icon="cameraOutline" />
             {{ $t("Scan") }}
           </ion-button>
         </div>
         
         <div class="po-items">
-          <ion-card>
+          <ion-card v-for="(item, index) in orderDetail" :key="index">
             <div class="product-info">
               <ion-item lines="none">
                 <ion-thumbnail slot="start">
-                  <Image src="https://cdn.shopify.com/s/files/1/0069/7384/9727/products/test-track.jpg?v=1626255137" />
+                  <Image :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label>
-                  Shopify SKU
-                  <p>Parent product</p>
+                  {{ getProduct(item.productId).productName }}
+                  <p>{{ item.productId }}</p>
                 </ion-label>
               </ion-item>
 
@@ -66,7 +66,7 @@
                 {{ $t("Receive All") }}
               </ion-button>
               <ion-progress-bar value="1" />
-              <p slot="end">5 ordered</p>
+              <p slot="end">5 {{ $t("ordered") }}</p>
             </ion-item>
           </ion-card>
         </div>  
@@ -108,6 +108,8 @@ import { defineComponent } from 'vue';
 import { addOutline, cameraOutline, checkmarkDone, saveOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import Image from "@/components/Image.vue";
+import { useStore, mapGetters } from 'vuex';
+import Scanner from "./Scanner.vue";
 
 export default defineComponent({
   name: "PurchaseOrderDetails",
@@ -131,6 +133,12 @@ export default defineComponent({
     IonThumbnail,
     IonTitle,
     IonToolbar,
+  },
+  computed: {
+    ...mapGetters({
+      orderDetail: 'purchaseOrder/getOrderDetails',
+      getProduct: 'product/getProduct'
+    })
   },
   methods: {
     async receivingHistory() {
@@ -156,13 +164,26 @@ export default defineComponent({
       });
       return alert.present();
     },
-  }, 
+    async scanCode(){
+      const modal = await modalController
+        .create({
+          component: Scanner,
+        });
+        modal.onDidDismiss()
+          .then((result) => {
+            this.store.dispatch('purchaseOrder/updatePoProductCount', result.role)
+          })
+        return modal.present();
+    }
+  },
   setup() {
+    const store = useStore();
     return {
       addOutline,
       cameraOutline,
       checkmarkDone,
       saveOutline,
+      store,
       timeOutline
     };
   },
