@@ -60,6 +60,10 @@ const actions: ActionTree<ProductState, RootState> = {
     if (payload.viewIndex === 0) emitter.emit("dismissLoader");
     
     return resp;
+  },
+
+  async clearSearchedProducts({ commit }) {
+    commit(types.PRODUCT_LIST_UPDATED, { products: {}, total: 0})
   }
 
 }
