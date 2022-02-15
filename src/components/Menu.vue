@@ -83,8 +83,8 @@ export default defineComponent({
     const selectedIndex = ref(0);
     const appPages = [
       {
-        title: "Receiving",
-        url: "/receiving",
+        title: "Shipments",
+        url: "/shipments",
         iosIcon: downloadOutline,
         mdIcon: downloadOutline,
       },
