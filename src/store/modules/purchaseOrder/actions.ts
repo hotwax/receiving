@@ -52,6 +52,8 @@ const actions: ActionTree<PurchaseOrderState, RootState> = {
       if(resp.status === 200 && !hasError(resp) && resp.data.grouped){
         const orderDetail = resp.data.grouped.orderId.groups[0].doclist.docs
         commit(types.PURCHASE_ORDER_DETAIL_UPDATED, { orderDetail })
+        const productIds = [orderDetail[0].productId]
+        this.dispatch('product/fetchProducts', { productIds });
       }
       else{
         showToast(translate("Something went wrong"));
