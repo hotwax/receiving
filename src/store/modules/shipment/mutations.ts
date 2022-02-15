@@ -8,6 +8,6 @@ const mutations: MutationTree <ShipmentState> = {
   },
   [types.SHIPMENT_CURRENT_UPDATED] (state, payload) {
     state.current = payload.current;
-  }
+  },
 }
 export default mutations;
