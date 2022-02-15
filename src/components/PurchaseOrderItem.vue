@@ -5,7 +5,7 @@
       <h3>{{ purchaseOrder.orderName ? purchaseOrder.orderName : purchaseOrder.orderId }}</h3>
       <p>{{ purchaseOrder.externalOrderId }}</p>
     </ion-label>
-    <h6 v-if="purchaseOrder.estimatedDeliveryDate">{{ $filters.formatUtcDate(purchaseOrder.estimatedDeliveryDate, 'YYYY-MM-DDTHH:mm:ssZ') }}</h6>
+    <h6>{{ purchaseOrder.estimatedDeliveryDate ? $filters.formatUtcDate(purchaseOrder.estimatedDeliveryDate, 'YYYY-MM-DDTHH:mm:ssZ') : " - " }}</h6>
   </ion-item>
 </template>
 
