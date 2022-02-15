@@ -83,7 +83,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
   },
   async receiveShipment ({ dispatch }, {payload}) {
     emitter.emit("presentLoader");
-    return await dispatch("receiveShipmentItem", payload).then(async(response) => {
+    return await dispatch("receiveShipmentItem", payload).then(async( ) => {
       const resp = await ShipmentService.receiveShipment({
         "shipmentId": payload.shipmentId,
         "statusId": "PURCH_SHIP_RECEIVED"
