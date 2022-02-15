@@ -1,0 +1,7 @@
+---
+title: Implemented code to fetch and show products in AddProductModal and add them
+  in shipment when clicking on add to shipment
+ticket_id: "#1wn2rqg"
+merge_request: 38
+author: Yash Maheshwari
+type: added
