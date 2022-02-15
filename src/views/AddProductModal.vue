@@ -23,11 +23,11 @@
         </ion-label>
         <ion-button fill="outline" color="dark" @click="addtoShipment(product)">{{ $t("Add to Shipment") }}</ion-button>
       </ion-item>
+    </ion-list>
 
-      <ion-infinite-scroll @ionInfinite="loadMoreProducts($event)" threshold="100px" :disabled="!isScrollable">
-        <ion-infinite-scroll-content loading-spinner="crescent" :loading-text="$t('Loading')" />
-      </ion-infinite-scroll>
-    </ion-list> 
+    <ion-infinite-scroll @ionInfinite="loadMoreProducts($event)" threshold="100px" :disabled="!isScrollable">
+      <ion-infinite-scroll-content loading-spinner="crescent" :loading-text="$t('Loading')" />
+    </ion-infinite-scroll>
   </ion-content>
 </template>
 
@@ -83,7 +83,7 @@ export default defineComponent({
   },
   computed: {
     ...mapGetters({
-      products: 'product/getSearchedProduct',
+      products: 'product/getProducts',
       isScrollable: 'product/isScrollable'
     })
   },

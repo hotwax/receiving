@@ -36,7 +36,7 @@ const actions: ActionTree<ProductState, RootState> = {
     // TODO Handle specific error
     return resp;
   },
-  async findProduct({ commit }, payload) {
+  async findProduct({ commit, state }, payload) {
     let resp;
     if (payload.viewIndex === 0) emitter.emit("presentLoader");
     try {
@@ -47,8 +47,11 @@ const actions: ActionTree<ProductState, RootState> = {
         "viewIndex": payload.viewIndex
       })
       if (resp.status === 200 && resp.data.response?.docs.length > 0 && !hasError(resp)) {
-        const products = resp.data.response.docs;
-        commit(types.PRODUCT_SEARCH_UPDATED, { products });
+        let products = resp.data.response.docs;
+        const total = resp.data.response.numFound;
+
+        if (payload.viewIndex && payload.viewIndex > 0) products = state.list.items.concat(products)
+        commit(types.PRODUCT_LIST_UPDATED, { products, total });
         commit(types.PRODUCT_ADD_TO_CACHED_MULTIPLE, { products });
       }
     } catch (error) {

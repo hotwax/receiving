@@ -4,5 +4,4 @@ export default interface ProductState {
     total: number;
     items: any[];
   }
-  searchedProduct: any[]
 }
