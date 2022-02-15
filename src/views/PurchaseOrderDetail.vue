@@ -17,37 +17,20 @@
 
     <ion-content>
       <div>
-        <ion-item lines="none">
-          <h1>{{$t("Purchase Order")}}: {{ orderDetail[0]?.externalOrderId }}</h1>
+        <ion-item lines="none" class="po-primary">
+          <h1>
+            {{$t("Purchase Order")}}: {{ orderDetail[0]?.orderId }}
+          </h1>
         </ion-item>
-        <ion-item>
-          <ion-label>{{$t("Scan Items")}}</ion-label>
-          <ion-label>
-            <ion-input placeholder="Scan barcodes to receive" />
-          </ion-label>
-        </ion-item>
-        <ion-card v-for="(item, index) in orderDetail" :key="index">
-          <div class="product-info">
-            <ion-item lines="none">
-              <ion-thumbnail slot="start">
-                <!-- TODO:- handle this getter when another pull request get merged -->
-                <img src="getProduct(item.productId).mainImageUrl" />
-              </ion-thumbnail>
-              <ion-label>
-                <ion-label>{{ getProduct(item.productId).productName }}</ion-label>
-                <p>{{ item.productId }}</p>
-              </ion-label>
-            </ion-item>
-            <ion-item class="product-count">
-              <ion-input type="number" value="0" min="0"></ion-input>
-            </ion-item>
-          </div>
-          <ion-item class="border-top">
-            <ion-button slot="start" fill="outline">
-              {{ $t("ReceiveAll") }}
-            </ion-button>
-            <ion-progress-bar value="1"></ion-progress-bar>
-            <p slot="end">5</p>
+        
+        <div class="po-meta">
+          <ion-chip>{{ orderDetail[0]?.externalOrderId }}</ion-chip>
+        </div>
+        
+        <div class="po-scanner">
+          <ion-item>
+            {{$t("Scan Items")}}
+            <ion-input :placeholder="$t('Scan barcodes to receive')" />
           </ion-item>
           <ion-button fill="outline">
             <ion-icon slot="start" :icon="cameraOutline" />
@@ -56,15 +39,15 @@
         </div>
         
         <div class="po-items">
-          <ion-card>
+          <ion-card v-for="(item, index) in orderDetail" :key="index">
             <div class="product-info">
               <ion-item lines="none">
                 <ion-thumbnail slot="start">
-                  <Image src="https://cdn.shopify.com/s/files/1/0069/7384/9727/products/test-track.jpg?v=1626255137" />
+                  <Image :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label>
-                  Shopify SKU
-                  <p>Parent product</p>
+                  {{ getProduct(item.productId).productName }}
+                  <p>{{ item.productId }}</p>
                 </ion-label>
               </ion-item>
 
@@ -123,6 +106,7 @@ import {
 import { defineComponent } from 'vue';
 import { addOutline, cameraOutline, checkmarkDone, saveOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
+import Image from "@/components/Image.vue";
 import { useStore, mapGetters } from 'vuex';
 
 export default defineComponent({
@@ -150,7 +134,7 @@ export default defineComponent({
   },
   computed: {
     ...mapGetters({
-      orderDetail: 'purchaseOrder/getOrderDetails',
+      orderDetail: 'order/getOrderDetail',
       getProduct: 'product/getProduct'
     })
   },
@@ -177,10 +161,11 @@ export default defineComponent({
         }]
       });
       return alert.present();
-    }
+    },
   }, 
   setup() {
     const store = useStore();
+
     return {
       addOutline,
       cameraOutline,

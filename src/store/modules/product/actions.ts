@@ -36,6 +36,17 @@ const actions: ActionTree<ProductState, RootState> = {
     }
 
     return resp;
+  },
+  async fetchProductInformation( { commit }, payload) {
+    let productIds: any = new Set();
+
+    payload.order.map((item: any) => {
+      if (item.productId) productIds.add(item.productId);
+    })
+    productIds = [...productIds]
+    if (productIds.length) {
+      this.dispatch('product/fetchProducts', { productIds })
+    }
   }
 }
 export default actions;

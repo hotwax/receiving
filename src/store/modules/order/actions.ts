@@ -33,6 +33,28 @@ const actions: ActionTree<OrderState, RootState> = {
     }
     return resp;
   },
+  async getOrderDetail({ commit, state }, { payload, orderId }) {
+    let resp;
+    const current = state.current as any
+    if (current.length && current[0]?.doclist && current[0]?.doclist.docs[0].orderId === orderId)
+      return current;
+    try {
+      resp = await OrderService.fetchPODetail(payload);
+
+      if (resp.status === 200 && !hasError(resp) && resp.data.grouped) {
+        const orderDetail = resp.data.grouped.orderId.groups[0].doclist.docs
+
+        this.dispatch('product/fetchProductInformation', { order: orderDetail });
+        commit(types.ORDER_PRCHS_DTAIL_UPDATED, { orderDetail })
+      }
+      else {
+        showToast(translate("Something went wrong"));
+      }
+    } catch (error) {
+      showToast(translate("Something went wrong"));
+    }
+    return resp;
+  }
 }
 
 export default actions;

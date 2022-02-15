@@ -6,6 +6,9 @@ const mutations: MutationTree <OrderState> = {
   [types.ORDER_PRCHS_ORDRS_UPDATED] (state, payload) {
     state.purchaseOrders.list = payload.list;
     state.purchaseOrders.total = payload.total;
+  },
+  [types.ORDER_PRCHS_DTAIL_UPDATED](state, payload) {
+    state.current = payload.orderDetail
   }
 }
 export default mutations;
