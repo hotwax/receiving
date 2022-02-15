@@ -5,13 +5,11 @@
         <ion-title>{{ $t("Purchase Orders") }}</ion-title>
       </ion-toolbar>
     </ion-header>
-    <ion-content :fullscreen="true">
-      <div>
-        <ion-searchbar :placeholder="$t('Search')" v-model="queryString" @keyup.enter="getPurchaseOrders()" />
-      </div>
+    <ion-content>
+      <ion-searchbar :placeholder="$t('Search')" v-model="queryString" @keyup.enter="getPurchaseOrders()" />
       <PurchaseOrderItem v-for="(order, index) in orders" :key="index" :purchaseOrder="order.doclist.docs[0]" />
       
-      <ion-infinite-scroll @ionInfinite="loadMoreOrders($event)" threshold="100px" id="infinite-scroll" :disabled="!isScrolleable">
+      <ion-infinite-scroll @ionInfinite="loadMoreOrders($event)" threshold="100px" id="infinite-scroll" :disabled="!isScrollable">
         <ion-infinite-scroll-content loading-spinner="crescent" :loading-text="$t('Loading')" />
       </ion-infinite-scroll>
     </ion-content>
@@ -45,7 +43,7 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       orders: 'order/getPurchaseOrders',
-      isScrolleable: 'order/isScrolleable'
+      isScrollable: 'order/isScrollable'
     })
   },
   methods: {
@@ -64,7 +62,7 @@ export default defineComponent({
             "group.ngroups": true,
           } as any,
           "query": "*:*",
-          "filter": `docType: ORDER AND orderTypeId: PURCHASE_ORDER`
+          "filter": 'docType: ORDER AND orderTypeId: PURCHASE_ORDER'
         }
       }
       if(this.queryString) {
