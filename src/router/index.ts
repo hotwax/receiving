@@ -4,8 +4,8 @@ import Receiving from '@/views/Receiving.vue'
 import Shipment from '@/views/Shipment.vue'
 import Login from '@/views/Login.vue'
 import Settings from "@/views/Settings.vue"
-import PurchaseOrderDetail from "@/views/PurchaseOrderDetail.vue"
 import PurchaseOrders from "@/views/PurchaseOrders.vue"
+import PurchaseOrderDetail from "@/views/PurchaseOrderDetail.vue"
 import store from '@/store'
 
 const authGuard = (to: any, from: any, next: any) => {
@@ -54,15 +54,15 @@ const routes: Array<RouteRecordRaw> = [
     beforeEnter: authGuard
   },
   {
-    path: "/purchase-order-details/:slug",
-    name: "PurchaseOrderDetail",
-    component: PurchaseOrderDetail,
-    beforeEnter: authGuard
-  },
-  {
     path: '/purchase-orders',
     name: 'PurchaseOrders',
     component: PurchaseOrders,
+    beforeEnter: authGuard
+  },
+  {
+    path: "/purchase-order-details",
+    name: "PurchaseOrderDetail",
+    component: PurchaseOrderDetail,
     beforeEnter: authGuard
   }
 ]

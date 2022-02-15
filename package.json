@@ -1,8 +1,8 @@
 {
-  "name": "receiving",
-  "version": "1.0.0",
+  "name": "ionic-sdk",
+  "version": "0.0.1",
   "private": true,
-  "description": "HotWax Commerce Receiving App",
+  "description": "An Ionic project",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
@@ -14,9 +14,9 @@
   "dependencies": {
     "@capacitor/android": "^2.4.7",
     "@capacitor/core": "^2.4.7",
-    "@ionic/core": "6.0.1",
-    "@ionic/vue": "6.0.1",
-    "@ionic/vue-router": "6.0.1",
+    "@ionic/core": "^6.0.1",
+    "@ionic/vue": "^6.0.1",
+    "@ionic/vue-router": "^6.0.1",
     "axios": "^0.21.1",
     "axios-cache-adapter": "^2.7.3",
     "core-js": "^3.6.5",

@@ -19,7 +19,7 @@
       <div>
         <ion-item lines="none" class="po-primary">
           <h1>
-            {{$t("Purchase Order")}}: {{ orderDetail[0]?.externalOrderId }}
+            {{$t("Purchase Order")}}: PO10291
           </h1>
         </ion-item>
         
@@ -40,15 +40,15 @@
         </div>
         
         <div class="po-items">
-          <ion-card v-for="(item, index) in orderDetail" :key="index">
+          <ion-card>
             <div class="product-info">
               <ion-item lines="none">
                 <ion-thumbnail slot="start">
-                  <img src="getProduct(item.productId).mainImageUrl" />
+                  <Image src="https://cdn.shopify.com/s/files/1/0069/7384/9727/products/test-track.jpg?v=1626255137" />
                 </ion-thumbnail>
                 <ion-label>
-                  {{ getProduct(item.productId).productName }}
-                  <p>{{ item.productId }}</p>
+                  Shopify SKU
+                  <p>Parent product</p>
                 </ion-label>
               </ion-item>
 
@@ -108,7 +108,6 @@ import { defineComponent } from 'vue';
 import { addOutline, cameraOutline, checkmarkDone, saveOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import Image from "@/components/Image.vue";
-import { useStore, mapGetters } from 'vuex';
 
 export default defineComponent({
   name: "PurchaseOrderDetails",
@@ -132,12 +131,6 @@ export default defineComponent({
     IonThumbnail,
     IonTitle,
     IonToolbar,
-  },
-  computed: {
-    ...mapGetters({
-      orderDetail: 'purchaseOrder/getOrderDetails',
-      getProduct: 'product/getProduct'
-    })
   },
   methods: {
     async receivingHistory() {
@@ -165,14 +158,11 @@ export default defineComponent({
     },
   }, 
   setup() {
-    const store = useStore();
-
     return {
       addOutline,
       cameraOutline,
       checkmarkDone,
       saveOutline,
-      store,
       timeOutline
     };
   },
