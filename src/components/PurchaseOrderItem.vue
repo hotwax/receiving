@@ -27,21 +27,7 @@ export default defineComponent({
   props: ["purchaseOrder"],
   methods: {
     async getOrderDetail(orderId?: any) {
-      const payload = {
-        "json": {
-          "params": {
-            "rows": 10,
-            "group": true,
-            "group.field": "orderId",
-            "group.limit": 10000
-          },
-          "query": "docType:ORDER", 
-          "filter": [
-              `orderTypeId: PURCHASE_ORDER AND orderId: ${orderId}`
-          ]
-        }
-      }
-      await this.store.dispatch("order/getOrderDetail", {payload, orderId})
+      await this.store.dispatch("order/getOrderDetail", {orderId})
       .then(() => this.router.push({ path: `/purchase-order-detail/${orderId}` }))
     }
   },

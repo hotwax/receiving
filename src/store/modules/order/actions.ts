@@ -33,19 +33,45 @@ const actions: ActionTree<OrderState, RootState> = {
     }
     return resp;
   },
-  async getOrderDetail({ commit, state }, { payload, orderId }) {
+  async getOrderDetail({ commit, state }, { orderId }) {
     let resp;
+
     const current = state.current as any
-    if (current.length && current[0]?.doclist && current[0]?.doclist.docs[0].orderId === orderId)
-      return current;
+    const orders = state.purchaseOrders.list as any
+
+    if (current.length && current[0]?.orderId === orderId) return current;
+
+    else if(orders.length > 0) {
+      return orders.some((order: any) => {
+        if (order.doclist.docs[0]?.orderId === orderId) {
+          this.dispatch('product/fetchProductInformation',  { order: order.doclist.docs });
+          state.current = order.doclist.docs;
+          return current;
+        }
+      })
+    }
     try {
+      const payload = {
+        "json": {
+          "params": {
+            "rows": 10,
+            "group": true,
+            "group.field": "orderId",
+            "group.limit": 10000
+          },
+          "query": "docType:ORDER",
+          "filter": [
+            `orderTypeId: PURCHASE_ORDER AND orderId: ${orderId}`
+          ]
+        }
+      }
       resp = await OrderService.fetchPODetail(payload);
 
       if (resp.status === 200 && !hasError(resp) && resp.data.grouped) {
-        const orderDetail = resp.data.grouped.orderId.groups[0].doclist.docs
+        const order = resp.data.grouped.orderId.groups[0].doclist.docs
 
-        this.dispatch('product/fetchProductInformation', { order: orderDetail });
-        commit(types.ORDER_PRCHS_DTAIL_UPDATED, { orderDetail })
+        this.dispatch('product/fetchProductInformation', { order: order });
+        commit(types.ORDER_PRCHS_DTAIL_UPDATED, { order })
       }
       else {
         showToast(translate("Something went wrong"));

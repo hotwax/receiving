@@ -65,7 +65,7 @@
                 {{ $t("Receive All") }}
               </ion-button>
               <ion-progress-bar value="1" />
-              <p slot="end">5 ordered</p>
+              <p slot="end">{{ item.quantity }} {{ $t("ordered") }}</p>
             </ion-item>
           </ion-card>
         </div>  
