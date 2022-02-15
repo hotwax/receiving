@@ -21,7 +21,8 @@
           <h2>{{ product.productName}}</h2>
           <p>{{ product.productId}}</p>
         </ion-label>
-        <ion-button fill="outline" color="dark" @click="addtoShipment(product)">{{ $t("Add to Shipment") }}</ion-button>
+        <ion-icon v-if="product.isAvailableInShipment" color="success" :icon="checkmarkCircle" />
+        <ion-button v-else fill="outline" color="dark" @click="addtoShipment(product)">{{ $t("Add to Shipment") }}</ion-button>
       </ion-item>
     </ion-list>
 
@@ -84,7 +85,8 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       products: 'product/getProducts',
-      isScrollable: 'product/isScrollable'
+      isScrollable: 'product/isScrollable',
+      shipment: 'shipment/getCurrent'
     })
   },
   methods: {
@@ -97,7 +99,9 @@ export default defineComponent({
         queryString: '*' + this.queryString + '*'
       }
       if (this.queryString) {
-        await this.store.dispatch("product/findProduct", payload);
+        // TODO: sending the shipment in the params as in action the shipment state is not
+        // accessible in the rootState so need to check on this
+        await this.store.dispatch("product/findProduct", {payload, shipment: this.shipment});
       }
       else {
         showToast(translate("Enter product sku to search"))
