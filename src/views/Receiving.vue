@@ -5,85 +5,81 @@
         <ion-title>{{ $t("Receiving") }}</ion-title>
       </ion-toolbar>
     </ion-header>
-    
     <ion-content :fullscreen="true">
       <div>
-        <ion-searchbar :placeholder="$t('Scan ASN to start receiving')"></ion-searchbar>
-        <ion-list>
-          <ion-item @click="() => router.push('/shipment')">
-            <ion-label>
-              <h2>SHPMNT_001</h2>
-              <p>3 {{ $t("items") }}</p>
-            </ion-label>
-            <ion-note slot="end">{{ $t("Shipped") }}</ion-note>
-          </ion-item>
-          <ion-item>
-            <ion-label>
-              <h2>SHPMNT_002</h2>
-              <p>2 {{ $t("items") }}</p>
-            </ion-label>
-            <ion-note slot="end">{{ $t("Shipped") }}</ion-note>
-          </ion-item>
-          <ion-item>
-            <ion-label>
-              <h2>SHPMNT_003</h2>
-              <p>6 {{ $t("items") }}</p>
-            </ion-label>
-            <ion-note slot="end">{{ $t("Shipped") }}</ion-note>
-          </ion-item>
-          <ion-item>
-            <ion-label>
-              <h2>SHPMNT_004</h2>
-              <p>4 {{ $t("items") }}</p>
-            </ion-label>
-            <ion-note slot="end">{{ $t("Shipped") }}</ion-note>
-          </ion-item>
-          <ion-item>
-            <ion-label>
-              <h2>SHPMNT_005</h2>
-              <p>1 {{ $t("item") }}</p>
-            </ion-label>
-            <ion-note slot="end">{{ $t("Shipped") }}</ion-note>
-          </ion-item>
-        </ion-list>
+        <ion-searchbar :placeholder="$t('Scan ASN to start receiving')"/>
+
+        <ShipmentListItem v-for="shipment in shipments" :key="shipment.shipmentId" :shipment="shipment"/>
+
         <div class="ion-text-center">
-          <ion-button fill="outline" color="dark"><ion-icon :icon="cloudDownloadOutline" slot="start" />{{ $t("Load more shipments") }}</ion-button>
+          <ion-button fill="outline" color="dark" @click="loadMoreShipments()">
+            <ion-icon :icon="cloudDownloadOutline" slot="start" />
+            {{ $t("Load more shipments") }}
+          </ion-button>
         </div>
-      </div> 
+      </div>
     </ion-content>
   </ion-page>
 </template>
 
 <script lang="ts">
-import { IonButton, IonContent, IonHeader, IonIcon, IonItem, IonLabel, IonList, IonNote, IonPage, IonSearchbar, IonTitle, IonToolbar } from '@ionic/vue';
-import { defineComponent } from 'vue';
+import { IonButton, IonContent, IonHeader, IonIcon, IonPage, IonSearchbar, IonTitle, IonToolbar } from '@ionic/vue';
 import { cloudDownloadOutline } from 'ionicons/icons'
-import { useRouter } from 'vue-router';
+import { defineComponent } from 'vue'
+import { mapGetters, useStore } from 'vuex'
+import ShipmentListItem from '@/components/ShipmentListItem.vue'
 
 export default defineComponent({
-  name: 'Receiving',
+  name: "Receiving",
   components: {
     IonButton,
     IonContent,
     IonHeader,
     IonIcon,
-    IonItem,
-    IonLabel,
-    IonList,
-    IonNote,
     IonSearchbar,
     IonPage,
     IonTitle,
-    IonToolbar
+    IonToolbar,
+    ShipmentListItem
   },
-  setup(){
-    const router = useRouter();
+  computed: {
+    ...mapGetters({
+      shipments: 'shipment/getShipments',
+      user: 'user/getCurrentFacility'
+    })
+  },
+  mounted () {
+    this.getShipments();
+  },
+  methods: {
+    selectSearchBarText(event: any) {
+      event.target.getInputElement().then((element: any) => {
+        element.select();
+      })
+    },
+    async getShipments(vSize?: any, vIndex?: any) {
+      const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
+      const viewIndex = vIndex ? vIndex : 0;
+      const payload = {
+        viewSize,
+        viewIndex,
+        facilityId: this.user.facilityId,
+        statusId: "PURCH_SHIP_SHIPPED"
+      }
+      await this.store.dispatch("shipment/findShipment", payload);
+    },
+    loadMoreShipments() {
+      this.getShipments(process.env.VUE_APP_VIEW_SIZE, Math.ceil(this.shipments.length / process.env.VUE_APP_VIEW_SIZE));
+    }
+  },
+  setup() {
+    const store = useStore();
     return {
       cloudDownloadOutline,
-      router
+      store
     }
   }
-});
+})
 </script>
 
 <style scoped>
