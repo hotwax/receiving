@@ -113,6 +113,9 @@ export default defineComponent({
     Image
   },
   props: ["shipment"],
+  mounted() {
+    this.store.dispatch('shipment/setCurrent', { shipmentId: this.$route.params.id })
+  },
   computed: {
     ...mapGetters({
       current: 'shipment/getCurrent',
