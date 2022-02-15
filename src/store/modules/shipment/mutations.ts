@@ -11,7 +11,7 @@ const mutations: MutationTree <ShipmentState> = {
     state.current.items = payload.current.items;
   },
   [types.SHIPMENT_CURRENT_PRODUCT_ADDED] (state, payload) {
-    state.current.items = [ ...state.current.shipment.items, payload]
+    state.current.items = state.current.items.concat(payload)
   }
 }
 export default mutations;
