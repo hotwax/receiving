@@ -36,38 +36,28 @@ const actions: ActionTree<ProductState, RootState> = {
     // TODO Handle specific error
     return resp;
   },
-  async findProduct({ commit, state }, params) {
+  async findProduct({ commit, state }, payload) {
     let resp;
-    if (params.payload.viewIndex === 0) emitter.emit("presentLoader");
+    if (payload.viewIndex === 0) emitter.emit("presentLoader");
     try {
       resp = await ProductService.fetchProducts({
         // used sku as we are currently only using sku to search for the product
-        "filters": ['sku: ' + params.payload.queryString, 'isVirtual: false'],
-        "viewSize": params.payload.viewSize,
-        "viewIndex": params.payload.viewIndex
+        "filters": ['sku: ' + payload.queryString, 'isVirtual: false'],
+        "viewSize": payload.viewSize,
+        "viewIndex": payload.viewIndex
       })
       if (resp.status === 200 && resp.data.response?.docs.length > 0 && !hasError(resp)) {
         let products = resp.data.response.docs;
         const total = resp.data.response.numFound;
 
-        // TODO: for now used map to check for items present in shipment, but will improve this
-        // to use the sku to store the product information in store
-        params.shipment.items.map((item: any) => {
-          products.map((product: any) => {
-            if (product.productId === item.productId) {
-              product.isAvailableInShipment = true;
-            }
-          })
-        })
-
-        if (params.payload.viewIndex && params.payload.viewIndex > 0) products = state.list.items.concat(products)
+        if (payload.viewIndex && payload.viewIndex > 0) products = state.list.items.concat(products)
         commit(types.PRODUCT_LIST_UPDATED, { products, total });
         commit(types.PRODUCT_ADD_TO_CACHED_MULTIPLE, { products });
       }
     } catch (error) {
       showToast(translate("Something went wrong"));
     }
-    if (params.payload.viewIndex === 0) emitter.emit("dismissLoader");
+    if (payload.viewIndex === 0) emitter.emit("dismissLoader");
     
     return resp;
   },

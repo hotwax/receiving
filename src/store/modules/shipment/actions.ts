@@ -94,17 +94,12 @@ const actions: ActionTree<ShipmentState, RootState> = {
       return resp;
     }).catch(err => err);
   },
-  async addShipmentItem ({ rootState, commit }, payload) {
+  async addShipmentItem ({ state, commit }, payload) {
     const product = { 
       ...payload,
       quantityAccepted: 0,
       quantityOrdered: 0
     }
-    rootState.product.list.items.map((item: any) => {
-      if (item.productId === product.productId) {
-        item.isAvailableInShipment = true;
-      }
-    })
     commit(types.SHIPMENT_CURRENT_PRODUCT_ADDED, product)
   },
 

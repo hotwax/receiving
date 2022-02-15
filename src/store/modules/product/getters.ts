@@ -15,5 +15,8 @@ const getters: GetterTree <ProductState, RootState> = {
       state.list.items.length < state.list.total
     );
   },
+  isProductAvailableInShipment: (state, getters, rootState, rootGetters) => (productId: string) => {
+    return rootGetters['shipment/getCurrent'].items.some((item: any) => item.productId === productId);
+  }
 }
 export default getters
