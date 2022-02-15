@@ -5,7 +5,7 @@
       <h3>{{ purchaseOrder.orderName ? purchaseOrder.orderName : purchaseOrder.orderId }}</h3>
       <p>{{ purchaseOrder.externalOrderId }}</p>
     </ion-label>
-    <h6>{{ $filters.formatUtcDate(purchaseOrder.estimatedDeliveryDate, 'YYYY-MM-DDTHH:mm:ssZ') }}</h6>
+    <ion-note slot="end">{{ $filters.formatUtcDate(purchaseOrder.estimatedDeliveryDate, 'YYYY-MM-DDTHH:mm:ssZ') }}</ion-note>
   </ion-item>
 </template>
 
