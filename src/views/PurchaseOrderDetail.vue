@@ -58,9 +58,8 @@
               </ion-chip>
 
               <ion-item class="product-count">
-                <ion-input type="number" value="0" min="0" :v-model="item.quantityAccepted" />
+                <ion-input  type="number" v-model="item.quantityAccepted" min="0" />
               </ion-item>
-              <p>{{ item.quantityAccepted }}</p>
             </div>
             <ion-item lines="none" class="border-top">
               <ion-button slot="start" fill="outline">
