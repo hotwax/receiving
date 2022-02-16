@@ -2,13 +2,13 @@
   <ion-page>
     <ion-header :translucent="true">
       <ion-toolbar>
-        <ion-back-button default-href="/" slot="start" />
+        <ion-back-button default-href="/purchase-orders" slot="start" />
         <ion-title> {{$t("Purchase Order Details")}} </ion-title>
         <ion-buttons slot="end">
           <ion-button @click="receivingHistory">
             <ion-icon slot="icon-only" :icon="timeOutline"/>
           </ion-button>
-          <ion-button>
+          <ion-button @click="addProduct">
             <ion-icon slot="icon-only" :icon="addOutline"/>
           </ion-button>
         </ion-buttons>
@@ -32,8 +32,7 @@
             <ion-label position="fixed">{{$t("Scan Items")}}</ion-label>
             <ion-input :placeholder="$t('Scan barcodes to receive')" />
           </ion-item>
-          
-          <ion-button expand="block" fill="outline">
+          <ion-button expand="block" fill="outline" @click="scan">
             <ion-icon slot="start" :icon="cameraOutline" />
             {{ $t("Scan") }}
           </ion-button>
@@ -62,7 +61,7 @@
 
             <div class="product-count">
               <ion-item>
-                <ion-input type="number" value="0" min="0" />
+                <ion-input type="number" value="0" min="0" v-model="item.quantityAccepted" />
               </ion-item>
             </div>
           </div>
@@ -114,6 +113,8 @@ import { addOutline, cameraOutline, checkmarkDone, saveOutline, timeOutline } fr
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import Image from "@/components/Image.vue";
 import { useStore, mapGetters } from 'vuex';
+import Scanner from "@/components/Scanner.vue"
+import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
 
 export default defineComponent({
   name: "PurchaseOrderDetails",
@@ -145,6 +146,28 @@ export default defineComponent({
     })
   },
   methods: {
+    async scan() {
+      const modal = await modalController
+      .create({
+        component: Scanner,
+      });
+      modal.onDidDismiss()
+      .then((result) => {
+        this.store.dispatch('order/updateProductCount', result.role)
+      })
+      return modal.present();
+    },
+    async addProduct() {
+      const modal = await modalController
+        .create({
+          component: AddProductToPOModal
+        })
+      modal.onDidDismiss()
+      .then(() => {
+        this.store.dispatch('product/clearSearchedProducts');
+      })  
+      return modal.present();
+    },
     async receivingHistory() {
       const modal = await modalController
         .create({
@@ -169,6 +192,9 @@ export default defineComponent({
       return alert.present();
     },
   }, 
+  mounted() {
+    this.store.dispatch("order/getOrderDetail", { orderId: this.$route.params.slug })
+  },
   setup() {
     const store = useStore();
 

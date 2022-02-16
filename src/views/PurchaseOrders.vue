@@ -10,15 +10,19 @@
       <ion-searchbar :placeholder="$t('Search')" v-model="queryString" @keyup.enter="getPurchaseOrders()" />
       <PurchaseOrderItem v-for="(order, index) in orders" :key="index" :purchaseOrder="order.doclist.docs[0]" />
       
-      <ion-infinite-scroll @ionInfinite="loadMoreOrders($event)" threshold="100px" id="infinite-scroll" :disabled="!isScrollable">
-        <ion-infinite-scroll-content loading-spinner="crescent" :loading-text="$t('Loading')" />
-      </ion-infinite-scroll>
+      <div class="ion-text-center">
+        <ion-button fill="outline" color="dark" @click="loadMoreOrders()">
+          <ion-icon :icon="cloudDownloadOutline" slot="start" />
+          {{ $t("Load more purchase order") }}
+        </ion-button>
+      </div>
     </ion-content>
   </ion-page>
 </template>
 
 <script lang="ts">
-import { IonContent, IonHeader, IonInfiniteScroll, IonInfiniteScrollContent, IonMenuButton, IonPage, IonSearchbar, IonTitle, IonToolbar } from '@ionic/vue';
+import { IonButton, IonContent, IonHeader, IonIcon, IonPage, IonSearchbar, IonTitle, IonToolbar } from '@ionic/vue';
+import { cloudDownloadOutline } from 'ionicons/icons'
 import { defineComponent } from 'vue';
 import { mapGetters, useStore } from 'vuex';
 import PurchaseOrderItem from '@/components/PurchaseOrderItem.vue'
@@ -26,11 +30,10 @@ import PurchaseOrderItem from '@/components/PurchaseOrderItem.vue'
 export default defineComponent({
   name: 'PurchaseOrders',
   components: {
+    IonButton,
     IonContent,
     IonHeader,
-    IonInfiniteScroll, 
-    IonInfiniteScrollContent,
-    IonMenuButton,
+    IonIcon, 
     IonPage,
     IonSearchbar,
     IonTitle,
@@ -45,7 +48,8 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       orders: 'order/getPurchaseOrders',
-      isScrollable: 'order/isScrollable'
+      isScrollable: 'order/isScrollable',
+      currentFacility: 'user/getCurrentFacility'
     })
   },
   methods: {
@@ -64,7 +68,7 @@ export default defineComponent({
             "group.ngroups": true,
           } as any,
           "query": "*:*",
-          "filter": 'docType: ORDER AND orderTypeId: PURCHASE_ORDER'
+          "filter": `docType: ORDER AND orderTypeId: PURCHASE_ORDER AND facilityId: ${this.currentFacility.facilityId}`
         }
       }
       if(this.queryString) {
@@ -75,11 +79,11 @@ export default defineComponent({
       }
       this.store.dispatch('order/findPurchaseOrders', payload);
     },
-    async loadMoreOrders(event: any) {
+    async loadMoreOrders() {
       this.getPurchaseOrders(
         undefined,
         Math.ceil(this.orders.length / process.env.VUE_APP_VIEW_SIZE)
-      ).then(() => event.target.complete());
+      );
     }
   },
   mounted () {
@@ -89,6 +93,7 @@ export default defineComponent({
     const store = useStore();
 
     return {
+      cloudDownloadOutline,
       store
     }
   }
