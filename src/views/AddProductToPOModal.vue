@@ -86,7 +86,7 @@ export default defineComponent({
     ...mapGetters({
       products: 'product/getProducts',
       isScrollable: 'product/isScrollable',
-      isProductAvailableInOrder: 'product/isProductAvailableInOrder'
+      isProductAvailableInOrder: 'order/isProductAvailableInOrder'
     })
   },
   methods: {

@@ -18,9 +18,6 @@ const getters: GetterTree <ProductState, RootState> = {
   isProductAvailableInShipment: (state, getters, rootState, rootGetters) => (productId: string) => {
     return rootGetters['shipment/getCurrent'].items.some((item: any) => item.productId === productId);
   },
-  isProductAvailableInOrder: (state, getters, rootState, rootGetters) => (productId: string) => {
-    return rootGetters['order/getCurrent'].items.some((item: any) => item.productId === productId);
-  }
 
 }
 export default getters
