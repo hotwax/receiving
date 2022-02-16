@@ -2,7 +2,7 @@
   <ion-page>
     <ion-header :translucent="true">
       <ion-toolbar>
-        <ion-back-button default-href="/" slot="start" />
+        <ion-back-button default-href="/purchase-orders" slot="start" />
         <ion-title> {{$t("Purchase Order Details")}} </ion-title>
         <ion-buttons slot="end">
           <ion-button @click="receivingHistory">
@@ -163,6 +163,9 @@ export default defineComponent({
       return alert.present();
     },
   }, 
+  mounted() {
+    this.store.dispatch("order/getOrderDetail", { orderId: this.$route.params.slug })
+  },
   setup() {
     const store = useStore();
 
