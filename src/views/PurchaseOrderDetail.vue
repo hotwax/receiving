@@ -174,21 +174,10 @@ export default defineComponent({
       });
       return alert.present();
     },
-    async scanCode(){
-      const modal = await modalController
-        .create({
-          component: Scanner,
-        });
-        modal.onDidDismiss()
-          .then((result) => {
-           this.store.dispatch('purchaseOrder/updatePoProductCount', result.role)
-           this.$forceUpdate();
-          })
-        return modal.present();
-    }
-  },
+  }, 
   setup() {
     const store = useStore();
+
     return {
       addOutline,
       cameraOutline,
