@@ -179,9 +179,10 @@ export default defineComponent({
 </script>
 
 <style scoped>
-ion-content div {
+ion-content > div {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fill, minmax(40ch, 1fr));
+  column-gap: 8px;
   max-width: 1110px;
   margin-right: auto;
   margin-left: auto;
@@ -197,12 +198,14 @@ img {
 
 .po-meta {
   display: flex;
-  gap: 8px;
+  justify-self: center;
+  align-self: center
 }
 
 .po-scanner {
   grid-column: 1 / -1;
   display: flex;
+  gap: 8px;
 }
 
 .po-scanner > * {
