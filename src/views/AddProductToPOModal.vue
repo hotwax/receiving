@@ -21,8 +21,8 @@
           <h2>{{ product.productName}}</h2>
           <p>{{ product.productId}}</p>
         </ion-label>
-        <ion-icon v-if="isProductAvailableInShipment(product.productId)" color="success" :icon="checkmarkCircle" />
-        <ion-button v-else fill="outline" color="dark" @click="addtoShipment(product)">{{ $t("Add to Shipment") }}</ion-button>
+        <ion-icon v-if="isProductAvailableInOrder(product.productId)" color="success" :icon="checkmarkCircle" />
+        <ion-button v-else fill="outline" color="dark" @click="addtoOrder(product)">{{ $t("Add to Purchase Order") }}</ion-button>
       </ion-item>
     </ion-list>
 
@@ -86,7 +86,7 @@ export default defineComponent({
     ...mapGetters({
       products: 'product/getProducts',
       isScrollable: 'product/isScrollable',
-      isProductAvailableInShipment: 'product/isProductAvailableInShipment'
+      isProductAvailableInOrder: 'order/isProductAvailableInOrder'
     })
   },
   methods: {
@@ -113,8 +113,8 @@ export default defineComponent({
         event.target.complete();
       })
     },
-    async addtoShipment (product: any) {
-      this.store.dispatch('shipment/addShipmentItem', product)
+    async addtoOrder (product: any) {
+      this.store.dispatch('order/addOrderItem', product)
     },
     closeModal() {
       modalController.dismiss({ dismissed: true });

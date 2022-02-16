@@ -40,6 +40,14 @@ const actions: ActionTree<OrderState, RootState> = {
     }
     return resp;
   },
+  async addOrderItem ({ state, commit }, payload) {
+    const product = { 
+      ...payload,
+      quantityAccepted: 0,
+      quantityOrdered: 0
+    }
+    commit(types.ORDER_CURRENT_PRODUCT_ADDED, product)
+  },
   async getOrderDetail({ commit, state }, { orderId }) {
     let resp;
 
@@ -68,7 +76,7 @@ const actions: ActionTree<OrderState, RootState> = {
           },
           "query": "docType:ORDER",
           "filter": [
-            `orderTypeId: PURCHASE_ORDER AND orderId: ${orderId}`
+            `orderTypeId: PURCHASE_ORDER AND orderId: ${orderId} AND facilityId: ${this.state.user.currentFacility.facilityId}`
           ]
         }
       }

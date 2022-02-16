@@ -11,6 +11,9 @@ const mutations: MutationTree <OrderState> = {
     state.current.orderId = payload.order[0]?.orderId;
     state.current.externalOrderId = payload.order[0]?.externalOrderId;
     state.current.items = payload.order
+  },
+  [types.ORDER_CURRENT_PRODUCT_ADDED] (state, payload) {
+    state.current.items.push(payload)
   }
 }
 export default mutations;
