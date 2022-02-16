@@ -213,6 +213,13 @@ ion-content div {
   margin-left: auto;
 }
 
+.shipment-scanner {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(343px, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+
 img {
   object-fit: contain;
 }
@@ -230,14 +237,5 @@ img {
 
 .product-count {
   min-width: 9ch;
-}
-
-@media (min-width: 636px) {
-  .shipment-scanner {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    align-items: end;
-  }
 }
 </style>
