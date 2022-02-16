@@ -17,8 +17,8 @@ const actions: ActionTree<OrderState, RootState> = {
 
       if (resp.status === 200 && !hasError(resp) && resp.data.grouped) {
         const orders = resp.data.grouped.orderId
-        const orderDetails = orders.groups.forEach((order: any)=>{
-          order.doclist.docs.forEach((product: any)=>{
+        const orderDetails = orders.groups.forEach((order: any) => {
+          order.doclist.docs.forEach((product: any) => {
             product.quantityAccepted = 0;
           })
         })
