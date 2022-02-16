@@ -10,93 +10,37 @@
     </ion-toolbar>
   </ion-header>
   <ion-content class="ion-padding">
-    <ion-searchbar
-      :placeholder="$t('Search SKU or product name')"
-    ></ion-searchbar>
-    <ion-list>
-      <ion-item>
+    <ion-searchbar @ionFocus="selectSearchBarText($event)" v-model="queryString" :placeholder="$t('Search SKU or product name')" v-on:keyup.enter="getProducts()" />
+    
+    <ion-list v-for="product in products" :key="product.productId">
+      <ion-item lines="none">
         <ion-thumbnail slot="start">
-          <img
-            src="https://demo-resources.hotwax.io/resources/uploads/images/product/m/h/mh01-black_main.jpg"
-          />
+          <Image :src="product.mainImageUrl" />
         </ion-thumbnail>
         <ion-label>
-          <h2>Chaz Kangeroo Hoodie-XS-Black</h2>
-          <p>10001</p>
+          <h2>{{ product.productName}}</h2>
+          <p>{{ product.productId}}</p>
         </ion-label>
-        <ion-button fill="outline" color="dark">{{ $t("Add to Shipment") }}</ion-button>
-      </ion-item>
-      <ion-item>
-        <ion-thumbnail slot="start">
-          <img
-            src="https://demo-resources.hotwax.io/resources/uploads/images/product/m/h/mh01-gray_main.jpg"
-          />
-        </ion-thumbnail>
-        <ion-label>
-          <h2>Chaz Kangeroo Hoodie-XS-Gray</h2>
-          <p>10002</p>
-        </ion-label>
-        <ion-button fill="outline" color="dark">{{ $t("Add to Shipment") }}</ion-button>
-      </ion-item>
-      <ion-item>
-        <ion-thumbnail slot="start">
-          <img
-            src="https://demo-resources.hotwax.io/resources/uploads/images/product/m/h/mh01-orange_main.jpg"
-          />
-        </ion-thumbnail>
-        <ion-label>
-          <h2>Chaz Kangeroo Hoodie-XS-Orange</h2>
-          <p>10003</p>
-        </ion-label>
-        <ion-icon :icon="checkmarkCircle" color="success" />
-      </ion-item>
-      <ion-item>
-        <ion-thumbnail slot="start">
-          <img
-            src="https://demo-resources.hotwax.io/resources/uploads/images/product/m/h/mh01-black_main.jpg"
-          />
-        </ion-thumbnail>
-        <ion-label>
-          <h2>Chaz Kangeroo Hoodie-XS-Black</h2>
-          <p>10004</p>
-        </ion-label>
-        <ion-button fill="outline" color="dark">{{ $t("Add to Shipment") }}</ion-button>
-      </ion-item>
-      <ion-item>
-        <ion-thumbnail slot="start">
-          <img
-            src="https://demo-resources.hotwax.io/resources/uploads/images/product/m/h/mh01-gray_main.jpg"
-          />
-        </ion-thumbnail>
-        <ion-label>
-          <h2>Chaz Kangeroo Hoodie-XS-Gray</h2>
-          <p>10005</p>
-        </ion-label>
-        <ion-button fill="outline" color="dark">{{ $t("Add to Shipment") }}</ion-button>
-      </ion-item>
-      <ion-item>
-        <ion-thumbnail slot="start">
-          <img
-            src="https://demo-resources.hotwax.io/resources/uploads/images/product/m/h/mh01-orange_main.jpg"
-          />
-        </ion-thumbnail>
-        <ion-label>
-          <h2>Chaz Kangeroo Hoodie-XS-Orange</h2>
-          <p>10006</p>
-        </ion-label>
-        <ion-button fill="outline" color="dark">{{ $t("Add to Shipment") }}</ion-button>
+        <ion-icon v-if="isProductAvailableInShipment(product.productId)" color="success" :icon="checkmarkCircle" />
+        <ion-button v-else fill="outline" color="dark" @click="addtoShipment(product)">{{ $t("Add to Shipment") }}</ion-button>
       </ion-item>
     </ion-list>
+
+    <ion-infinite-scroll @ionInfinite="loadMoreProducts($event)" threshold="100px" :disabled="!isScrollable">
+      <ion-infinite-scroll-content loading-spinner="crescent" :loading-text="$t('Loading')" />
+    </ion-infinite-scroll>
   </ion-content>
 </template>
 
-<script>
+<script lang="ts">
 import {
   IonButton,
   IonButtons,
   IonContent,
   IonHeader,
   IonIcon,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
   IonItem,
   IonLabel,
   IonList,
@@ -108,6 +52,11 @@ import {
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { close, checkmarkCircle } from 'ionicons/icons';
+import { mapGetters } from 'vuex'
+import { useStore } from "@/store";
+import Image from "@/components/Image.vue"
+import { showToast } from '@/utils'
+import { translate } from '@/i18n'
 
 export default defineComponent({
   name: "Modal",
@@ -117,6 +66,8 @@ export default defineComponent({
     IonContent,
     IonHeader,
     IonIcon,
+    IonInfiniteScroll,
+    IonInfiniteScrollContent,
     IonItem,
     IonLabel,
     IonList,
@@ -124,16 +75,63 @@ export default defineComponent({
     IonThumbnail,
     IonTitle,
     IonToolbar,
+    Image
+  },
+  data() {
+    return {
+      queryString: ''
+    }
+  },
+  computed: {
+    ...mapGetters({
+      products: 'product/getProducts',
+      isScrollable: 'product/isScrollable',
+      isProductAvailableInShipment: 'product/isProductAvailableInShipment'
+    })
   },
   methods: {
+    async getProducts( vSize?: any, vIndex?: any) {
+      const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
+      const viewIndex = vIndex ? vIndex : 0;
+      const payload = {
+        viewSize,
+        viewIndex,
+        queryString: '*' + this.queryString + '*'
+      }
+      if (this.queryString) {
+        await this.store.dispatch("product/findProduct", payload);
+      }
+      else {
+        showToast(translate("Enter product sku to search"))
+      }
+    },
+    async loadMoreProducts(event: any) {
+      this.getProducts(
+        undefined,
+        Math.ceil(this.products.length / process.env.VUE_APP_VIEW_SIZE).toString()
+      ).then(() => {
+        event.target.complete();
+      })
+    },
+    async addtoShipment (product: any) {
+      this.store.dispatch('shipment/addShipmentItem', product)
+    },
     closeModal() {
+      this.store.dispatch('product/clearSearchedProducts')
       modalController.dismiss({ dismissed: true });
+    },
+    selectSearchBarText(event: any) {
+      event.target.getInputElement().then((element: any) => {
+        element.select();
+      })
     },
   },
   setup() {
+    const store = useStore();
     return {
       close,
       checkmarkCircle,
+      store,
     };
   },
 });

@@ -1,12 +1,11 @@
 <template>
-  <ion-item button @click="viewPurchaseOrder()" lines="none">
+  <ion-item button @click="getOrderDetail(purchaseOrder.orderId)" lines="none">
     <ion-label>
-      <!-- TODO:- Handle this purchase order number property and chacge VUE_APP_ORD_IDENT_TYPE_ID from .env file -->
-      <h3>{{ $filters.getOrderIdentificationId(purchaseOrder.doclist.docs[0]?.orderIdentifications, orderIdentificationTypeId) }}</h3>
-      <!-- TODO:- Handle this external PO number -->
-      <p>{{purchaseOrder.doclist.docs[0].externalOrderId}}</p>
+      <!-- TODO:- Handle this purchase order number property for now i have used OrderName or OrderId -->
+      <h3>{{ purchaseOrder.orderName ? purchaseOrder.orderName : purchaseOrder.orderId }}</h3>
+      <p>{{ purchaseOrder.externalOrderId }}</p>
     </ion-label>
-    <h6>{{ $filters.formatUtcDate(purchaseOrder.doclist.docs[0].estimatedDeliveryDate, 'YYYY-MM-DDTHH:mm:ssZ') }}</h6>
+    <ion-note slot="end">{{ purchaseOrder.estimatedDeliveryDate ? $filters.formatUtcDate(purchaseOrder.estimatedDeliveryDate, 'YYYY-MM-DDTHH:mm:ssZ') : " - " }}</ion-note>
   </ion-item>
 </template>
 
@@ -14,6 +13,7 @@
 import { defineComponent } from 'vue'
 import {
   IonItem,
+  IonNote,
   IonLabel
 } from '@ionic/vue'
 import { useRouter } from 'vue-router'
@@ -21,21 +21,16 @@ import { useStore } from 'vuex';
 
 export default defineComponent({
   name: "PurchaseOrderItem",
-  data () {
-    return {
-      orderIdentificationTypeId: process.env.VUE_APP_ORD_IDENT_TYPE_ID
-    }
-  },
   components: {
     IonItem,
+    IonNote,
     IonLabel
   },
   props: ["purchaseOrder"],
   methods: {
-    async viewPurchaseOrder () {
-      //TODO need to implement updateCurrentProduct action
-      // await this.store.dispatch('product/updateCurrentProduct', {product: this.product});
-      this.router.push({ path: `/purchase-order-details/${this.purchaseOrder.doclist.docs[0].orderId}` })
+    async getOrderDetail(orderId?: any) {
+      await this.store.dispatch("order/getOrderDetail", {orderId})
+      .then(() => this.router.push({ path: `/purchase-order-detail/${orderId}` }))
     }
   },
   setup() {

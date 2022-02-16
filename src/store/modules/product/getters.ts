@@ -1,16 +1,22 @@
-import { GetterTree } from "vuex";
-import ProductState from "./ProductState";
-import RootState from "../../RootState";
+import { GetterTree } from 'vuex'
+import ProductState from './ProductState'
+import RootState from '../../RootState'
 
-const getters: GetterTree<ProductState, RootState> = {
-  getSearchProducts(state) {
-    return state.products.list;
+const getters: GetterTree <ProductState, RootState> = {
+  getProduct: (state) => (productId: string) => {
+    return state.cached[productId] ? state.cached[productId] : {};
+  },
+  getProducts: (state) => {
+    return state.list.items
   },
   isScrollable(state) {
     return (
-      state.products.list.length > 0 &&
-      state.products.list.length < state.products.total
+      state.list.items.length > 0 &&
+      state.list.items.length < state.list.total
     );
   },
-};
-export default getters;
+  isProductAvailableInShipment: (state, getters, rootState, rootGetters) => (productId: string) => {
+    return rootGetters['shipment/getCurrent'].items.some((item: any) => item.productId === productId);
+  }
+}
+export default getters

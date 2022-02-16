@@ -1,16 +1,16 @@
 import { createRouter, createWebHistory } from '@ionic/vue-router';
 import { RouteRecordRaw } from 'vue-router';
-import Receiving from '@/views/Receiving.vue'
-import Shipment from '@/views/Shipment.vue'
+import Shipments from '@/views/Shipments.vue'
+import ShipmentDetails from '@/views/ShipmentDetails.vue'
 import Login from '@/views/Login.vue'
 import Settings from "@/views/Settings.vue"
-import PurchaseOrderDetail from "@/views/PurchaseOrderDetail.vue"
 import PurchaseOrders from "@/views/PurchaseOrders.vue"
+import PurchaseOrderDetail from "@/views/PurchaseOrderDetail.vue"
 import store from '@/store'
 
 const authGuard = (to: any, from: any, next: any) => {
   if (store.getters['user/isAuthenticated']) {
-      next()
+    next()
   } else {
     next("/login")
   }
@@ -18,7 +18,7 @@ const authGuard = (to: any, from: any, next: any) => {
 
 const loginGuard = (to: any, from: any, next: any) => {
   if (!store.getters['user/isAuthenticated']) {
-      next()
+    next()
   } else {
     next("/")
   }
@@ -27,18 +27,18 @@ const loginGuard = (to: any, from: any, next: any) => {
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    redirect: '/receiving'
+    redirect: '/shipments'
   },
   {
-    path: '/receiving',
-    name: 'Receiving',
-    component: Receiving,
+    path: '/shipments',
+    name: 'Shipments',
+    component: Shipments,
     beforeEnter: authGuard
   },
   {
-    path: '/shipment',
-    name: 'Shipment',
-    component: Shipment,
+    path: '/shipment/:id',
+    name: 'ShipmentDetails',
+    component: ShipmentDetails,
     beforeEnter: authGuard
   },
   {
@@ -54,15 +54,15 @@ const routes: Array<RouteRecordRaw> = [
     beforeEnter: authGuard
   },
   {
-    path: "/purchase-order-details/:slug",
-    name: "PurchaseOrderDetail",
-    component: PurchaseOrderDetail,
-    beforeEnter: authGuard
-  },
-  {
     path: '/purchase-orders',
     name: 'PurchaseOrders',
     component: PurchaseOrders,
+    beforeEnter: authGuard
+  },
+  {
+    path: "/purchase-order-detail/:slug",
+    name: "PurchaseOrderDetail",
+    component: PurchaseOrderDetail,
     beforeEnter: authGuard
   }
 ]

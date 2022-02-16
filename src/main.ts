@@ -30,7 +30,9 @@ import i18n from './i18n'
 import store from './store'
 
 const app = createApp(App)
-  .use(IonicVue)
+  .use(IonicVue, {
+    mode: 'md'
+  })
   .use(router)
   .use(i18n)
   .use(store);
@@ -57,15 +59,6 @@ app.config.globalProperties.$filters = {
       featureValue = featureSplit[2] ? featureSplit[2] : '';
     }
     return featureValue;
-  },
-  getOrderIdentificationId(identifications: any, id: string) {
-    let externalId = ''
-    if (identifications) {
-      const externalIdentification = identifications.find((identification: any) => identification.startsWith(id))
-      const externalIdentificationSplit = externalIdentification ? externalIdentification.split('/') : [];
-      externalId = externalIdentificationSplit[1] ? externalIdentificationSplit[1] : '';
-    }
-    return externalId;
   }
 }
 

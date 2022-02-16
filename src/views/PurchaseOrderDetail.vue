@@ -3,65 +3,74 @@
     <ion-header :translucent="true">
       <ion-toolbar>
         <ion-back-button default-href="/" slot="start" />
-        <ion-title>{{$t("Purchase Order Details")}}</ion-title>
+        <ion-title> {{$t("Purchase Order Details")}} </ion-title>
         <ion-buttons slot="end">
           <ion-button @click="receivingHistory">
-            <ion-icon :icon="timeOutline"/>
+            <ion-icon slot="icon-only" :icon="timeOutline"/>
           </ion-button>
           <ion-button>
-            <ion-icon :icon="add"/>
+            <ion-icon slot="icon-only" :icon="addOutline"/>
           </ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
 
-    <ion-content :fullscreen="true">
+    <ion-content>
       <div>
-        <ion-item lines="none">
-          <h1>{{$t("Purchase Order")}}: {{ orderDetail[0]?.externalOrderId }}</h1>
-          <ion-chip slot="end">
-            <ion-label>{{ $filters.formatDate(orderDetail[0]?.estimatedDeliveryDate) }}</ion-label>
-          </ion-chip>
+        <ion-item lines="none" class="po-primary">
+          <h1>
+            {{$t("Purchase Order")}}: {{ order.orderId }}
+          </h1>
         </ion-item>
-        <!-- TODO: add styling on chip -->
-        <ion-item slot="end">
-          <ion-label>{{$t("Scan Items")}}</ion-label>
-          <ion-label>
-            <ion-input placeholder="Scan barcodes to receive" />
-          </ion-label>
-        </ion-item>
-        <ion-card v-for="(item, index) in orderDetail" :key="index">
-          <div class="product-info">
-            <ion-item lines="none">
-              <ion-thumbnail slot="start">
-                <img :src="getProduct(item.productId).mainImageUrl" />
-              </ion-thumbnail>
-              <ion-label>
-                <ion-label>{{ getProduct(item.productId).productName }}</ion-label>
-                <p>{{ item.productId }}</p>
-              </ion-label>
-            </ion-item>
-            <div class="producy-chip">
-              <ion-chip outline>
-                <ion-icon :icon="checkmarkDoneOutline"/>
-                <!-- TODO: Handle this property -->
-                <ion-label>50 {{ $t("received") }}</ion-label>
-              </ion-chip>
-            </div>
-            <ion-item class="product-count">
-              <ion-label position="floating" color="dark">Qty</ion-label>
-              <ion-input type="number" min="0" v-model="item.quantityAccepted" />
-            </ion-item>
-          </div>
-          <ion-item class="border-top" v-if="item.quantityOrdered > 0">
-            <ion-button @click="receiveAll(item)" slot="start" fill="outline">
-              {{ $t("ReceiveAll") }}
-            </ion-button>
-            <ion-progress-bar :value="item.quantityAccepted/item.quantityOrdered" />
-            <p slot="end">{{ item.quantityOrdered }}</p>
+        
+        <div class="po-meta">
+          <ion-chip>{{ order.externalOrderId }}</ion-chip>
+        </div>
+        
+        <div class="po-scanner">
+          <ion-item>
+            {{$t("Scan Items")}}
+            <ion-input :placeholder="$t('Scan barcodes to receive')" />
           </ion-item>
-        </ion-card>
+          <ion-button fill="outline">
+            <ion-icon slot="start" :icon="cameraOutline" />
+            {{ $t("Scan") }}
+          </ion-button>
+        </div>
+        
+        <div class="po-items">
+          <ion-card v-for="(item, index) in order.items" :key="index">
+            <div class="product-info">
+              <ion-item lines="none">
+                <ion-thumbnail slot="start">
+                  <Image :src="getProduct(item.productId).mainImageUrl" />
+                </ion-thumbnail>
+                <ion-label>
+                  {{ getProduct(item.productId).productName }}
+                  <p>{{ item.productId }}</p>
+                </ion-label>
+              </ion-item>
+
+              <ion-chip outline="true" class="po-item-history">
+                <ion-icon :icon="checkmarkDone"/>
+                <ion-label> 50 {{ $t("received") }} </ion-label>
+              </ion-chip>
+
+              <ion-item class="product-count">
+                <ion-input type="number" value="0" min="0" />
+              </ion-item>
+            </div>
+            <ion-item lines="none" class="border-top">
+              <ion-button slot="start" fill="outline">
+                {{ $t("Receive All") }}
+              </ion-button>
+              <ion-progress-bar value="1" />
+              <p slot="end">{{ item.quantity }} {{ $t("ordered") }}</p>
+            </ion-item>
+          </ion-card>
+        </div>  
       </div>
+      
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
         <ion-fab-button @click="savePODetails">
           <ion-icon :icon="saveOutline" />
@@ -95,13 +104,15 @@ import {
   alertController,
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
-import { add, checkmarkDoneOutline, saveOutline, timeOutline } from 'ionicons/icons';
+import { addOutline, cameraOutline, checkmarkDone, saveOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
+import Image from "@/components/Image.vue";
 import { useStore, mapGetters } from 'vuex';
 
 export default defineComponent({
-  name: "Purchase order details",
+  name: "PurchaseOrderDetails",
   components: {
+    Image,
     IonBackButton,
     IonButton,
     IonButtons,
@@ -123,7 +134,7 @@ export default defineComponent({
   },
   computed: {
     ...mapGetters({
-      orderDetail: 'purchaseOrder/getOrderDetails',
+      order: 'order/getCurrent',
       getProduct: 'product/getProduct'
     })
   },
@@ -146,49 +157,19 @@ export default defineComponent({
         },
         {
           text: this.$t('Proceed'),
-          handler: () => {
-            //TODO: this is functional need to work on this
-            this.store.dispatch('purchaseOrder/receiveInventory')
-          },
+          role: 'proceed'
         }]
       });
       return alert.present();
     },
-    async getorderDetails(orderId?: any) {
-      const payload = {
-        "json": {
-          "params": {
-            "rows": 10,
-            "group": true,
-            "group.field": "orderId",
-            "group.limit": 10000
-          },
-          "query": "docType:ORDER", 
-          "filter": [
-              `orderTypeId: PURCHASE_ORDER AND orderId: ${orderId}`
-          ]
-        }
-      }
-      this.store.dispatch("purchaseOrder/getOrderDetails", {payload, orderId});
-    },
-    receiveAll(item: any) {
-      this.orderDetail.filter((ele: any) => {
-        if(ele.itemSeqId == item.itemSeqId) {
-          ele.quantityAccepted = ele.quantityOrdered;
-          ele.progress = ele.quantityAccepted / ele.quantityOrdered
-        }
-      })
-    },
   }, 
-  mounted() {
-    this.store.dispatch('product/setCurrentProduct')
-    this.getorderDetails(this.$route.params.slug);
-  },
   setup() {
     const store = useStore();
+
     return {
-      add,
-      checkmarkDoneOutline,
+      addOutline,
+      cameraOutline,
+      checkmarkDone,
       saveOutline,
       store,
       timeOutline
@@ -199,6 +180,8 @@ export default defineComponent({
 
 <style scoped>
 ion-content div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   max-width: 1110px;
   margin-right: auto;
   margin-left: auto;
@@ -212,14 +195,32 @@ img {
   border-top: 1px solid #ccc;
 }
 
-.product-info {
-  display: grid;
-  grid-template-columns: auto 1fr .25fr;
-  align-items: center;
-  padding: 16px;
+.po-meta {
+  display: flex;
+  gap: 8px;
 }
 
-.producy-chip {
+.po-scanner {
+  grid-column: 1 / -1;
+  display: flex;
+}
+
+.po-scanner > * {
+  flex: 1;
+}
+
+.po-items {
+  grid-column: 1 / -1;
+}
+
+.product-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr .25fr;
+  align-items: center;
+  padding: 0 16px 0 0;
+}
+
+.po-item-history {
   justify-self: center;
 }
 
