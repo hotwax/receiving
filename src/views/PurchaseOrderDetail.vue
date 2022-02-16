@@ -198,8 +198,9 @@ img {
 
 .po-meta {
   display: flex;
-  justify-self: center;
+  justify-self: end;
   align-self: center;
+  padding: 0 10px 0 0;
 }
 
 .po-scanner {
