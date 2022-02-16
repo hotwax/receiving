@@ -21,8 +21,8 @@
         </ion-label>
         <!-- TODO: Use appropriate css properties to align below label as like as figma design. -->
         <ion-label>
-          <ion-note> 50 received | 4 rejected </ion-note>
-          <ion-note > 12:30 PM 23/12/2020 </ion-note>
+          <ion-note>50 received | 4 rejected</ion-note>
+          <ion-note>12:30 PM 23/12/2020</ion-note>
         </ion-label>
       </ion-item>
     </ion-list>
@@ -48,6 +48,7 @@ import {
 import { defineComponent } from 'vue';
 import { close } from 'ionicons/icons';
 import Image from "@/components/Image.vue";
+import { useStore } from "vuex";
 
 export default defineComponent({
   name: "ReceivingHistoryModal",
@@ -66,14 +67,21 @@ export default defineComponent({
     IonTitle,
     IonToolbar,
   },
+  props: ["order"],
+  mounted() {
+    this.store.dispatch('order/getPOHistory', { order: this.order })
+  },
   methods: {
     closeModal() {
       modalController.dismiss({ dismissed: true });
     },
   },
   setup() {
+    const store = useStore();
+
     return {
       close,
+      store
     };
   },
 });
