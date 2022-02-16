@@ -17,7 +17,11 @@ const actions: ActionTree<OrderState, RootState> = {
 
       if (resp.status === 200 && !hasError(resp) && resp.data.grouped) {
         const orders = resp.data.grouped.orderId
-        
+        const orderDetails = orders.groups.forEach((order: any) => {
+          order.doclist.docs.forEach((product: any) => {
+            product.quantityAccepted = 0;
+          })
+        })
         if (payload.json.params.start && payload.json.params.start > 0) orders.groups = state.purchaseOrders.list.concat(orders.groups);
         commit(types.ORDER_PRCHS_ORDRS_UPDATED, {
           list: orders.groups,
@@ -32,6 +36,14 @@ const actions: ActionTree<OrderState, RootState> = {
       showToast(translate("Something went wrong"));
     }
     return resp;
+  },
+  async updateProductCount({ commit, state }, payload ) {
+    state.current.items.find((item: any) => {
+      if (item.productId === payload) {
+        item.quantityAccepted = item.quantityAccepted + 1;
+      }
+    });
+    commit(types.ORDER_CURRENT_UPDATED, state.current )
   },
   async addOrderItem ({ state, commit }, payload) {
     const product = { 

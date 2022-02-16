@@ -32,7 +32,7 @@
             {{$t("Scan Items")}}
             <ion-input :placeholder="$t('Scan barcodes to receive')" />
           </ion-item>
-          <ion-button fill="outline">
+          <ion-button fill="outline" @click="scan">
             <ion-icon slot="start" :icon="cameraOutline" />
             {{ $t("Scan") }}
           </ion-button>
@@ -57,7 +57,7 @@
               </ion-chip>
 
               <ion-item class="product-count">
-                <ion-input type="number" value="0" min="0" />
+                <ion-input type="number" value="0" min="0" v-model="item.quantityAccepted" />
               </ion-item>
             </div>
             <ion-item lines="none" class="border-top">
@@ -108,6 +108,7 @@ import { addOutline, cameraOutline, checkmarkDone, saveOutline, timeOutline } fr
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import Image from "@/components/Image.vue";
 import { useStore, mapGetters } from 'vuex';
+import Scanner from "@/components/Scanner.vue"
 import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
 
 export default defineComponent({
@@ -140,6 +141,17 @@ export default defineComponent({
     })
   },
   methods: {
+    async scan() {
+      const modal = await modalController
+      .create({
+        component: Scanner,
+      });
+      modal.onDidDismiss()
+      .then((result) => {
+        this.store.dispatch('order/updateProductCount', result.role)
+      })
+      return modal.present();
+    },
     async addProduct() {
       const modal = await modalController
         .create({
