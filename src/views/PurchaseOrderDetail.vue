@@ -8,7 +8,7 @@
           <ion-button @click="receivingHistory">
             <ion-icon slot="icon-only" :icon="timeOutline"/>
           </ion-button>
-          <ion-button>
+          <ion-button @click="addProduct">
             <ion-icon slot="icon-only" :icon="addOutline"/>
           </ion-button>
         </ion-buttons>
@@ -109,6 +109,7 @@ import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import Image from "@/components/Image.vue";
 import { useStore, mapGetters } from 'vuex';
 import Scanner from "@/components/Scanner.vue"
+import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
 
 export default defineComponent({
   name: "PurchaseOrderDetails",
@@ -151,6 +152,17 @@ export default defineComponent({
       })
       return modal.present();
     },
+    async addProduct() {
+      const modal = await modalController
+        .create({
+          component: AddProductToPOModal
+        })
+      modal.onDidDismiss()
+      .then(() => {
+        this.store.dispatch('product/clearSearchedProducts');
+      })  
+      return modal.present();
+    },
     async receivingHistory() {
       const modal = await modalController
         .create({
@@ -191,9 +203,10 @@ export default defineComponent({
 </script>
 
 <style scoped>
-ion-content div {
+ion-content > div {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fill, minmax(40ch, 1fr));
+  column-gap: 8px;
   max-width: 1110px;
   margin-right: auto;
   margin-left: auto;
@@ -209,12 +222,15 @@ img {
 
 .po-meta {
   display: flex;
-  gap: 8px;
+  justify-self: end;
+  align-self: center;
+  padding: 0 10px 0 0;
 }
 
 .po-scanner {
   grid-column: 1 / -1;
   display: flex;
+  gap: 8px;
 }
 
 .po-scanner > * {

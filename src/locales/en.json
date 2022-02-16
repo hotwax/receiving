@@ -1,5 +1,6 @@
 {
   "Add a Product": "Add a Product",
+  "Add to Purchase Order": "Add to Purchase Order",
   "Add to Shipment": "Add to Shipment",
   "Arrival date": "Arrival date",
   "Cancel": "Cancel",
@@ -11,6 +12,7 @@
   "item": "item",
   "items": "items",
   "Load more shipments": "Load more shipments",
+  "Load more purchase order": "Load more purchase order",
   "Loading": "Loading",
   "Login": "Login",
   "Logout": "Logout",
