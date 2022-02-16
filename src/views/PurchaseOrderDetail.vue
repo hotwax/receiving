@@ -8,7 +8,7 @@
           <ion-button @click="receivingHistory">
             <ion-icon slot="icon-only" :icon="timeOutline"/>
           </ion-button>
-          <ion-button>
+          <ion-button @click="addProduct">
             <ion-icon slot="icon-only" :icon="addOutline"/>
           </ion-button>
         </ion-buttons>
@@ -108,6 +108,7 @@ import { addOutline, cameraOutline, checkmarkDone, saveOutline, timeOutline } fr
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import Image from "@/components/Image.vue";
 import { useStore, mapGetters } from 'vuex';
+import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
 
 export default defineComponent({
   name: "PurchaseOrderDetails",
@@ -139,6 +140,13 @@ export default defineComponent({
     })
   },
   methods: {
+    async addProduct() {
+      const modal = await modalController
+        .create({
+          component: AddProductToPOModal
+        })
+      return modal.present();
+    },
     async receivingHistory() {
       const modal = await modalController
         .create({

@@ -129,6 +129,7 @@ export default defineComponent({
         .create({
           component: AddProductModal
         })
+        modalController.onDisDismiss()
       return modal.present();
     },
     async fetchProducts(vSize: any, vIndex: any) {
