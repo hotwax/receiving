@@ -8,8 +8,8 @@ const mutations: MutationTree <OrderState> = {
     state.purchaseOrders.total = payload.total;
   },
   [types.ORDER_CURRENT_UPDATED](state, payload) {
-    state.current.orderId = payload.order[0]?.orderId;
-    state.current.externalOrderId = payload.order[0]?.externalOrderId;
+    state.current.orderId = payload.orderId;
+    state.current.externalOrderId = payload.externalOrderId;
     state.current.items = payload.order
   },
   [types.ORDER_CURRENT_PRODUCT_ADDED] (state, payload) {
