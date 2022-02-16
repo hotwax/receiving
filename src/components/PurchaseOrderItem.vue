@@ -13,6 +13,7 @@
 import { defineComponent } from 'vue'
 import {
   IonItem,
+  IonNote,
   IonLabel
 } from '@ionic/vue'
 import { useRouter } from 'vue-router'
@@ -22,6 +23,7 @@ export default defineComponent({
   name: "PurchaseOrderItem",
   components: {
     IonItem,
+    IonNote,
     IonLabel
   },
   props: ["purchaseOrder"],

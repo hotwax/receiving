@@ -51,13 +51,13 @@ const actions: ActionTree<OrderState, RootState> = {
     const current = state.current as any
     const orders = state.purchaseOrders.list as any
 
-    if (current.length && current[0]?.orderId === orderId) return current;
+    if (current.length && current[0]?.orderId === orderId) { return current }
 
     else if(orders.length > 0) {
       return orders.some((order: any) => {
         if (order.doclist.docs[0]?.orderId === orderId) {
           this.dispatch('product/fetchProductInformation',  { order: order.doclist.docs });
-          state.current = order.doclist.docs;
+          commit(types.ORDER_CURRENT_UPDATED, { order: order.doclist.docs })
           return current;
         }
       })
@@ -82,7 +82,7 @@ const actions: ActionTree<OrderState, RootState> = {
       if (resp.status === 200 && !hasError(resp) && resp.data.grouped) {
         const order = resp.data.grouped.orderId.groups[0].doclist.docs
 
-        this.dispatch('product/fetchProductInformation', { order: order });
+        this.dispatch('product/fetchProductInformation', { order });
         commit(types.ORDER_CURRENT_UPDATED, { order })
       }
       else {

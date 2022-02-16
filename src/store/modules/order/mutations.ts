@@ -9,11 +9,13 @@ const mutations: MutationTree <OrderState> = {
   },
   [types.ORDER_CURRENT_UPDATED](state, payload) {
     if(payload.order){
-      state.current = payload.order
+      state.current.items = payload.order
     }
     else{
-      state.current = payload;
+      state.current.items = payload;
     }
+    state.current.orderId = payload.order[0]?.orderId;
+    state.current.externalOrderId = payload.order[0]?.externalOrderId;
   }
 }
 export default mutations;
