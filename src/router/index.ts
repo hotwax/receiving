@@ -60,7 +60,7 @@ const routes: Array<RouteRecordRaw> = [
     beforeEnter: authGuard
   },
   {
-    path: "/purchase-order-details",
+    path: "/purchase-order-detail/:slug",
     name: "PurchaseOrderDetail",
     component: PurchaseOrderDetail,
     beforeEnter: authGuard

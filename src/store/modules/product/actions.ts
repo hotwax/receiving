@@ -61,11 +61,20 @@ const actions: ActionTree<ProductState, RootState> = {
     
     return resp;
   },
+  async fetchProductInformation( { commit }, payload) {
+    let productIds: any = new Set();
 
+    payload.order.map((item: any) => {
+      if (item.productId) productIds.add(item.productId);
+    })
+    productIds = [...productIds]
+    if (productIds.length) {
+      this.dispatch('product/fetchProducts', { productIds })
+    }
+  },
   async clearSearchedProducts({ commit }) {
-    commit(types.PRODUCT_LIST_UPDATED, { products: {}, total: 0})
+    commit(types.PRODUCT_LIST_UPDATED, { products: {}, total: 0 })
   }
-
 }
 
 export default actions;
