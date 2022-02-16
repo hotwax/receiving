@@ -19,12 +19,12 @@
       <div>
         <ion-item lines="none" class="po-primary">
           <h1>
-            {{$t("Purchase Order")}}: {{ order[0]?.orderId }}
+            {{$t("Purchase Order")}}: {{ order.orderId }}
           </h1>
         </ion-item>
         
         <div class="po-meta">
-          <ion-chip>{{ order[0]?.externalOrderId }}</ion-chip>
+          <ion-chip>{{ order.externalOrderId }}</ion-chip>
         </div>
         
         <div class="po-scanner">
@@ -39,7 +39,7 @@
         </div>
         
         <div class="po-items">
-          <ion-card v-for="(item, index) in order" :key="index">
+          <ion-card v-for="(item, index) in order.items" :key="index">
             <div class="product-info">
               <ion-item lines="none">
                 <ion-thumbnail slot="start">
