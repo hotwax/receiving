@@ -74,9 +74,6 @@ export default defineComponent({
       getProduct: 'product/getProduct'
     })
   },
-  mounted() {
-    this.store.dispatch('order/getPOHistory', { order: this.order })
-  },
   methods: {
     closeModal() {
       modalController.dismiss({ dismissed: true });

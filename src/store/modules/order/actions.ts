@@ -116,7 +116,7 @@ const actions: ActionTree<OrderState, RootState> = {
       }
       resp = await OrderService.fetchPOHistory(params)
       if ( resp.data.count && resp.data.count > 0 && resp.status === 200 && !hasError(resp)) {
-        const poHistory = resp.data;
+        const poHistory = resp.data.docs;
         commit(types.ORDER_PRCHS_HISTRY_UPDATED, { poHistory });
         return poHistory;
       } else {
