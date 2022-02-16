@@ -10,19 +10,19 @@
     </ion-toolbar>
   </ion-header>
   <ion-content class="ion-padding">
-    <ion-list>
+    <ion-list v-for="(item, index) in poHistory.items" :key="index">
       <ion-item>
         <ion-thumbnail slot="start">
-          <Image src="https://demo-resources.hotwax.io/resources/uploads/images/product/m/h/mh01-black_main.jpg" />
+          <Image :src="getProduct(item.productId).mainImageUrl" />
         </ion-thumbnail>
         <ion-label>
-          User
-          <p>Shipment reference number</p>
+          {{ item.receivedByUserLoginId }}
+          <p>{{ item.shipmentId }}</p>
         </ion-label>
         <!-- TODO: Use appropriate css properties to align below label as like as figma design. -->
         <ion-label>
-          <ion-note>50 received | 4 rejected</ion-note>
-          <ion-note>12:30 PM 23/12/2020</ion-note>
+          <ion-note>{{ item.quantityAccepted }} {{ $t("received") }} | {{ item.quantityRejected }} {{ $t("rejected") }}</ion-note>
+          <ion-note>{{ $filters.formatEpochDate(item.datetimeReceived) }}</ion-note>
         </ion-label>
       </ion-item>
     </ion-list>
@@ -48,7 +48,7 @@ import {
 import { defineComponent } from 'vue';
 import { close } from 'ionicons/icons';
 import Image from "@/components/Image.vue";
-import { useStore } from "vuex";
+import { mapGetters, useStore } from "vuex";
 
 export default defineComponent({
   name: "ReceivingHistoryModal",
@@ -68,6 +68,12 @@ export default defineComponent({
     IonToolbar,
   },
   props: ["order"],
+  computed: {
+    ...mapGetters({
+      poHistory: 'order/getPOHistory',
+      getProduct: 'product/getProduct'
+    })
+  },
   mounted() {
     this.store.dispatch('order/getPOHistory', { order: this.order })
   },

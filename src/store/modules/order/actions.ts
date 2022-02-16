@@ -115,8 +115,10 @@ const actions: ActionTree<OrderState, RootState> = {
         "noConditionFind": "Y"
       }
       resp = await OrderService.fetchPOHistory(params)
-      if (resp.status === 200 && !hasError(resp)) {
-        console.log(resp)
+      if ( resp.data.count && resp.data.count > 0 && resp.status === 200 && !hasError(resp)) {
+        const poHistory = resp.data;
+        commit(types.ORDER_PRCHS_HISTRY_UPDATED, { poHistory });
+        return poHistory;
       } else {
         //showing error whenever not getting Orders
         showToast(translate("Orders not found"));

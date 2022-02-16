@@ -14,6 +14,9 @@ const getters: GetterTree<OrderState, RootState> = {
   },
   isProductAvailableInOrder: (state, getters, rootState, rootGetters) => (productId: string) => {
     return rootGetters['order/getCurrent'].items.some((item: any) => item.productId === productId);
+  },
+  getPOHistory(state) {
+    return state.poHistory;
   }
 };
 export default getters;

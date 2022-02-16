@@ -16,6 +16,10 @@ const OrderModule: Module<OrderState, RootState> = {
         orderId: '',
         externalOrderId: '',
         items: []
+      },
+      poHistory: {
+        total: 0,
+        items: []
       }
     },
     getters,

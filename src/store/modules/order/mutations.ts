@@ -18,6 +18,10 @@ const mutations: MutationTree <OrderState> = {
   },
   [types.ORDER_CURRENT_PRODUCT_ADDED] (state, payload) {
     state.current.items.push(payload)
+  },
+  [types.ORDER_PRCHS_HISTRY_UPDATED] (state, payload) {
+    state.poHistory.total = payload.poHistory.count;
+    state.poHistory.items = payload.poHistory.docs;
   }
 }
 export default mutations;
