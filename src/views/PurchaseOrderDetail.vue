@@ -19,13 +19,12 @@
       <div>
         <ion-item lines="none" class="po-primary">
           <h1>
-            {{$t("Purchase Order")}}: PO10291
+            {{$t("Purchase Order")}}: {{ order.orderId }}
           </h1>
         </ion-item>
         
         <div class="po-meta">
-          <ion-chip> Arrival date </ion-chip>
-          <ion-chip> Internal ID </ion-chip>
+          <ion-chip>{{ order.externalOrderId }}</ion-chip>
         </div>
         
         <div class="po-scanner">
@@ -40,15 +39,15 @@
         </div>
         
         <div class="po-items">
-          <ion-card>
+          <ion-card v-for="(item, index) in order.items" :key="index">
             <div class="product-info">
               <ion-item lines="none">
                 <ion-thumbnail slot="start">
-                  <Image src="https://cdn.shopify.com/s/files/1/0069/7384/9727/products/test-track.jpg?v=1626255137" />
+                  <Image :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label>
-                  Shopify SKU
-                  <p>Parent product</p>
+                  {{ getProduct(item.productId).productName }}
+                  <p>{{ item.productId }}</p>
                 </ion-label>
               </ion-item>
 
@@ -66,7 +65,7 @@
                 {{ $t("Receive All") }}
               </ion-button>
               <ion-progress-bar value="1" />
-              <p slot="end">5 ordered</p>
+              <p slot="end">{{ item.quantity }} {{ $t("ordered") }}</p>
             </ion-item>
           </ion-card>
         </div>  
@@ -108,6 +107,7 @@ import { defineComponent } from 'vue';
 import { addOutline, cameraOutline, checkmarkDone, saveOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import Image from "@/components/Image.vue";
+import { useStore, mapGetters } from 'vuex';
 
 export default defineComponent({
   name: "PurchaseOrderDetails",
@@ -131,6 +131,12 @@ export default defineComponent({
     IonThumbnail,
     IonTitle,
     IonToolbar,
+  },
+  computed: {
+    ...mapGetters({
+      order: 'order/getCurrent',
+      getProduct: 'product/getProduct'
+    })
   },
   methods: {
     async receivingHistory() {
@@ -158,11 +164,14 @@ export default defineComponent({
     },
   }, 
   setup() {
+    const store = useStore();
+
     return {
       addOutline,
       cameraOutline,
       checkmarkDone,
       saveOutline,
+      store,
       timeOutline
     };
   },

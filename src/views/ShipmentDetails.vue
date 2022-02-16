@@ -91,7 +91,7 @@ import { translate } from '@/i18n'
 import Scanner from "@/components/Scanner.vue";
 
 export default defineComponent({
-  name: "Shipment details",
+  name: "ShipmentDetails",
   components: {
     IonBackButton,
     IonButton,
