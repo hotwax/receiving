@@ -61,7 +61,7 @@ const actions: ActionTree<OrderState, RootState> = {
           },
           "query": "docType:ORDER",
           "filter": [
-            `orderTypeId: PURCHASE_ORDER AND orderId: ${orderId}`
+            `orderTypeId: PURCHASE_ORDER AND orderId: ${orderId} AND facilityId: ${this.state.user.currentFacility.facilityId}`
           ]
         }
       }
