@@ -38,7 +38,7 @@ const actions: ActionTree<OrderState, RootState> = {
     return resp;
   },
   async updateProductCount({ commit, state }, payload ) {
-    state.current.forEach((item: any) => {
+    state.current.items.forEach((item: any) => {
       if (item.productId === payload) {
         item.quantityAccepted = item.quantityAccepted + 1;
       }
