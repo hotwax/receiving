@@ -5,6 +5,7 @@ import OrderState from './OrderState'
 import * as types from './mutation-types'
 import { hasError, showToast } from '@/utils'
 import { translate } from '@/i18n'
+import emitter from "@/event-bus";
 
 
 const actions: ActionTree<OrderState, RootState> = {
@@ -18,6 +19,12 @@ const actions: ActionTree<OrderState, RootState> = {
       if (resp.status === 200 && !hasError(resp) && resp.data.grouped) {
         const orders = resp.data.grouped.orderId
         
+        orders.groups.forEach((order: any) => {
+          order.doclist.docs.forEach((item: any) => {
+            item.quantityAccepted = 0;
+          })
+        })
+
         if (payload.json.params.start && payload.json.params.start > 0) orders.groups = state.purchaseOrders.list.concat(orders.groups);
         commit(types.ORDER_PRCHS_ORDRS_UPDATED, {
           list: orders.groups,
@@ -70,6 +77,12 @@ const actions: ActionTree<OrderState, RootState> = {
       if (resp.status === 200 && !hasError(resp) && resp.data.grouped) {
         const order = resp.data.grouped.orderId.groups[0].doclist.docs
 
+        orders.groups.forEach((order: any) => {
+          order.doclist.docs.forEach((item: any) => {
+            item.quantityAccepted = 0;
+          })
+        })
+
         this.dispatch('product/fetchProductInformation', { order });
         commit(types.ORDER_CURRENT_UPDATED, { order })
       }
@@ -80,6 +93,10 @@ const actions: ActionTree<OrderState, RootState> = {
       showToast(translate("Something went wrong"));
     }
     return resp;
+  },
+  async receiveInventory() {
+    //TODO: Please complete this task to receive Inventory. 
+    return ''
   }
 }
 

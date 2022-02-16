@@ -57,14 +57,14 @@
               </ion-chip>
 
               <ion-item class="product-count">
-                <ion-input type="number" value="0" min="0" />
+                <ion-input type="number" min="0" v-model="item.quantityAccepted" />
               </ion-item>
             </div>
-            <ion-item lines="none" class="border-top">
-              <ion-button slot="start" fill="outline">
+            <ion-item lines="none" class="border-top" v-if="item.quantity > 0">
+              <ion-button @click="receiveAll(item)" slot="start" fill="outline">
                 {{ $t("Receive All") }}
               </ion-button>
-              <ion-progress-bar value="1" />
+              <ion-progress-bar :value="item.quantityAccepted/item.quantity" />
               <p slot="end">{{ item.quantity }} {{ $t("ordered") }}</p>
             </ion-item>
           </ion-card>
@@ -108,6 +108,7 @@ import { addOutline, cameraOutline, checkmarkDone, saveOutline, timeOutline } fr
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import Image from "@/components/Image.vue";
 import { useStore, mapGetters } from 'vuex';
+import { useRouter } from 'vue-router';
 
 export default defineComponent({
   name: "PurchaseOrderDetails",
@@ -157,19 +158,37 @@ export default defineComponent({
         },
         {
           text: this.$t('Proceed'),
-          role: 'proceed'
+          role: 'proceed',
+          handler: () => {
+            this.receiveInventory();
+          }
         }]
       });
       return alert.present();
     },
-  }, 
+    async receiveInventory() {
+      this.store.dispatch('order/receiveInventory', { payload: this.order }).then(() => {
+        this.router.push('/purchase-orders')
+      })
+    },
+    receiveAll(item: any) {
+      this.order.items.filter((ele: any) => {
+        if(ele.productId == item.productId) {
+          ele.quantityAccepted = ele.quantity;
+          ele.progress = ele.quantityAccepted / ele.quantity;
+        }
+      })
+    }
+  },
   setup() {
     const store = useStore();
+    const router = useRouter();
 
     return {
       addOutline,
       cameraOutline,
       checkmarkDone,
+      router,
       saveOutline,
       store,
       timeOutline
