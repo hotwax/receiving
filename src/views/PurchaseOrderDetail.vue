@@ -199,7 +199,7 @@ img {
 .po-meta {
   display: flex;
   justify-self: center;
-  align-self: center
+  align-self: center;
 }
 
 .po-scanner {
