@@ -94,7 +94,7 @@ const actions: ActionTree<OrderState, RootState> = {
     }
     return resp;
   },
-  async receiveInventory() {
+  async receiveOrder() {
     //TODO: Please complete this task to receive Inventory. 
     return ''
   }

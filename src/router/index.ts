@@ -11,7 +11,7 @@ import Shopify from '@/views/Shopify.vue'
 
 const authGuard = (to: any, from: any, next: any) => {
   if (store.getters['user/isAuthenticated']) {
-    next()
+      next()
   } else {
     next("/login")
   }
@@ -19,7 +19,7 @@ const authGuard = (to: any, from: any, next: any) => {
 
 const loginGuard = (to: any, from: any, next: any) => {
   if (!store.getters['user/isAuthenticated']) {
-    next()
+      next()
   } else {
     next("/")
   }
