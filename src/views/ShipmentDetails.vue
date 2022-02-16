@@ -13,7 +13,7 @@
     <ion-content :fullscreen="true">
       <div>
         <ion-item lines="none">
-          <h1>{{ $t("Shipment ID") }} : {{ $route.params.id }}</h1>
+          <h1>{{ $t("Shipment ID") }} : {{ current.shipmentId }}</h1>
         </ion-item>
 
         <div class="shipment-scanner">
@@ -94,7 +94,7 @@ import { translate } from '@/i18n'
 import Scanner from "@/components/Scanner.vue";
 
 export default defineComponent({
-  name: "Shipment details",
+  name: "ShipmentDetails",
   components: {
     IonBackButton,
     IonButton,
@@ -123,7 +123,6 @@ export default defineComponent({
     ...mapGetters({
       current: 'shipment/getCurrent',
       user: 'user/getCurrentFacility',
-      product: 'product/fetchProducts',
       getProduct: 'product/getProduct'
     }),
   },

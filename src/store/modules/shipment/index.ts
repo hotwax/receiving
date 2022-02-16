@@ -8,7 +8,10 @@ import RootState from '../../RootState'
 const shipmentModule: Module<ShipmentState, RootState> = {
     namespaced: true,
     state: {
-      current: {},
+      current: {
+        shipment: {},
+        items: []
+      },
       shipments: {
         list: []
       }
