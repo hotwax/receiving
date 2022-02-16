@@ -77,11 +77,9 @@ const actions: ActionTree<OrderState, RootState> = {
       if (resp.status === 200 && !hasError(resp) && resp.data.grouped) {
         const order = resp.data.grouped.orderId.groups[0].doclist.docs
 
-        orders.groups.forEach((order: any) => {
           order.doclist.docs.forEach((item: any) => {
             item.quantityAccepted = 0;
           })
-        })
 
         this.dispatch('product/fetchProductInformation', { order });
         commit(types.ORDER_CURRENT_UPDATED, { order })
