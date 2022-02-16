@@ -2,6 +2,7 @@
   <ion-page>
     <ion-header :translucent="true">
       <ion-toolbar>
+        <ion-menu-button slot="start" />
         <ion-title>{{ $t("Purchase Orders") }}</ion-title>
       </ion-toolbar>
     </ion-header>
@@ -17,7 +18,7 @@
 </template>
 
 <script lang="ts">
-import { IonContent, IonHeader, IonInfiniteScroll, IonInfiniteScrollContent, IonPage, IonSearchbar, IonTitle, IonToolbar } from '@ionic/vue';
+import { IonContent, IonHeader, IonInfiniteScroll, IonInfiniteScrollContent, IonMenuButton, IonPage, IonSearchbar, IonTitle, IonToolbar } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { mapGetters, useStore } from 'vuex';
 import PurchaseOrderItem from '@/components/PurchaseOrderItem.vue'
@@ -29,6 +30,7 @@ export default defineComponent({
     IonHeader,
     IonInfiniteScroll, 
     IonInfiniteScrollContent,
+    IonMenuButton,
     IonPage,
     IonSearchbar,
     IonTitle,

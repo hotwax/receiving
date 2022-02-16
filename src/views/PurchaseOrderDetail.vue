@@ -224,7 +224,7 @@ img {
   min-width: 9ch;
 }
 
-@media (min-width: 476px) {
+@media (min-width: 720px) {
   .po-id {
     display: flex;
     justify-content: space-between;
