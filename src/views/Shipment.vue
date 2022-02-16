@@ -16,7 +16,7 @@
           <h1>{{ $t("Shipment ID") }} : {{ $route.params.id }}</h1>
         </ion-item>
 
-        <div class="scan">
+        <div class="shipment-scanner">
           <ion-item>
             <ion-label>{{ $t("Scan Items") }}</ion-label>
             <ion-label>
@@ -24,7 +24,7 @@
             </ion-label>
           </ion-item>
 
-          <ion-button size="medium" expand="block" class="action-button" fill="outline" @click="scanCode()">
+          <ion-button expand="block" fill="outline" @click="scanCode()">
             <ion-icon slot="start" :icon="barcodeOutline" />{{ $t("Scan") }}
           </ion-button>
         </div>
@@ -214,13 +214,6 @@ ion-content div {
   margin-left: auto;
 }
 
-.scan {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  align-items: end;
-}
-
 img {
   object-fit: contain;
 }
@@ -238,5 +231,14 @@ img {
 
 .product-count {
   min-width: 9ch;
+}
+
+@media (min-width: 636px) {
+  .shipment-scanner {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    align-items: end;
+  }
 }
 </style>
