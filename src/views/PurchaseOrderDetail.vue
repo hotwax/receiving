@@ -140,8 +140,8 @@ export default defineComponent({
     })
   },
   methods: {
-    async scan(){
-    const modal = await modalController
+    async scan() {
+      const modal = await modalController
       .create({
         component: Scanner,
       });
@@ -150,7 +150,7 @@ export default defineComponent({
         this.store.dispatch('order/updateProductCount', result.role)
       })
       return modal.present();
-  },
+    },
     async receivingHistory() {
       const modal = await modalController
         .create({
