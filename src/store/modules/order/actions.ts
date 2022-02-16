@@ -40,6 +40,14 @@ const actions: ActionTree<OrderState, RootState> = {
     }
     return resp;
   },
+  async updateProductCount({ commit, state }, payload ) {
+    state.current.items.find((item: any) => {
+      if (item.productId === payload) {
+        item.quantityAccepted = item.quantityAccepted + 1;
+      }
+    });
+    commit(types.ORDER_CURRENT_UPDATED, state.current )
+  },
   async addOrderItem ({ state, commit }, payload) {
     const product = { 
       ...payload,

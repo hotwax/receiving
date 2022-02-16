@@ -2,7 +2,7 @@
   <ion-page>
     <ion-header :translucent="true">
       <ion-toolbar>
-        <ion-back-button default-href="/" slot="start" />
+        <ion-back-button default-href="/purchase-orders" slot="start" />
         <ion-title> {{$t("Purchase Order Details")}} </ion-title>
         <ion-buttons slot="end">
           <ion-button @click="receivingHistory">
@@ -32,7 +32,7 @@
             {{$t("Scan Items")}}
             <ion-input :placeholder="$t('Scan barcodes to receive')" />
           </ion-item>
-          <ion-button fill="outline">
+          <ion-button fill="outline" @click="scan">
             <ion-icon slot="start" :icon="cameraOutline" />
             {{ $t("Scan") }}
           </ion-button>
@@ -57,7 +57,7 @@
               </ion-chip>
 
               <ion-item class="product-count">
-                <ion-input type="number" min="0" v-model="item.quantityAccepted" />
+                <ion-input type="number" value="0" min="0" v-model="item.quantityAccepted" />
               </ion-item>
             </div>
             <ion-item lines="none" class="border-top" v-if="item.quantity > 0">
@@ -109,6 +109,7 @@ import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import Image from "@/components/Image.vue";
 import { useStore, mapGetters } from 'vuex';
 import { useRouter } from 'vue-router';
+import Scanner from "@/components/Scanner.vue"
 import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
 
 export default defineComponent({
@@ -141,6 +142,17 @@ export default defineComponent({
     })
   },
   methods: {
+    async scan() {
+      const modal = await modalController
+      .create({
+        component: Scanner,
+      });
+      modal.onDidDismiss()
+      .then((result) => {
+        this.store.dispatch('order/updateProductCount', result.role)
+      })
+      return modal.present();
+    },
     async addProduct() {
       const modal = await modalController
         .create({
@@ -191,6 +203,9 @@ export default defineComponent({
         }
       })
     }
+  },
+  mounted() {
+    this.store.dispatch("order/getOrderDetail", { orderId: this.$route.params.slug })
   },
   setup() {
     const store = useStore();
