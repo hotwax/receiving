@@ -33,6 +33,14 @@ const actions: ActionTree<OrderState, RootState> = {
     }
     return resp;
   },
+  async addOrderItem ({ state, commit }, payload) {
+    const product = { 
+      ...payload,
+      quantityAccepted: 0,
+      quantityOrdered: 0
+    }
+    commit(types.ORDER_CURRENT_PRODUCT_ADDED, product)
+  },
   async getOrderDetail({ commit, state }, { orderId }) {
     let resp;
 

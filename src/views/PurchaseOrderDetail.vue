@@ -145,6 +145,10 @@ export default defineComponent({
         .create({
           component: AddProductToPOModal
         })
+      modal.onDidDismiss()
+      .then(() => {
+        this.store.dispatch('product/clearSearchedProducts');
+      })  
       return modal.present();
     },
     async receivingHistory() {

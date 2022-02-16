@@ -117,7 +117,6 @@ export default defineComponent({
       this.store.dispatch('shipment/addShipmentItem', product)
     },
     closeModal() {
-      this.store.dispatch('product/clearSearchedProducts')
       modalController.dismiss({ dismissed: true });
     },
     selectSearchBarText(event: any) {
