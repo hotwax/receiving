@@ -191,6 +191,10 @@ ion-content > div {
   margin-left: auto;
 }
 
+.po-meta {
+  padding: 0 10px;
+}
+
 .po-scanner {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(343px, 1fr));
@@ -232,7 +236,7 @@ img {
    }
 
   .product {
-    grid: "info history count" /  max-content 1fr .25fr;
+    grid: "info history count" /  230px 1fr .25fr;
   }
 }
 </style>
