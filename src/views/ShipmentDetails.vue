@@ -129,6 +129,10 @@ export default defineComponent({
         .create({
           component: AddProductModal
         })
+        modal.onDidDismiss()
+        .then( () => {
+          this.store.dispatch('product/clearSearchedProducts')
+        })
       return modal.present();
     },
     async fetchProducts(vSize: any, vIndex: any) {
