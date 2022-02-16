@@ -43,7 +43,8 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       orders: 'order/getPurchaseOrders',
-      isScrollable: 'order/isScrollable'
+      isScrollable: 'order/isScrollable',
+      currentFacility: 'user/getCurrentFacility'
     })
   },
   methods: {
@@ -62,7 +63,7 @@ export default defineComponent({
             "group.ngroups": true,
           } as any,
           "query": "*:*",
-          "filter": 'docType: ORDER AND orderTypeId: PURCHASE_ORDER'
+          "filter": `docType: ORDER AND orderTypeId: PURCHASE_ORDER AND facilityId: ${this.currentFacility.facilityId}`
         }
       }
       if(this.queryString) {
