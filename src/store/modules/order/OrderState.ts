@@ -3,5 +3,9 @@ export default interface OrderState {
     list: any;
     total: number;
   },
-  current: any
+  current: {
+    orderId: string;
+    externalOrderId: string;
+    items: []
+  }
 }

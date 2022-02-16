@@ -33,6 +33,54 @@ const actions: ActionTree<OrderState, RootState> = {
     }
     return resp;
   },
+  async getOrderDetail({ commit, state }, { orderId }) {
+    let resp;
+
+    const current = state.current as any
+    const orders = state.purchaseOrders.list as any
+
+    if (current.length && current[0]?.orderId === orderId) { return current }
+
+    else if(orders.length > 0) {
+      return orders.some((order: any) => {
+        if (order.doclist.docs[0]?.orderId === orderId) {
+          this.dispatch('product/fetchProductInformation',  { order: order.doclist.docs });
+          commit(types.ORDER_CURRENT_UPDATED, { order: order.doclist.docs })
+          return current;
+        }
+      })
+    }
+    try {
+      const payload = {
+        "json": {
+          "params": {
+            "rows": 10,
+            "group": true,
+            "group.field": "orderId",
+            "group.limit": 10000
+          },
+          "query": "docType:ORDER",
+          "filter": [
+            `orderTypeId: PURCHASE_ORDER AND orderId: ${orderId}`
+          ]
+        }
+      }
+      resp = await OrderService.fetchPODetail(payload);
+
+      if (resp.status === 200 && !hasError(resp) && resp.data.grouped) {
+        const order = resp.data.grouped.orderId.groups[0].doclist.docs
+
+        this.dispatch('product/fetchProductInformation', { order });
+        commit(types.ORDER_CURRENT_UPDATED, { order })
+      }
+      else {
+        showToast(translate("Something went wrong"));
+      }
+    } catch (error) {
+      showToast(translate("Something went wrong"));
+    }
+    return resp;
+  }
 }
 
 export default actions;

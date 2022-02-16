@@ -12,7 +12,11 @@ const OrderModule: Module<OrderState, RootState> = {
         list: [],
         total: 0
       },
-      current: {}
+      current: {
+        orderId: '',
+        externalOrderId: '',
+        items: []
+      }
     },
     getters,
     actions,
