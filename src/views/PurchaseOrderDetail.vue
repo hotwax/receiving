@@ -30,7 +30,7 @@
         <div class="po-scanner">
           <ion-item>
             <ion-label position="fixed">{{$t("Scan Items")}}</ion-label>
-            <ion-input :placeholder="$t('Scan barcodes to receive')" />
+            <ion-input :placeholder="$t('Scan barcodes to receive')" v-model="queryString" @keyup.enter="updateProductCount()" />
           </ion-item>
           <ion-button expand="block" fill="outline" @click="scan">
             <ion-icon slot="start" :icon="cameraOutline" />
@@ -139,6 +139,11 @@ export default defineComponent({
     IonTitle,
     IonToolbar,
   },
+  data() {
+    return {
+      queryString: ''
+    }
+  },
   computed: {
     ...mapGetters({
       order: 'order/getCurrent',
@@ -153,9 +158,17 @@ export default defineComponent({
       });
       modal.onDidDismiss()
       .then((result) => {
-        this.store.dispatch('order/updateProductCount', result.role)
+        this.updateProductCount(result.role);
       })
       return modal.present();
+    },
+    async updateProductCount(payload: any) {
+      if(this.queryString) {
+        this.order.items.forEach((item: any) => {
+          if(this.queryString == item.productId) payload = item.productId;
+        })
+      }
+      this.store.dispatch('order/updateProductCount', payload)
     },
     async addProduct() {
       const modal = await modalController
