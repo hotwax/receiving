@@ -181,7 +181,8 @@ export default defineComponent({
     async receivingHistory() {
       const modal = await modalController
         .create({
-          component: ReceivingHistoryModal
+          component: ReceivingHistoryModal,
+          componentProps: {order: this.order}
         })
       return modal.present();
     },

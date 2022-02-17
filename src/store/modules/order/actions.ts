@@ -102,6 +102,36 @@ const actions: ActionTree<OrderState, RootState> = {
       showToast(translate("Something went wrong"));
     }
     return resp;
+  },
+
+  async getPOHistory({ commit, state }, payload) {
+    let resp;
+
+    try {
+      const params = {
+        "inputFields":{
+          "orderId": [payload.orderId],
+          "orderId_op": "in"
+        },
+        "entityName": "ShipmentReceiptAndItem",
+        "fieldsToSelect": ["datetimeReceived", "productId", "quantityAccepted", "quantityRejected", "receivedByUserLoginId", "shipmentId"]
+      }
+      resp = await OrderService.fetchPOHistory(params)
+      if ( resp.data.count && resp.data.count > 0 && resp.status === 200 && !hasError(resp)) {
+        const current = state.current as any
+        const poHistory = resp.data.docs;
+        state.current.poHistory.items = poHistory;
+        commit(types.ORDER_CURRENT_UPDATED, current);
+        return poHistory;
+      } else {
+        //showing error whenever not getting Orders
+        showToast(translate("Orders not found"));
+      }
+    } catch(error){
+      console.log(error)
+      showToast(translate("Something went wrong"));
+    }
+    return resp;
   }
 }
 
