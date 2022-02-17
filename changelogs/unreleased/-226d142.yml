@@ -1,0 +1,6 @@
+---
+title: 'Added: orderStatusId check in the solr-query'
+ticket_id: "#226d142"
+merge_request: 71
+author: Yash Maheshwari
+type: added
