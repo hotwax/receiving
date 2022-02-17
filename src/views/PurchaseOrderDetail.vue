@@ -17,29 +17,29 @@
 
     <ion-content>
       <div>
-        <ion-item lines="none" class="po-primary">
-          <h1>
-            {{$t("Purchase Order")}}: {{ order.orderId }}
-          </h1>
-        </ion-item>
-        
-        <div class="po-meta">
-          <ion-chip>{{ order.externalOrderId }}</ion-chip>
+        <div class="po-id">
+          <ion-item lines="none">
+            <h1>{{$t("Purchase Order")}}: {{ order.orderId }}</h1>
+          </ion-item>
+          
+          <div class="po-meta">
+            <ion-chip>{{ order.externalOrderId }}</ion-chip>
+          </div>
         </div>
         
         <div class="po-scanner">
           <ion-item>
-            {{$t("Scan Items")}}
+            <ion-label position="fixed">{{$t("Scan Items")}}</ion-label>
             <ion-input :placeholder="$t('Scan barcodes to receive')" />
           </ion-item>
-          <ion-button fill="outline" @click="scan">
+          <ion-button expand="block" fill="outline" @click="scan">
             <ion-icon slot="start" :icon="cameraOutline" />
             {{ $t("Scan") }}
           </ion-button>
         </div>
         
-        <div class="po-items">
-          <ion-card v-for="(item, index) in order.items" :key="index">
+        <ion-card v-for="(item, index) in order.items" :key="index">
+          <div class="product">
             <div class="product-info">
               <ion-item lines="none">
                 <ion-thumbnail slot="start">
@@ -50,26 +50,31 @@
                   <p>{{ item.productId }}</p>
                 </ion-label>
               </ion-item>
+            </div>
 
-              <ion-chip outline="true" class="po-item-history">
+            <div class="po-item-history">
+              <ion-chip outline>
                 <ion-icon :icon="checkmarkDone"/>
                 <ion-label> 50 {{ $t("received") }} </ion-label>
               </ion-chip>
+            </div>
 
-              <ion-item class="product-count">
+            <div class="product-count">
+              <ion-item>
                 <ion-input type="number" value="0" min="0" v-model="item.quantityAccepted" />
               </ion-item>
             </div>
-            <ion-item lines="none" class="border-top">
-              <ion-button slot="start" fill="outline">
-                {{ $t("Receive All") }}
-              </ion-button>
-              <ion-progress-bar value="1" />
-              <p slot="end">{{ item.quantity }} {{ $t("ordered") }}</p>
-            </ion-item>
-          </ion-card>
-        </div>  
-      </div>
+          </div>
+
+          <ion-item lines="none" class="border-top">
+            <ion-button slot="start" fill="outline">
+              {{ $t("Receive All") }}
+            </ion-button>
+            <ion-progress-bar value="1" />
+            <p slot="end">{{ item.quantity }} {{ $t("ordered") }}</p>
+          </ion-item>
+        </ion-card>
+      </div>  
       
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
         <ion-fab-button @click="savePODetails">
@@ -207,55 +212,57 @@ export default defineComponent({
 
 <style scoped>
 ion-content > div {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(40ch, 1fr));
-  column-gap: 8px;
   max-width: 1110px;
   margin-right: auto;
   margin-left: auto;
+}
+
+.po-meta {
+  padding: 0 10px;
+}
+
+.po-scanner {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(343px, 1fr));
+  gap: 8px;
+}
+
+.product {
+  display: grid;
+  grid: "info    count" 
+        "history history" 
+        / 256px;
+  align-items: center;
+  padding: 0 16px 0 0;
+}
+
+.product-info {
+  grid-area: info;
 }
 
 img {
   object-fit: contain;
 }
 
-.border-top {
-  border-top: 1px solid #ccc;
-}
-
-.po-meta {
-  display: flex;
-  justify-self: end;
-  align-self: center;
-  padding: 0 10px 0 0;
-}
-
-.po-scanner {
-  grid-column: 1 / -1;
-  display: flex;
-  gap: 8px;
-}
-
-.po-scanner > * {
-  flex: 1;
-}
-
-.po-items {
-  grid-column: 1 / -1;
-}
-
-.product-info {
-  display: grid;
-  grid-template-columns: 1fr 1fr .25fr;
-  align-items: center;
-  padding: 0 16px 0 0;
-}
-
 .po-item-history {
+  grid-area: history;
   justify-self: center;
 }
 
 .product-count {
+  grid-area: count;
   min-width: 9ch;
+}
+
+@media (min-width: 720px) {
+  .po-id {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+   }
+
+  .product {
+    grid: "info history count" /  230px 1fr .25fr;
+  }
 }
 </style>

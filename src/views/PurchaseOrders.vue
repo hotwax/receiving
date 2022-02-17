@@ -2,6 +2,7 @@
   <ion-page>
     <ion-header :translucent="true">
       <ion-toolbar>
+        <ion-menu-button slot="start" />
         <ion-title>{{ $t("Purchase Orders") }}</ion-title>
       </ion-toolbar>
     </ion-header>
