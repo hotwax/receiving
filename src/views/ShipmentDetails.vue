@@ -19,7 +19,7 @@
         <div class="shipment-scanner">
           <ion-item>
             <ion-label>{{ $t("Scan items") }}</ion-label>
-            <ion-input :placeholder="$t('Scan barcodes to receive them')"></ion-input>
+            <ion-input :placeholder="$t('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()"></ion-input>
           </ion-item>
 
           <ion-button expand="block" fill="outline" @click="scanCode()">
@@ -116,6 +116,11 @@ export default defineComponent({
     Image
   },
   props: ["shipment"],
+  data() {
+    return {
+      queryString: ''
+    }
+  },
   mounted() {
     this.store.dispatch('shipment/setCurrent', { shipmentId: this.$route.params.id })
   },
@@ -180,6 +185,7 @@ export default defineComponent({
       })
     },
     updateProductCount(payload: any){
+      if(this.queryString) payload = this.queryString
       this.store.dispatch('shipment/updateShipmentProductCount', payload)
     },
     async scanCode () {
