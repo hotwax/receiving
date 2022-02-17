@@ -214,7 +214,7 @@ ion-content div {
 .shipment-scanner {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(343px, 1fr));
-  gap: 10px;
+  gap: 8px;
   align-items: end;
 }
 
