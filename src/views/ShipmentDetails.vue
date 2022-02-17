@@ -13,13 +13,13 @@
     <ion-content :fullscreen="true">
       <div>
         <ion-item lines="none">
-          <h1>{{ $t("Shipment ID") }} : {{ current.shipmentId }}</h1>
+          <h1>{{ $t("Shipment ID") }}: {{ current.shipmentId }}</h1>
         </ion-item>
 
         <div class="shipment-scanner">
           <ion-item>
-            <ion-label>{{ $t("Scan Items") }}</ion-label>
-            <ion-input :placeholder="$t('Scan barcodes to receive')" v-model="queryString" @keyup.enter="updateProductCount()"></ion-input>
+            <ion-label>{{ $t("Scan items") }}</ion-label>
+            <ion-input :placeholder="$t('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()"></ion-input>
           </ion-item>
 
           <ion-button expand="block" fill="outline" @click="scanCode()">
@@ -39,20 +39,23 @@
               </ion-label>
             </ion-item>
             <ion-item class="product-count">
+              <ion-label position="floating">{{ $t("Qty") }}</ion-label>
               <ion-input type="number" min="0" v-model="item.quantityAccepted"></ion-input>
             </ion-item>
           </div>
+
           <ion-item class="border-top" v-if="item.quantityOrdered > 0">
-            <ion-button @click="receiveAll(item)" color="dark" slot="start" fill="outline">
+            <ion-button @click="receiveAll(item)" slot="start" fill="outline">
               {{ $t("Receive All") }}
             </ion-button>
-            <ion-progress-bar :value="item.quantityAccepted/item.quantityOrdered" color="dark"></ion-progress-bar>
+            <ion-progress-bar :value="item.quantityAccepted/item.quantityOrdered"></ion-progress-bar>
             <p slot="end">{{ item.quantityOrdered }}</p>
           </ion-item>
         </ion-card>
       </div>
+
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button @click="completeShipment" color="dark">
+        <ion-fab-button @click="completeShipment">
           <ion-icon :icon="checkmarkDone" />
         </ion-fab-button>
       </ion-fab>
@@ -88,7 +91,6 @@ import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
 import Image from "@/components/Image.vue";
 import { useRouter } from 'vue-router';
-import { translate } from '@/i18n'
 import Scanner from "@/components/Scanner.vue";
 
 export default defineComponent({
@@ -152,16 +154,15 @@ export default defineComponent({
     },
     async completeShipment() {
       const alert = await alertController.create({
-        header: "Complete Shipment",
-        message:
-          (translate("Make sure you have entered the correct quantities for each item before proceeding.")),
+        header: this.$t("Receive Shipment"),
+        message: this.$t("Make sure you have entered all the inventory you received. You cannot edit this information after proceeding.", {space: '<br /><br />'}),
         buttons: [
           {
             text: this.$t("Cancel"),
             role: 'cancel',
           }, 
           {
-            text:this.$t('Complete'),
+            text:this.$t('Proceed'),
             handler: () => {
               this.receiveShipment();
             },
@@ -225,11 +226,7 @@ ion-content div {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(343px, 1fr));
   gap: 8px;
-  align-items: end;
-}
-
-img {
-  object-fit: contain;
+  margin-bottom: 20px;
 }
 
 .border-top {

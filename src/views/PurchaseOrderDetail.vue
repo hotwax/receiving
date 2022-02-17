@@ -19,18 +19,18 @@
       <div>
         <div class="po-id">
           <ion-item lines="none">
-            <h1>{{$t("Purchase Order")}}: {{ order.orderId }}</h1>
+            <h1>{{$t("Purchase Order")}}: {{ order.externalOrderId }}</h1>
           </ion-item>
           
           <div class="po-meta">
-            <ion-chip>{{ order.externalOrderId }}</ion-chip>
+            <ion-chip>{{ order.orderId }}</ion-chip>
           </div>
         </div>
         
         <div class="po-scanner">
           <ion-item>
-            <ion-label position="fixed">{{$t("Scan Items")}}</ion-label>
-            <ion-input :placeholder="$t('Scan barcodes to receive')" v-model="queryString" @keyup.enter="updateProductCount()" />
+            <ion-label position="fixed">{{$t("Scan items")}}</ion-label>
+            <ion-input :placeholder="$t('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()" />
           </ion-item>
           <ion-button expand="block" fill="outline" @click="scan">
             <ion-icon slot="start" :icon="cameraOutline" />
@@ -45,7 +45,7 @@
                 <ion-thumbnail slot="start">
                   <Image :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
-                <ion-label>
+                <ion-label class="ion-text-wrap">
                   {{ getProduct(item.productId).productName }}
                   <p>{{ item.productId }}</p>
                 </ion-label>
@@ -61,6 +61,7 @@
 
             <div class="product-count">
               <ion-item>
+                <ion-label position="floating">{{ $t("Qty") }}</ion-label>       
                 <ion-input type="number" value="0" min="0" v-model="item.quantityAccepted" />
               </ion-item>
             </div>
@@ -187,8 +188,7 @@ export default defineComponent({
     async savePODetails() {
       const alert = await alertController.create({
         header: this.$t('Receive inventory'),
-        message: 
-          this.$t('Inventory can be received for purchase orders in multiple shipments. Proceeding will recieve a new shipment for this purchase order but it will still be available for receiving later', { space: '<br /><br />' }),
+        message: this.$t('Inventory can be received for purchase orders in multiple shipments. Proceeding will recieve a new shipment for this purchase order but it will still be available for receiving later', { space: '<br /><br />' }),
         buttons: [{
           text: this.$t('Cancel'),
           role: 'cancel'
@@ -234,6 +234,7 @@ ion-content > div {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(343px, 1fr));
   gap: 8px;
+  margin-bottom: 20px;
 }
 
 .product {
@@ -247,10 +248,6 @@ ion-content > div {
 
 .product-info {
   grid-area: info;
-}
-
-img {
-  object-fit: contain;
 }
 
 .po-item-history {
