@@ -41,10 +41,10 @@ const actions: ActionTree<ProductState, RootState> = {
     if (payload.viewIndex === 0) emitter.emit("presentLoader");
     try {
       resp = await ProductService.fetchProducts({
-        // used sku as we are currently only using sku to search for the product
-        "filters": ['sku: ' + payload.queryString, 'isVirtual: false'],
+        "filters": ['isVirtual: false'],
         "viewSize": payload.viewSize,
-        "viewIndex": payload.viewIndex
+        "viewIndex": payload.viewIndex,
+        "keyword":  payload.queryString
       })
       if (resp.status === 200 && resp.data.response?.docs.length > 0 && !hasError(resp)) {
         let products = resp.data.response.docs;
