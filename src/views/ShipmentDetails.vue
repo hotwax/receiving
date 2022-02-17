@@ -186,7 +186,7 @@ export default defineComponent({
     updateProductCount(payload: any){
       if(this.queryString) {
         this.current.items.forEach((item: any) => {
-          if(this.queryString == item.internalName) payload = item.productId;
+          if(this.queryString == item.sku) payload = item.sku;
         })
       }
       this.store.dispatch('shipment/updateShipmentProductCount', payload)

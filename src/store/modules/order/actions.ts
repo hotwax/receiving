@@ -39,7 +39,7 @@ const actions: ActionTree<OrderState, RootState> = {
   },
   async updateProductCount({ commit, state }, payload ) {
     state.current.items.find((item: any) => {
-      if (item.productId === payload) {
+      if (item.internalName === payload) {
         item.quantityAccepted = item.quantityAccepted + 1;
       }
     });
