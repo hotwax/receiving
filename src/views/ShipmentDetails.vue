@@ -87,15 +87,14 @@ import {
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { add, checkmarkDone, barcodeOutline } from 'ionicons/icons';
-import { mapGetters, useStore } from 'vuex';
+import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
-import Image from '@/components/Image.vue';
+import Image from "@/components/Image.vue";
 import { useRouter } from 'vue-router';
-import { translate } from '@/i18n'
-import Scanner from '@/components/Scanner.vue';
+import Scanner from "@/components/Scanner.vue";
 
 export default defineComponent({
-  name: 'ShipmentDetails',
+  name: "ShipmentDetails",
   components: {
     IonBackButton,
     IonButton,
