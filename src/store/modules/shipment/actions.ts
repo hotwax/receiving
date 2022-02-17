@@ -64,8 +64,8 @@ const actions: ActionTree<ShipmentState, RootState> = {
   },
   receiveShipmentItem ({ commit }, data) {
     const payload = {
-      shipmentId: data.shipment.shipmentId,
-      locationSeqId: data.shipment.locationSeqId
+      shipmentId: data.shipmentId,
+      locationSeqId: data.locationSeqId
     }
     return Promise.all(data.items.map((item: any) => {
       const params = {
@@ -84,11 +84,11 @@ const actions: ActionTree<ShipmentState, RootState> = {
     emitter.emit("presentLoader");
     return await dispatch("receiveShipmentItem", payload).then(async( ) => {
       const resp = await ShipmentService.receiveShipment({
-        "shipmentId": payload.shipment.shipmentId,
+        "shipmentId": payload.shipmentId,
         "statusId": "PURCH_SHIP_RECEIVED"
       })
       if (resp.status == 200 && !hasError(resp)) {
-        showToast(translate("Shipment Received Successfully") + ' ' + payload.shipment.shipmentId)
+        showToast(translate("Shipment Received Successfully") + ' ' + payload.shipmentId)
       }
       emitter.emit("dismissLoader");
       return resp;
