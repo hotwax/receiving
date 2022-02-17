@@ -264,9 +264,10 @@ ion-content > div {
   display: grid;
   grid: "info    count" 
         "history history" 
-        / 256px;
+        / 1fr .35fr;
   align-items: center;
-  padding: 0 16px 0 0;
+  padding: 16px;
+  padding-left: 0;
 }
 
 .product-info {
@@ -283,6 +284,11 @@ ion-content > div {
   min-width: 9ch;
 }
 
+.product-count > ion-item {
+  max-width: 20ch;
+  margin-left: auto;
+}
+
 @media (min-width: 720px) {
   .po-id {
     display: flex;
@@ -291,7 +297,7 @@ ion-content > div {
    }
 
   .product {
-    grid: "info history count" /  230px 1fr .25fr;
+    grid: "info history count" /  1fr max-content 1fr;
   }
 }
 </style>
