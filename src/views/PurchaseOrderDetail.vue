@@ -68,7 +68,7 @@
           </div>
 
           <ion-item lines="none" class="border-top">
-            <ion-button slot="start" fill="outline">
+            <ion-button @click="receiveAll(item)" slot="start" fill="outline">
               {{ $t("Receive All") }}
             </ion-button>
             <ion-progress-bar value="1" />
