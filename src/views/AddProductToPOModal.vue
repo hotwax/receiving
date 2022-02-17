@@ -9,7 +9,7 @@
       <ion-title>{{ $t("Add a product") }}</ion-title>
     </ion-toolbar>
   </ion-header>
-  <ion-content class="ion-padding">
+  <ion-content>
     <ion-searchbar @ionFocus="selectSearchBarText($event)" v-model="queryString" :placeholder="$t('Search SKU or product name')" v-on:keyup.enter="getProducts()" />
     
     <ion-list v-for="product in products" :key="product.productId">

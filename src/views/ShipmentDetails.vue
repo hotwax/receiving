@@ -221,7 +221,7 @@ ion-content div {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(343px, 1fr));
   gap: 8px;
-  align-items: end;
+  margin-bottom: 20px;
 }
 
 img {
