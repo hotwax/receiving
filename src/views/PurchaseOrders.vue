@@ -10,7 +10,7 @@
       <ion-searchbar :placeholder="$t('Search')" v-model="queryString" @keyup.enter="getPurchaseOrders()" />
       <PurchaseOrderItem v-for="(order, index) in orders" :key="index" :purchaseOrder="order.doclist.docs[0]" />
       
-      <div class="ion-text-center">
+      <div class="load-more-action ion-text-center">
         <ion-button fill="outline" color="dark" @click="loadMoreOrders()">
           <ion-icon :icon="cloudDownloadOutline" slot="start" />
           {{ $t("Load more purchase order") }}
