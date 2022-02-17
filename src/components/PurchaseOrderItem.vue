@@ -1,5 +1,5 @@
 <template>
-  <ion-item button @click="getOrderDetail(purchaseOrder.orderId)" lines="none">
+  <ion-item button @click="getOrderDetail(purchaseOrder.orderId)">
     <ion-label>
       <!-- TODO:- Handle this purchase order number property for now i have used OrderName or OrderId -->
       <h3>{{ purchaseOrder.externalOrderId }}</h3>
