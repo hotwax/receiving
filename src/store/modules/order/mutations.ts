@@ -19,14 +19,5 @@ const mutations: MutationTree <OrderState> = {
   [types.ORDER_CURRENT_PRODUCT_ADDED] (state, payload) {
     state.current.items.push(payload)
   },
-  [types.ORDER_PRCHS_HISTRY_UPDATED] (state, payload) {
-    let totalReceived = 0;
-    payload.poHistory.forEach((item: any) => {
-      totalReceived += item.quantityAccepted;
-    });
-
-    state.poHistory.total = totalReceived;
-    state.poHistory.items = payload.poHistory;
-  }
 }
 export default mutations;

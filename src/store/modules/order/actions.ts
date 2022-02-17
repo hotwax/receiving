@@ -108,21 +108,20 @@ const actions: ActionTree<OrderState, RootState> = {
     try {
       const params = {
         "inputFields":{
-          "orderId": [payload.order.orderId],
+          "orderId": [payload.orderId],
           "orderId_op": "in"
         },
         "entityName": "ShipmentReceiptAndItem",
-        "noConditionFind": "Y"
+        "fieldsToSelect": ["datetimeReceived", "productId", "quantityAccepted", "quantityRejected", "receivedByUserLoginId", "shipmentId"]
       }
       resp = await OrderService.fetchPOHistory(params)
       if ( resp.data.count && resp.data.count > 0 && resp.status === 200 && !hasError(resp)) {
+        const current = state.current as any
         const poHistory = resp.data.docs;
-        commit(types.ORDER_PRCHS_HISTRY_UPDATED, { poHistory });
+        current.poHistory.items = poHistory;
+        commit(types.ORDER_CURRENT_UPDATED, current);
         return poHistory;
-      } else {
-        //showing error whenever not getting Orders
-        showToast(translate("Orders not found"));
-      }
+      } 
     } catch(error){
       console.log(error)
       showToast(translate("Something went wrong"));
