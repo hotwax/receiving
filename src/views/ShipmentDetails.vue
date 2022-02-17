@@ -235,9 +235,10 @@ ion-content div {
 
 .product-info {
   display: grid;
-  grid-template-columns: auto .25fr;
+  grid-template-columns: 1fr .25fr;
   align-items: center;
   padding: 16px;
+  padding-left: 0;
 }
 
 .product-count {
