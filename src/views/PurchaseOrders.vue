@@ -68,7 +68,7 @@ export default defineComponent({
             "group.ngroups": true,
           } as any,
           "query": "*:*",
-          "filter": `docType: ORDER AND orderTypeId: PURCHASE_ORDER AND facilityId: ${this.currentFacility.facilityId}`
+          "filter": `docType: ORDER AND orderTypeId: PURCHASE_ORDER AND orderStatusId: (ORDER_APPROVED OR ORDER_CREATED) AND facilityId: ${this.currentFacility.facilityId}`
         }
       }
       if(this.queryString) {
