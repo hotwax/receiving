@@ -108,9 +108,36 @@ const actions: ActionTree<OrderState, RootState> = {
     }
     return resp;
   },
-  async receiveOrder() {
-    //TODO: Please complete this task to receive Inventory. 
-    return ''
+  async receiveOrder({ commit }, payload) {
+
+    let resp;
+    try {
+      const params = {
+        orderId: payload.order.orderId,
+        facilityId: this.state.user.currentFacility.facilityId
+      }
+
+      resp = await OrderService.createPurchaseShipment(params)
+
+      if (resp.status === 200 && !hasError(resp) && resp.data.shipmentId) {
+        const shipmentId = resp.data.shipmentId
+
+        const poShipment = {
+          shipment: {
+            shipmentId
+          },
+          items: payload.order.items
+        }
+
+        this.dispatch('shipment/receiveShipment', {payload: poShipment}).then((resp) => console.log(resp)).catch((err) => console.error(err))
+      } else {
+        showToast(translate("Something went wrong"));
+      }
+    } catch(error){
+      console.error(error)
+      showToast(translate("Something went wrong"));
+    }
+    return resp;
   }
 }
 

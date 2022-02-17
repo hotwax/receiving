@@ -191,7 +191,7 @@ export default defineComponent({
       return alert.present();
     },
     async receiveOrder() {
-      this.store.dispatch('order/receiveOrder', { payload: this.order }).then(() => {
+      this.store.dispatch('order/receiveOrder', { order: this.order }).then(() => {
         this.router.push('/purchase-orders')
       })
     },
