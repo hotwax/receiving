@@ -184,14 +184,14 @@ export default defineComponent({
           text: this.$t('Proceed'),
           role: 'proceed',
           handler: () => {
-            this.receiveOrder();
+            this.createShipment();
           }
         }]
       });
       return alert.present();
     },
-    async receiveOrder() {
-      this.store.dispatch('order/receiveOrder', { order: this.order }).then(() => {
+    async createShipment() {
+      this.store.dispatch('order/createPurchaseShipment', { order: this.order }).then(() => {
         this.router.push('/purchase-orders')
       })
     },

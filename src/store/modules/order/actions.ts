@@ -108,7 +108,7 @@ const actions: ActionTree<OrderState, RootState> = {
     }
     return resp;
   },
-  async receiveOrder({ commit }, payload) {
+  async createPurchaseShipment({ commit }, payload) {
 
     let resp;
     try {
