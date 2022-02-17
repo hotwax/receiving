@@ -2,8 +2,8 @@
   <ion-item button @click="getOrderDetail(purchaseOrder.orderId)" lines="none">
     <ion-label>
       <!-- TODO:- Handle this purchase order number property for now i have used OrderName or OrderId -->
-      <h3>{{ purchaseOrder.orderName ? purchaseOrder.orderName : purchaseOrder.orderId }}</h3>
-      <p>{{ purchaseOrder.externalOrderId }}</p>
+      <h3>{{ purchaseOrder.externalOrderId }}</h3>
+      <p>{{ purchaseOrder.orderName ? purchaseOrder.orderName : purchaseOrder.orderId }}</p>
     </ion-label>
     <ion-note slot="end">{{ purchaseOrder.estimatedDeliveryDate ? $filters.formatUtcDate(purchaseOrder.estimatedDeliveryDate, 'YYYY-MM-DDTHH:mm:ssZ') : " - " }}</ion-note>
   </ion-item>

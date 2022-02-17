@@ -6,7 +6,7 @@
           <ion-icon :icon="close" />
         </ion-button>
       </ion-buttons>
-      <ion-title>{{ $t("Add a Product") }}</ion-title>
+      <ion-title>{{ $t("Add a product") }}</ion-title>
     </ion-toolbar>
   </ion-header>
   <ion-content class="ion-padding">
@@ -22,7 +22,7 @@
           <p>{{ product.productId}}</p>
         </ion-label>
         <ion-icon v-if="isProductAvailableInShipment(product.productId)" color="success" :icon="checkmarkCircle" />
-        <ion-button v-else fill="outline" color="dark" @click="addtoShipment(product)">{{ $t("Add to Shipment") }}</ion-button>
+        <ion-button v-else fill="outline" @click="addtoShipment(product)">{{ $t("Add to Shipment") }}</ion-button>
       </ion-item>
     </ion-list>
 

@@ -13,13 +13,13 @@
     <ion-content :fullscreen="true">
       <div>
         <ion-item lines="none">
-          <h1>{{ $t("Shipment ID") }} : {{ current.shipmentId }}</h1>
+          <h1>{{ $t("Shipment ID") }}: {{ current.shipmentId }}</h1>
         </ion-item>
 
         <div class="shipment-scanner">
           <ion-item>
-            <ion-label>{{ $t("Scan Items") }}</ion-label>
-            <ion-input :placeholder="$t('Scan barcodes to receive')"></ion-input>
+            <ion-label>{{ $t("Scan items") }}</ion-label>
+            <ion-input :placeholder="$t('Scan barcodes to receive them')"></ion-input>
           </ion-item>
 
           <ion-button expand="block" fill="outline" @click="scanCode()">
@@ -39,9 +39,11 @@
               </ion-label>
             </ion-item>
             <ion-item class="product-count">
+              <ion-label position="floating">{{ $t("Qty") }}</ion-label>
               <ion-input type="number" min="0" v-model="item.quantityAccepted"></ion-input>
             </ion-item>
           </div>
+
           <ion-item class="border-top" v-if="item.quantityOrdered > 0">
             <ion-button @click="receiveAll(item)" slot="start" fill="outline">
               {{ $t("Receive All") }}
@@ -51,6 +53,7 @@
           </ion-item>
         </ion-card>
       </div>
+
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
         <ion-fab-button @click="completeShipment">
           <ion-icon :icon="checkmarkDone" />
@@ -84,15 +87,15 @@ import {
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { add, checkmarkDone, barcodeOutline } from 'ionicons/icons';
-import { mapGetters, useStore } from "vuex";
+import { mapGetters, useStore } from 'vuex';
 import AddProductModal from '@/views/AddProductModal.vue'
-import Image from "@/components/Image.vue";
+import Image from '@/components/Image.vue';
 import { useRouter } from 'vue-router';
 import { translate } from '@/i18n'
-import Scanner from "@/components/Scanner.vue";
+import Scanner from '@/components/Scanner.vue';
 
 export default defineComponent({
-  name: "ShipmentDetails",
+  name: 'ShipmentDetails',
   components: {
     IonBackButton,
     IonButton,
