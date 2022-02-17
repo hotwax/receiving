@@ -12,6 +12,8 @@ const mutations: MutationTree <OrderState> = {
       state.current.items = payload.order
       state.current.orderId = payload.order[0]?.orderId;
       state.current.externalOrderId = payload.order[0]?.externalOrderId;
+    } else if(payload.poHistory) {
+      state.current.poHistory.items = payload.poHistory;
     } else {
       state.current = payload;
     }
@@ -19,9 +21,5 @@ const mutations: MutationTree <OrderState> = {
   [types.ORDER_CURRENT_PRODUCT_ADDED] (state, payload) {
     state.current.items.push(payload)
   },
-  [types.ORDER_PRCHS_HISTRY_UPDATED] (state, payload) {
-    state.poHistory.total = payload.poHistory.count;
-    state.poHistory.items = payload.poHistory.docs;
-  }
 }
 export default mutations;

@@ -16,7 +16,7 @@ const getters: GetterTree<OrderState, RootState> = {
     return rootGetters['order/getCurrent'].items.some((item: any) => item.productId === productId);
   },
   getPOHistory(state) {
-    return state.poHistory;
+    return state.current.poHistory;
   }
 };
 export default getters;

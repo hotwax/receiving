@@ -51,9 +51,6 @@ app.config.globalProperties.$filters = {
     // TODO Fix this setDefault should set the default timezone instead of getting it everytiem and setting the tz
     return moment.utc(value, inFormat).tz(userProfile.userTimeZone).format(outFormat ? outFormat : 'MM-DD-YYYY');
   },
-  formatEpochDate(value: any) {
-    return moment.unix(value).format('H:MM A DD/MM/YYYY');
-  },
   getFeature(featureHierarchy: any, featureKey: string) {
     let  featureValue = ''
     if (featureHierarchy) {
