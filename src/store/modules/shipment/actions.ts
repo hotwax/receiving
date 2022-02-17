@@ -102,14 +102,11 @@ const actions: ActionTree<ShipmentState, RootState> = {
     }
     commit(types.SHIPMENT_CURRENT_PRODUCT_ADDED, product)
     const payload = {
-      shipmentId: state.current.shipmentId,
-      locationSeqId: state.current.locationSeqId,
-      facilityId: this.state.user.currentFacility.facilityId,
-      shipmentItemSeqId: "",
       productId: product.productId,
-      quantityAccepted: product.quantityAccepted
+      quantity: 0,
+      shipmentId: state.current.shipmentId
     }
-      return ShipmentService.receiveShipmentItem(payload).catch((err) => {
+      return ShipmentService.addShipmentItem(payload).catch((err) => {
         return err;
     })
   },

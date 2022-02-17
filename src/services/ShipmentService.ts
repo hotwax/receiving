@@ -33,9 +33,18 @@ const receiveShipment = async (query: any): Promise <any> => {
   })
 }
 
+const addShipmentItem = async (query: any): Promise <any> =>{
+  return api({
+    url: "addShipmentItem",
+    method: "post",
+    data: query
+  })
+}
+
 export const ShipmentService = {
   fetchShipments,
   getShipmentDetail,
   receiveShipmentItem,
-  receiveShipment
+  receiveShipment,
+  addShipmentItem
 }
