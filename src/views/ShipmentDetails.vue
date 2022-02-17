@@ -172,8 +172,8 @@ export default defineComponent({
       return alert.present();
     },
     async receiveShipment() {
-          this.store.dispatch('shipment/receiveShipment', {payload: this.current}).then(() => {
-            this.router.push('/receiving');
+      this.store.dispatch('shipment/receiveShipment', {payload: this.current}).then(() => {
+        this.router.push('/shipments');
       })   
     },
     receiveAll(item: any) {
