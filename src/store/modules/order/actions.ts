@@ -42,7 +42,7 @@ const actions: ActionTree<OrderState, RootState> = {
   },
   async updateProductCount({ commit, state }, payload ) {
     state.current.items.find((item: any) => {
-      if (item.productId === payload) {
+      if (item.internalName === payload) {
         item.quantityAccepted = item.quantityAccepted + 1;
       }
     });
@@ -84,7 +84,7 @@ const actions: ActionTree<OrderState, RootState> = {
           },
           "query": "docType:ORDER",
           "filter": [
-            `orderTypeId: PURCHASE_ORDER AND orderId: ${orderId} AND facilityId: ${this.state.user.currentFacility.facilityId}`
+            `orderTypeId: PURCHASE_ORDER AND orderId: ${orderId} AND orderStatusId: (ORDER_APPROVED OR ORDER_CREATED) AND facilityId: ${this.state.user.currentFacility.facilityId}`
           ]
         }
       }
@@ -92,11 +92,9 @@ const actions: ActionTree<OrderState, RootState> = {
 
       if (resp.status === 200 && !hasError(resp) && resp.data.grouped) {
         const order = resp.data.grouped.orderId.groups[0].doclist.docs
-
-          order.doclist.docs.forEach((item: any) => {
-            item.quantityAccepted = 0;
-          })
-
+        order.forEach((product: any) => {
+          product.quantityAccepted = 0;
+        })
         this.dispatch('product/fetchProductInformation', { order });
         commit(types.ORDER_CURRENT_UPDATED, { order })
       }
@@ -153,6 +151,36 @@ const actions: ActionTree<OrderState, RootState> = {
       }
     } catch(error){
       console.error(error)
+      showToast(translate("Something went wrong"));
+    }
+    return resp;
+  },
+
+  async getPOHistory({ commit, state }, payload) {
+    let resp;
+
+    try {
+      const params = {
+        "inputFields":{
+          "orderId": [payload.orderId],
+          "orderId_op": "in"
+        },
+        "entityName": "ShipmentReceiptAndItem",
+        "fieldsToSelect": ["datetimeReceived", "productId", "quantityAccepted", "quantityRejected", "receivedByUserLoginId", "shipmentId"]
+      }
+      resp = await OrderService.fetchPOHistory(params)
+      if ( resp.data.count && resp.data.count > 0 && resp.status === 200 && !hasError(resp)) {
+        const current = state.current as any
+        const poHistory = resp.data.docs;
+        state.current.poHistory.items = poHistory;
+        commit(types.ORDER_CURRENT_UPDATED, current);
+        return poHistory;
+      } else {
+        //showing error whenever not getting Orders
+        showToast(translate("Orders not found"));
+      }
+    } catch(error){
+      console.log(error)
       showToast(translate("Something went wrong"));
     }
     return resp;

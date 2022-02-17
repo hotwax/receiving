@@ -12,7 +12,7 @@
 
         <ShipmentListItem v-for="shipment in shipments" :key="shipment.shipmentId" :shipment="shipment"/>
 
-        <div class="ion-text-center">
+        <div class="load-more-action ion-text-center">
           <ion-button fill="outline" color="dark" @click="loadMoreShipments()">
             <ion-icon :icon="cloudDownloadOutline" slot="start" />
             {{ $t("Load more shipments") }}
@@ -85,7 +85,7 @@ export default defineComponent({
 </script>
 
 <style scoped>
-ion-content div {
+ion-content > div {
   max-width: 1110px;
   margin-right: auto;
   margin-left: auto;
