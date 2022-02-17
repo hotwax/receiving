@@ -241,10 +241,6 @@ ion-content > div {
   grid-area: info;
 }
 
-img {
-  object-fit: contain;
-}
-
 .po-item-history {
   grid-area: history;
   justify-self: center;

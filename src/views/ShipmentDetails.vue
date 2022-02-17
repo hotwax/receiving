@@ -224,10 +224,6 @@ ion-content div {
   margin-bottom: 20px;
 }
 
-img {
-  object-fit: contain;
-}
-
 .border-top {
   border-top: 1px solid #ccc;
 }

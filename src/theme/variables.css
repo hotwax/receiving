@@ -235,6 +235,10 @@ http://ionicframework.com/docs/theming/ */
   }
 }
 
+ion-thumbnail > img {
+  object-fit: contain;
+}
+
 .load-more-action {
   margin-top: 25px;
 }
