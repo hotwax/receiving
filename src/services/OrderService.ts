@@ -16,6 +16,14 @@ const fetchPODetail = async (payload: any): Promise<any> => {
   })
 }
 
+const createPurchaseShipment = async (payload: any): Promise<any> => {
+  return api({
+    url: "/service/createPurchaseShipment",
+    method: "POST",
+    data: payload
+  })
+}
+
 const fetchPOHistory = async (payload: any): Promise<any> => {
   return api({
     url: "/performFind",
@@ -27,5 +35,6 @@ const fetchPOHistory = async (payload: any): Promise<any> => {
 export const OrderService = {
   fetchPurchaseOrders,
   fetchPODetail,
+  createPurchaseShipment,
   fetchPOHistory
 }

@@ -67,8 +67,8 @@
             </div>
           </div>
 
-          <ion-item lines="none" class="border-top">
-            <ion-button slot="start" fill="outline">
+          <ion-item lines="none" class="border-top" v-if="item.quantity > 0">
+            <ion-button @click="receiveAll(item)" slot="start" fill="outline">
               {{ $t("Receive All") }}
             </ion-button>
             <ion-progress-bar value="1" />
@@ -114,6 +114,7 @@ import { addOutline, cameraOutline, checkmarkDone, saveOutline, timeOutline } fr
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import Image from "@/components/Image.vue";
 import { useStore, mapGetters } from 'vuex';
+import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue"
 import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
 
@@ -190,19 +191,35 @@ export default defineComponent({
     async savePODetails() {
       const alert = await alertController.create({
         header: this.$t('Receive inventory'),
-        message: this.$t('Inventory can be received for purchase orders in multiple shipments. Proceeding will recieve a new shipment for this purchase order but it will still be available for receiving later', { space: '<br /><br />' }),
+        message: this.$t('Inventory can be received for purchase orders in multiple shipments. Proceeding will receive a new shipment for this purchase order but it will still be available for receiving later', { space: '<br /><br />' }),
         buttons: [{
           text: this.$t('Cancel'),
           role: 'cancel'
         },
         {
           text: this.$t('Proceed'),
-          role: 'proceed'
+          role: 'proceed',
+          handler: () => {
+            this.createShipment();
+          }
         }]
       });
       return alert.present();
     },
-  }, 
+    async createShipment() {
+      this.store.dispatch('order/createPurchaseShipment', { order: this.order }).then(() => {
+        this.router.push('/purchase-orders')
+      })
+    },
+    receiveAll(item: any) {
+      this.order.items.filter((ele: any) => {
+        if(ele.productId == item.productId) {
+          ele.quantityAccepted = ele.quantity;
+          ele.progress = ele.quantityAccepted / ele.quantity;
+        }
+      })
+    }
+  },
   mounted() {
     this.store.dispatch("order/getOrderDetail", { orderId: this.$route.params.slug }).then(() => {
       this.store.dispatch('order/getPOHistory', { orderId: this.order.orderId })
@@ -210,11 +227,13 @@ export default defineComponent({
   },
   setup() {
     const store = useStore();
+    const router = useRouter();
 
     return {
       addOutline,
       cameraOutline,
       checkmarkDone,
+      router,
       saveOutline,
       store,
       timeOutline

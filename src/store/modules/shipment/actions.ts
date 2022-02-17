@@ -63,7 +63,10 @@ const actions: ActionTree<ShipmentState, RootState> = {
     }
   },
   receiveShipmentItem ({ commit }, data) {
-    const payload = {
+    const payload = data.shipment ? {
+      shipmentId: data.shipment.shipmentId,
+      locationSeqId: data.shipment.locationSeqId
+    } : {
       shipmentId: data.shipmentId,
       locationSeqId: data.locationSeqId
     }
@@ -73,7 +76,9 @@ const actions: ActionTree<ShipmentState, RootState> = {
         facilityId: this.state.user.currentFacility.facilityId,
         shipmentItemSeqId: item.itemSeqId,
         productId: item.productId,
-        quantityAccepted: item.quantityAccepted
+        quantityAccepted: item.quantityAccepted,
+        orderId: item.orderId,
+        orderItemSeqId: item.orderItemSeqId
       }
       return ShipmentService.receiveShipmentItem(params).catch((err) => {
         return err;
@@ -84,28 +89,30 @@ const actions: ActionTree<ShipmentState, RootState> = {
     emitter.emit("presentLoader");
     return await dispatch("receiveShipmentItem", payload).then(async( ) => {
       const resp = await ShipmentService.receiveShipment({
-        "shipmentId": payload.shipmentId,
+        "shipmentId": payload.shipment ? payload.shipment.shipmentId : payload.shipmentId,
         "statusId": "PURCH_SHIP_RECEIVED"
       })
       if (resp.status == 200 && !hasError(resp)) {
-        showToast(translate("Shipment Received Successfully") + ' ' + payload.shipmentId)
+        showToast(translate("Shipment Received Successfully") + ' ' + (payload.shipment ? payload.shipment.shipmentId : payload.shipmentId))
       }
       emitter.emit("dismissLoader");
       return resp;
     }).catch(err => err);
   },
-  async addShipmentItem ({ state, commit }, item) {
-    const product = { 
+  async addShipmentItem ({ state, commit }, payload) {
+    const item = payload.shipmentId ? { ...(payload.item) } : { ...payload }
+    const product = {
       ...item,
       quantityAccepted: 0,
       quantityOrdered: 0
     }
-    const payload = {
+    const params = {
       productId: product.productId,
       quantity: 0,
-      shipmentId: state.current.shipmentId
+      shipmentId: payload.shipmentId ? payload.shipmentId : state.current.shipmentId,
+      shipmentItemSeqId: payload.shipmentItemSeqId
     }
-    const resp = await ShipmentService.addShipmentItem(payload);
+    const resp = await ShipmentService.addShipmentItem(params);
     if(resp.status == 200 && !hasError(resp)){
       commit(types.SHIPMENT_CURRENT_PRODUCT_ADDED, product)
       return resp;
