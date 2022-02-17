@@ -55,7 +55,7 @@
             <div class="po-item-history">
               <ion-chip outline>
                 <ion-icon :icon="checkmarkDone"/>
-                <ion-label> 50 {{ $t("received") }} </ion-label>
+                <ion-label> {{ getPOItemAccepted(item.productId) }} {{ $t("received") }} </ion-label>
               </ion-chip>
             </div>
 
@@ -149,7 +149,8 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       order: 'order/getCurrent',
-      getProduct: 'product/getProduct'
+      getProduct: 'product/getProduct',
+      getPOItemAccepted: 'order/getPOItemAccepted'
     })
   },
   methods: {
@@ -220,7 +221,9 @@ export default defineComponent({
     }
   },
   mounted() {
-    this.store.dispatch("order/getOrderDetail", { orderId: this.$route.params.slug })
+    this.store.dispatch("order/getOrderDetail", { orderId: this.$route.params.slug }).then(() => {
+      this.store.dispatch('order/getPOHistory', { orderId: this.order.orderId })
+    })
   },
   setup() {
     const store = useStore();
