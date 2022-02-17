@@ -19,7 +19,6 @@
           {{ item.receivedByUserLoginId }}
           <p>{{ item.shipmentId }}</p>
         </ion-label>
-        <!-- TODO: Use appropriate css properties to align below label as like as figma design. -->
         <ion-label>
           <ion-note>{{ item.quantityAccepted }} {{ $t("received") }} | {{ item.quantityRejected }} {{ $t("rejected") }}</ion-note>
           <ion-note>{{ item.datetimeReceived ? $filters.formatDate(item.datetimeReceived, undefined, "H:MM A DD/MM/YYYY") : "-" }}</ion-note>
