@@ -107,7 +107,8 @@ const actions: ActionTree<ShipmentState, RootState> = {
     const params = {
       productId: product.productId,
       quantity: 0,
-      shipmentId: payload.shipmentId ? payload.shipmentId : state.current.shipmentId
+      shipmentId: payload.shipmentId ? payload.shipmentId : state.current.shipmentId,
+      shipmentItemSeqId: payload.shipmentItemSeqId
     }
       return ShipmentService.addShipmentItem(params).catch((err) => {
         return err;
