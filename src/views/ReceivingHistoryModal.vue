@@ -9,7 +9,7 @@
       <ion-title>{{ $t("History") }}</ion-title>
     </ion-toolbar>
   </ion-header>
-  <ion-content class="ion-padding">
+  <ion-content>
     <ion-list v-for="(item, index) in poHistory.items" :key="index">
       <ion-item>
         <ion-thumbnail slot="start">
@@ -21,8 +21,8 @@
         </ion-label>
         <!-- TODO: Use appropriate css properties to align below label as like as figma design. -->
         <ion-label>
-          <ion-note>{{ item.quantityAccepted }} {{ $t("received") }} | {{ item.quantityRejected }} {{ $t("rejected") }}</ion-note>
-          <ion-note>{{ item.datetimeReceived ? $filters.formatDate(item.datetimeReceived, undefined, "H:MM A DD/MM/YYYY") : "-" }}</ion-note>
+          <ion-note>50 received | 4 rejected</ion-note>
+          <ion-note>12:30 PM 23/12/2020</ion-note>
         </ion-label>
       </ion-item>
     </ion-list>
@@ -91,7 +91,8 @@ export default defineComponent({
 </script>
 
 <style scoped>
-img {
-  object-fit: contain;
+ion-note {
+  display: block;
+  text-align: end;
 }
 </style>
