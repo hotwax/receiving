@@ -9,7 +9,7 @@
       <ion-title>{{ $t("History") }}</ion-title>
     </ion-toolbar>
   </ion-header>
-  <ion-content class="ion-padding">
+  <ion-content>
     <ion-list v-for="(item, index) in poHistory.items" :key="index">
       <ion-item>
         <ion-thumbnail slot="start">
@@ -94,7 +94,8 @@ export default defineComponent({
 </script>
 
 <style scoped>
-img {
-  object-fit: contain;
+ion-note {
+  display: block;
+  text-align: end;
 }
 </style>

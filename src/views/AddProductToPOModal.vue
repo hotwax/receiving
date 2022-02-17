@@ -6,10 +6,10 @@
           <ion-icon :icon="close" />
         </ion-button>
       </ion-buttons>
-      <ion-title>{{ $t("Add a Product") }}</ion-title>
+      <ion-title>{{ $t("Add a product") }}</ion-title>
     </ion-toolbar>
   </ion-header>
-  <ion-content class="ion-padding">
+  <ion-content>
     <ion-searchbar @ionFocus="selectSearchBarText($event)" v-model="queryString" :placeholder="$t('Search SKU or product name')" v-on:keyup.enter="getProducts()" />
     
     <ion-list v-for="product in products" :key="product.productId">
@@ -22,7 +22,7 @@
           <p>{{ product.productId}}</p>
         </ion-label>
         <ion-icon v-if="isProductAvailableInOrder(product.productId)" color="success" :icon="checkmarkCircle" />
-        <ion-button v-else fill="outline" color="dark" @click="addtoOrder(product)">{{ $t("Add to Purchase Order") }}</ion-button>
+        <ion-button v-else fill="outline" @click="addtoOrder(product)">{{ $t("Add to Purchase Order") }}</ion-button>
       </ion-item>
     </ion-list>
 
@@ -135,9 +135,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style scoped>
-img {
-  object-fit: contain;
-}
-</style>
