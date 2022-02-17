@@ -67,7 +67,7 @@
             </div>
           </div>
 
-          <ion-item lines="none" class="border-top">
+          <ion-item lines="none" class="border-top" v-if="item.quantity > 0">
             <ion-button @click="receiveAll(item)" slot="start" fill="outline">
               {{ $t("Receive All") }}
             </ion-button>
