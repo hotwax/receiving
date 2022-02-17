@@ -39,7 +39,7 @@ const actions: ActionTree<OrderState, RootState> = {
   },
   async updateProductCount({ commit, state }, payload ) {
     state.current.items.find((item: any) => {
-      if (item.productId === payload) {
+      if (item.internalName === payload) {
         item.quantityAccepted = item.quantityAccepted + 1;
       }
     });
@@ -89,7 +89,9 @@ const actions: ActionTree<OrderState, RootState> = {
 
       if (resp.status === 200 && !hasError(resp) && resp.data.grouped) {
         const order = resp.data.grouped.orderId.groups[0].doclist.docs
-
+        order.forEach((product: any) => {
+          product.quantityAccepted = 0;
+        })
         this.dispatch('product/fetchProductInformation', { order });
         commit(types.ORDER_CURRENT_UPDATED, { order })
       }

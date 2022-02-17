@@ -26,9 +26,9 @@ const actions: ActionTree<ShipmentState, RootState> = {
     }
     return resp;
   },
-  async updateShipmentProductCount ({ commit, state }, id) {
+  async updateShipmentProductCount ({ commit, state }, payload) {
     await state.current.items.find((item: any) => {
-      if(item.productId === id){
+      if(item.sku === payload){
         item.quantityAccepted = parseInt(item.quantityAccepted) + 1;
       }
     });
