@@ -100,15 +100,21 @@ const actions: ActionTree<ShipmentState, RootState> = {
       quantityAccepted: 0,
       quantityOrdered: 0
     }
-    commit(types.SHIPMENT_CURRENT_PRODUCT_ADDED, product)
     const payload = {
       productId: product.productId,
       quantity: 0,
       shipmentId: state.current.shipmentId
     }
-      return ShipmentService.addShipmentItem(payload).catch((err) => {
-        return err;
-    })
+    const resp = await ShipmentService.addShipmentItem(payload);
+    if(resp.status == 200 && !hasError(resp)){
+      commit(types.SHIPMENT_CURRENT_PRODUCT_ADDED, product)
+      return resp;
+    }
+    else {
+      showToast(translate('Something went wrong'));
+      console.log("error", resp._ERROR_MESSAGE_);
+      return Promise.reject(new Error(resp.data._ERROR_MESSAGE_));
+    }
   },
 
   async clearShipments({ commit }) {
