@@ -43,16 +43,16 @@
             </ion-item>
           </div>
           <ion-item class="border-top" v-if="item.quantityOrdered > 0">
-            <ion-button @click="receiveAll(item)" color="dark" slot="start" fill="outline">
+            <ion-button @click="receiveAll(item)" slot="start" fill="outline">
               {{ $t("Receive All") }}
             </ion-button>
-            <ion-progress-bar :value="item.quantityAccepted/item.quantityOrdered" color="dark"></ion-progress-bar>
+            <ion-progress-bar :value="item.quantityAccepted/item.quantityOrdered"></ion-progress-bar>
             <p slot="end">{{ item.quantityOrdered }}</p>
           </ion-item>
         </ion-card>
       </div>
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button @click="completeShipment" color="dark">
+        <ion-fab-button @click="completeShipment">
           <ion-icon :icon="checkmarkDone" />
         </ion-fab-button>
       </ion-fab>
