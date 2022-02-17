@@ -21,7 +21,7 @@
 </template>
 
 <script lang="ts">
-import { IonButton, IonContent, IonHeader, IonIcon, IonPage, IonSearchbar, IonTitle, IonToolbar } from '@ionic/vue';
+import { IonButton, IonContent, IonHeader, IonIcon, IonMenuButton, IonPage, IonSearchbar, IonTitle, IonToolbar } from '@ionic/vue';
 import { cloudDownloadOutline } from 'ionicons/icons'
 import { defineComponent } from 'vue';
 import { mapGetters, useStore } from 'vuex';
@@ -34,6 +34,7 @@ export default defineComponent({
     IonContent,
     IonHeader,
     IonIcon, 
+    IonMenuButton,
     IonPage,
     IonSearchbar,
     IonTitle,
