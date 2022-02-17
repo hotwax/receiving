@@ -122,16 +122,30 @@ const actions: ActionTree<OrderState, RootState> = {
       if (resp.status === 200 && !hasError(resp) && resp.data.shipmentId) {
         const shipmentId = resp.data.shipmentId
 
-        // TODO: remove the hardcoded value, currently using harcoded locationSeqId for NotNaked catalog
-        const poShipment = {
-          shipment: {
-            shipmentId,
-            locationSeqId: 'TLTLTLLL02'
-          },
-          items: payload.order.items
-        }
+        Promise.all(payload.order.items.map((item: any) => {
+          return this.dispatch('shipment/addShipmentItem', {item, shipmentId})
+        })).then(async (resp) => {
 
-        await this.dispatch('shipment/receiveShipment', {payload: poShipment}).then((resp) => console.log(resp)).catch((err) => console.error(err))
+          // adding shipmentItemSeqId property in item
+          resp.map((response: any) => {
+            payload.order.items.map((item: any) => {
+              if (item.productId === response.data.productId) {
+                item.itemSeqId = response.data.shipmentItemSeqId
+              }
+            })
+          })
+
+          // TODO: remove the hardcoded value, currently using harcoded locationSeqId for NotNaked catalog
+          const poShipment = {
+            shipment: {
+              shipmentId,
+              locationSeqId: 'TLTLTLLL02'
+            },
+            items: payload.order.items
+          }
+
+          await this.dispatch('shipment/receiveShipment', {payload: poShipment}).catch((err) => console.error(err))
+        })
       } else {
         showToast(translate("Something went wrong"));
       }

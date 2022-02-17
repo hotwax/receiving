@@ -73,7 +73,9 @@ const actions: ActionTree<ShipmentState, RootState> = {
         facilityId: this.state.user.currentFacility.facilityId,
         shipmentItemSeqId: item.itemSeqId,
         productId: item.productId,
-        quantityAccepted: item.quantityAccepted
+        quantityAccepted: item.quantityAccepted,
+        orderId: item.orderId,
+        orderItemSeqId: item.orderItemSeqId
       }
       return ShipmentService.receiveShipmentItem(params).catch((err) => {
         return err;
@@ -95,12 +97,21 @@ const actions: ActionTree<ShipmentState, RootState> = {
     }).catch(err => err);
   },
   async addShipmentItem ({ state, commit }, payload) {
+    const item = payload.shipmentId ? { ...(payload.item) } : { ...payload }
     const product = { 
-      ...payload,
+      ...item,
       quantityAccepted: 0,
       quantityOrdered: 0
     }
     commit(types.SHIPMENT_CURRENT_PRODUCT_ADDED, product)
+    const params = {
+      productId: product.productId,
+      quantity: 0,
+      shipmentId: payload.shipmentId ? payload.shipmentId : state.current.shipmentId
+    }
+      return ShipmentService.addShipmentItem(params).catch((err) => {
+        return err;
+    })
   },
 
   async clearShipments({ commit }) {
