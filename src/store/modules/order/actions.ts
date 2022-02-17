@@ -122,14 +122,16 @@ const actions: ActionTree<OrderState, RootState> = {
       if (resp.status === 200 && !hasError(resp) && resp.data.shipmentId) {
         const shipmentId = resp.data.shipmentId
 
+        // TODO: remove the hardcoded value, currently using harcoded locationSeqId for NotNaked catalog
         const poShipment = {
           shipment: {
-            shipmentId
+            shipmentId,
+            locationSeqId: 'TLTLTLLL02'
           },
           items: payload.order.items
         }
 
-        this.dispatch('shipment/receiveShipment', {payload: poShipment}).then((resp) => console.log(resp)).catch((err) => console.error(err))
+        await this.dispatch('shipment/receiveShipment', {payload: poShipment}).then((resp) => console.log(resp)).catch((err) => console.error(err))
       } else {
         showToast(translate("Something went wrong"));
       }
