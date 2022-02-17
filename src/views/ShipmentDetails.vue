@@ -15,24 +15,25 @@
         <ion-item lines="none">
           <h1>{{ $t("Shipment ID") }} : {{ current.shipmentId }}</h1>
         </ion-item>
-        <ion-item>
-          <ion-label>{{ $t("Scan Items") }}</ion-label>
-          <ion-label>
+
+        <div class="shipment-scanner">
+          <ion-item>
+            <ion-label>{{ $t("Scan Items") }}</ion-label>
             <ion-input :placeholder="$t('Scan barcodes to receive')"></ion-input>
-          </ion-label>
-          <ion-buttons>
-            <ion-button class="action-button" fill="outline" color="secondary" @click="scanCode()">
+          </ion-item>
+
+          <ion-button expand="block" fill="outline" @click="scanCode()">
             <ion-icon slot="start" :icon="barcodeOutline" />{{ $t("Scan") }}
-            </ion-button>
-          </ion-buttons>
-        </ion-item>
+          </ion-button>
+        </div>
+
         <ion-card v-for="item in current.items" :key="item.id">
           <div class="product-info">
             <ion-item lines="none">
               <ion-thumbnail slot="start">
                 <Image :src="getProduct(item.productId).mainImageUrl" />
               </ion-thumbnail>
-              <ion-label>
+              <ion-label class="ion-text-wrap">
                 <h2>{{ getProduct(item.productId).productName }}</h2> 
                 <p>{{ getProduct(item.productId).productId }}</p>
               </ion-label>
@@ -212,6 +213,13 @@ ion-content div {
   max-width: 1110px;
   margin-right: auto;
   margin-left: auto;
+}
+
+.shipment-scanner {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(343px, 1fr));
+  gap: 8px;
+  align-items: end;
 }
 
 img {
