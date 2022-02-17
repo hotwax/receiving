@@ -150,16 +150,15 @@ export default defineComponent({
     },
     async completeShipment() {
       const alert = await alertController.create({
-        header: "Complete Shipment",
-        message:
-          (translate("Make sure you have entered the correct quantities for each item before proceeding.")),
+        header: this.$t("Receive Shipment"),
+        message: this.$t("Make sure you have entered all the inventory you received. You cannot edit this information after proceeding.", {space: '<br /><br />'}),
         buttons: [
           {
             text: this.$t("Cancel"),
             role: 'cancel',
           }, 
           {
-            text:this.$t('Complete'),
+            text:this.$t('Proceed'),
             handler: () => {
               this.receiveShipment();
             },

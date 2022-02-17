@@ -179,8 +179,7 @@ export default defineComponent({
     async savePODetails() {
       const alert = await alertController.create({
         header: this.$t('Receive inventory'),
-        message: 
-          this.$t('Inventory can be received for purchase orders in multiple shipments. Proceeding will recieve a new shipment for this purchase order but it will still be available for receiving later', { space: '<br /><br />' }),
+        message: this.$t('Inventory can be received for purchase orders in multiple shipments. Proceeding will recieve a new shipment for this purchase order but it will still be available for receiving later', { space: '<br /><br />' }),
         buttons: [{
           text: this.$t('Cancel'),
           role: 'cancel'
