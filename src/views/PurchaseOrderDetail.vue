@@ -163,11 +163,7 @@ export default defineComponent({
       return modal.present();
     },
     async updateProductCount(payload: any) {
-      if(this.queryString) {
-        this.order.items.forEach((item: any) => {
-          if(this.queryString == item.internalName) payload = item.internalName;
-        })
-      }
+      if(this.queryString) payload = this.queryString
       this.store.dispatch('order/updateProductCount', payload)
     },
     async addProduct() {

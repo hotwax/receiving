@@ -184,11 +184,7 @@ export default defineComponent({
       })
     },
     updateProductCount(payload: any){
-      if(this.queryString) {
-        this.current.items.forEach((item: any) => {
-          if(this.queryString == item.sku) payload = item.sku;
-        })
-      }
+      if(this.queryString) payload = this.queryString
       this.store.dispatch('shipment/updateShipmentProductCount', payload)
     },
     async scanCode () {
