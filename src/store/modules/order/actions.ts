@@ -53,7 +53,7 @@ const actions: ActionTree<OrderState, RootState> = {
       return orders.some((order: any) => {
         if (order.doclist.docs[0]?.orderId === orderId) {
           this.dispatch('product/fetchProductInformation',  { order: order.doclist.docs });
-          commit(types.ORDER_CURRENT_UPDATED, { orderId : order.doclist.docs[0]?.orderId, externalOrderId: order.doclist.docs[0]?.externalOrderId, order: order.doclist.docs })
+          commit(types.ORDER_CURRENT_UPDATED, { orderId : order.doclist.docs[0]?.orderId, externalOrderId: order.doclist.docs[0]?.externalOrderId, items: order.doclist.docs })
           return current;
         }
       })
