@@ -15,7 +15,10 @@ const OrderModule: Module<OrderState, RootState> = {
       current: {
         orderId: '',
         externalOrderId: '',
-        items: []
+        items: [],
+        poHistory: {
+          items: []
+        }
       }
     },
     getters,

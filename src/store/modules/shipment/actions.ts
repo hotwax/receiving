@@ -26,9 +26,9 @@ const actions: ActionTree<ShipmentState, RootState> = {
     }
     return resp;
   },
-  async updateShipmentProductCount ({ commit, state }, id) {
+  async updateShipmentProductCount ({ commit, state }, payload) {
     await state.current.items.find((item: any) => {
-      if(item.productId === id){
+      if(item.sku === payload){
         item.quantityAccepted = parseInt(item.quantityAccepted) + 1;
       }
     });
@@ -63,9 +63,12 @@ const actions: ActionTree<ShipmentState, RootState> = {
     }
   },
   receiveShipmentItem ({ commit }, data) {
-    const payload = {
+    const payload = data.shipment ? {
       shipmentId: data.shipment.shipmentId,
       locationSeqId: data.shipment.locationSeqId
+    } : {
+      shipmentId: data.shipmentId,
+      locationSeqId: data.locationSeqId
     }
     return Promise.all(data.items.map((item: any) => {
       const params = {
@@ -73,7 +76,9 @@ const actions: ActionTree<ShipmentState, RootState> = {
         facilityId: this.state.user.currentFacility.facilityId,
         shipmentItemSeqId: item.itemSeqId,
         productId: item.productId,
-        quantityAccepted: item.quantityAccepted
+        quantityAccepted: item.quantityAccepted,
+        orderId: item.orderId,
+        orderItemSeqId: item.orderItemSeqId
       }
       return ShipmentService.receiveShipmentItem(params).catch((err) => {
         return err;
@@ -84,23 +89,39 @@ const actions: ActionTree<ShipmentState, RootState> = {
     emitter.emit("presentLoader");
     return await dispatch("receiveShipmentItem", payload).then(async( ) => {
       const resp = await ShipmentService.receiveShipment({
-        "shipmentId": payload.shipment.shipmentId,
+        "shipmentId": payload.shipment ? payload.shipment.shipmentId : payload.shipmentId,
         "statusId": "PURCH_SHIP_RECEIVED"
       })
       if (resp.status == 200 && !hasError(resp)) {
-        showToast(translate("Shipment Received Successfully") + ' ' + payload.shipment.shipmentId)
+        showToast(translate("Shipment Received Successfully") + ' ' + (payload.shipment ? payload.shipment.shipmentId : payload.shipmentId))
       }
       emitter.emit("dismissLoader");
       return resp;
     }).catch(err => err);
   },
   async addShipmentItem ({ state, commit }, payload) {
-    const product = { 
-      ...payload,
+    const item = payload.shipmentId ? { ...(payload.item) } : { ...payload }
+    const product = {
+      ...item,
       quantityAccepted: 0,
       quantityOrdered: 0
     }
-    commit(types.SHIPMENT_CURRENT_PRODUCT_ADDED, product)
+    const params = {
+      productId: product.productId,
+      quantity: 0,
+      shipmentId: payload.shipmentId ? payload.shipmentId : state.current.shipmentId,
+      shipmentItemSeqId: payload.shipmentItemSeqId
+    }
+    const resp = await ShipmentService.addShipmentItem(params);
+    if(resp.status == 200 && !hasError(resp)){
+      commit(types.SHIPMENT_CURRENT_PRODUCT_ADDED, product)
+      return resp;
+    }
+    else {
+      showToast(translate('Something went wrong'));
+      console.log("error", resp._ERROR_MESSAGE_);
+      return Promise.reject(new Error(resp.data._ERROR_MESSAGE_));
+    }
   },
 
   async clearShipments({ commit }) {

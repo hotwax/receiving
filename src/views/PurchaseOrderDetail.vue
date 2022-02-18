@@ -2,7 +2,7 @@
   <ion-page>
     <ion-header :translucent="true">
       <ion-toolbar>
-        <ion-back-button default-href="/" slot="start" />
+        <ion-back-button default-href="/purchase-orders" slot="start" />
         <ion-title> {{$t("Purchase Order Details")}} </ion-title>
         <ion-buttons slot="end">
           <ion-button @click="receivingHistory">
@@ -17,59 +17,65 @@
 
     <ion-content>
       <div>
-        <ion-item lines="none" class="po-primary">
-          <h1>
-            {{$t("Purchase Order")}}: {{ order.orderId }}
-          </h1>
-        </ion-item>
-        
-        <div class="po-meta">
-          <ion-chip>{{ order.externalOrderId }}</ion-chip>
+        <div class="po-id">
+          <ion-item lines="none">
+            <h1>{{$t("Purchase Order")}}: {{ order.externalOrderId }}</h1>
+          </ion-item>
+          
+          <div class="po-meta">
+            <ion-chip>{{ order.orderId }}</ion-chip>
+          </div>
         </div>
         
         <div class="po-scanner">
           <ion-item>
-            {{$t("Scan Items")}}
-            <ion-input :placeholder="$t('Scan barcodes to receive')" />
+            <ion-label position="fixed">{{$t("Scan items")}}</ion-label>
+            <ion-input :placeholder="$t('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()" />
           </ion-item>
-          <ion-button fill="outline">
+          <ion-button expand="block" fill="outline" @click="scan">
             <ion-icon slot="start" :icon="cameraOutline" />
             {{ $t("Scan") }}
           </ion-button>
         </div>
         
-        <div class="po-items">
-          <ion-card v-for="(item, index) in order.items" :key="index">
+        <ion-card v-for="(item, index) in order.items" :key="index">
+          <div class="product">
             <div class="product-info">
               <ion-item lines="none">
                 <ion-thumbnail slot="start">
                   <Image :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
-                <ion-label>
+                <ion-label class="ion-text-wrap">
                   {{ getProduct(item.productId).productName }}
                   <p>{{ item.productId }}</p>
                 </ion-label>
               </ion-item>
+            </div>
 
-              <ion-chip outline="true" class="po-item-history">
+            <div class="po-item-history">
+              <ion-chip outline>
                 <ion-icon :icon="checkmarkDone"/>
-                <ion-label> 50 {{ $t("received") }} </ion-label>
+                <ion-label> {{ getPOItemAccepted(item.productId) }} {{ $t("received") }} </ion-label>
               </ion-chip>
+            </div>
 
-              <ion-item class="product-count">
-                <ion-input type="number" value="0" min="0" />
+            <div class="product-count">
+              <ion-item>
+                <ion-label position="floating">{{ $t("Qty") }}</ion-label>       
+                <ion-input type="number" value="0" min="0" v-model="item.quantityAccepted" />
               </ion-item>
             </div>
-            <ion-item lines="none" class="border-top">
-              <ion-button slot="start" fill="outline">
-                {{ $t("Receive All") }}
-              </ion-button>
-              <ion-progress-bar value="1" />
-              <p slot="end">{{ item.quantity }} {{ $t("ordered") }}</p>
-            </ion-item>
-          </ion-card>
-        </div>  
-      </div>
+          </div>
+
+          <ion-item lines="none" class="border-top" v-if="item.quantity > 0">
+            <ion-button @click="receiveAll(item)" slot="start" fill="outline">
+              {{ $t("Receive All") }}
+            </ion-button>
+            <ion-progress-bar :value="item.quantityAccepted/item.quantity" />
+            <p slot="end">{{ item.quantity }} {{ $t("ordered") }}</p>
+          </ion-item>
+        </ion-card>
+      </div>  
       
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
         <ion-fab-button @click="savePODetails">
@@ -108,6 +114,8 @@ import { addOutline, cameraOutline, checkmarkDone, saveOutline, timeOutline } fr
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import Image from "@/components/Image.vue";
 import { useStore, mapGetters } from 'vuex';
+import { useRouter } from 'vue-router';
+import Scanner from "@/components/Scanner.vue"
 import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
 
 export default defineComponent({
@@ -133,13 +141,34 @@ export default defineComponent({
     IonTitle,
     IonToolbar,
   },
+  data() {
+    return {
+      queryString: ''
+    }
+  },
   computed: {
     ...mapGetters({
       order: 'order/getCurrent',
-      getProduct: 'product/getProduct'
+      getProduct: 'product/getProduct',
+      getPOItemAccepted: 'order/getPOItemAccepted'
     })
   },
   methods: {
+    async scan() {
+      const modal = await modalController
+      .create({
+        component: Scanner,
+      });
+      modal.onDidDismiss()
+      .then((result) => {
+        this.updateProductCount(result.role);
+      })
+      return modal.present();
+    },
+    async updateProductCount(payload: any) {
+      if(this.queryString) payload = this.queryString
+      this.store.dispatch('order/updateProductCount', payload)
+    },
     async addProduct() {
       const modal = await modalController
         .create({
@@ -154,34 +183,57 @@ export default defineComponent({
     async receivingHistory() {
       const modal = await modalController
         .create({
-          component: ReceivingHistoryModal
+          component: ReceivingHistoryModal,
+          componentProps: {order: this.order}
         })
       return modal.present();
     },
     async savePODetails() {
       const alert = await alertController.create({
         header: this.$t('Receive inventory'),
-        message: 
-          this.$t('Inventory can be received for purchase orders in multiple shipments. Proceeding will recieve a new shipment for this purchase order but it will still be available for receiving later', { space: '<br /><br />' }),
+        message: this.$t('Inventory can be received for purchase orders in multiple shipments. Proceeding will receive a new shipment for this purchase order but it will still be available for receiving later', { space: '<br /><br />' }),
         buttons: [{
           text: this.$t('Cancel'),
           role: 'cancel'
         },
         {
           text: this.$t('Proceed'),
-          role: 'proceed'
+          role: 'proceed',
+          handler: () => {
+            this.createShipment();
+          }
         }]
       });
       return alert.present();
     },
-  }, 
+    async createShipment() {
+      this.store.dispatch('order/createPurchaseShipment', { order: this.order }).then(() => {
+        this.router.push('/purchase-orders')
+      })
+    },
+    receiveAll(item: any) {
+      this.order.items.filter((ele: any) => {
+        if(ele.productId == item.productId) {
+          ele.quantityAccepted = ele.quantity;
+          ele.progress = ele.quantityAccepted / ele.quantity;
+        }
+      })
+    }
+  },
+  mounted() {
+    this.store.dispatch("order/getOrderDetail", { orderId: this.$route.params.slug }).then(() => {
+      this.store.dispatch('order/getPOHistory', { orderId: this.order.orderId })
+    })
+  },
   setup() {
     const store = useStore();
+    const router = useRouter();
 
     return {
       addOutline,
       cameraOutline,
       checkmarkDone,
+      router,
       saveOutline,
       store,
       timeOutline
@@ -192,55 +244,60 @@ export default defineComponent({
 
 <style scoped>
 ion-content > div {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(40ch, 1fr));
-  column-gap: 8px;
   max-width: 1110px;
   margin-right: auto;
   margin-left: auto;
 }
 
-img {
-  object-fit: contain;
-}
-
-.border-top {
-  border-top: 1px solid #ccc;
-}
-
 .po-meta {
-  display: flex;
-  justify-self: end;
-  align-self: center;
-  padding: 0 10px 0 0;
+  padding: 0 10px;
 }
 
 .po-scanner {
-  grid-column: 1 / -1;
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(343px, 1fr));
   gap: 8px;
+  margin-bottom: 20px;
 }
 
-.po-scanner > * {
-  flex: 1;
-}
-
-.po-items {
-  grid-column: 1 / -1;
+.product {
+  display: grid;
+  grid: "info    count" 
+        "history history" 
+        / 1fr .35fr;
+  align-items: center;
+  padding: 16px;
+  padding-left: 0;
 }
 
 .product-info {
-  display: grid;
-  grid-template-columns: 1fr 1fr .25fr;
-  align-items: center;
-  padding: 0 16px 0 0;
+  grid-area: info;
 }
 
 .po-item-history {
+  grid-area: history;
   justify-self: center;
 }
 
 .product-count {
+  grid-area: count;
   min-width: 9ch;
+}
+
+.product-count > ion-item {
+  max-width: 20ch;
+  margin-left: auto;
+}
+
+@media (min-width: 720px) {
+  .po-id {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+   }
+
+  .product {
+    grid: "info history count" /  1fr max-content 1fr;
+  }
 }
 </style>

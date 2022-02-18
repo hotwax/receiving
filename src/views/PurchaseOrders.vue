@@ -2,6 +2,7 @@
   <ion-page>
     <ion-header :translucent="true">
       <ion-toolbar>
+        <ion-menu-button slot="start" />
         <ion-title>{{ $t("Purchase Orders") }}</ion-title>
       </ion-toolbar>
     </ion-header>
@@ -9,7 +10,7 @@
       <ion-searchbar :placeholder="$t('Search')" v-model="queryString" @keyup.enter="getPurchaseOrders()" />
       <PurchaseOrderItem v-for="(order, index) in orders" :key="index" :purchaseOrder="order.doclist.docs[0]" />
       
-      <div class="ion-text-center">
+      <div class="load-more-action ion-text-center">
         <ion-button fill="outline" color="dark" @click="loadMoreOrders()">
           <ion-icon :icon="cloudDownloadOutline" slot="start" />
           {{ $t("Load more purchase order") }}
@@ -20,7 +21,7 @@
 </template>
 
 <script lang="ts">
-import { IonButton, IonContent, IonHeader, IonIcon, IonPage, IonSearchbar, IonTitle, IonToolbar } from '@ionic/vue';
+import { IonButton, IonContent, IonHeader, IonIcon, IonMenuButton, IonPage, IonSearchbar, IonTitle, IonToolbar } from '@ionic/vue';
 import { cloudDownloadOutline } from 'ionicons/icons'
 import { defineComponent } from 'vue';
 import { mapGetters, useStore } from 'vuex';
@@ -33,6 +34,7 @@ export default defineComponent({
     IonContent,
     IonHeader,
     IonIcon, 
+    IonMenuButton,
     IonPage,
     IonSearchbar,
     IonTitle,
@@ -67,7 +69,7 @@ export default defineComponent({
             "group.ngroups": true,
           } as any,
           "query": "*:*",
-          "filter": `docType: ORDER AND orderTypeId: PURCHASE_ORDER AND facilityId: ${this.currentFacility.facilityId}`
+          "filter": `docType: ORDER AND orderTypeId: PURCHASE_ORDER AND orderStatusId: (ORDER_APPROVED OR ORDER_CREATED) AND facilityId: ${this.currentFacility.facilityId}`
         }
       }
       if(this.queryString) {
