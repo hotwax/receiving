@@ -114,7 +114,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
     }
     const resp = await ShipmentService.addShipmentItem(params);
     if(resp.status == 200 && !hasError(resp)){
-      commit(types.SHIPMENT_CURRENT_PRODUCT_ADDED, product)
+      if (!payload.shipmentId) commit(types.SHIPMENT_CURRENT_PRODUCT_ADDED, product)
       return resp;
     }
     else {
