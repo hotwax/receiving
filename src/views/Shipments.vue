@@ -6,7 +6,7 @@
         <ion-title>{{ $t("Shipments") }}</ion-title>
       </ion-toolbar>
     </ion-header>
-    <ion-content :fullscreen="true">
+    <ion-content>
       <div>
         <ion-searchbar :placeholder="$t('Scan ASN to start receiving')"/>
 

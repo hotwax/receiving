@@ -10,7 +10,7 @@
       </ion-toolbar>
     </ion-header>
 
-    <ion-content :fullscreen="true">
+    <ion-content>
       <div>
         <ion-item lines="none">
           <h1>{{ $t("Shipment ID") }}: {{ current.shipmentId }}</h1>
