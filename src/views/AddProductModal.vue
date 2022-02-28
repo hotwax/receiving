@@ -114,7 +114,7 @@ export default defineComponent({
       })
     },
     async addtoShipment (product: any) {
-      this.store.dispatch('shipment/addShipmentItem', product);
+      this.store.dispatch('shipment/addShipmentItem', product)
     },
     closeModal() {
       modalController.dismiss({ dismissed: true });
