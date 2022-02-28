@@ -78,7 +78,8 @@ const actions: ActionTree<ShipmentState, RootState> = {
         productId: item.productId,
         quantityAccepted: item.quantityAccepted,
         orderId: item.orderId,
-        orderItemSeqId: item.orderItemSeqId
+        orderItemSeqId: item.orderItemSeqId,
+        unitCost: 0.00
       }
       return ShipmentService.receiveShipmentItem(params).catch((err) => {
         return err;
