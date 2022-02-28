@@ -124,6 +124,15 @@ const actions: ActionTree<ShipmentState, RootState> = {
     }
   },
 
+  async updateProductCount({ commit, state }) {
+    const shipments = state.shipments.list;
+    shipments.map((shipment: any) => {
+      shipment.noOfItem = parseInt(shipment.noOfItem) + 1;
+    })
+
+    commit(types.SHIPMENT_LIST_UPDATED, { shipments })
+  },
+
   async clearShipments({ commit }) {
     commit(types.SHIPMENT_LIST_UPDATED, { shipments: [] })
     commit(types.SHIPMENT_CURRENT_UPDATED, { current: {} })
