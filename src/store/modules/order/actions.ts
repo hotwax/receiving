@@ -123,7 +123,7 @@ const actions: ActionTree<OrderState, RootState> = {
         Promise.all(payload.order.items.map((item: any, index: number) => {
           // TODO: improve code to don't pass shipmentItemSeqId
           const shipmentItemSeqId = `0000${index+1}`
-          return this.dispatch('shipment/addShipmentItem', {item, shipmentId, shipmentItemSeqId})
+          return this.dispatch('shipment/addShipmentItem', {item, shipmentId, shipmentItemSeqId, orderId: params.orderId})
         })).then(async (resp) => {
 
           // adding shipmentItemSeqId property in item

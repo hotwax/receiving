@@ -108,6 +108,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
       quantityOrdered: 0
     }
     const params = {
+      orderId: payload.orderId,
       productId: product.productId,
       quantity: 0,
       shipmentId: payload.shipmentId ? payload.shipmentId : state.current.shipmentId,
