@@ -52,14 +52,30 @@ const actions: ActionTree<UserState, RootState> = {
   /**
    * Get User profile
    */
-  async getProfile ( { commit }) {
+  async getProfile ( { commit, dispatch }) {
     const resp = await UserService.getProfile()
     if (resp.status === 200) {
       const localTimeZone = moment.tz.guess();
       if (resp.data.userTimeZone !== localTimeZone) {
         emitter.emit('timeZoneDifferent', { profileTimeZone: resp.data.userTimeZone, localTimeZone});
       }
+      if(resp.data.facilities.length > 0) {
+        const payload = {
+          "inputFields": {
+            "facilityId": resp.data.facilities[0].facilityId
+          },
+          "fieldList": [],
+          "entityName": "FacilityLocation",
+          "distinct": "Y",
+          "noConditionFind": "Y"
+        }
+        await dispatch('getFacilityLocations', payload).then((locations: any) => {
+          resp.data.facilityLocations = locations;
+        })
+      }
+
       commit(types.USER_INFO_UPDATED, resp.data);
+      commit(types.USER_CURRENT_FACILITY_LOCATION_UPDATED, resp.data.facilityLocations.length > 0 ? resp.data.facilityLocations[0] : {});
       commit(types.USER_CURRENT_FACILITY_UPDATED, resp.data.facilities.length > 0 ? resp.data.facilities[0] : {});
     }
   },
@@ -69,6 +85,10 @@ const actions: ActionTree<UserState, RootState> = {
    */
   async setFacility ({ commit }, payload) {
     commit(types.USER_CURRENT_FACILITY_UPDATED, payload.facility);
+  },
+
+  async setFacilityLocation({ commit }, payload) {
+    commit(types.USER_CURRENT_FACILITY_LOCATION_UPDATED, payload.facilityLocation);
   },
   
   /**
@@ -87,6 +107,18 @@ const actions: ActionTree<UserState, RootState> = {
   // Set User Instance Url
   setUserInstanceUrl ({ commit }, payload){
     commit(types.USER_INSTANCE_URL_UPDATED, payload)
+  },
+
+  async getFacilityLocations( { commit },payload ) {
+    let resp;
+    try{
+      resp = await UserService.getFacilityLocations(payload);
+      if(resp.status === 200 && resp.data.count > 0 && !hasError(resp)) {
+        return resp.data.docs
+      }
+    } catch(err) {
+      console.error(err);
+    }
   }
 }
 

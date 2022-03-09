@@ -18,6 +18,14 @@
        </ion-item>
 
        <ion-item>
+         <ion-icon :icon="storefrontOutline" slot="start" />
+         <ion-label>{{$t("Facility Location")}}</ion-label>
+         <ion-select interface="popover" :placeholder="$t('facility location')" :value="currentFacilityLocation.locationSeqId" @ionChange="setFacilityLocation($event)">
+           <ion-select-option v-for="facilityLocation in (userProfile && userProfile.facilityLocations ? userProfile.facilityLocations : [])" :key="facilityLocation.locationSeqId" :value="facilityLocation.locationSeqId" >{{ facilityLocation.locationSeqId }}</ion-select-option>
+         </ion-select>
+       </ion-item>
+
+       <ion-item>
         <ion-icon :icon="codeWorkingOutline" slot="start"/>
         <ion-label>{{ $t("OMS") }}</ion-label>
         <p slot="end">{{ instanceUrl }}</p>
@@ -61,6 +69,7 @@ export default defineComponent({
     ...mapGetters({
       userProfile: 'user/getUserProfile',
       currentFacility: 'user/getCurrentFacility',
+      currentFacilityLocation: 'user/getCurrentFacilityLocation',
       instanceUrl: 'user/getInstanceUrl'
     })
   },
@@ -71,6 +80,16 @@ export default defineComponent({
           if (fac.facilityId == facility['detail'].value) {
             this.store.dispatch('shipment/clearShipments');
             this.store.dispatch('user/setFacility', {'facility': fac});
+          }
+        })
+      }
+    },
+    setFacilityLocation(facilityLocation: any) {
+      if(this.userProfile && this.userProfile.facilityLocations) {
+        this.userProfile.facilityLocations.map((location: any) => {
+          if(location.locationSeqId === facilityLocation['detail'].value) {
+            this.store.dispatch('shipment/clearShipments');
+            this.store.dispatch('user/setFacilityLocation', {'facilityLocation': location});
           }
         })
       }
