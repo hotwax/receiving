@@ -42,7 +42,7 @@
           <div class="product">
             <div class="product-info">
               <ion-item lines="none">
-                <ion-thumbnail slot="start">
+                <ion-thumbnail slot="start" @click="image(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
                   <Image :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
@@ -117,6 +117,7 @@ import { useStore, mapGetters } from 'vuex';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue"
 import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
+import ImageModal from '@/components/ImageModal.vue';
 
 export default defineComponent({
   name: "PurchaseOrderDetails",
@@ -154,6 +155,13 @@ export default defineComponent({
     })
   },
   methods: {
+    async image(imageUrl: string, productName: string) {
+      const createmodal = await modalController.create({
+        component: ImageModal,
+        componentProps: {imageUrl , productName}
+      });
+      return createmodal.present();
+    },
     async scan() {
       const modal = await modalController
       .create({
@@ -258,6 +266,10 @@ ion-content > div {
   grid-template-columns: repeat(auto-fit, minmax(343px, 1fr));
   gap: 8px;
   margin-bottom: 20px;
+}
+
+ion-thumbnail {
+  cursor: pointer;
 }
 
 .product {
