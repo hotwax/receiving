@@ -22,6 +22,7 @@ const actions: ActionTree<ProductState, RootState> = {
 
     if(productIdFilter === '') return;
     const resp = await ProductService.fetchProducts({
+      "viewSize": productIds.length,
       "filters": ['productId: (' + productIdFilter + ')']
     })
     if (resp.status === 200 && !hasError(resp)) {
