@@ -18,10 +18,10 @@
        </ion-item>
 
        <ion-item>
-         <ion-icon :icon="storefrontOutline" slot="start" />
-         <ion-label>{{$t("Facility Location")}}</ion-label>
+         <ion-icon :icon="locationOutline" slot="start" />
+         <ion-label>{{$t("Location")}}</ion-label>
          <ion-select interface="popover" :placeholder="$t('facility location')" :value="currentFacilityLocation.locationSeqId" @ionChange="setFacilityLocation($event)">
-           <ion-select-option v-for="facilityLocation in (userProfile && userProfile.facilityLocations ? userProfile.facilityLocations : [])" :key="facilityLocation.locationSeqId" :value="facilityLocation.locationSeqId" >{{ facilityLocation.locationSeqId }}</ion-select-option>
+           <ion-select-option v-for="facilityLocation in (userProfile && userProfile.facilityLocations ? userProfile.facilityLocations : [])" :key="facilityLocation.locationSeqId" :value="facilityLocation.locationSeqId" >{{ facilityLocation.locationPath }}</ion-select-option>
          </ion-select>
        </ion-item>
 
@@ -44,7 +44,7 @@
 <script lang="ts">
 import { alertController, IonButton, IonContent, IonHeader,IonIcon, IonItem, IonLabel, IonList, IonMenuButton, IonPage, IonSelect, IonSelectOption, IonTitle, IonToolbar } from '@ionic/vue';
 import { defineComponent } from 'vue';
-import { codeWorkingOutline, ellipsisVertical, personCircleOutline, storefrontOutline} from 'ionicons/icons'
+import { codeWorkingOutline, ellipsisVertical, locationOutline, personCircleOutline, storefrontOutline} from 'ionicons/icons'
 import { mapGetters, useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 
@@ -127,6 +127,7 @@ export default defineComponent({
     return {
       codeWorkingOutline,
       ellipsisVertical,
+      locationOutline,
       personCircleOutline,
       storefrontOutline,
       store,

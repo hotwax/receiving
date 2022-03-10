@@ -114,7 +114,15 @@ const actions: ActionTree<UserState, RootState> = {
     try{
       resp = await UserService.getFacilityLocations(payload);
       if(resp.status === 200 && resp.data.count > 0 && !hasError(resp)) {
-        return resp.data.docs
+        let facilityLocations = resp.data.docs
+        facilityLocations = facilityLocations.map((location: any) => {
+          return {
+            locationSeqId: location.locationSeqId,
+            locationPath: location.areaId + location.aisleId + location.sectionId + location.levelId + location.positionId
+          }
+        })
+
+        return facilityLocations;
       }
     } catch(err) {
       console.error(err);
