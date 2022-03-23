@@ -64,7 +64,7 @@ const actions: ActionTree<UserState, RootState> = {
           "inputFields": {
             "facilityId": resp.data.facilities[0].facilityId
           },
-          "fieldList": [],
+          "fieldList": ["locationSeqId", "areaId", "aisleId", "sectionId", "levelId", "positionId"],
           "entityName": "FacilityLocation",
           "distinct": "Y",
           "noConditionFind": "Y"
@@ -83,7 +83,25 @@ const actions: ActionTree<UserState, RootState> = {
   /**
    * update current facility information
    */
-  async setFacility ({ commit }, payload) {
+  async setFacility ({ state, commit, dispatch }, payload) {
+    const user = state.current as any;
+    
+    const param = {
+      "inputFields": {
+        "facilityId": payload.facility.facilityId
+      },
+      "fieldList": ["locationSeqId", "areaId", "aisleId", "sectionId", "levelId", "positionId"],
+      "entityName": "FacilityLocation",
+      "distinct": "Y",
+      "noConditionFind": "Y"
+    }
+
+    await dispatch('getFacilityLocations', param).then((locations: any) => {
+      user.facilityLocations = locations
+    })
+
+    commit(types.USER_INFO_UPDATED, user);
+    commit(types.USER_CURRENT_FACILITY_LOCATION_UPDATED, user.facilityLocations.length > 0 ? user.facilityLocations[0] : {});
     commit(types.USER_CURRENT_FACILITY_UPDATED, payload.facility);
   },
 
@@ -127,6 +145,7 @@ const actions: ActionTree<UserState, RootState> = {
     } catch(err) {
       console.error(err);
     }
+    return []
   }
 }
 
