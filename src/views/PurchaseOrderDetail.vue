@@ -16,7 +16,7 @@
     </ion-header>
 
     <ion-content>
-      <div>
+      <main>
         <div class="po-id">
           <ion-item lines="none">
             <h1>{{$t("Purchase Order")}}: {{ order.externalOrderId }}</h1>
@@ -75,7 +75,7 @@
             <p slot="end">{{ item.quantity }} {{ $t("ordered") }}</p>
           </ion-item>
         </ion-card>
-      </div>  
+      </main>  
       
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
         <ion-fab-button @click="savePODetails">
@@ -243,12 +243,6 @@ export default defineComponent({
 </script>
 
 <style scoped>
-ion-content > div {
-  max-width: 1110px;
-  margin-right: auto;
-  margin-left: auto;
-}
-
 .po-meta {
   padding: 0 10px;
 }
