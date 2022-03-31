@@ -83,11 +83,3 @@ export default defineComponent({
   }
 })
 </script>
-
-<style scoped>
-ion-content > div {
-  max-width: 1110px;
-  margin-right: auto;
-  margin-left: auto;
-}
-</style>
