@@ -7,7 +7,7 @@
       </ion-toolbar>
     </ion-header>
     <ion-content>
-      <div>
+      <main>
         <ion-searchbar :placeholder="$t('Search purchase orders')" v-model="queryString" @keyup.enter="getPurchaseOrders()" />
 
         <PurchaseOrderItem v-for="(order, index) in orders" :key="index" :purchaseOrder="order.doclist.docs[0]" />
@@ -18,7 +18,7 @@
             {{ $t("Load more purchase order") }}
           </ion-button>
         </div>
-      </div>
+      </main>
     </ion-content>
   </ion-page>
 </template>

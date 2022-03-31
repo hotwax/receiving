@@ -247,7 +247,7 @@ body {
   --spacer-3xl: 10rem;   /* 160px */
 }
 
-ion-content > div {
+main {
   max-width: 1100px;
   margin: var(--spacer-sm) auto 0;
 }
