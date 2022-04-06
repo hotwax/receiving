@@ -3,7 +3,7 @@
     <ion-toolbar>
       <ion-buttons slot="start">
         <ion-button @click="closeModal">
-          <ion-icon :icon="close" />
+          <ion-icon slot="icon-only" :icon="closeOutline" />
         </ion-button>
       </ion-buttons>
       <ion-title>{{ $t("History") }}</ion-title>
@@ -45,7 +45,7 @@ import {
   modalController,
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
-import { close } from 'ionicons/icons';
+import { closeOutline } from 'ionicons/icons';
 import Image from "@/components/Image.vue";
 import { mapGetters, useStore } from "vuex";
 
@@ -82,7 +82,7 @@ export default defineComponent({
     const store = useStore();
 
     return {
-      close,
+      closeOutline,
       store
     };
   },

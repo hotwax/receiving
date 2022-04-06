@@ -1,0 +1,6 @@
+---
+title: 'Added: default value for property unitCost when calling receiveShipmentItem api'
+ticket_id: "#226h42t"
+merge_request: 86
+author: Yash Maheshwari
+type: fixed
