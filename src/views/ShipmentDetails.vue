@@ -30,7 +30,7 @@
         <ion-card v-for="item in current.items" :key="item.id">
           <div class="product-info">
             <ion-item lines="none">
-              <ion-thumbnail slot="start">
+              <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
                 <Image :src="getProduct(item.productId).mainImageUrl" />
               </ion-thumbnail>
               <ion-label class="ion-text-wrap">
@@ -92,6 +92,7 @@ import AddProductModal from '@/views/AddProductModal.vue'
 import Image from "@/components/Image.vue";
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
+import ImageModal from '@/components/ImageModal.vue';
 
 export default defineComponent({
   name: "ShipmentDetails",
@@ -132,6 +133,13 @@ export default defineComponent({
     }),
   },
   methods: {
+    async openImage(imageUrl: string, productName: string) {
+      const imageModal = await modalController.create({
+        component: ImageModal,
+        componentProps: { imageUrl , productName }
+      });
+      return imageModal.present();
+    },
     async addProduct() {
       const modal = await modalController
         .create({
@@ -221,6 +229,10 @@ export default defineComponent({
   grid-template-columns: repeat(auto-fit, minmax(343px, 1fr));
   gap: 8px;
   margin-bottom: 20px;
+}
+
+ion-thumbnail {
+  cursor: pointer;
 }
 
 .border-top {
