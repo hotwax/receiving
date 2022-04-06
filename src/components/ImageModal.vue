@@ -22,6 +22,7 @@ import {
   IonContent,
   IonHeader,
   IonIcon,
+  IonTitle,
   IonToolbar,
   modalController,
 } from '@ionic/vue';
@@ -37,6 +38,7 @@ export default defineComponent({
     IonContent,
     IonHeader,
     IonIcon,
+    IonTitle,
     IonToolbar,
     Image,
   },

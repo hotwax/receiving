@@ -30,7 +30,7 @@
         <ion-card v-for="item in current.items" :key="item.id">
           <div class="product-info">
             <ion-item lines="none">
-              <ion-thumbnail slot="start" @click="image(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
+              <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
                 <Image :src="getProduct(item.productId).mainImageUrl" />
               </ion-thumbnail>
               <ion-label class="ion-text-wrap">
@@ -133,12 +133,12 @@ export default defineComponent({
     }),
   },
   methods: {
-    async image(imageUrl: string, productName: string) {
-      const createmodal = await modalController.create({
+    async openImage(imageUrl: string, productName: string) {
+      const imageModal = await modalController.create({
         component: ImageModal,
-        componentProps: {imageUrl , productName}
+        componentProps: { imageUrl , productName }
       });
-      return createmodal.present();
+      return imageModal.present();
     },
     async addProduct() {
       const modal = await modalController
