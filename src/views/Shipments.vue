@@ -7,7 +7,7 @@
       </ion-toolbar>
     </ion-header>
     <ion-content>
-      <div>
+      <main>
         <ion-searchbar :placeholder="$t('Scan ASN to start receiving')"/>
 
         <ShipmentListItem v-for="shipment in shipments" :key="shipment.shipmentId" :shipment="shipment"/>
@@ -18,7 +18,7 @@
             {{ $t("Load more shipments") }}
           </ion-button>
         </div>
-      </div>
+      </main>
     </ion-content>
   </ion-page>
 </template>
@@ -83,11 +83,3 @@ export default defineComponent({
   }
 })
 </script>
-
-<style scoped>
-ion-content > div {
-  max-width: 1110px;
-  margin-right: auto;
-  margin-left: auto;
-}
-</style>

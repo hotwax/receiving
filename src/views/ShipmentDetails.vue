@@ -11,7 +11,7 @@
     </ion-header>
 
     <ion-content>
-      <div>
+      <main>
         <ion-item lines="none">
           <h1>{{ $t("Shipment ID") }}: {{ current.shipmentId }}</h1>
         </ion-item>
@@ -52,7 +52,7 @@
             <p slot="end">{{ item.quantityOrdered }}</p>
           </ion-item>
         </ion-card>
-      </div>
+      </main>
 
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
         <ion-fab-button @click="completeShipment">
@@ -224,12 +224,6 @@ export default defineComponent({
 </script>
 
 <style scoped>
-ion-content div {
-  max-width: 1110px;
-  margin-right: auto;
-  margin-left: auto;
-}
-
 .shipment-scanner {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(343px, 1fr));
