@@ -3,7 +3,7 @@
     <ion-toolbar>
       <ion-buttons slot="start">
         <ion-button @click="closeModal">
-          <ion-icon :icon="close" />
+          <ion-icon slot="icon-only" :icon="closeOutline" />
         </ion-button>
       </ion-buttons>
       <ion-title>{{ $t("Add a product") }}</ion-title>
@@ -51,7 +51,7 @@ import {
   modalController,
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
-import { close, checkmarkCircle } from 'ionicons/icons';
+import { closeOutline, checkmarkCircle } from 'ionicons/icons';
 import { mapGetters } from 'vuex'
 import { useStore } from "@/store";
 import Image from "@/components/Image.vue"
@@ -128,7 +128,7 @@ export default defineComponent({
   setup() {
     const store = useStore();
     return {
-      close,
+      closeOutline,
       checkmarkCircle,
       store,
     };

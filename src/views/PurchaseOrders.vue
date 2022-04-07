@@ -7,15 +7,18 @@
       </ion-toolbar>
     </ion-header>
     <ion-content>
-      <ion-searchbar :placeholder="$t('Search')" v-model="queryString" @keyup.enter="getPurchaseOrders()" />
-      <PurchaseOrderItem v-for="(order, index) in orders" :key="index" :purchaseOrder="order.doclist.docs[0]" />
-      
-      <div class="load-more-action ion-text-center">
-        <ion-button fill="outline" color="dark" @click="loadMoreOrders()">
-          <ion-icon :icon="cloudDownloadOutline" slot="start" />
-          {{ $t("Load more purchase order") }}
-        </ion-button>
-      </div>
+      <main>
+        <ion-searchbar :placeholder="$t('Search purchase orders')" v-model="queryString" @keyup.enter="getPurchaseOrders()" />
+
+        <PurchaseOrderItem v-for="(order, index) in orders" :key="index" :purchaseOrder="order.doclist.docs[0]" />
+        
+        <div class="load-more-action ion-text-center">
+          <ion-button fill="outline" color="dark" @click="loadMoreOrders()">
+            <ion-icon :icon="cloudDownloadOutline" slot="start" />
+            {{ $t("Load more purchase order") }}
+          </ion-button>
+        </div>
+      </main>
     </ion-content>
   </ion-page>
 </template>
@@ -100,6 +103,3 @@ export default defineComponent({
   }
 });
 </script>
-
-<style scoped>
-</style>

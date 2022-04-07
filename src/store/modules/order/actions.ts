@@ -68,7 +68,7 @@ const actions: ActionTree<OrderState, RootState> = {
       return orders.some((order: any) => {
         if (order.doclist.docs[0]?.orderId === orderId) {
           this.dispatch('product/fetchProductInformation',  { order: order.doclist.docs });
-          commit(types.ORDER_CURRENT_UPDATED, { order: order.doclist.docs })
+          commit(types.ORDER_CURRENT_UPDATED, { ...state.current, orderId: order.doclist.docs[0]?.orderId, externalOrderId: order.doclist.docs[0]?.externalOrderId, items: order.doclist.docs })
           return current;
         }
       })
@@ -91,12 +91,12 @@ const actions: ActionTree<OrderState, RootState> = {
       resp = await OrderService.fetchPODetail(payload);
 
       if (resp.status === 200 && !hasError(resp) && resp.data.grouped) {
-        const order = resp.data.grouped.orderId.groups[0].doclist.docs
-        order.forEach((product: any) => {
+        const order = resp.data.grouped.orderId.groups[0]
+        order.doclist.docs.forEach((product: any) => {
           product.quantityAccepted = 0;
         })
-        this.dispatch('product/fetchProductInformation', { order });
-        commit(types.ORDER_CURRENT_UPDATED, { order })
+        this.dispatch('product/fetchProductInformation', { order: order.doclist.docs });
+        commit(types.ORDER_CURRENT_UPDATED, { orderId: order.groupValue, externalOrderId: order.doclist.docs[0]?.externalOrderId, items: order.doclist.docs, poHistory: [] })
       }
       else {
         showToast(translate("Something went wrong"));
@@ -123,7 +123,7 @@ const actions: ActionTree<OrderState, RootState> = {
         Promise.all(payload.order.items.map((item: any, index: number) => {
           // TODO: improve code to don't pass shipmentItemSeqId
           const shipmentItemSeqId = `0000${index+1}`
-          return this.dispatch('shipment/addShipmentItem', {item, shipmentId, shipmentItemSeqId})
+          return this.dispatch('shipment/addShipmentItem', {item, shipmentId, shipmentItemSeqId, orderId: params.orderId})
         })).then(async (resp) => {
 
           // adding shipmentItemSeqId property in item

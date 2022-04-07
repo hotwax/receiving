@@ -16,7 +16,7 @@
     </ion-header>
 
     <ion-content>
-      <div>
+      <main>
         <div class="po-id">
           <ion-item lines="none">
             <h1>{{$t("Purchase Order")}}: {{ order.externalOrderId }}</h1>
@@ -42,7 +42,7 @@
           <div class="product">
             <div class="product-info">
               <ion-item lines="none">
-                <ion-thumbnail slot="start">
+                <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
                   <Image :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
@@ -75,7 +75,7 @@
             <p slot="end">{{ item.quantity }} {{ $t("ordered") }}</p>
           </ion-item>
         </ion-card>
-      </div>  
+      </main>  
       
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
         <ion-fab-button @click="savePODetails">
@@ -117,6 +117,7 @@ import { useStore, mapGetters } from 'vuex';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue"
 import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
+import ImageModal from '@/components/ImageModal.vue';
 
 export default defineComponent({
   name: "PurchaseOrderDetails",
@@ -154,6 +155,13 @@ export default defineComponent({
     })
   },
   methods: {
+    async openImage(imageUrl: string, productName: string) {
+      const imageModal = await modalController.create({
+        component: ImageModal,
+        componentProps: { imageUrl , productName }
+      });
+      return imageModal.present();
+    },
     async scan() {
       const modal = await modalController
       .create({
@@ -243,12 +251,6 @@ export default defineComponent({
 </script>
 
 <style scoped>
-ion-content > div {
-  max-width: 1110px;
-  margin-right: auto;
-  margin-left: auto;
-}
-
 .po-meta {
   padding: 0 10px;
 }
@@ -258,6 +260,10 @@ ion-content > div {
   grid-template-columns: repeat(auto-fit, minmax(343px, 1fr));
   gap: 8px;
   margin-bottom: 20px;
+}
+
+ion-thumbnail {
+  cursor: pointer;
 }
 
 .product {

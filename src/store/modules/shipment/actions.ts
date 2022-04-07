@@ -78,7 +78,8 @@ const actions: ActionTree<ShipmentState, RootState> = {
         productId: item.productId,
         quantityAccepted: item.quantityAccepted,
         orderId: item.orderId,
-        orderItemSeqId: item.orderItemSeqId
+        orderItemSeqId: item.orderItemSeqId,
+        unitCost: 0.00
       }
       return ShipmentService.receiveShipmentItem(params).catch((err) => {
         return err;
@@ -99,7 +100,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
       return resp;
     }).catch(err => err);
   },
-  async addShipmentItem ({ state, commit }, payload) {
+  async addShipmentItem ({ state, commit, dispatch }, payload) {
     const item = payload.shipmentId ? { ...(payload.item) } : { ...payload }
     const product = {
       ...item,
@@ -107,6 +108,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
       quantityOrdered: 0
     }
     const params = {
+      orderId: payload.orderId,
       productId: product.productId,
       quantity: 0,
       shipmentId: payload.shipmentId ? payload.shipmentId : state.current.shipmentId,
@@ -114,7 +116,8 @@ const actions: ActionTree<ShipmentState, RootState> = {
     }
     const resp = await ShipmentService.addShipmentItem(params);
     if(resp.status == 200 && !hasError(resp)){
-      commit(types.SHIPMENT_CURRENT_PRODUCT_ADDED, product)
+      dispatch('updateProductCount', { shipmentId: resp.data.shipmentId })
+      if (!payload.shipmentId) commit(types.SHIPMENT_CURRENT_PRODUCT_ADDED, product)
       return resp;
     }
     else {
@@ -122,6 +125,18 @@ const actions: ActionTree<ShipmentState, RootState> = {
       console.log("error", resp._ERROR_MESSAGE_);
       return Promise.reject(new Error(resp.data._ERROR_MESSAGE_));
     }
+  },
+
+  async updateProductCount({ commit, state }, payload ) {
+    const shipments = state.shipments.list;
+    shipments.forEach((shipment: any) => {
+      if(shipment.id === payload.shipmentId) {
+        shipment.noOfItem = parseInt(shipment.noOfItem) + 1;
+        return;
+      }
+    })
+
+    commit(types.SHIPMENT_LIST_UPDATED, { shipments })
   },
 
   async clearShipments({ commit }) {

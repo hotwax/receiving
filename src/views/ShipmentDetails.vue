@@ -11,7 +11,7 @@
     </ion-header>
 
     <ion-content>
-      <div>
+      <main>
         <ion-item lines="none">
           <h1>{{ $t("Shipment ID") }}: {{ current.shipmentId }}</h1>
         </ion-item>
@@ -30,7 +30,7 @@
         <ion-card v-for="item in current.items" :key="item.id">
           <div class="product-info">
             <ion-item lines="none">
-              <ion-thumbnail slot="start">
+              <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
                 <Image :src="getProduct(item.productId).mainImageUrl" />
               </ion-thumbnail>
               <ion-label class="ion-text-wrap">
@@ -52,7 +52,7 @@
             <p slot="end">{{ item.quantityOrdered }}</p>
           </ion-item>
         </ion-card>
-      </div>
+      </main>
 
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
         <ion-fab-button @click="completeShipment">
@@ -92,6 +92,7 @@ import AddProductModal from '@/views/AddProductModal.vue'
 import Image from "@/components/Image.vue";
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
+import ImageModal from '@/components/ImageModal.vue';
 
 export default defineComponent({
   name: "ShipmentDetails",
@@ -132,6 +133,13 @@ export default defineComponent({
     }),
   },
   methods: {
+    async openImage(imageUrl: string, productName: string) {
+      const imageModal = await modalController.create({
+        component: ImageModal,
+        componentProps: { imageUrl , productName }
+      });
+      return imageModal.present();
+    },
     async addProduct() {
       const modal = await modalController
         .create({
@@ -216,17 +224,15 @@ export default defineComponent({
 </script>
 
 <style scoped>
-ion-content div {
-  max-width: 1110px;
-  margin-right: auto;
-  margin-left: auto;
-}
-
 .shipment-scanner {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(343px, 1fr));
   gap: 8px;
   margin-bottom: 20px;
+}
+
+ion-thumbnail {
+  cursor: pointer;
 }
 
 .border-top {

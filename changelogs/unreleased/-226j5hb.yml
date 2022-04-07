@@ -1,0 +1,6 @@
+---
+title: 'Fixed: issue related count of items not updating in shipment list page.'
+ticket_id: "#226j5hb"
+merge_request: 84
+author: meet-aniket
+type: fixed
