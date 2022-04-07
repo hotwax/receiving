@@ -46,7 +46,8 @@ const actions: ActionTree<OrderState, RootState> = {
         item.quantityAccepted = item.quantityAccepted + 1;
       }
     });
-    commit(types.ORDER_CURRENT_UPDATED, state.current )
+
+    commit(types.ORDER_CURRENT_UPDATED, { orderId: state.current.orderId, externalOrderId: state.current.externalOrderId, items: state.current.items, poHistory: state.current.poHistory ? state.current.poHistory : [] })
   },
   async addOrderItem ({ state, commit }, payload) {
     const product = { 
@@ -68,7 +69,7 @@ const actions: ActionTree<OrderState, RootState> = {
       return orders.some((order: any) => {
         if (order.doclist.docs[0]?.orderId === orderId) {
           this.dispatch('product/fetchProductInformation',  { order: order.doclist.docs });
-          commit(types.ORDER_CURRENT_UPDATED, { orderId : order.doclist.docs[0]?.orderId, externalOrderId: order.doclist.docs[0]?.externalOrderId, items: order.doclist.docs })
+          commit(types.ORDER_CURRENT_UPDATED, { orderId: order.doclist.docs[0]?.orderId, externalOrderId: order.doclist.docs[0]?.externalOrderId, items: order.doclist.docs, poHistory: state.current.poHistory ? state.current.poHistory : [] })
           return current;
         }
       })
@@ -91,12 +92,13 @@ const actions: ActionTree<OrderState, RootState> = {
       resp = await OrderService.fetchPODetail(payload);
 
       if (resp.status === 200 && !hasError(resp) && resp.data.grouped) {
-        const order = resp.data.grouped.orderId.groups[0].doclist.docs
-        order.forEach((product: any) => {
+        const order = resp.data.grouped.orderId.groups[0]
+        order.doclist.docs.forEach((product: any) => {
           product.quantityAccepted = 0;
         })
-        this.dispatch('product/fetchProductInformation', { order });
-        commit(types.ORDER_CURRENT_UPDATED, { order })
+        this.dispatch('product/fetchProductInformation', { order: order.doclist.docs });
+
+        commit(types.ORDER_CURRENT_UPDATED, { orderId: order.groupValue, externalOrderId: order.doclist.docs[0]?.externalOrderId, items: order.doclist.docs, poHistory: [] })
       }
       else {
         showToast(translate("Something went wrong"));
@@ -173,7 +175,7 @@ const actions: ActionTree<OrderState, RootState> = {
         const current = state.current as any
         const poHistory = resp.data.docs;
         current.poHistory.items = poHistory;
-        commit(types.ORDER_CURRENT_UPDATED, current);
+        commit(types.ORDER_CURRENT_UPDATED, { orderId: current.orderId, items: current.items, externalOrderId: current.externalOrderId, poHistory: current.poHistory });
         return poHistory;
       } 
     } catch(error){
