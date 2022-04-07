@@ -47,7 +47,7 @@ const actions: ActionTree<OrderState, RootState> = {
       }
     });
 
-    commit(types.ORDER_CURRENT_UPDATED, { orderId: state.current.orderId, externalOrderId: state.current.externalOrderId, items: state.current.items, poHistory: state.current.poHistory ? state.current.poHistory : [] })
+    commit(types.ORDER_CURRENT_UPDATED, { orderId: state.current.orderId, externalOrderId: state.current.externalOrderId, items: state.current.items, poHistory: state.current.poHistory })
   },
   async addOrderItem ({ state, commit }, payload) {
     const product = { 
@@ -69,7 +69,7 @@ const actions: ActionTree<OrderState, RootState> = {
       return orders.some((order: any) => {
         if (order.doclist.docs[0]?.orderId === orderId) {
           this.dispatch('product/fetchProductInformation',  { order: order.doclist.docs });
-          commit(types.ORDER_CURRENT_UPDATED, { orderId: order.doclist.docs[0]?.orderId, externalOrderId: order.doclist.docs[0]?.externalOrderId, items: order.doclist.docs, poHistory: state.current.poHistory ? state.current.poHistory : [] })
+          commit(types.ORDER_CURRENT_UPDATED, { orderId: order.doclist.docs[0]?.orderId, externalOrderId: order.doclist.docs[0]?.externalOrderId, items: order.doclist.docs, poHistory: state.current.poHistory })
           return current;
         }
       })
