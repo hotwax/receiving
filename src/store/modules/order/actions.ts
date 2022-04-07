@@ -97,7 +97,6 @@ const actions: ActionTree<OrderState, RootState> = {
           product.quantityAccepted = 0;
         })
         this.dispatch('product/fetchProductInformation', { order: order.doclist.docs });
-
         commit(types.ORDER_CURRENT_UPDATED, { orderId: order.groupValue, externalOrderId: order.doclist.docs[0]?.externalOrderId, items: order.doclist.docs, poHistory: [] })
       }
       else {
