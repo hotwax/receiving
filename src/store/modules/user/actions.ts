@@ -52,22 +52,33 @@ const actions: ActionTree<UserState, RootState> = {
   /**
    * Get User profile
    */
-  async getProfile ( { commit }) {
+  async getProfile ( { commit, dispatch }) {
     const resp = await UserService.getProfile()
     if (resp.status === 200) {
       const localTimeZone = moment.tz.guess();
       if (resp.data.userTimeZone !== localTimeZone) {
         emitter.emit('timeZoneDifferent', { profileTimeZone: resp.data.userTimeZone, localTimeZone});
       }
+
       commit(types.USER_INFO_UPDATED, resp.data);
+      await dispatch('getEComStores', { facilityId: resp.data.facilities[0] })
       commit(types.USER_CURRENT_FACILITY_UPDATED, resp.data.facilities.length > 0 ? resp.data.facilities[0] : {});
     }
+    return resp;
+  },
+
+  /**
+   *  update current eComStore information
+  */
+  async setEComStore({ commit, dispatch }, payload) {
+    commit(types.USER_CURRENT_ECOM_STORE_UPDATED, payload.eComStore);
   },
 
   /**
    * update current facility information
    */
-  async setFacility ({ commit }, payload) {
+  async setFacility ({ commit, dispatch }, payload) {
+    await dispatch("getEComStores", { facilityId: payload.facility.facilityId });
     commit(types.USER_CURRENT_FACILITY_UPDATED, payload.facility);
   },
   
@@ -87,6 +98,41 @@ const actions: ActionTree<UserState, RootState> = {
   // Set User Instance Url
   setUserInstanceUrl ({ commit }, payload){
     commit(types.USER_INSTANCE_URL_UPDATED, payload)
+  },
+
+  async getEComStores({ state, commit, dispatch }, payload) {
+    let resp;
+
+    try {
+      const param = {
+        "inputFields": {
+          "facilityId": payload.facilityId,
+          "storeName_op": "not-empty"
+        },
+        "fieldList": ["productStoreId", "storeName"],
+        "entityName": "ProductStore",
+        "distinct": "Y",
+        "noConditionFind": "Y"
+      }
+
+      resp = await UserService.getEComStores(param);
+      if(resp.status === 200 && resp.data.docs?.length > 0 && !hasError(resp)) {
+        const user = state.current as any;
+        
+        user.stores = [{
+          productStoreId: '',
+          storeName: 'None'
+        }, ...(resp.data.docs ? resp.data.docs : [])]
+        
+        commit(types.USER_INFO_UPDATED, user);
+        dispatch('setEComStore', { eComStore: user.stores.length > 0 ? user.stores[0] : {} });
+
+        return user.stores
+      }
+    } catch(error) {
+      console.error(error);
+    }
+    return []
   }
 }
 
