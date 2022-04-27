@@ -19,7 +19,7 @@ const getters: GetterTree<OrderState, RootState> = {
     return state.current.poHistory;
   },
   getPOItemAccepted: (state) => (productId: string) => {
-    return state.current.poHistory.items.filter((item: any) => {
+    return state.current.poHistory.items?.filter((item: any) => {
       return item.productId === productId;
     }).reduce((sum: any, item: any) => {
       return sum + item.quantityAccepted;

@@ -16,7 +16,7 @@
     </ion-header>
 
     <ion-content>
-      <div>
+      <main>
         <div class="po-id">
           <ion-item lines="none">
             <h1>{{$t("Purchase Order")}}: {{ order.externalOrderId }}</h1>
@@ -42,7 +42,7 @@
           <div class="product">
             <div class="product-info">
               <ion-item lines="none">
-                <ion-thumbnail slot="start">
+                <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
                   <Image :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
@@ -89,7 +89,7 @@
             </div>         
           </div>
         </ion-card>
-      </div>  
+      </main>  
       
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
         <ion-fab-button @click="savePODetails">
@@ -133,6 +133,7 @@ import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue"
 import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
 import LocationPopover from '@/components/LocationPopover.vue'
+import ImageModal from '@/components/ImageModal.vue';
 
 export default defineComponent({
   name: "PurchaseOrderDetails",
@@ -171,6 +172,13 @@ export default defineComponent({
     })
   },
   methods: {
+    async openImage(imageUrl: string, productName: string) {
+      const imageModal = await modalController.create({
+        component: ImageModal,
+        componentProps: { imageUrl , productName }
+      });
+      return imageModal.present();
+    },
     async scan() {
       const modal = await modalController
       .create({
@@ -260,12 +268,6 @@ export default defineComponent({
 </script>
 
 <style scoped>
-ion-content > div {
-  max-width: 1110px;
-  margin-right: auto;
-  margin-left: auto;
-}
-
 .po-meta {
   padding: 0 10px;
 }
@@ -296,6 +298,10 @@ ion-content > div {
 .qty-ordered {
   grid-area: ordered;
 }
+
+ion-thumbnail {
+  cursor: pointer;
+} 
 
 @media (min-width: 720px) {
   .po-id {
