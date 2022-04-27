@@ -52,10 +52,10 @@
               </ion-item>
             </div>
 
-            <div class="po-item-history">
+            <div class="po-location">
               <ion-chip outline>
-                <ion-icon :icon="checkmarkDone"/>
-                <ion-label> {{ getPOItemAccepted(item.productId) }} {{ $t("received") }} </ion-label>
+                <ion-icon :icon="locationOutline"/>
+                <ion-label>locationId</ion-label>
               </ion-chip>
             </div>
 
@@ -72,6 +72,12 @@
               {{ $t("Receive All") }}
             </ion-button>
             <ion-progress-bar :value="item.quantityAccepted/item.quantity" />
+            <div>
+              <ion-chip outline>
+                <ion-icon :icon="checkmarkDone"/>
+                <ion-label> {{ getPOItemAccepted(item.productId) }} {{ $t("received") }} </ion-label>
+              </ion-chip>
+            </div>
             <p slot="end">{{ item.quantity }} {{ $t("ordered") }}</p>
           </ion-item>
         </ion-card>
@@ -110,7 +116,7 @@ import {
   alertController,
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
-import { addOutline, cameraOutline, checkmarkDone, saveOutline, timeOutline } from 'ionicons/icons';
+import { addOutline, cameraOutline, checkmarkDone, locationOutline, saveOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import Image from "@/components/Image.vue";
 import { useStore, mapGetters } from 'vuex';
@@ -241,6 +247,7 @@ export default defineComponent({
       addOutline,
       cameraOutline,
       checkmarkDone,
+      locationOutline,
       router,
       saveOutline,
       store,
@@ -269,7 +276,7 @@ ion-thumbnail {
 .product {
   display: grid;
   grid: "info    count" 
-        "history history" 
+        "location location" 
         / 1fr .35fr;
   align-items: center;
   padding: 16px;
@@ -280,8 +287,8 @@ ion-thumbnail {
   grid-area: info;
 }
 
-.po-item-history {
-  grid-area: history;
+.po-location {
+  grid-area: location;
   justify-self: center;
 }
 
@@ -303,7 +310,7 @@ ion-thumbnail {
    }
 
   .product {
-    grid: "info history count" /  1fr max-content 1fr;
+    grid: "info location count" /  1fr max-content 1fr;
   }
 }
 </style>
