@@ -48,6 +48,7 @@
                 <ion-label class="ion-text-wrap">
                   {{ getProduct(item.productId).productName }}
                   <p>{{ item.productId }}</p>
+                  <p>Arrival date</p>
                 </ion-label>
               </ion-item>
             </div>
@@ -300,6 +301,10 @@ ion-thumbnail {
 .product-count > ion-item {
   max-width: 20ch;
   margin-left: auto;
+}
+
+ion-card > ion-item > div {
+  margin-left:var(--spacer-sm);
 }
 
 @media (min-width: 720px) {
