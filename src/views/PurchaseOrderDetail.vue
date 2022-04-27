@@ -272,8 +272,8 @@ ion-content > div {
 
 .action {
   display: grid;
-  grid: "button progressbr label"
-        "chip   chip       chip" 
+  grid: "receive progressbar ordered"
+        "history history     history" 
         / max-content 1fr max-content; 
   gap: 10px;
   align-items: center;
@@ -281,20 +281,20 @@ ion-content > div {
 }
 
 .receive-all-qty {
-  grid-area: button;
+  grid-area: receive;
 }
 
 .qty-progress {
-  grid-area: progressbr;
+  grid-area: progressbar;
 }
 
 .po-item-history {
-  grid-area: chip;
+  grid-area: history;
   justify-self: center;
 }
 
 .qty-ordered {
-  grid-area: label;
+  grid-area: ordered;
 }
 
 @media (min-width: 720px) {
@@ -305,7 +305,7 @@ ion-content > div {
    }
 
   .action {
-    grid: "button progressbr chip label" /  max-content 1fr max-content max-content;
+    grid: "receive progressbar history ordered" /  max-content 1fr max-content max-content;
     margin-left: 16px;
   }
 }
