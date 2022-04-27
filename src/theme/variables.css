@@ -242,3 +242,44 @@ ion-thumbnail > img {
 .load-more-action {
   margin-top: 25px;
 }
+
+.scanner {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(343px, 1fr));
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.product {
+  display: grid;
+  grid: "info    count" 
+        "location location" 
+        / 1fr .35fr;
+  align-items: center;
+  padding: 16px 16px 16px 0; 
+}
+
+.product-info {
+  grid-area: info;
+}
+
+.location {
+  grid-area: location;
+  justify-self: center;
+}
+
+.product-count {
+  grid-area: count;
+  min-width: 9ch;
+}
+
+.product-count > ion-item {
+  max-width: 20ch;
+  margin-left: auto;
+}
+
+@media (min-width: 720px) {
+  .product {
+    grid: "info location count" /  1fr max-content 1fr;
+  }
+}

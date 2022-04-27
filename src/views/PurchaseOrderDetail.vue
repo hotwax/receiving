@@ -27,7 +27,7 @@
           </div>
         </div>
         
-        <div class="po-scanner">
+        <div class="scanner">
           <ion-item>
             <ion-label position="fixed">{{$t("Scan items")}}</ion-label>
             <ion-input :placeholder="$t('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()" />
@@ -52,11 +52,8 @@
               </ion-item>
             </div>
 
-            <div class="po-item-history">
-              <ion-chip outline>
-                <ion-icon :icon="checkmarkDone"/>
-                <ion-label> {{ getPOItemAccepted(item.productId) }} {{ $t("received") }} </ion-label>
-              </ion-chip>
+            <div class="location">
+              <LocationPopover />
             </div>
 
             <div class="product-count">
@@ -67,13 +64,30 @@
             </div>
           </div>
 
-          <ion-item lines="none" class="border-top" v-if="item.quantity > 0">
-            <ion-button @click="receiveAll(item)" slot="start" fill="outline">
-              {{ $t("Receive All") }}
-            </ion-button>
+          <div class="action border-top" v-if="item.quantity > 0">
+            <div class="receive-all-qty">
+              <ion-button @click="receiveAll(item)" slot="start" fill="outline">
+                {{ $t("Receive All") }}
+              </ion-button>
+            </div>
+
+            <div class="qty-progress">
             <ion-progress-bar :value="item.quantityAccepted/item.quantity" />
-            <p slot="end">{{ item.quantity }} {{ $t("ordered") }}</p>
-          </ion-item>
+            </div>
+
+            <div class="po-item-history">
+              <ion-chip outline>
+                <ion-icon :icon="checkmarkDone"/>
+                <ion-label> {{ getPOItemAccepted(item.productId) }} {{ $t("received") }} </ion-label>
+              </ion-chip>
+            </div>
+
+            <div class="qty-ordered">
+              <ion-item lines="none">
+                <ion-label>{{ item.quantity }} {{ $t("ordered") }}</ion-label>   
+              </ion-item>
+            </div>         
+          </div>
         </ion-card>
       </div>  
       
@@ -108,6 +122,7 @@ import {
   IonToolbar,
   modalController,
   alertController,
+  popoverController
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { addOutline, cameraOutline, checkmarkDone, saveOutline, timeOutline } from 'ionicons/icons';
@@ -117,6 +132,7 @@ import { useStore, mapGetters } from 'vuex';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue"
 import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
+import LocationPopover from '@/components/LocationPopover.vue'
 
 export default defineComponent({
   name: "PurchaseOrderDetails",
@@ -140,6 +156,7 @@ export default defineComponent({
     IonThumbnail,
     IonTitle,
     IonToolbar,
+    LocationPopover
   },
   data() {
     return {
@@ -253,40 +270,31 @@ ion-content > div {
   padding: 0 10px;
 }
 
-.po-scanner {
+.action {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(343px, 1fr));
-  gap: 8px;
-  margin-bottom: 20px;
-}
-
-.product {
-  display: grid;
-  grid: "info    count" 
-        "history history" 
-        / 1fr .35fr;
+  grid: "button progressbr label"
+        "chip   chip       chip" 
+        / max-content 1fr max-content; 
+  gap: 10px;
   align-items: center;
-  padding: 16px;
-  padding-left: 0;
+  margin-bottom: 10px;
 }
 
-.product-info {
-  grid-area: info;
+.receive-all-qty {
+  grid-area: button;
+}
+
+.qty-progress {
+  grid-area: progressbr;
 }
 
 .po-item-history {
-  grid-area: history;
+  grid-area: chip;
   justify-self: center;
 }
 
-.product-count {
-  grid-area: count;
-  min-width: 9ch;
-}
-
-.product-count > ion-item {
-  max-width: 20ch;
-  margin-left: auto;
+.qty-ordered {
+  grid-area: label;
 }
 
 @media (min-width: 720px) {
@@ -296,8 +304,9 @@ ion-content > div {
     align-items: center;
    }
 
-  .product {
-    grid: "info history count" /  1fr max-content 1fr;
+  .action {
+    grid: "button progressbr chip label" /  max-content 1fr max-content max-content;
+    margin-left: 16px;
   }
 }
 </style>
