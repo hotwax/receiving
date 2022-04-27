@@ -53,7 +53,7 @@
               </ion-item>
             </div>
 
-            <div class="po-location">
+            <div class="po-location" @click="selectLocation">
               <ion-chip outline>
                 <ion-icon :icon="locationOutline"/>
                 <ion-label>locationId</ion-label>
@@ -115,6 +115,7 @@ import {
   IonToolbar,
   modalController,
   alertController,
+  popoverController
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { addOutline, cameraOutline, checkmarkDone, locationOutline, saveOutline, timeOutline } from 'ionicons/icons';
@@ -125,6 +126,7 @@ import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue"
 import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
 import ImageModal from '@/components/ImageModal.vue';
+import LocationPopover from '@/components/LocationPopover.vue'
 
 export default defineComponent({
   name: "PurchaseOrderDetails",
@@ -162,6 +164,15 @@ export default defineComponent({
     })
   },
   methods: {
+    async selectLocation(ev: Event) {
+      const popover = await popoverController
+        .create({
+          component: LocationPopover,
+          event: ev,
+          showBackdrop: false,
+        })
+      await popover.present();
+    },
     async openImage(imageUrl: string, productName: string) {
       const imageModal = await modalController.create({
         component: ImageModal,
