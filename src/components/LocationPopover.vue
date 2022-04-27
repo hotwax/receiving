@@ -9,6 +9,8 @@
 
 <script lang="ts">
 import {
+  IonChip,
+  IonIcon,  
   IonSelect,
   IonSelectOption 
 } from '@ionic/vue';
@@ -19,6 +21,8 @@ import { locationOutline } from 'ionicons/icons'
 export default defineComponent({
   name: 'LocationPopover',
   components: {
+    IonChip,
+    IonIcon,
     IonSelect,
     IonSelectOption
   },
