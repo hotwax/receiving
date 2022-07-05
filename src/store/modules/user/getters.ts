@@ -21,6 +21,9 @@ const getters: GetterTree <UserState, RootState> = {
     getCurrentFacilityLocation(state) {
         return state.currentFacilityLocation
     },
+    getFacilityLocations(state) {
+        return state.facilityLocations
+    },
     getInstanceUrl (state) {
         return state.instanceUrl;
     }

@@ -3,5 +3,6 @@ export default interface UserState {
     current: object | null;
     currentFacility: object | null;
     currentFacilityLocation: object | null;
+    facilityLocations: any;
     instanceUrl: string;
 }

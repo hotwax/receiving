@@ -2,7 +2,7 @@
   <ion-chip outline>
     <ion-icon :icon="locationOutline"/>
     <ion-select interface="popover" :placeholder="$t('facility location')" :value="currentFacilityLocation.locationSeqId" @ionChange="setFacilityLocation($event)">
-    <ion-select-option v-for="facilityLocation in (userProfile && userProfile.facilityLocations ? userProfile.facilityLocations : [])" :key="facilityLocation.locationSeqId" :value="facilityLocation.locationSeqId" >{{ facilityLocation.locationPath }}</ion-select-option>
+    <ion-select-option v-for="facilityLocation in (facilityLocations ? facilityLocations : [])" :key="facilityLocation.locationSeqId" :value="facilityLocation.locationSeqId" >{{ facilityLocation.locationPath }}</ion-select-option>
     </ion-select>
   </ion-chip>
 </template>
@@ -28,14 +28,14 @@ export default defineComponent({
   },
   computed: {
     ...mapGetters({
-      userProfile: 'user/getUserProfile',
+      facilityLocations: 'user/getFacilityLocations',
       currentFacilityLocation: 'user/getCurrentFacilityLocation',
     })
   },
   methods: {
     setFacilityLocation(facilityLocation: any) {
-      if (this.userProfile && this.userProfile.facilityLocations) {
-        this.userProfile.facilityLocations.map((location: any) => {
+      if (this.facilityLocations) {
+        this.facilityLocations.map((location: any) => {
           if(location.locationSeqId === facilityLocation['detail'].value) {
             this.store.dispatch('user/setFacilityLocation', {'facilityLocation': location});
           }
