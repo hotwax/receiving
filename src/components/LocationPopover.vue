@@ -33,8 +33,8 @@ export default defineComponent({
     })
   },
   methods: {
-      setFacilityLocation(facilityLocation: any) {
-      if(this.userProfile && this.userProfile.facilityLocations) {
+    setFacilityLocation(facilityLocation: any) {
+      if (this.userProfile && this.userProfile.facilityLocations) {
         this.userProfile.facilityLocations.map((location: any) => {
           if(location.locationSeqId === facilityLocation['detail'].value) {
             this.store.dispatch('user/setFacilityLocation', {'facilityLocation': location});

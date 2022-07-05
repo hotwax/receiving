@@ -142,6 +142,8 @@ const actions: ActionTree<UserState, RootState> = {
         })
 
         return facilityLocations;
+      } else {
+        console.error(resp);
       }
     } catch(err) {
       console.error(err);
