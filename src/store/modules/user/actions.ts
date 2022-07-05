@@ -90,6 +90,7 @@ const actions: ActionTree<UserState, RootState> = {
       "inputFields": {
         "facilityId": payload.facility.facilityId
       },
+      "viewSize": 20,
       "fieldList": ["locationSeqId", "areaId", "aisleId", "sectionId", "levelId", "positionId"],
       "entityName": "FacilityLocation",
       "distinct": "Y",
