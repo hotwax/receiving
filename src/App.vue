@@ -13,7 +13,9 @@ import Menu from '@/components/Menu.vue';
 import { defineComponent } from 'vue';
 import { loadingController } from '@ionic/vue';
 import emitter from "@/event-bus"
-
+import { mapGetters } from 'vuex';
+import { Settings } from 'luxon';
+  
 
 export default defineComponent({
   name: 'App',
@@ -47,6 +49,11 @@ export default defineComponent({
       }
     }
   },
+  computed: {
+    ...mapGetters({
+      userProfile: 'user/getUserProfile',
+    })
+  },
   async mounted() {
     this.loader = await loadingController
       .create({
@@ -56,6 +63,11 @@ export default defineComponent({
       });
     emitter.on('presentLoader', this.presentLoader);
     emitter.on('dismissLoader', this.dismissLoader);
+    // Handles case when user resumes or reloads the app
+    // Luxon timezzone should be set with the user's selected timezone
+    if (this.userProfile && this.userProfile.userTimeZone) {
+      Settings.defaultZone = this.userProfile.userTimeZone;
+    }
   },
   unmounted() {
     emitter.off('presentLoader', this.presentLoader);
