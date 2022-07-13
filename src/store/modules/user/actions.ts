@@ -61,7 +61,9 @@ const actions: ActionTree<UserState, RootState> = {
       }
 
       commit(types.USER_INFO_UPDATED, resp.data);
-      await dispatch('getEComStores', { facilityId: resp.data.facilities[0] })
+      if (resp.data.facilities.length > 0) {
+        await dispatch('getEComStores', { facilityId: resp.data.facilities[0].facilityId })
+      }
       commit(types.USER_CURRENT_FACILITY_UPDATED, resp.data.facilities.length > 0 ? resp.data.facilities[0] : {});
     }
     return resp;
@@ -120,7 +122,7 @@ const actions: ActionTree<UserState, RootState> = {
       }
 
       resp = await UserService.getEComStores(param);
-      if(resp.status === 200 && resp.data.docs?.length > 0 && !hasError(resp)) {
+      if(resp.status === 200 && !hasError(resp) && resp.data.docs?.length > 0) {
         const user = state.current as any;
         const userPref =  await UserService.getUserPreference({
           'userPrefTypeId': 'SELECTED_BRAND'
@@ -136,6 +138,8 @@ const actions: ActionTree<UserState, RootState> = {
         dispatch('setEComStore', { eComStore: userPrefStore? userPrefStore: user.stores.length > 0 ? user.stores[0] : {} });
 
         return user.stores
+      } else {
+        console.error(resp);
       }
     } catch(error) {
       console.error(error);

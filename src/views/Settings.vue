@@ -11,14 +11,14 @@
       <ion-list>
         <ion-item>
           <ion-icon :icon="globeOutline" slot="start" />
-          <ion-label>{{$t("eCom Store")}}</ion-label>
+          <ion-label>{{ $t("eCom Store") }}</ion-label>
           <ion-select interface="popover" :value="currentEComStore.productStoreId" @ionChange="setEComStore($event)">
             <ion-select-option v-for="store in (userProfile ? userProfile.stores : [])" :key="store.productStoreId" :value="store.productStoreId" >{{ store.storeName }}</ion-select-option>
           </ion-select>
         </ion-item>
         <ion-item>
           <ion-icon :icon="storefrontOutline" slot="start" />
-          <ion-label>{{$t("Store")}}</ion-label>
+          <ion-label>{{ $t("Store") }}</ion-label>
           <ion-select interface="popover" :placeholder="$t('store name')" :value="currentFacility.facilityId" @ionChange="setFacility($event)">
             <ion-select-option v-for="facility in (userProfile && userProfile.facilities ? userProfile.facilities : [])" :key="facility.facilityId" :value="facility.facilityId" >{{ facility.name }}</ion-select-option>
           </ion-select>
