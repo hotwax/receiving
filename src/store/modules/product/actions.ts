@@ -49,7 +49,6 @@ const actions: ActionTree<ProductState, RootState> = {
         "queryString": payload.queryString
       })
       if (!isError(resp)) {
-        console.log('resp', resp)
         let products = resp.products;
         const total = resp.totalProductsCount;
 
