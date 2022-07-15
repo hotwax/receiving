@@ -106,7 +106,7 @@ const actions: ActionTree<OrderState, RootState> = {
     }
     return resp;
   },
-  async createPurchaseShipment({ commit }, payload) {
+  async createPurchaseShipment({ commit, rootGetters }, payload) {
 
     let resp;
     try {
@@ -135,11 +135,10 @@ const actions: ActionTree<OrderState, RootState> = {
             })
           })
 
-          // TODO: remove the hardcoded value, currently using harcoded locationSeqId for NotNaked catalog
           const poShipment = {
             shipment: {
               shipmentId,
-              locationSeqId: 'TLTLTLLL02'
+              locationSeqId: rootGetters['user/getCurrentFacilityLocation'].locationSeqId
             },
             items: payload.order.items
           }
