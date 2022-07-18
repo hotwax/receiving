@@ -8,7 +8,7 @@
     </ion-header>
     <ion-content>
       <main>
-        <ion-searchbar :placeholder="$t('Search purchase orders')" v-model="queryString" @keyup.enter="getPurchaseOrders()" />
+        <ion-searchbar :placeholder="$t('Search purchase orders')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getPurchaseOrders()" />
 
         <PurchaseOrderItem v-for="(order, index) in orders" :key="index" :purchaseOrder="order.doclist.docs[0]" />
         
