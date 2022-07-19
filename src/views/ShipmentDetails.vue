@@ -31,7 +31,7 @@
           <div class="product-info">
             <ion-item lines="none">
               <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
-                <Image :src="getProduct(item.productId).mainImageUrl" />
+                <Image :src="getProduct(item.productId).images?.mainImageUrl" />
               </ion-thumbnail>
               <ion-label class="ion-text-wrap">
                 <h2>{{ getProduct(item.productId).productName }}</h2> 
