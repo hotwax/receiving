@@ -18,8 +18,8 @@
           <Image :src="product.images?.mainImageUrl" />
         </ion-thumbnail>
         <ion-label>
-          <h2>{{ product.productName}}</h2>
-          <p>{{ product.productId}}</p>
+          <h2>{{ product.productName }}</h2>
+          <p>{{ product.productId }}</p>
         </ion-label>
         <ion-icon v-if="isProductAvailableInOrder(product.productId)" color="success" :icon="checkmarkCircle" />
         <ion-button v-else fill="outline" @click="addtoOrder(product)">{{ $t("Add to Purchase Order") }}</ion-button>

@@ -5,8 +5,7 @@ import * as types from './mutation-types'
 import { showToast } from '@/utils'
 import emitter from '@/event-bus'
 import { translate } from '@/i18n'
-import { isError } from '@hotwax/oms-api/src/util'
-import { fetchProducts } from '@hotwax/oms-api/src/product'
+import { isError, fetchProducts } from '@hotwax/oms-api'
 
 const actions: ActionTree<ProductState, RootState> = {
   async fetchProducts ({commit, state}, { productIds }) {
@@ -50,7 +49,7 @@ const actions: ActionTree<ProductState, RootState> = {
       })
       if (!isError(resp)) {
         let products = resp.products;
-        const total = resp.totalProductsCount;
+        const total = resp.total;
 
         if (payload.viewIndex && payload.viewIndex > 0) products = state.list.items.concat(products)
         commit(types.PRODUCT_LIST_UPDATED, { products, total });
