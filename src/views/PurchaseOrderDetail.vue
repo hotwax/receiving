@@ -72,7 +72,7 @@
             </div>
 
             <div class="qty-progress">
-            <ion-progress-bar :value="item.quantityAccepted/item.quantity" />
+              <ion-progress-bar :value="item.quantityAccepted/item.quantity" />
             </div>
 
             <div class="po-item-history">
