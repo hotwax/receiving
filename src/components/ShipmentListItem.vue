@@ -1,7 +1,7 @@
 <template>
   <ion-item button @click="viewShipment()">
     <ion-label>
-      <h2>{{ shipment.id }}</h2>
+      <h2>{{ shipment.shipmentId }}</h2>
       <p>{{ shipment.noOfItem }} {{ (shipment.noOfItem > 1 ? 'Items' : 'Item') }}</p>
     </ion-label>
     <ion-note slot="end">{{ shipment.estimatedArrivalDate && shipment.shipmentStatus !== "Received"  ? ($filters.formatDate(shipment.estimatedArrivalDate)) : shipment.shipmentStatus }}</ion-note>

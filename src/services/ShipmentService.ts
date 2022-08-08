@@ -2,7 +2,7 @@ import api from '@/api';
 
 const fetchShipments = async (query: any): Promise <any>  => {
   return api({
-    url: "incoming-shipments", 
+    url: "/performFind",
     method: "post",
     data: query,
     cache: true

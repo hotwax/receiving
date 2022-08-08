@@ -63,10 +63,16 @@ export default defineComponent({
       const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
       const viewIndex = vIndex ? vIndex : 0;
       const payload = {
-        viewSize,
-        viewIndex,
-        facilityId: this.user.facilityId,
-        statusId: "PURCH_SHIP_SHIPPED"
+        "inputFields":{
+            "destinationFacilityId": this.user.facilityId,
+            statusId: "PURCH_SHIP_SHIPPED",
+            shipmentTypeId: "INCOMING_SHIPMENT"
+        },
+        "entityName": "Shipment",
+        "fieldList" : [ "shipmentId","primaryShipGroupSeqId","partyIdFrom","partyIdTo","estimatedArrivalDate","destinationFacilityId","statusId"],
+        "noConditionFind": "Y",
+        "viewSize": viewSize,
+        "viewIndex": viewIndex,
       }
       await this.store.dispatch("shipment/findShipment", payload);
     },
