@@ -48,7 +48,7 @@
             <div class="product-count">
               <ion-item>
                 <ion-label position="floating">{{ $t("Qty") }}</ion-label>
-                <ion-input type="number" min="0" v-model="item.quantityAccepted"></ion-input>
+                <ion-input type="number" min="0" v-model="item.quantityAccepted" />
               </ion-item>
             </div>
           </div>

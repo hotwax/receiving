@@ -263,7 +263,7 @@ ion-thumbnail > img {
 .scanner {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(343px, 1fr));
-  gap: 8px;
+  gap: var(--spacer-xs);
   margin-bottom: 20px;
 }
 
@@ -273,7 +273,7 @@ ion-thumbnail > img {
         "location location" 
         / 1fr .35fr;
   align-items: center;
-  padding: 16px 16px 16px 0; 
+  padding: var(--spacer-xs) var(--spacer-xs) 0; 
 }
 
 .product-info {
