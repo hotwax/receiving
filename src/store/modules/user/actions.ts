@@ -104,6 +104,7 @@ const actions: ActionTree<UserState, RootState> = {
       "inputFields": {
         "facilityId": facilityId
       },
+      // Assuming we will not have more than 20 facility locations, hardcoded the viewSize value 20.
       "viewSize": 20,
       "fieldList": ["locationSeqId", "areaId", "aisleId", "sectionId", "levelId", "positionId"],
       "entityName": "FacilityLocation",
