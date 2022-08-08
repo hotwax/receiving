@@ -72,11 +72,8 @@ const actions: ActionTree<UserState, RootState> = {
    * update current facility information
    */
   async setFacility ({ state, commit, dispatch }, payload) {
-    const user = state.current as any;
 
     await dispatch('getFacilityLocations', payload.facility.facilityId)
-
-    commit(types.USER_INFO_UPDATED, user);
     
     commit(types.USER_CURRENT_FACILITY_UPDATED, payload.facility);
   },
@@ -121,9 +118,10 @@ const actions: ActionTree<UserState, RootState> = {
         let facilityLocations = resp.data.docs
 
         facilityLocations = facilityLocations.map((location: any) => {
+          const locationPath = [location.areaId, location.aisleId, location.sectionId, location.levelId, location.positionId].filter((value: any) => value).join("");
           return {
             locationSeqId: location.locationSeqId,
-            locationPath: location.areaId + location.aisleId + location.sectionId + location.levelId + location.positionId
+            locationPath
           }
         })
         commit(types.USER_FACILITY_LOCATIONS_UPDATED, facilityLocations);
