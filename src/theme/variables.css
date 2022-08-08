@@ -264,7 +264,7 @@ ion-thumbnail > img {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(343px, 1fr));
   gap: var(--spacer-xs);
-  margin-bottom: 20px;
+  margin-bottom: var(--spacer-sm);
 }
 
 .product {
@@ -273,7 +273,7 @@ ion-thumbnail > img {
         "location location" 
         / 1fr .35fr;
   align-items: center;
-  padding: var(--spacer-xs) var(--spacer-xs) 0; 
+  padding: var(--spacer-xs) var(--spacer-xs) var(--spacer-xs) 0; 
 }
 
 .product-info {
