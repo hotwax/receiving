@@ -30,7 +30,7 @@
         <ion-card v-for="item in current.items" :key="item.id">
           <div class="product-info">
             <ion-item lines="none">
-              <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
+              <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).images?.mainImageUrl, getProduct(item.productId).productName)">
                 <Image :src="getProduct(item.productId).images?.mainImageUrl" />
               </ion-thumbnail>
               <ion-label class="ion-text-wrap">
