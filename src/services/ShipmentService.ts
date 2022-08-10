@@ -49,11 +49,20 @@ const fetchStatus = async (payload: any): Promise<any> => {
   })
 }
 
+const fetchItemCount = async (payload: any): Promise<any> => {
+  return api({
+    url: "/performFind",
+    method: "post",
+    data: payload
+  })
+}
+
 export const ShipmentService = {
   fetchShipments,
   getShipmentDetail,
   receiveShipmentItem,
   receiveShipment,
   addShipmentItem,
-  fetchStatus
+  fetchStatus,
+  fetchItemCount
 }
