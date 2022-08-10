@@ -8,13 +8,16 @@ import { translate } from '@/i18n'
 import emitter from '@/event-bus'
 
 const actions: ActionTree<ShipmentState, RootState> = {
-  async findShipment ({ commit, state }, payload) {
+  async findShipment ({ commit, state, dispatch }, payload) {
     let resp;
     try {
       resp = await ShipmentService.fetchShipments(payload)
       if (resp.status === 200 && resp.data.docs?.length > 0 && !hasError(resp)) {
         let shipments = resp.data.docs;
         if (payload.viewIndex && payload.viewIndex > 0) shipments = state.shipments.list.concat(shipments);
+        const statusIds = shipments.map((shipment: any) => shipment.statusId)
+        await dispatch('fetchStatus', statusIds);
+        shipments.map((shipment: any) => shipment.statusDesc = state.status[shipment.statusId]);
         commit(types.SHIPMENT_LIST_UPDATED, { shipments })
       } else {
         showToast(translate("Shipments not found"));
@@ -25,6 +28,46 @@ const actions: ActionTree<ShipmentState, RootState> = {
       showToast(translate("Something went wrong"));
     }
     return resp;
+  },
+  async fetchStatus({ state, commit }, statusIds) {
+    let resp;
+
+    const cachedStatus = JSON.parse(JSON.stringify(state.status));
+    const statusIdFilter = statusIds.reduce((filter: Array<string>, statusId: any) => {
+      if (!cachedStatus[statusId]) {
+        filter.push(statusId)
+      }
+      return filter;
+    }, []);
+
+    if (statusIdFilter.length <= 0) return cachedStatus;
+
+    try {
+      resp = await ShipmentService.fetchStatus({
+        "entityName": "StatusItem",
+        "noConditionFind": "Y",
+        "distinct": "Y",
+        "viewSize": 100,
+        "inputFields": {
+          "statusId": statusIdFilter,
+          "statusId_op": "in"
+        },
+        "fieldList": ["statusId", "description"],
+      })
+
+      if (resp.status == 200 && !hasError(resp) && resp.data.count) {
+        const statuses = resp.data.docs;
+        statuses.map((status: any) => {
+          cachedStatus[status.statusId] = status.description
+        })
+        commit(types.SHIPMENT_STATUS_UPDATED, cachedStatus);
+      } else {
+        console.error(resp);
+      }
+    } catch(err) {
+      console.error('Something went wrong while fetching status for items and orders')
+    }
+    return cachedStatus;
   },
   async updateShipmentProductCount ({ commit, state }, payload) {
     await state.current.items.find((item: any) => {

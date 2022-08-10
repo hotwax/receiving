@@ -3,4 +3,5 @@ export default interface ShipmentState {
   shipments: {
     list: any;
   };
+  status: any;
 }
