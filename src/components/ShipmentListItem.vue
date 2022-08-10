@@ -28,9 +28,9 @@ export default defineComponent({
   props: ["shipment"],
   methods: {
     async viewShipment () {
-      this.store.dispatch('shipment/setCurrent', { shipmentId: this.shipment.id }).then((resp) => {
+      this.store.dispatch('shipment/setCurrent', { shipmentId: this.shipment.shipmentId }).then((resp) => {
         if (resp.items) {
-          this.router.push({ path: `/shipment/${this.shipment.id}` });
+          this.router.push({ path: `/shipment/${this.shipment.shipmentId}` });
         }
       });
     }
