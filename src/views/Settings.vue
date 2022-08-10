@@ -67,7 +67,7 @@ export default defineComponent({
   methods: {
     setFacility (facility: any) {
       // Checking if current facility is not equal to the facility selected to avoid extra api call on logging in again after logout.
-      if(this.userProfile && this.userProfile.facilities && this.currentFacility.facilityId != facility['detail'].value) {
+      if(this.currentFacility.facilityId != facility['detail'].value && this.userProfile && this.userProfile.facilities) {
         this.userProfile.facilities.map((fac: any) => {
           if (fac.facilityId == facility['detail'].value) {
             this.store.dispatch('shipment/clearShipments');
