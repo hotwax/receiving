@@ -60,11 +60,10 @@ const actions: ActionTree<UserState, RootState> = {
         emitter.emit('timeZoneDifferent', { profileTimeZone: resp.data.userTimeZone, localTimeZone});
       }
       if(resp.data.facilities.length > 0) {
-        await dispatch('getFacilityLocations', resp.data.facilities[0].facilityId)
+        commit(types.USER_CURRENT_FACILITY_UPDATED, resp.data.facilities[0]);
       }
 
       commit(types.USER_INFO_UPDATED, resp.data);
-      commit(types.USER_CURRENT_FACILITY_UPDATED, resp.data.facilities.length > 0 ? resp.data.facilities[0] : {});
     }
   },
 
