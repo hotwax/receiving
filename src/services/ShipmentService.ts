@@ -87,8 +87,6 @@ const fetchItemCount = async (payload: any): Promise<any> => {
   })
 }
 
-
-
 export const ShipmentService = {
   fetchShipments,
   getShipmentDetail,

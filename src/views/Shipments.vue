@@ -65,7 +65,7 @@ export default defineComponent({
       const payload = {
         "inputFields": {
           "destinationFacilityId": this.user.facilityId,
-          statusId: "PURCH_SHIP_SHIPPED",
+          "statusId": "PURCH_SHIP_SHIPPED",
           "shipmentTypeId_fld0_value": "INCOMING_SHIPMENT",
           "shipmentTypeId_fld0_op": "equals",
           "shipmentTypeId_fld0_grp": "1",

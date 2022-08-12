@@ -21,7 +21,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
         shipments.map(async (shipment: any) => {
           shipment.statusDesc = status[shipment.statusId]
           shipment.noOfItem = itemCount[shipment.shipmentId]
-        });        
+        });
         if (payload.viewIndex && payload.viewIndex > 0) shipments = state.shipments.list.concat(shipments);
         commit(types.SHIPMENT_LIST_UPDATED, { shipments })
       } else {
