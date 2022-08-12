@@ -69,7 +69,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
         console.error(resp);
       }
     } catch(err) {
-      console.error('Something went wrong while fetching status for items and orders')
+      console.error('Something went wrong while fetching status for shipments')
     }
     return cachedStatus;
   },
