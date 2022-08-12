@@ -14,7 +14,7 @@ const shipmentModule: Module<ShipmentState, RootState> = {
       },
       shipments: {
         list: []
-      },
+      }
     },
     getters,
     actions,
