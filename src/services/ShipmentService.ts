@@ -1,14 +1,14 @@
 import api from '@/api';
 import { hasError } from '@/utils';
 
-const getItemCount = async (shipmentId: any): Promise<any> => {
+const getItemCount = async (shipmentIds: any): Promise<any> => {
   let resp;
   try {
     resp = await fetchItemCount({
       "entityName": "ShipmentItem",
       "noConditionFind": "Y",
       "inputFields": {
-        "shipmentId": shipmentId,
+        "shipmentId": shipmentIds,
       },
       // Passing viewSize 100, to fetch all shipment items
       //TODO: need to handle this on backend
