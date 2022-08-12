@@ -4,7 +4,7 @@ import { hasError } from '@/utils';
 const getItemCount = async (shipmentIds: any): Promise<any> => {
   let resp;
   try {
-    resp = await fetchItemCount({
+    resp = await fetchShipmentItemCount({
       "entityName": "ShipmentItem",
       "noConditionFind": "Y",
       "inputFields": {
@@ -22,6 +22,7 @@ const getItemCount = async (shipmentIds: any): Promise<any> => {
       }, {});
       return itemCount;
     } else {
+      console.error("Could not fetch shipment item count.")
       return {};
     }
   } catch (err) {
@@ -79,7 +80,7 @@ const fetchStatus = async (payload: any): Promise<any> => {
   })
 }
 
-const fetchItemCount = async (payload: any): Promise<any> => {
+const fetchShipmentItemCount = async (payload: any): Promise<any> => {
   return api({
     url: "/performFind",
     method: "post",
@@ -94,6 +95,6 @@ export const ShipmentService = {
   receiveShipment,
   addShipmentItem,
   fetchStatus,
-  fetchItemCount,
+  fetchShipmentItemCount,
   getItemCount
 }

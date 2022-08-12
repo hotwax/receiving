@@ -11,9 +11,6 @@ const mutations: MutationTree <ShipmentState> = {
   },
   [types.SHIPMENT_CURRENT_PRODUCT_ADDED] (state, payload) {
     state.current.items.push(payload)
-  },
-  [types.SHIPMENT_STATUS_UPDATED](state, payload) {
-    state.status = payload;
-}, 
+  }
 }
 export default mutations;

@@ -16,7 +16,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
         let shipments = resp.data.docs;
         const statusIds = [...new Set(shipments.map((shipment: any) => shipment.statusId))]
         const shipmentIds = shipments.map((shipment: any) => shipment.shipmentId)
-        const status = await dispatch('fetchStatus', statusIds);
+        const status = await this.dispatch('util/fetchStatus', statusIds);
         const itemCount = await ShipmentService.getItemCount(shipmentIds);
         shipments.map(async (shipment: any) => {
           shipment.statusDesc = status[shipment.statusId]
@@ -33,46 +33,6 @@ const actions: ActionTree<ShipmentState, RootState> = {
       showToast(translate("Something went wrong"));
     }
     return resp;
-  },
-  async fetchStatus({ state, commit }, statusIds) {
-    let resp;
-
-    const cachedStatus = JSON.parse(JSON.stringify(state.status));
-    const statusIdFilter = statusIds.reduce((filter: Array<string>, statusId: any) => {
-      if (!cachedStatus[statusId]) {
-        filter.push(statusId)
-      }
-      return filter;
-    }, []);
-
-    if (statusIdFilter.length <= 0) return cachedStatus;
-
-    try {
-      resp = await ShipmentService.fetchStatus({
-        "entityName": "StatusItem",
-        "noConditionFind": "Y",
-        "distinct": "Y",
-        "viewSize": 100,
-        "inputFields": {
-          "statusId": statusIdFilter,
-          "statusId_op": "in"
-        },
-        "fieldList": ["statusId", "description"],
-      })
-
-      if (resp.status === 200 && !hasError(resp) && resp.data?.count) {
-        const statuses = resp.data.docs;
-        statuses.map((status: any) => {
-          cachedStatus[status.statusId] = status.description
-        })
-        commit(types.SHIPMENT_STATUS_UPDATED, cachedStatus);
-      } else {
-        console.error(resp);
-      }
-    } catch(err) {
-      console.error('Something went wrong while fetching status for shipments')
-    }
-    return cachedStatus;
   },
 
   async updateShipmentProductCount ({ commit, state }, payload) {
