@@ -1,10 +1,10 @@
 import api from '@/api';
 import { hasError } from '@/utils';
 
-const getShipmentItemCount = async (shipmentIds: any): Promise<any> => {
+const getShipmentItemsCount = async (shipmentIds: any): Promise<any> => {
   let resp;
   try {
-    resp = await fetchShipmentItemCount({
+    resp = await fetchShipmentItemsCount({
       "entityName": "ShipmentItem",
       "noConditionFind": "Y",
       "inputFields": {
@@ -72,7 +72,7 @@ const addShipmentItem = async (query: any): Promise <any> =>{
   })
 }
 
-const fetchShipmentItemCount = async (payload: any): Promise<any> => {
+const fetchShipmentItemsCount = async (payload: any): Promise<any> => {
   return api({
     url: "/performFind",
     method: "post",
@@ -86,6 +86,6 @@ export const ShipmentService = {
   receiveShipmentItem,
   receiveShipment,
   addShipmentItem,
-  fetchShipmentItemCount,
-  getShipmentItemCount
+  fetchShipmentItemsCount,
+  getShipmentItemsCount
 }

@@ -17,10 +17,10 @@ const actions: ActionTree<ShipmentState, RootState> = {
         const statusIds = [...new Set(shipments.map((shipment: any) => shipment.statusId))]
         const shipmentIds = shipments.map((shipment: any) => shipment.shipmentId)
         const statuses = await this.dispatch('util/fetchStatus', statusIds);
-        const shipmentItemCount = await ShipmentService.getShipmentItemCount(shipmentIds);
+        const shipmentItemsCount = await ShipmentService.getShipmentItemsCount(shipmentIds);
         shipments.map(async (shipment: any) => {
           shipment.statusDesc = statuses[shipment.statusId]
-          shipment.noOfItem = shipmentItemCount[shipment.shipmentId]
+          shipment.noOfItem = shipmentItemsCount[shipment.shipmentId]
         });
         if (payload.viewIndex && payload.viewIndex > 0) shipments = state.shipments.list.concat(shipments);
         commit(types.SHIPMENT_LIST_UPDATED, { shipments })
