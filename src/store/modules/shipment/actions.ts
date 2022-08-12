@@ -14,14 +14,15 @@ const actions: ActionTree<ShipmentState, RootState> = {
       resp = await ShipmentService.fetchShipments(payload)
       if (resp.status === 200 && resp.data.docs?.length > 0 && !hasError(resp)) {
         let shipments = resp.data.docs;
-        if (payload.viewIndex && payload.viewIndex > 0) shipments = state.shipments.list.concat(shipments);
-        const statusIds = shipments.map((shipment: any) => shipment.statusId)
-        await dispatch('fetchStatus', statusIds);
+        const statusIds = [...new Set(shipments.map((shipment: any) => shipment.statusId))]
+        const shipmentIds = shipments.map((shipment: any) => shipment.shipmentId)
+        const status = await dispatch('fetchStatus', statusIds);
+        const itemCount = await ShipmentService.getItemCount(shipmentIds);
         shipments.map(async (shipment: any) => {
-          shipment.statusDesc = state.status[shipment.statusId]
-          const itemCount = await dispatch('fetchItemCount', shipment.shipmentId);
-          shipment.noOfItem = itemCount;
-        });
+          shipment.statusDesc = status[shipment.statusId]
+          shipment.noOfItem = itemCount[shipment.shipmentId]
+        });        
+        if (payload.viewIndex && payload.viewIndex > 0) shipments = state.shipments.list.concat(shipments);
         commit(types.SHIPMENT_LIST_UPDATED, { shipments })
       } else {
         showToast(translate("Shipments not found"));
@@ -72,26 +73,6 @@ const actions: ActionTree<ShipmentState, RootState> = {
       console.error('Something went wrong while fetching status for shipments')
     }
     return cachedStatus;
-  },
-  async fetchItemCount({commit}, shipmentId){
-    let resp;
-    try {
-      resp = await ShipmentService.fetchItemCount({
-        "entityName": "ShipmentItem",
-        "noConditionFind": "Y",
-        "inputFields": {
-          "shipmentId": shipmentId,
-        },
-      })
-      if(resp.status === 200 && !hasError(resp) && resp.data){
-        return resp.data.count ? resp.data.count : 0
-      } else {
-        return 0;
-      }
-    } catch (err) {
-      console.error(err);
-      return 0;
-    }
   },
 
   async updateShipmentProductCount ({ commit, state }, payload) {

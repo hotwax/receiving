@@ -1,4 +1,34 @@
 import api from '@/api';
+import { hasError } from '@/utils';
+
+const getItemCount = async (shipmentId: any): Promise<any> => {
+  let resp;
+  try {
+    resp = await fetchItemCount({
+      "entityName": "ShipmentItem",
+      "noConditionFind": "Y",
+      "inputFields": {
+        "shipmentId": shipmentId,
+      },
+      // Passing viewize 100, to fetch all shipment items
+      //TODO: need to handle this on backend
+      "viewSize": 100,
+      "fieldList": ["shipmentId", "shipmentItemSeqId"]
+    })
+    if(resp.status === 200 && !hasError(resp) && resp.data?.docs.length){
+      const itemCount = resp.data.docs.reduce((itemCount: any, shipment: any) => {
+        itemCount[shipment.shipmentId] ? itemCount[shipment.shipmentId]++ : itemCount[shipment.shipmentId] = 1;
+        return itemCount;
+      }, {});
+      return itemCount;
+    } else {
+      return {};
+    }
+  } catch (err) {
+    console.error(err);
+    return {};
+  }
+}
 
 const fetchShipments = async (query: any): Promise <any>  => {
   return api({
@@ -57,6 +87,8 @@ const fetchItemCount = async (payload: any): Promise<any> => {
   })
 }
 
+
+
 export const ShipmentService = {
   fetchShipments,
   getShipmentDetail,
@@ -64,5 +96,6 @@ export const ShipmentService = {
   receiveShipment,
   addShipmentItem,
   fetchStatus,
-  fetchItemCount
+  fetchItemCount,
+  getItemCount
 }

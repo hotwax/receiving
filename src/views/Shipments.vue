@@ -63,12 +63,17 @@ export default defineComponent({
       const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
       const viewIndex = vIndex ? vIndex : 0;
       const payload = {
-        "inputFields":{
-            "destinationFacilityId": this.user.facilityId,
-            statusId: "PURCH_SHIP_SHIPPED",
-            shipmentTypeId: "INCOMING_SHIPMENT"
+        "inputFields": {
+          "destinationFacilityId": this.user.facilityId,
+          statusId: "PURCH_SHIP_SHIPPED",
+          "shipmentTypeId_fld0_value": "INCOMING_SHIPMENT",
+          "shipmentTypeId_fld0_op": "equals",
+          "shipmentTypeId_fld0_grp": "1",
+          "parentTypeId_fld0_value": "INCOMING_SHIPMENT",
+          "parentTypeId_fld0_op": "equals",
+          "parentTypeId_fld0_grp": "2",
         },
-        "entityName": "Shipment",
+        "entityName": "ShipmentAndType",
         "fieldList" : [ "shipmentId","primaryShipGroupSeqId","partyIdFrom","partyIdTo","estimatedArrivalDate","destinationFacilityId","statusId"],
         "noConditionFind": "Y",
         "viewSize": viewSize,
