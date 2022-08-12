@@ -59,7 +59,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
         "fieldList": ["statusId", "description"],
       })
 
-      if (resp.status == 200 && !hasError(resp) && resp.data.count) {
+      if (resp.status === 200 && !hasError(resp) && resp.data?.count) {
         const statuses = resp.data.docs;
         statuses.map((status: any) => {
           cachedStatus[status.statusId] = status.description
