@@ -35,11 +35,10 @@ export default defineComponent({
   methods: {
     setFacilityLocation(facilityLocation: any) {
       if (this.facilityLocations) {
-        this.facilityLocations.map((location: any) => {
-          if(location.locationSeqId === facilityLocation['detail'].value) {
-            this.store.dispatch('user/setFacilityLocation', {'facilityLocation': location});
-          }
-        })
+        const location = this.facilityLocations.find((location: any) => location.locationSeqId === facilityLocation['detail'].value)
+        if(location) {
+          this.store.dispatch('user/setFacilityLocation', {'facilityLocation': location});
+        }
       }
     },
   },
