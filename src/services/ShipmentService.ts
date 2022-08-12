@@ -10,7 +10,7 @@ const getItemCount = async (shipmentId: any): Promise<any> => {
       "inputFields": {
         "shipmentId": shipmentId,
       },
-      // Passing viewize 100, to fetch all shipment items
+      // Passing viewSize 100, to fetch all shipment items
       //TODO: need to handle this on backend
       "viewSize": 100,
       "fieldList": ["shipmentId", "shipmentItemSeqId"]
