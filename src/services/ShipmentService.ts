@@ -1,7 +1,7 @@
 import api from '@/api';
 import { hasError } from '@/utils';
 
-const getItemCount = async (shipmentIds: any): Promise<any> => {
+const getShipmentItemCount = async (shipmentIds: any): Promise<any> => {
   let resp;
   try {
     resp = await fetchShipmentItemCount({
@@ -87,5 +87,5 @@ export const ShipmentService = {
   receiveShipment,
   addShipmentItem,
   fetchShipmentItemCount,
-  getItemCount
+  getShipmentItemCount
 }
