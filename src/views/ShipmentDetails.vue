@@ -137,13 +137,18 @@ export default defineComponent({
     }
   },
   mounted() {
+    if(!this.facilityLocations.length && this.currentFacility.facilityId){
+      this.store.dispatch('getFacilityLocations', this.currentFacility.facilityId)
+    }
     this.store.dispatch('shipment/setCurrent', { shipmentId: this.$route.params.id })
   },
   computed: {
     ...mapGetters({
       current: 'shipment/getCurrent',
       user: 'user/getCurrentFacility',
-      getProduct: 'product/getProduct'
+      getProduct: 'product/getProduct',
+      facilityLocations: 'user/getFacilityLocations',
+      currentFacility: 'user/getCurrentFacility'
     }),
   },
   methods: {
