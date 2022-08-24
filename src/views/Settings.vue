@@ -64,6 +64,11 @@ export default defineComponent({
     IonTitle, 
     IonToolbar
   },
+  data() {
+    return {
+      baseURL: process.env.VUE_APP_BASE_URL
+    };
+  },
   computed: {
     ...mapGetters({
       userProfile: 'user/getUserProfile',
