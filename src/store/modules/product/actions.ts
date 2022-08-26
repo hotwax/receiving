@@ -21,11 +21,11 @@ const actions: ActionTree<ProductState, RootState> = {
     // If there are no product ids to search skip the API call
     if (productIdFilter.length <= 0) return;
     const resp = await fetchProducts({
-      filters: { 'productId': productIdFilter },
+      filters: { 'productId': { 'value': productIdFilter, 'op': 'OR' }},
       viewSize: productIdFilter.length,
       viewIndex: 0
     })
-    if (!isError(resp)) {
+    if (!isError(resp) && resp.total > 0) {
       const products = resp.products;
       // Handled empty response in case of failed query
       if (products) {
