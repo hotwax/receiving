@@ -25,7 +25,7 @@ const actions: ActionTree<UtilState, RootState> = {
         "entityName": "StatusItem",
         "noConditionFind": "Y",
         "distinct": "Y",
-        "viewSize": 100,
+        "viewSize": statusIdFilter.length,
         "inputFields": {
           "statusId": statusIdFilter,
           "statusId_op": "in"
