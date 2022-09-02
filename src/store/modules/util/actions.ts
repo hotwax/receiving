@@ -32,12 +32,12 @@ const actions: ActionTree<UtilState, RootState> = {
         },
         "fieldList": ["statusId", "description"],
       })
-
       if (resp.status === 200 && !hasError(resp) && resp.data?.count) {
         const statuses = resp.data.docs;
-        statuses.map((status: any) => {
-          cachedStatus[status.statusId] = status.description
-        })
+        statuses.reduce((cachedStatus: any, status: any) => {
+          cachedStatus[status.statusId] = status.description;
+          return cachedStatus;
+        }, cachedStatus)
         commit(types.UTIL_STATUS_UPDATED, cachedStatus)
       }
     } catch(err) {
