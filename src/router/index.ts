@@ -8,6 +8,7 @@ import PurchaseOrders from "@/views/PurchaseOrders.vue"
 import PurchaseOrderDetail from "@/views/PurchaseOrderDetail.vue"
 import store from '@/store'
 import Shopify from '@/views/Shopify.vue'
+import Returns from '@/views/Returns.vue'
 
 const authGuard = (to: any, from: any, next: any) => {
   if (store.getters['user/isAuthenticated']) {
@@ -70,6 +71,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/shopify',
     name: 'Shopify',
     component: Shopify
+  },
+  {
+    path: '/returns',
+    name: 'Returns',
+    component: Returns
   },
 ]
 

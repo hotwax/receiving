@@ -41,7 +41,7 @@ import {
 } from "@ionic/vue";
 import { defineComponent, ref } from "vue";
 import { mapGetters } from "vuex";
-import { calendar, download, settings } from "ionicons/icons";
+import { calendar, download, gitPullRequestOutline, settings } from "ionicons/icons";
 import { useStore } from "@/store";
 
 export default defineComponent({
@@ -87,6 +87,12 @@ export default defineComponent({
         url: "/shipments",
         iosIcon: download,
         mdIcon: download,
+      },
+      {
+        title: "Returns",
+        url: "/returns",
+        iosIcon: gitPullRequestOutline,
+        mdIcon: gitPullRequestOutline,
       },
       {
         title: "Purchase Orders",
