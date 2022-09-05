@@ -122,8 +122,9 @@ const actions: ActionTree<OrderState, RootState> = {
 
         Promise.all(payload.order.items.map((item: any, index: number) => {
           // TODO: improve code to don't pass shipmentItemSeqId
+          console.log(item)
           const shipmentItemSeqId = `0000${index+1}`
-          return this.dispatch('shipment/addShipmentItem', {item, shipmentId, shipmentItemSeqId, orderId: params.orderId})
+          return this.dispatch('shipment/addShipmentItem', { item, shipmentId, shipmentItemSeqId, orderId: params.orderId})
         })).then(async (resp) => {
 
           // adding shipmentItemSeqId property in item
@@ -138,11 +139,11 @@ const actions: ActionTree<OrderState, RootState> = {
           const poShipment = {
             shipment: {
               shipmentId,
-              locationSeqId: rootGetters['user/getCurrentFacilityLocation'].locationSeqId
+              // locationSeqId: rootGetters['user/getCurrentFacilityLocation'].locationSeqId
             },
             items: payload.order.items
           }
-
+          console.log(poShipment)
           await this.dispatch('shipment/receiveShipment', {payload: poShipment}).catch((err) => console.error(err))
         })
       } else {
@@ -165,7 +166,7 @@ const actions: ActionTree<OrderState, RootState> = {
           "orderId_op": "in"
         },
         "entityName": "ShipmentReceiptAndItem",
-        "fieldsToSelect": ["datetimeReceived", "productId", "quantityAccepted", "quantityRejected", "receivedByUserLoginId", "shipmentId"]
+        "fieldList": ["datetimeReceived", "productId", "quantityAccepted", "quantityRejected", "receivedByUserLoginId", "shipmentId", 'locationSeqId']
       }
       resp = await OrderService.fetchPOHistory(params)
       if ( resp.data.count && resp.data.count > 0 && resp.status === 200 && !hasError(resp)) {
@@ -180,6 +181,9 @@ const actions: ActionTree<OrderState, RootState> = {
       showToast(translate("Something went wrong"));
     }
     return resp;
+  },
+  setItemLocationSeqId({ commit }, payload) {
+    commit(types.ORDER_ITEM_LOCATION_SEQ_ID_UPDATED, payload)
   }
 }
 

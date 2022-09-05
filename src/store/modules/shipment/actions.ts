@@ -65,10 +65,8 @@ const actions: ActionTree<ShipmentState, RootState> = {
   receiveShipmentItem ({ commit }, data) {
     const payload = data.shipment ? {
       shipmentId: data.shipment.shipmentId,
-      locationSeqId: data.shipment.locationSeqId
     } : {
       shipmentId: data.shipmentId,
-      locationSeqId: data.locationSeqId
     }
     return Promise.all(data.items.map((item: any) => {
       const params = {
@@ -79,7 +77,8 @@ const actions: ActionTree<ShipmentState, RootState> = {
         quantityAccepted: item.quantityAccepted,
         orderId: item.orderId,
         orderItemSeqId: item.orderItemSeqId,
-        unitCost: 0.00
+        unitCost: 0.00,
+        locationSeqId: item.locationSeqId
       }
       return ShipmentService.receiveShipmentItem(params).catch((err) => {
         return err;
@@ -112,7 +111,8 @@ const actions: ActionTree<ShipmentState, RootState> = {
       productId: product.productId,
       quantity: 0,
       shipmentId: payload.shipmentId ? payload.shipmentId : state.current.shipmentId,
-      shipmentItemSeqId: payload.shipmentItemSeqId
+      shipmentItemSeqId: payload.shipmentItemSeqId,
+      locationSeqId: product.locationSeqId
     }
     const resp = await ShipmentService.addShipmentItem(params);
     if(resp.status == 200 && !hasError(resp)){

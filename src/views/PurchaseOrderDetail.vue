@@ -53,7 +53,7 @@
             </div>
 
             <div class="location">
-              <LocationPopover />
+              <LocationPopover :item=item type="purchaseOrder" />
             </div>
 
             <div class="product-count">
@@ -248,12 +248,15 @@ export default defineComponent({
     }
   },
   mounted() {
+    console.log("order", this.order)
     if(!this.facilityLocations.length && this.currentFacility.facilityId) {
       this.store.dispatch('user/getFacilityLocations', this.currentFacility.facilityId)
     }
     this.store.dispatch("order/getOrderDetail", { orderId: this.$route.params.slug }).then(() => {
       this.store.dispatch('order/getPOHistory', { orderId: this.order.orderId })
     })
+    console.log("order", this.order)
+    
   },
   setup() {
     const store = useStore();

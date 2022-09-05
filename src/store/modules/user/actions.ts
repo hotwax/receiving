@@ -100,10 +100,6 @@ const actions: ActionTree<UserState, RootState> = {
     await dispatch('getFacilityLocations', payload.facility.facilityId)
     commit(types.USER_CURRENT_FACILITY_UPDATED, payload.facility);
   },
-
-  async setFacilityLocation({ commit }, payload) {
-    commit(types.USER_CURRENT_FACILITY_LOCATION_UPDATED, payload.facilityLocation);
-  },
   
   /**
    * Update user timeZone
