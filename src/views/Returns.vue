@@ -1,34 +1,34 @@
 <template>
-    <ion-page>
-      <ion-header :translucent="true">
-        <ion-toolbar>
-          <ion-menu-button slot="start" />
-          <ion-title>{{ $t("Returns") }}</ion-title>
-        </ion-toolbar>
-      </ion-header>
-      <ion-content>
-        <main>
-          <ion-searchbar :placeholder="$t('Scan ASN to start receiving')"/>
+  <ion-page>
+    <ion-header :translucent="true">
+      <ion-toolbar>
+        <ion-menu-button slot="start" />
+        <ion-title>{{ $t("Returns") }}</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content>
+      <main>
+        <ion-searchbar :placeholder="$t('Scan ASN to start receiving')"/>
   
-          <ShipmentListItem v-for="shipment in shipments" :key="shipment.shipmentId" :shipment="shipment"/>
+        <ReturnListItem v-for="return in returns" :key="return.returnId" :return="return"/>
   
-          <div class="load-more-action ion-text-center">
-            <ion-button fill="outline" color="dark" @click="loadMoreShipments()">
-              <ion-icon :icon="cloudDownloadOutline" slot="start" />
-              {{ $t("Load more shipments") }}
-            </ion-button>
-          </div>
-        </main>
-      </ion-content>
-    </ion-page>
-  </template>
+        <div class="load-more-action ion-text-center">
+          <ion-button fill="outline" color="dark" @click="loadMoreReturns()">
+            <ion-icon :icon="cloudDownloadOutline" slot="start" />
+            {{ $t("Load more returns") }}
+          </ion-button>
+        </div>
+      </main>
+    </ion-content>
+  </ion-page>
+</template>
   
   <script lang="ts">
   import { IonButton, IonContent, IonHeader, IonIcon, IonMenuButton, IonPage, IonSearchbar, IonTitle, IonToolbar } from '@ionic/vue';
   import { cloudDownloadOutline } from 'ionicons/icons'
   import { defineComponent } from 'vue'
   import { mapGetters, useStore } from 'vuex'
-  import ShipmentListItem from '@/components/ShipmentListItem.vue'
+  import ReturnListItem from '@/components/ReturnListItem.vue'
   
   export default defineComponent({
     name: "Returns",
@@ -42,16 +42,16 @@
       IonPage,
       IonTitle,
       IonToolbar,
-      ShipmentListItem
+      ReturnListItem
     },
     computed: {
       ...mapGetters({
-        shipments: 'shipment/getShipments',
+        returns: 'return/getReturns',
         user: 'user/getCurrentFacility'
       })
     },
     mounted () {
-      this.getShipments();
+      this.getReturns();
     },
     methods: {
       selectSearchBarText(event: any) {
@@ -59,19 +59,19 @@
           element.select();
         })
       },
-      async getShipments(vSize?: any, vIndex?: any) {
+      async getReturns(vSize?: any, vIndex?: any) {
         const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
         const viewIndex = vIndex ? vIndex : 0;
         const payload = {
           viewSize,
           viewIndex,
           facilityId: this.user.facilityId,
-          statusId: "PURCH_SHIP_SHIPPED"
+          statusId: "PURCH_RET_RETURNED"
         }
-        await this.store.dispatch("shipment/findShipment", payload);
+        await this.store.dispatch("return/findReturn", payload);
       },
-      loadMoreShipments() {
-        this.getShipments(process.env.VUE_APP_VIEW_SIZE, Math.ceil(this.shipments.length / process.env.VUE_APP_VIEW_SIZE));
+      loadMoreReturns() {
+        this.getReturns(process.env.VUE_APP_VIEW_SIZE, Math.ceil(this.returns.length / process.env.VUE_APP_VIEW_SIZE));
       }
     },
     setup() {
