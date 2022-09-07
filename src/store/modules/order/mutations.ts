@@ -14,7 +14,6 @@ const mutations: MutationTree <OrderState> = {
     state.current.items.push(payload)
   },
   [types.ORDER_ITEM_LOCATION_SEQ_ID_UPDATED] (state, payload) {
-    console.log(payload, state.current.items[0])
     const item = state.current.items.find((item: any) => item.orderItemSeqId === payload.item.orderItemSeqId)
     if(item){
       item.locationSeqId = payload.facilityLocation?.locationSeqId
