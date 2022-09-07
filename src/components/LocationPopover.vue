@@ -1,7 +1,7 @@
 <template>
   <ion-chip outline>
     <ion-icon :icon="locationOutline"/>
-    <ion-select interface="popover" :placeholder="$t('facility location')" :value="facilityLocationByProduct && facilityLocationByProduct[item.productId] ? facilityLocationByProduct[item.productId] : facilityLocations[0].locationSeqId" @ionChange="setFacilityLocation($event)">
+    <ion-select interface="popover" :placeholder="$t('facility location')" :value="item.locationSeqId ? item.locationSeqId : facilityLocations[0].locationSeqId" @ionChange="setFacilityLocation($event)">
       <ion-select-option v-for="facilityLocation in (facilityLocations ? facilityLocations : [])" :key="facilityLocation.locationSeqId" :value="facilityLocation.locationSeqId" >{{ facilityLocation.locationPath ? facilityLocation.locationPath : facilityLocation.locationSeqId }}</ion-select-option>
     </ion-select>
   </ion-chip>
@@ -31,13 +31,13 @@ export default defineComponent({
       facilityLocations: 'user/getFacilityLocations',
     })
   },
-  props: ['facilityLocationByProduct', 'item', 'type'],
+  props: ['item', 'type'],
   methods: {
     setFacilityLocation(event: any) {
       if (this.facilityLocations) {
         const facilityLocation = this.facilityLocations.find((location: any) => location.locationSeqId === event['detail'].value)
         if(facilityLocation) {
-          this.store.dispatch('order/setItemLocationSeqId', { item: this.item, facilityLocation });
+          this.type === 'purchaseOrder' ? this.store.dispatch('order/setItemLocationSeqId', { item: this.item, facilityLocation }) : this.store.dispatch('shipment/setItemLocationSeqId', { item: this.item, facilityLocation });
         }
       }
     },

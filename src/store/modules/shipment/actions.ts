@@ -42,7 +42,8 @@ const actions: ActionTree<ShipmentState, RootState> = {
         commit(types.SHIPMENT_CURRENT_UPDATED, { current: resp.data })
         let productIds: any = new Set();
         resp.data.items.forEach((item: any) => {
-          productIds.add(item.productId)
+          productIds.add(item.productId);
+          item.locationSeqId = this.state.user.facilityLocations[0].locationSeqId;
         });
 
         productIds = [...productIds]
@@ -142,6 +143,10 @@ const actions: ActionTree<ShipmentState, RootState> = {
   async clearShipments({ commit }) {
     commit(types.SHIPMENT_LIST_UPDATED, { shipments: [] })
     commit(types.SHIPMENT_CURRENT_UPDATED, { current: {} })
+  },
+
+  setItemLocationSeqId({ commit }, payload) {
+    commit(types.SHIPMENT_ITEM_LOCATION_SEQ_ID_UPDATED, payload)
   }
 }
 

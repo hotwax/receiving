@@ -53,7 +53,7 @@
             </div>
 
             <div class="location">
-              <LocationPopover :facilityLocationByProduct="getFacilityLocations()" :item="item" type="purchaseOrder" />
+              <LocationPopover :item="item" type="purchaseOrder" />
             </div>
 
             <div class="product-count">
@@ -245,13 +245,6 @@ export default defineComponent({
           ele.progress = ele.quantityAccepted / ele.quantity;
         }
       })
-    },
-    getFacilityLocations(){
-    const facilityLocations = this.order.poHistory.items?.reduce((products: any, item: any) => {
-        products[item.productId] = item.locationSeqId
-        return products
-      }, {})
-      return facilityLocations;
     }
   },
   mounted() {

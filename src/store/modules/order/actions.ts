@@ -122,7 +122,6 @@ const actions: ActionTree<OrderState, RootState> = {
 
         Promise.all(payload.order.items.map((item: any, index: number) => {
           // TODO: improve code to don't pass shipmentItemSeqId
-          console.log(item)
           const shipmentItemSeqId = `0000${index+1}`
           return this.dispatch('shipment/addShipmentItem', { item, shipmentId, shipmentItemSeqId, orderId: params.orderId})
         })).then(async (resp) => {
@@ -143,7 +142,6 @@ const actions: ActionTree<OrderState, RootState> = {
             },
             items: payload.order.items
           }
-          console.log(poShipment)
           await this.dispatch('shipment/receiveShipment', {payload: poShipment}).catch((err) => console.error(err))
         })
       } else {
@@ -173,6 +171,13 @@ const actions: ActionTree<OrderState, RootState> = {
         const current = state.current as any
         const poHistory = resp.data.docs;
         current.poHistory.items = poHistory;
+        const facilityLocationByProduct = poHistory?.reduce((products: any, item: any) => {
+          products[item.productId] = item.locationSeqId
+          return products
+        }, {});
+        current.items.map((item: any) => {
+          item.locationSeqId = facilityLocationByProduct[item.productId] ? facilityLocationByProduct[item.productId] : this.state.user.facilityLocations[0].locationSeqId
+        });
         commit(types.ORDER_CURRENT_UPDATED, current);
         return poHistory;
       } 
