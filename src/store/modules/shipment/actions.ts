@@ -14,6 +14,12 @@ const actions: ActionTree<ShipmentState, RootState> = {
       resp = await ShipmentService.fetchShipments(payload)
       if (resp.status === 200 && resp.data.docs?.length > 0 && !hasError(resp)) {
         let shipments = resp.data.docs;
+        const statusIds = [...new Set(shipments.map((shipment: any) => shipment.statusId))]
+        const shipmentIds = shipments.map((shipment: any) => shipment.shipmentId)
+        const statuses = await this.dispatch('util/fetchStatus', statusIds);
+        shipments.map(async (shipment: any) => {
+          shipment.statusDesc = statuses[shipment.statusId]
+        });
         if (payload.viewIndex && payload.viewIndex > 0) shipments = state.shipments.list.concat(shipments);
         commit(types.SHIPMENT_LIST_UPDATED, { shipments })
       } else {
@@ -26,6 +32,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
     }
     return resp;
   },
+
   async updateShipmentProductCount ({ commit, state }, payload) {
     await state.current.items.find((item: any) => {
       if(item.sku === payload){
