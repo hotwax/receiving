@@ -106,7 +106,7 @@ const actions: ActionTree<OrderState, RootState> = {
     }
     return resp;
   },
-  async createPurchaseShipment({ commit, rootGetters }, payload) {
+  async createPurchaseShipment({ commit }, payload) {
 
     let resp;
     try {
@@ -123,7 +123,7 @@ const actions: ActionTree<OrderState, RootState> = {
         Promise.all(payload.order.items.map((item: any, index: number) => {
           // TODO: improve code to don't pass shipmentItemSeqId
           const shipmentItemSeqId = `0000${index+1}`
-          return this.dispatch('shipment/addShipmentItem', { item, shipmentId, shipmentItemSeqId, orderId: params.orderId})
+          return this.dispatch('shipment/addShipmentItem', {item, shipmentId, shipmentItemSeqId, orderId: params.orderId})
         })).then(async (resp) => {
 
           // adding shipmentItemSeqId property in item
@@ -138,7 +138,6 @@ const actions: ActionTree<OrderState, RootState> = {
           const poShipment = {
             shipment: {
               shipmentId,
-              // locationSeqId: rootGetters['user/getCurrentFacilityLocation'].locationSeqId
             },
             items: payload.order.items
           }

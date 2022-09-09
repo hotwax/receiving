@@ -18,9 +18,6 @@ const getters: GetterTree <UserState, RootState> = {
     getCurrentFacility (state){
         return state.currentFacility
     },
-    getCurrentFacilityLocation(state) {
-        return state.currentFacilityLocation
-    },
     getFacilityLocations(state) {
         return state.facilityLocations
     },

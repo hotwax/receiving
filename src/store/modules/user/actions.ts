@@ -145,7 +145,6 @@ const actions: ActionTree<UserState, RootState> = {
           }
         })
         commit(types.USER_FACILITY_LOCATIONS_UPDATED, facilityLocations);
-        commit(types.USER_CURRENT_FACILITY_LOCATION_UPDATED, facilityLocations.length > 0 ? facilityLocations[0] : {});
       } else {
         console.error(resp);
       }
