@@ -90,6 +90,7 @@ const actions: ActionTree<UserState, RootState> = {
 
       commit(types.USER_INFO_UPDATED, resp.data);
       commit(types.USER_CURRENT_FACILITY_UPDATED, resp.data.facilities.length > 0 ? resp.data.facilities[0] : {});
+      dispatch('getFacilityLocations', resp.data.facilities.length > 0 ? resp.data.facilities[0].facilityId : '')
     }
   },
 
