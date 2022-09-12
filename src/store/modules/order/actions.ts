@@ -100,9 +100,11 @@ const actions: ActionTree<OrderState, RootState> = {
       }
       else {
         showToast(translate("Something went wrong"));
+        commit(types.ORDER_CURRENT_UPDATED, { orderId, externalOrderId: '', items: [], poHistory: [] })
       }
     } catch (error) {
       showToast(translate("Something went wrong"));
+      commit(types.ORDER_CURRENT_UPDATED, { orderId, externalOrderId: '', items: [], poHistory: [] })
     }
     return resp;
   },
@@ -175,9 +177,16 @@ const actions: ActionTree<OrderState, RootState> = {
         current.poHistory.items = poHistory;
         commit(types.ORDER_CURRENT_UPDATED, current);
         return poHistory;
-      } 
+      } else {
+        const current = state.current as any
+        current.poHistory.items = [];
+        commit(types.ORDER_CURRENT_UPDATED, current);
+      }
     } catch(error){
-      console.log(error)
+      console.error(error)
+      const current = state.current as any
+      current.poHistory.items = [];
+      commit(types.ORDER_CURRENT_UPDATED, current);
       showToast(translate("Something went wrong"));
     }
     return resp;
