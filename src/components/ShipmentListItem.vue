@@ -1,10 +1,10 @@
 <template>
   <ion-item button @click="viewShipment()">
     <ion-label>
-      <h2>{{ shipment.id }}</h2>
-      <p>{{ shipment.noOfItem }} {{ (shipment.noOfItem > 1 ? 'Items' : 'Item') }}</p>
+      <h2>{{ shipment.shipmentId }}</h2>
+      <p v-if="shipment.shipmentItemCount">{{ shipment.shipmentItemCount }} {{ (shipment.shipmentItemCount > 1 ? 'Items' : 'Item') }}</p>
     </ion-label>
-    <ion-note slot="end">{{ shipment.estimatedArrivalDate && shipment.shipmentStatus !== "Received"  ? ($filters.formatDate(shipment.estimatedArrivalDate)) : shipment.shipmentStatus }}</ion-note>
+    <ion-note slot="end">{{ shipment.estimatedArrivalDate ? ($filters.formatDate(shipment.estimatedArrivalDate)) : shipment.statusDesc }}</ion-note>
   </ion-item>
 </template>
 
@@ -28,9 +28,9 @@ export default defineComponent({
   props: ["shipment"],
   methods: {
     async viewShipment () {
-      this.store.dispatch('shipment/setCurrent', { shipmentId: this.shipment.id }).then((resp) => {
+      this.store.dispatch('shipment/setCurrent', { shipmentId: this.shipment.shipmentId }).then((resp) => {
         if (resp.items) {
-          this.router.push({ path: `/shipment/${this.shipment.id}` });
+          this.router.push({ path: `/shipment/${this.shipment.shipmentId}` });
         }
       });
     }
