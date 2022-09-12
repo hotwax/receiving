@@ -125,9 +125,8 @@ const actions: ActionTree<ReturnState, RootState> = {
       return Promise.reject(new Error(resp.data._ERROR_MESSAGE_));
     }
   },
-
   async updateProductCount({ commit, state }, payload ) {
-    const returns = (state.returns.list);
+    const returns = state.returns.list;
     returns.forEach((return: any) => {
       if(return.id === payload.returnId) {
         return.noOfItem = parseInt(return.noOfItem) + 1;
@@ -136,7 +135,6 @@ const actions: ActionTree<ReturnState, RootState> = {
     })
     commit(types.RETURN_LIST_UPDATED, { returns })
   },
-
   async clearReturns({ commit }) {
     commit(types.RETURN_LIST_UPDATED, { returns: [] })
     commit(types.RETURN_CURRENT_UPDATED, { current: {} })

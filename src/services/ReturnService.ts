@@ -2,7 +2,7 @@ import api from '@/api';
 
 const fetchReturns = async (query: any): Promise <any>  => {
   return api({
-    url: "incoming-returns", 
+    url: "/performFind",
     method: "post",
     data: query,
     cache: true
@@ -11,7 +11,7 @@ const fetchReturns = async (query: any): Promise <any>  => {
 
 const getReturnDetail= async (query: any): Promise<any> => {
   return api({
-    url: "return-detail",
+    url: "shipment-detail",
     data: query,
     method: 'post'
   });
@@ -19,7 +19,7 @@ const getReturnDetail= async (query: any): Promise<any> => {
 
 const receiveReturnItem = async (payload: any): Promise <any> => {
   return api({
-    url: "receiveReturnItem",
+    url: "receiveShipmentItem",
     method: "post",
     data: payload
   });
@@ -27,7 +27,7 @@ const receiveReturnItem = async (payload: any): Promise <any> => {
 
 const receiveReturn = async (query: any): Promise <any> => {
   return api({
-    url: "receiveReturn",
+    url: "receiveShipment",
     method: "post",
     data: query
   })
@@ -35,7 +35,7 @@ const receiveReturn = async (query: any): Promise <any> => {
 
 const addReturnItem = async (query: any): Promise <any> =>{
   return api({
-    url: "addReturnItem",
+    url: "addShipmentItem",
     method: "post",
     data: query
   })

@@ -1,11 +1,11 @@
 <template>
-    <ion-item button @click="viewReturn()">
-      <ion-label>
-        <h2>{{ return.id }}</h2>
-        <p>{{ return.noOfItem }} {{ (return.noOfItem > 1 ? 'Items' : 'Item') }}</p>
-      </ion-label>
-      <ion-note slot="end">{{ return.estimatedArrivalDate && return.returnStatus !== "Received"  ? ($filters.formatDate(return.estimatedArrivalDate)) : return.returnStatus }}</ion-note>
-    </ion-item>
+  <ion-item button @click="viewReturn()">
+    <ion-label>
+      <h2>{{ return.id }}</h2>
+      <p>{{ return.noOfItem }} {{ (return.noOfItem > 1 ? 'Items' : 'Item') }}</p>
+    </ion-label>
+    <ion-note slot="end">{{ return.estimatedArrivalDate && return.returnStatus !== "Received"  ? ($filters.formatDate(return.estimatedArrivalDate)) : return.returnStatus }}</ion-note>
+  </ion-item>
 </template>
   
 <script lang="ts">

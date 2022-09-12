@@ -23,7 +23,7 @@
   </ion-page>
 </template>
   
-  <script lang="ts">
+<script lang="ts">
   import { IonButton, IonContent, IonHeader, IonIcon, IonMenuButton, IonPage, IonSearchbar, IonTitle, IonToolbar } from '@ionic/vue';
   import { cloudDownloadOutline } from 'ionicons/icons'
   import { defineComponent } from 'vue'
@@ -82,4 +82,4 @@
       }
     }
   })
-  </script>
+</script>
