@@ -1,10 +1,10 @@
 <template>
   <ion-item button @click="viewReturn()">
     <ion-label>
-      <h2>{{ return.id }}</h2>
-      <p>{{ return.noOfItem }} {{ (return.noOfItem > 1 ? 'Items' : 'Item') }}</p>
+      <h2>{{ returnShipment.id }}</h2>
+      <p>{{ returnShipment.noOfItem }} {{ (returnShipment.noOfItem > 1 ? 'Items' : 'Item') }}</p>
     </ion-label>
-    <ion-note slot="end">{{ return.estimatedArrivalDate && return.returnStatus !== "Received"  ? ($filters.formatDate(return.estimatedArrivalDate)) : return.returnStatus }}</ion-note>
+    <ion-note slot="end">{{ returnShipment.estimatedArrivalDate && returnShipment.returnStatus !== "Received"  ? ($filters.formatDate(returnShipment.estimatedArrivalDate)) : returnShipment.returnStatus }}</ion-note>
   </ion-item>
 </template>
   
@@ -25,12 +25,12 @@
       IonLabel,
       IonNote,
     },
-    props: ["return"],
+    props: ["returnShipment"],
     methods: {
       async viewReturn () {
-        this.store.dispatch('return/setCurrent', { returnId: this.return.id }).then((resp) => {
+        this.store.dispatch('return/setCurrent', { returnId: this.returnShipment.id }).then((resp) => {
           if (resp.items) {
-            this.router.push({ path: `/return/${this.return.id}` });
+            this.router.push({ path: `/return/${this.returnShipment.id}` });
           }
         });
       }

@@ -10,8 +10,8 @@
       <main>
         <ion-searchbar :placeholder="$t('Scan ASN to start receiving')"/>
   
-        <ReturnListItem v-for="return in returns" :key="return.returnId" :return="return"/>
-  
+        <ReturnListItem v-for="returnShipment in returns" :key="returnShipment.shipmentId" :return="returnShipment" />
+
         <div class="load-more-action ion-text-center">
           <ion-button fill="outline" color="dark" @click="loadMoreReturns()">
             <ion-icon :icon="cloudDownloadOutline" slot="start" />
@@ -63,10 +63,21 @@
         const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
         const viewIndex = vIndex ? vIndex : 0;
         const payload = {
-          viewSize,
-          viewIndex,
-          facilityId: this.user.facilityId,
-          statusId: "PURCH_RET_RETURNED"
+          "inputFields": {
+            "destinationFacilityId": this.user.facilityId,
+            "statusId": "PURCH_SHIP_SHIPPED",
+            "shipmentTypeId_fld0_value": "INCOMING_SHIPMENT",
+            "shipmentTypeId_fld0_op": "equals",
+            "shipmentTypeId_fld0_grp": "1",
+            "parentTypeId_fld0_value": "INCOMING_SHIPMENT",
+            "parentTypeId_fld0_op": "equals",
+            "parentTypeId_fld0_grp": "2",
+          },
+          "entityName": "ShipmentAndTypeAndItemCount",
+          "fieldList" : [ "shipmentId","primaryShipGroupSeqId","partyIdFrom","partyIdTo","estimatedArrivalDate","destinationFacilityId","statusId", "shipmentItemCount" ],
+          "noConditionFind": "Y",
+          "viewSize": viewSize,
+          "viewIndex": viewIndex,
         }
         await this.store.dispatch("return/findReturn", payload);
       },

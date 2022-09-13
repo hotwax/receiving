@@ -12,10 +12,10 @@ const actions: ActionTree<ReturnState, RootState> = {
     let resp;
     try {
       resp = await ReturnService.fetchReturns(payload)
-      if (resp.status === 200 && resp.data.docs?.length > 0 && !hasError(resp)) {
+      if (resp.status === 200 && !hasError(resp) && resp.data.docs?.length > 0) {
         let returns = resp.data.docs;
         if (payload.viewIndex && payload.viewIndex > 0) returns = state.returns.list.concat(returns);
-        commit(types.RETURN_LIST_UPDATED, { returns })
+        commit(types.RETURN_LIST_UPDATED, returns )
       } else {
         showToast(translate("Returns not found"));
       }
@@ -127,9 +127,9 @@ const actions: ActionTree<ReturnState, RootState> = {
   },
   async updateProductCount({ commit, state }, payload ) {
     const returns = state.returns.list;
-    returns.forEach((return: any) => {
-      if(return.id === payload.returnId) {
-        return.noOfItem = parseInt(return.noOfItem) + 1;
+    returns.forEach((returnShipment: any) => {
+      if(returnShipment.id === payload.shipmentId) {
+        returnShipment.noOfItem = parseInt(returnShipment.noOfItem) + 1;
         return;
       }
     })
