@@ -10,7 +10,7 @@
       <main>
         <ion-searchbar :placeholder="$t('Scan ASN to start receiving')"/>
   
-        <ReturnListItem v-for="returnShipment in returns" :key="returnShipment.shipmentId" :return="returnShipment" />
+        <ReturnListItem v-for="returnShipment in returns" :key="returnShipment.shipmentId" :returnShipment="returnShipment" />
 
         <div class="load-more-action ion-text-center">
           <ion-button fill="outline" color="dark" @click="loadMoreReturns()">
