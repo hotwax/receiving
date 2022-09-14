@@ -14,6 +14,11 @@ const actions: ActionTree<ReturnState, RootState> = {
       resp = await ReturnService.fetchReturns(payload)
       if (resp.status === 200 && !hasError(resp) && resp.data.docs?.length > 0) {
         let returns = resp.data.docs;
+        const statusIds = [...new Set(returns.map((returnShipment: any) => returnShipment.statusId))]
+        const statuses = await this.dispatch('util/fetchStatus', statusIds);
+        returns.map(async (shipment: any) => {
+          shipment.statusDesc = statuses[shipment.statusId]
+        });
         if (payload.viewIndex && payload.viewIndex > 0) returns = state.returns.list.concat(returns);
         commit(types.RETURN_LIST_UPDATED, returns )
       } else {
@@ -38,7 +43,7 @@ const actions: ActionTree<ReturnState, RootState> = {
     let resp;
     try {
       resp = await ReturnService.getReturnDetail(payload);
-      if (resp.status === 200 && resp.data.items&& !hasError(resp)) {
+      if (resp.status === 200 && !hasError(resp) && resp.data.items) {
         commit(types.RETURN_CURRENT_UPDATED, { current: resp.data })
         let productIds: any = new Set();
         resp.data.items.forEach((item: any) => {

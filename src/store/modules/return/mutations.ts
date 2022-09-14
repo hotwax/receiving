@@ -4,7 +4,7 @@ import * as types from './mutation-types'
 
 const mutations: MutationTree <ReturnState> = {
   [types.RETURN_LIST_UPDATED] (state, payload) {
-    state.returns.list = payload.returns;
+    state.returns.list = payload;
   },
   [types.RETURN_CURRENT_UPDATED] (state, payload) {
     state.current = payload.current;
