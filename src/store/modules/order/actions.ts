@@ -160,7 +160,7 @@ const actions: ActionTree<OrderState, RootState> = {
 
   async getPOHistory({ commit, state }, payload) {
     let resp;
-
+    const current = state.current as any;
     try {
       const params = {
         "inputFields":{
@@ -171,20 +171,17 @@ const actions: ActionTree<OrderState, RootState> = {
         "fieldsToSelect": ["datetimeReceived", "productId", "quantityAccepted", "quantityRejected", "receivedByUserLoginId", "shipmentId"]
       }
       resp = await OrderService.fetchPOHistory(params)
-      if ( resp.data.count && resp.data.count > 0 && resp.status === 200 && !hasError(resp)) {
-        const current = state.current as any
+      if (resp.status === 200 && !hasError(resp) && resp.data?.count > 0) {
         const poHistory = resp.data.docs;
         current.poHistory.items = poHistory;
         commit(types.ORDER_CURRENT_UPDATED, current);
         return poHistory;
       } else {
-        const current = state.current as any
         current.poHistory.items = [];
         commit(types.ORDER_CURRENT_UPDATED, current);
       }
     } catch(error){
       console.error(error)
-      const current = state.current as any
       current.poHistory.items = [];
       commit(types.ORDER_CURRENT_UPDATED, current);
       showToast(translate("Something went wrong"));
