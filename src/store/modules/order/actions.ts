@@ -174,18 +174,16 @@ const actions: ActionTree<OrderState, RootState> = {
       if (resp.status === 200 && !hasError(resp) && resp.data?.count > 0) {
         const poHistory = resp.data.docs;
         current.poHistory.items = poHistory;
-        commit(types.ORDER_CURRENT_UPDATED, current);
         return poHistory;
       } else {
         current.poHistory.items = [];
-        commit(types.ORDER_CURRENT_UPDATED, current);
       }
     } catch(error){
       console.error(error)
       current.poHistory.items = [];
-      commit(types.ORDER_CURRENT_UPDATED, current);
       showToast(translate("Something went wrong"));
     }
+    commit(types.ORDER_CURRENT_UPDATED, current);
     return resp;
   }
 }
