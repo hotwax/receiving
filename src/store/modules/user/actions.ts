@@ -124,7 +124,7 @@ const actions: ActionTree<UserState, RootState> = {
     let resp;
     const payload = {
       "inputFields": {
-        "facilityId": facilityId
+        facilityId
       },
       // Assuming we will not have more than 20 facility locations, hardcoded the viewSize value 20.
       "viewSize": 20,
@@ -135,7 +135,7 @@ const actions: ActionTree<UserState, RootState> = {
     }
     try{
       resp = await UserService.getFacilityLocations(payload);
-      if(resp.status === 200 && resp.data.count > 0 && !hasError(resp)) {
+      if(resp.status === 200 && !hasError(resp) && resp.data?.count > 0) {
         let facilityLocations = resp.data.docs
 
         facilityLocations = facilityLocations.map((location: any) => {
