@@ -45,19 +45,15 @@ const actions: ActionTree<ReturnState, RootState> = {
       resp = await ReturnService.getReturnDetail(payload);
       if (resp.status === 200 && !hasError(resp) && resp.data.items) {
         commit(types.RETURN_CURRENT_UPDATED, { current: resp.data })
-        let productIds: any = new Set();
-        resp.data.items.forEach((item: any) => {
-          productIds.add(item.productId)
-        });
+        const productIds = [ ...new Set(resp.data.items.map((item: any) => item.productId)) ]
 
-        productIds = [...productIds]
         if(productIds.length) {
           this.dispatch('product/fetchProducts', { productIds })
         }
         return resp.data;
       } else {
         showToast(translate('Something went wrong'));
-        console.log("error", resp.data._ERROR_MESSAGE_);
+        console.error("error", resp.data._ERROR_MESSAGE_);
         return Promise.reject(new Error(resp.data._ERROR_MESSAGE_));
       }
 
@@ -98,7 +94,7 @@ const actions: ActionTree<ReturnState, RootState> = {
         "returnId": payload.return ? payload.return.returnId : payload.returnId,
         "statusId": "PURCH_RET_RECEIVED"
       })
-      if (resp.status == 200 && !hasError(resp)) {
+      if (resp.status === 200 && !hasError(resp)) {
         showToast(translate("Return Received Successfully") + ' ' + (payload.return ? payload.return.returnId : payload.returnId))
       }
       emitter.emit("dismissLoader");
@@ -132,9 +128,9 @@ const actions: ActionTree<ReturnState, RootState> = {
   },
   async updateProductCount({ commit, state }, payload ) {
     const returns = state.returns.list;
-    returns.forEach((returnShipment: any) => {
-      if(returnShipment.id === payload.shipmentId) {
-        returnShipment.noOfItem = parseInt(returnShipment.noOfItem) + 1;
+    returns.map((returnShipment: any) => {
+      if(returnShipment.shipmentId === payload.shipmentId) {
+        returnShipment.shipmentItemCount = parseInt(returnShipment.shipmentItemCount) + 1;
         return;
       }
     })

@@ -65,10 +65,7 @@
         const payload = {
           "inputFields": {
             "destinationFacilityId": this.user.facilityId,
-            // "statusId": "PURCH_SHIP_SHIPPED",
             "shipmentTypeId": "SALES_RETURN",
-            // "shipmentTypeId_fld0_op": "equals",
-            // "shipmentTypeId_fld0_grp": "1",
           },
           "entityName": "ShipmentAndTypeAndItemCount",
           "fieldList" : [ "shipmentId","primaryShipGroupSeqId","partyIdFrom","partyIdTo","estimatedArrivalDate","destinationFacilityId","statusId", "shipmentItemCount" ],

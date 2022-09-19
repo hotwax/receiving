@@ -127,7 +127,7 @@
     },
     computed: {
       ...mapGetters({
-        current: 'shipment/getCurrent',
+        current: 'return/getCurrent',
         user: 'user/getCurrentFacility',
         getProduct: 'product/getProduct'
       }),
@@ -194,7 +194,7 @@
       },
       updateProductCount(payload: any){
         if(this.queryString) payload = this.queryString
-        this.store.dispatch('shipment/updateShipmentProductCount', payload)
+        this.store.dispatch('return/updateReturnProductCount', payload)
       },
       async scanCode () {
         const modal = await modalController
