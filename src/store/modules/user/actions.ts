@@ -165,7 +165,7 @@ const actions: ActionTree<UserState, RootState> = {
           });
           userPrefStore = user.stores.find((store: any) => store.productStoreId == userPref.data.userPrefValue)
         } catch (err) {
-          console.log(err)
+          console.error(err)
         }
 
         dispatch('setEComStore', { eComStore: userPrefStore ? userPrefStore : user.stores.length > 0 ? user.stores[0] : {} });
