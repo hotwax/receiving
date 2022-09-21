@@ -8,7 +8,7 @@
     </ion-header>
     <ion-content>
       <main>
-        <ion-searchbar :placeholder="$t('Scan ASN to start receiving')" @ionClear="queryString = ''" v-model="queryString" @keyup.enter="queryString = $event.target.value; getReturns($event)" />
+        <ion-searchbar :placeholder="$t('Scan ASN to start receiving')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getReturns()" />
   
         <ReturnListItem v-for="returnShipment in returns" :key="returnShipment.shipmentId" :returnShipment="returnShipment" />
 
@@ -79,6 +79,8 @@
         
         if(this.queryString){
           payload.inputFields["shipmentId"] = this.queryString;
+          payload.inputFields["shipmentId_op"] = "contains";
+          payload.inputFields["shipmentId_ic"] = "Y";
         }
         await this.store.dispatch("return/findReturn", payload);
       },
