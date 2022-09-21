@@ -100,9 +100,11 @@ const actions: ActionTree<OrderState, RootState> = {
       }
       else {
         showToast(translate("Something went wrong"));
+        commit(types.ORDER_CURRENT_UPDATED, { orderId, externalOrderId: '', items: [], poHistory: [] })
       }
     } catch (error) {
       showToast(translate("Something went wrong"));
+      commit(types.ORDER_CURRENT_UPDATED, { orderId, externalOrderId: '', items: [], poHistory: [] })
     }
     return resp;
   },
@@ -155,7 +157,7 @@ const actions: ActionTree<OrderState, RootState> = {
 
   async getPOHistory({ commit, state }, payload) {
     let resp;
-
+    const current = state.current as any;
     try {
       const params = {
         "inputFields":{
@@ -166,8 +168,7 @@ const actions: ActionTree<OrderState, RootState> = {
         "fieldList": ["datetimeReceived", "productId", "quantityAccepted", "quantityRejected", "receivedByUserLoginId", "shipmentId", 'locationSeqId']
       }
       resp = await OrderService.fetchPOHistory(params)
-      if ( resp.data.count && resp.data.count > 0 && resp.status === 200 && !hasError(resp)) {
-        const current = state.current as any
+      if (resp.status === 200 && !hasError(resp) && resp.data?.count > 0) {
         const poHistory = resp.data.docs;
         current.poHistory.items = poHistory;
         const facilityLocationByProduct = poHistory?.reduce((products: any, item: any) => {
@@ -179,11 +180,15 @@ const actions: ActionTree<OrderState, RootState> = {
         });
         commit(types.ORDER_CURRENT_UPDATED, current);
         return poHistory;
-      } 
+      } else {
+        current.poHistory.items = [];
+      }
     } catch(error){
-      console.log(error)
+      console.error(error)
+      current.poHistory.items = [];
       showToast(translate("Something went wrong"));
     }
+    commit(types.ORDER_CURRENT_UPDATED, current);
     return resp;
   },
   setItemLocationSeqId({ commit }, payload) {
