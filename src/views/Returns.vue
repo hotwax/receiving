@@ -8,7 +8,7 @@
     </ion-header>
     <ion-content>
       <main>
-        <ion-searchbar :placeholder="$t('Scan ASN to start receiving')"/>
+        <ion-searchbar :placeholder="$t('Scan ASN to start receiving')" @ionClear="queryString = ''" v-model="queryString" @keyup.enter="queryString = $event.target.value; getReturns($event)" />
   
         <ReturnListItem v-for="returnShipment in returns" :key="returnShipment.shipmentId" :returnShipment="returnShipment" />
 
@@ -47,8 +47,12 @@
     computed: {
       ...mapGetters({
         returns: 'return/getReturns',
-        user: 'user/getCurrentFacility'
       })
+    },
+    data () {
+      return {
+        queryString: ''
+      }
     },
     mounted () {
       this.getReturns();
@@ -64,7 +68,6 @@
         const viewIndex = vIndex ? vIndex : 0;
         const payload = {
           "inputFields": {
-            "destinationFacilityId": this.user.facilityId,
             "shipmentTypeId": "SALES_RETURN",
           },
           "entityName": "ShipmentAndTypeAndItemCount",
@@ -72,6 +75,10 @@
           "noConditionFind": "Y",
           "viewSize": viewSize,
           "viewIndex": viewIndex,
+        } as any
+        
+        if(this.queryString){
+          payload.inputFields["shipmentId"] = this.queryString;
         }
         await this.store.dispatch("return/findReturn", payload);
       },

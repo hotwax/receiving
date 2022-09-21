@@ -76,7 +76,8 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/returns',
     name: 'Returns',
-    component: Returns
+    component: Returns,
+    beforeEnter: authGuard
   },
   {
     path: '/return/:id',
