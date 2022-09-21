@@ -8,7 +8,7 @@
     </ion-header>
     <ion-content>
       <main>
-        <ion-searchbar :placeholder="$t('Scan ASN to start receiving')" @ionClear="queryString =''" v-model="queryString" @keyup.enter="queryString = $event.target.value; getShipments()" />
+        <ion-searchbar :placeholder="$t('Scan ASN to start receiving')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getShipments()" />
 
         <ShipmentListItem v-for="shipment in shipments" :key="shipment.shipmentId" :shipment="shipment"/>
 
