@@ -5,4 +5,5 @@ export default interface UserState {
     facilityLocations: any;
     currentEComStore: object;
     instanceUrl: string;
+    facilityLocationsByFacilityId: any;
 }

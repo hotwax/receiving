@@ -114,9 +114,10 @@ const actions: ActionTree<UserState, RootState> = {
    * update current facility information
    */
   async setFacility ({ commit, dispatch }, payload) {
-    await dispatch('getFacilityLocations', payload.facility.facilityId)
+    const facilityLocations = await dispatch('getFacilityLocations', payload.facility.facilityId)
     await dispatch("getEComStores", { facilityId: payload.facility.facilityId });
     commit(types.USER_CURRENT_FACILITY_UPDATED, payload.facility);
+    commit(types.USER_FACILITY_LOCATIONS_UPDATED, facilityLocations);
   },
   
   /**
@@ -162,7 +163,8 @@ const actions: ActionTree<UserState, RootState> = {
             locationPath
           }
         })
-        commit(types.USER_FACILITY_LOCATIONS_UPDATED, facilityLocations);
+        commit(types.USER_FACILITY_LOCARIONS_BY_FACILITY_ID, { facilityLocations, facilityId });
+        return facilityLocations;
       } else {
         console.error(resp);
       }

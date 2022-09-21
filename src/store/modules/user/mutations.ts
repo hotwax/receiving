@@ -26,5 +26,9 @@ const mutations: MutationTree <UserState> = {
     [types.USER_CURRENT_ECOM_STORE_UPDATED](state, payload) {
         state.currentEComStore = payload;
     },
+    [types.USER_FACILITY_LOCARIONS_BY_FACILITY_ID] (state, payload) {
+        state.facilityLocationsByFacilityId[payload.facilityId] = payload.facilityLocations;
+        console.log(state)
+    }
 }
 export default mutations;

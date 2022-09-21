@@ -131,14 +131,21 @@
         queryString: ''
       }
     },
-    mounted() {
-      this.store.dispatch('return/setCurrent', { shipmentId: this.$route.params.id })
+    ionViewDidEnter(){
+      this.store.dispatch('return/setCurrent', { shipmentId: this.$route.params.id }).then(() => {
+        const returnShipment = this.returns.find((returnShipment: any) => returnShipment.shipmentId === this.$route.params.id);
+        if(returnShipment.destinationFacilityId && !this.facilityLocationsByFacilityId(returnShipment.destinationFacilityId)){
+          this.store.dispatch('user/getFacilityLocations', returnShipment.destinationFacilityId);
+        }
+      })
     },
     computed: {
       ...mapGetters({
         current: 'return/getCurrent',
         user: 'user/getCurrentFacility',
-        getProduct: 'product/getProduct'
+        getProduct: 'product/getProduct',
+        facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
+        returns: 'return/getReturns',
       }),
     },
     methods: {
