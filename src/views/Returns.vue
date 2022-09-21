@@ -58,11 +58,6 @@
       this.getReturns();
     },
     methods: {
-      selectSearchBarText(event: any) {
-        event.target.getInputElement().then((element: any) => {
-          element.select();
-        })
-      },
       async getReturns(vSize?: any, vIndex?: any) {
         const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
         const viewIndex = vIndex ? vIndex : 0;

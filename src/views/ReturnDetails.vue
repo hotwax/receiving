@@ -123,7 +123,6 @@
     computed: {
       ...mapGetters({
         current: 'return/getCurrent',
-        user: 'user/getCurrentFacility',
         getProduct: 'product/getProduct'
       }),
     },
