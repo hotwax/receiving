@@ -85,7 +85,6 @@ export default defineComponent({
         "viewIndex": viewIndex,
       } as any
       if(this.queryString){
-        payload.viewIndex = 0;
         payload.inputFields["shipmentId"] = this.queryString;
         payload.inputFields["shipmentId_op"] = "contains";
         payload.inputFields["shipmentId_ic"] = "Y";
