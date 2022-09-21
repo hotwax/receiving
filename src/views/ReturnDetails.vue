@@ -19,7 +19,7 @@
           <div class="shipment-scanner">
             <ion-item>
               <ion-label>{{ $t("Scan items") }}</ion-label>
-              <ion-input :placeholder="$t('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()"></ion-input>
+              <ion-input :placeholder="$t('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()" />
             </ion-item>
   
             <ion-button expand="block" fill="outline" @click="scanCode()">
@@ -40,7 +40,7 @@
               </ion-item>
               <ion-item class="product-count">
                 <ion-label position="floating">{{ $t("Qty") }}</ion-label>
-                <ion-input type="number" min="0" v-model="item.quantityAccepted"></ion-input>
+                <ion-input type="number" min="0" v-model="item.quantityAccepted" />
               </ion-item>
             </div>
   
@@ -48,7 +48,7 @@
               <ion-button @click="receiveAll(item)" slot="start" fill="outline">
                 {{ $t("Receive All") }}
               </ion-button>
-              <ion-progress-bar :value="item.quantityAccepted/item.quantityOrdered"></ion-progress-bar>
+              <ion-progress-bar :value="item.quantityAccepted/item.quantityOrdered" />
               <p slot="end">{{ item.quantityOrdered }}</p>
             </ion-item>
           </ion-card>

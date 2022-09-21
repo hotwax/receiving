@@ -59,7 +59,7 @@ const actions: ActionTree<ReturnState, RootState> = {
 
     } catch (err) {
       showToast(translate('Something went wrong'));
-      console.log("error", err);
+      console.error("error", err);
       return Promise.reject(new Error(err))
     }
   },
@@ -122,7 +122,7 @@ const actions: ActionTree<ReturnState, RootState> = {
       return resp;
     } else {
       showToast(translate('Something went wrong'));
-      console.log("error", resp._ERROR_MESSAGE_);
+      console.error("error", resp._ERROR_MESSAGE_);
       return Promise.reject(new Error(resp.data._ERROR_MESSAGE_));
     }
   },
