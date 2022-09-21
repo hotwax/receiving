@@ -174,7 +174,7 @@
         return alert.present();
       },
       async receiveReturn() {
-        this.store.dispatch('return/receiveReturn', {payload: this.current}).then(() => {
+        await this.store.dispatch('return/receiveReturn', {payload: this.current}).then(() => {
           this.router.push('/returns');
         })   
       },

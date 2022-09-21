@@ -65,11 +65,11 @@ const actions: ActionTree<ReturnState, RootState> = {
     }
   },
   receiveReturnItem ({ commit }, data) {
-    const payload = data.return ? {
-      returnId: data.return.returnId,
-      locationSeqId: data.return.locationSeqId
+    const payload = data.shipment ? {
+      shipmentId: data.shipment.shipmentId,
+      locationSeqId: data.shipment.locationSeqId
     } : {
-      returnId: data.returnId,
+      shipmentId: data.shipmentId,
       locationSeqId: data.locationSeqId
     }
     return Promise.all(data.items.map((item: any) => {
