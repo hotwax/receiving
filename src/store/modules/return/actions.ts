@@ -76,7 +76,7 @@ const actions: ActionTree<ReturnState, RootState> = {
       const params = {
         ...payload,
         facilityId: this.state.user.currentFacility.facilityId,
-        returnItemSeqId: item.itemSeqId,
+        shipmentItemSeqId: item.shipmentItemSeqId,
         productId: item.productId,
         quantityAccepted: item.quantityAccepted,
         orderId: item.orderId,
@@ -92,11 +92,11 @@ const actions: ActionTree<ReturnState, RootState> = {
     emitter.emit("presentLoader");
     return await dispatch("receiveReturnItem", payload).then(async( ) => {
       const resp = await ReturnService.receiveReturn({
-        "returnId": payload.return ? payload.return.returnId : payload.returnId,
-        "statusId": "PURCH_RET_RECEIVED"
+        "shipmentId": payload.shipment ? payload.shipment.shipmentId : payload.shipmentId,
+        "statusId": "PURCH_SHIP_RECEIVED"
       })
       if (resp.status === 200 && !hasError(resp)) {
-        showToast(translate("Return Received Successfully") + ' ' + (payload.return ? payload.return.returnId : payload.returnId))
+        showToast(translate("Return Received Successfully") + ' ' + (payload.shipment ? payload.shipment.shipmentId : payload.shipmentId))
       }
       emitter.emit("dismissLoader");
       return resp;

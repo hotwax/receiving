@@ -166,16 +166,16 @@
             {
               text:this.$t('Proceed'),
               handler: () => {
-                this.receiveShipment();
+                this.receiveReturn();
               },
             }
           ],
         });
         return alert.present();
       },
-      async receiveShipment() {
-        this.store.dispatch('shipment/receiveShipment', {payload: this.current}).then(() => {
-          this.router.push('/shipments');
+      async receiveReturn() {
+        this.store.dispatch('return/receiveReturn', {payload: this.current}).then(() => {
+          this.router.push('/returns');
         })   
       },
       receiveAll(item: any) {
