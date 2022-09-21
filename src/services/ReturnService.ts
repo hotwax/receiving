@@ -1,6 +1,6 @@
 import api from '@/api';
 
-const fetchReturns = async (query: any): Promise <any> => {
+const findReturns = async (query: any): Promise <any> => {
   return api({
     url: "/performFind",
     method: "post",
@@ -33,7 +33,7 @@ const receiveReturn = async (query: any): Promise <any> => {
   })
 }
 
-const addReturnItem = async (query: any): Promise <any> =>{
+const addReturnItem = async (query: any): Promise <any> => {
   return api({
     url: "addShipmentItem",
     method: "post",
@@ -42,7 +42,7 @@ const addReturnItem = async (query: any): Promise <any> =>{
 }
 
 export const ReturnService = {
-  fetchReturns,
+  findReturns,
   getReturnDetail,
   receiveReturnItem,
   receiveReturn,
