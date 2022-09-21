@@ -171,7 +171,7 @@ const actions: ActionTree<OrderState, RootState> = {
       if (resp.status === 200 && !hasError(resp) && resp.data?.count > 0) {
         const poHistory = resp.data.docs;
         current.poHistory.items = poHistory;
-        const facilityLocationByProduct = poHistory?.reduce((products: any, item: any) => {
+        const facilityLocationByProduct = poHistory.reduce((products: any, item: any) => {
           products[item.productId] = item.locationSeqId
           return products
         }, {});

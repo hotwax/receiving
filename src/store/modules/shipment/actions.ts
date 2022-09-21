@@ -49,7 +49,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
         commit(types.SHIPMENT_CURRENT_UPDATED, { current: resp.data })
         let productIds: any = new Set();
         resp.data.items.forEach((item: any) => {
-          productIds.add(item.productId);
+          productIds.add(item.productId)
           item.locationSeqId = this.state.user.facilityLocations[0].locationSeqId;
         });
 

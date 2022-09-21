@@ -93,6 +93,7 @@ const actions: ActionTree<UserState, RootState> = {
         await dispatch('getEComStores', { facilityId: resp.data.facilities[0].facilityId })
       }
       commit(types.USER_CURRENT_FACILITY_UPDATED, resp.data.facilities.length > 0 ? resp.data.facilities[0] : {});
+      // TODO: Need to remove this check once adding support to not allow user login without facilities.
       dispatch('getFacilityLocations', resp.data.facilities.length > 0 ? resp.data.facilities[0].facilityId : '')
     }
     return resp;

@@ -33,7 +33,7 @@ export default defineComponent({
   },
   props: ['item', 'type'],
   methods: {
-    setFacilityLocation(event: any) {
+    setFacilityLocation(event: CustomEvent) {
       if (this.facilityLocations) {
         const facilityLocation = this.facilityLocations.find((location: any) => location.locationSeqId === event['detail'].value)
         if(facilityLocation) {
