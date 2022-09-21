@@ -22,6 +22,7 @@ const actions: ActionTree<ReturnState, RootState> = {
         if (payload.viewIndex && payload.viewIndex > 0) returns = state.returns.list.concat(returns);
         commit(types.RETURN_LIST_UPDATED, returns )
       } else {
+        if(!payload.viewIndex) commit(types.RETURN_LIST_UPDATED, [])
         showToast(translate("Returns not found"));
       }
       if (payload.viewIndex === 0) emitter.emit("dismissLoader");
@@ -59,7 +60,7 @@ const actions: ActionTree<ReturnState, RootState> = {
 
     } catch (err) {
       showToast(translate('Something went wrong'));
-      console.log("error", err);
+      console.error("error", err);
       return Promise.reject(new Error(err))
     }
   },
@@ -122,7 +123,7 @@ const actions: ActionTree<ReturnState, RootState> = {
       return resp;
     } else {
       showToast(translate('Something went wrong'));
-      console.log("error", resp._ERROR_MESSAGE_);
+      console.error("error", resp._ERROR_MESSAGE_);
       return Promise.reject(new Error(resp.data._ERROR_MESSAGE_));
     }
   },
