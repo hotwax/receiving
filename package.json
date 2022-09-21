@@ -1,6 +1,6 @@
 {
   "name": "receiving",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "description": "HotWax Commerce Receiving App",
   "scripts": {
@@ -14,9 +14,9 @@
   "dependencies": {
     "@capacitor/android": "^2.4.7",
     "@capacitor/core": "^2.4.7",
-    "@ionic/core": "6.0.3",
-    "@ionic/vue": "6.0.3",
-    "@ionic/vue-router": "6.0.3",
+    "@ionic/core": "6.1.15",
+    "@ionic/vue": "6.1.15",
+    "@ionic/vue-router": "6.1.15",
     "@shopify/app-bridge-utils": "^2.0.4",
     "@types/luxon": "^2.3.2",
     "axios": "^0.21.1",

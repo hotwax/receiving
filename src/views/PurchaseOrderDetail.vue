@@ -228,7 +228,7 @@ export default defineComponent({
       })
     }
   },
-  mounted() {
+  ionViewWillEnter() {
     this.store.dispatch("order/getOrderDetail", { orderId: this.$route.params.slug }).then(() => {
       this.store.dispatch('order/getPOHistory', { orderId: this.order.orderId })
     })
