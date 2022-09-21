@@ -4,9 +4,6 @@
         <ion-toolbar>
           <ion-back-button default-href="/" slot="start"></ion-back-button>
           <ion-title>{{ $t("Return Details") }}</ion-title>
-          <ion-buttons slot="end">
-            <ion-button @click="addProduct"><ion-icon :icon="add"/></ion-button>
-          </ion-buttons>
         </ion-toolbar>
       </ion-header>
   
@@ -67,7 +64,6 @@
   import {
     IonBackButton,
     IonButton,
-    IonButtons,
     IonCard,
     IonContent,
     IonHeader,
@@ -86,7 +82,7 @@
     alertController,
   } from '@ionic/vue';
   import { defineComponent } from 'vue';
-  import { add, checkmarkDone, barcodeOutline } from 'ionicons/icons';
+  import { checkmarkDone, barcodeOutline } from 'ionicons/icons';
   import { mapGetters, useStore } from "vuex";
   import AddProductModal from '@/views/AddProductModal.vue'
   import Image from "@/components/Image.vue";
@@ -99,7 +95,6 @@
     components: {
       IonBackButton,
       IonButton,
-      IonButtons,
       IonCard,
       IonContent,
       IonHeader,
@@ -213,7 +208,6 @@
       const router = useRouter();
   
       return {
-        add,
         barcodeOutline,
         checkmarkDone,
         store,
