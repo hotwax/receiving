@@ -148,7 +148,7 @@ const actions: ActionTree<ReturnState, RootState> = {
     commit(types.RETURN_LIST_UPDATED, { returns: [] })
     commit(types.RETURN_CURRENT_UPDATED, { current: {} })
   },
-  async fetchValidReturnStatuses({ commit }, payload) {
+  async fetchValidReturnStatuses({ commit }) {
     let resp;
     try {
       resp = await ReturnService.fetchStatusChange({
