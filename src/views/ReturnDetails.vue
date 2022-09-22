@@ -52,7 +52,7 @@
         </main>
   
         <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-          <ion-fab-button :disabled="!validStatusChange(current.statusId)" @click="completeShipment">
+          <ion-fab-button v-if="validStatusChange(current.statusId)" @click="completeShipment">
             <ion-icon :icon="checkmarkDone" />
           </ion-fab-button>
         </ion-fab>
