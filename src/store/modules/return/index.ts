@@ -6,20 +6,20 @@ import ReturnState from './ReturnState'
 import RootState from '../../RootState'
 
 const returnModule: Module<ReturnState, RootState> = {
-    namespaced: true,
-    state: {
-      current: {
-        return: {},
-        items: []
-      },
-      returns: {
-        list: []
-      },
-      validStatusChange: {}
+  namespaced: true,
+  state: {
+    current: {
+      return: {},
+      items: []
     },
-    getters,
-    actions,
-    mutations,
+    returns: {
+      list: []
+    },
+    validStatusChange: {}
+  },
+  getters,
+  actions,
+  mutations,
 }
 
 export default returnModule;
