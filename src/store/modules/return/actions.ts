@@ -164,7 +164,7 @@ const actions: ActionTree<ReturnState, RootState> = {
       });
 
       if (resp.status == 200 && resp.data.count && !hasError(resp)) {
-        const orderStatusValidChange = resp.data.docs.reduce((acc: any, obj: any) => {
+        const returnStatusValidChange = resp.data.docs.reduce((acc: any, obj: any) => {
           const status = obj['statusId']
           if (!acc[status]) {
             acc[status] = []
@@ -173,9 +173,9 @@ const actions: ActionTree<ReturnState, RootState> = {
           return acc
         }, {})
         
-        commit(types.RETURN_VALID_STATUS_CHANGE_UPDATED, orderStatusValidChange)
+        commit(types.RETURN_VALID_STATUS_CHANGE_UPDATED, returnStatusValidChange)
       } else {
-        console.error('Unable to fetch valid order status change options')
+        console.error('Unable to fetch valid return status change options')
       }
     } catch (err) {
       console.error(err)

@@ -124,7 +124,7 @@
       ...mapGetters({
         current: 'return/getCurrent',
         getProduct: 'product/getProduct',
-        validStatusChange: 'return/getReturnValidStatusChange'
+        validStatusChange: 'return/isReturnReceivable'
       }),
     },
     methods: {
