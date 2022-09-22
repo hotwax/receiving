@@ -8,6 +8,9 @@ const getters: GetterTree<ReturnState, RootState> = {
   },
   getCurrent (state) {
     return state.current;
+  },
+  getReturnValidStatusChange: (state) => (statusId: string) => {
+    return state.validStatusChange[statusId]
   }
 };
 export default getters;

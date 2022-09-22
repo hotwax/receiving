@@ -52,7 +52,7 @@
         </main>
   
         <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-          <ion-fab-button @click="completeShipment">
+          <ion-fab-button :disabled="!validStatusChange(current.statusId)" @click="completeShipment">
             <ion-icon :icon="checkmarkDone" />
           </ion-fab-button>
         </ion-fab>
@@ -123,7 +123,8 @@
     computed: {
       ...mapGetters({
         current: 'return/getCurrent',
-        getProduct: 'product/getProduct'
+        getProduct: 'product/getProduct',
+        validStatusChange: 'return/getReturnValidStatusChange'
       }),
     },
     methods: {

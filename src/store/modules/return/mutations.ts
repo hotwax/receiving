@@ -11,6 +11,9 @@ const mutations: MutationTree <ReturnState> = {
   },
   [types.RETURN_CURRENT_PRODUCT_ADDED] (state, payload) {
     state.current.items.push(payload)
+  },
+  [types.RETURN_VALID_STATUS_CHANGE_UPDATED] (state, payload) {
+    state.validStatusChange = payload
   }
 }
 export default mutations;

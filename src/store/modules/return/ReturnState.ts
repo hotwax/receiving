@@ -3,4 +3,5 @@ export default interface ReturnState {
     returns: {
       list: any;
     };
+    validStatusChange: any;
   }

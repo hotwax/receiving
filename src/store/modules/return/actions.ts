@@ -147,7 +147,40 @@ const actions: ActionTree<ReturnState, RootState> = {
   async clearReturns({ commit }) {
     commit(types.RETURN_LIST_UPDATED, { returns: [] })
     commit(types.RETURN_CURRENT_UPDATED, { current: {} })
-  }
+  },
+  async fetchValidReturnStatuses({ commit }, payload) {
+    let resp;
+    try {
+      resp = await ReturnService.fetchStatusChange({
+        "inputFields": {
+          "statusIdTo": "PURCH_SHIP_RECEIVED",
+          "statusTypeId": "PURCH_SHIP_STATUS",
+          "conditionExpression_op": "empty"
+        },
+        "fieldList": ["statusId", "statusIdTo"],
+        "entityName": "StatusValidChangeToDetail",
+        "noConditionFind": "Y",
+        "viewSize": 100
+      });
+
+      if (resp.status == 200 && resp.data.count && !hasError(resp)) {
+        const orderStatusValidChange = resp.data.docs.reduce((acc: any, obj: any) => {
+          const status = obj['statusId']
+          if (!acc[status]) {
+            acc[status] = []
+          }
+          acc[status].push(obj.statusIdTo)
+          return acc
+        }, {})
+        
+        commit(types.RETURN_VALID_STATUS_CHANGE_UPDATED, orderStatusValidChange)
+      } else {
+        console.error('Unable to fetch valid order status change options')
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  },
 }
 
 export default actions;

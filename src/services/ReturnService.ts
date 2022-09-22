@@ -41,10 +41,19 @@ const addReturnItem = async (query: any): Promise <any> => {
   })
 }
 
+const fetchStatusChange = async (payload: any): Promise<any> => {
+  return api({
+    url: "/performFind",
+    method: "post",
+    data: payload
+  });
+}
+
 export const ReturnService = {
   findReturns,
   getReturnDetail,
   receiveReturnItem,
   receiveReturn,
-  addReturnItem
+  addReturnItem,
+  fetchStatusChange
 }

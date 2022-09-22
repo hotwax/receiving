@@ -14,7 +14,8 @@ const returnModule: Module<ReturnState, RootState> = {
       },
       returns: {
         list: []
-      }
+      },
+      validStatusChange: {}
     },
     getters,
     actions,

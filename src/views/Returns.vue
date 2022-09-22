@@ -29,6 +29,7 @@
   import { defineComponent } from 'vue'
   import { mapGetters, useStore } from 'vuex'
   import ReturnListItem from '@/components/ReturnListItem.vue'
+  import { ReturnService } from '@/services/ReturnService'
   
   export default defineComponent({
     name: "Returns",
@@ -56,6 +57,7 @@
     },
     mounted () {
       this.getReturns();
+      this.store.dispatch('return/fetchValidReturnStatuses');
     },
     methods: {
       async getReturns(vSize?: any, vIndex?: any) {
@@ -64,12 +66,6 @@
         const payload = {
           "inputFields": {
             "shipmentTypeId": "SALES_RETURN",
-            "statusId_fld0_value": "PURCH_SHIP_SHIPPED",
-            "statusId_fld0_grp": "1",
-            "statusId_fld0_op": "equals",
-            "statusId_fld1_value": "PURCH_SHIP_CREATED",
-            "statusId_fld1_grp": "2",
-            "statusId_fld1_op": "equals",
           },
           "entityName": "ShipmentAndTypeAndItemCount",
           "fieldList" : [ "shipmentId","primaryShipGroupSeqId","partyIdFrom","partyIdTo","estimatedArrivalDate","destinationFacilityId","statusId", "shipmentItemCount" ],
