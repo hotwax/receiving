@@ -24,73 +24,72 @@
 </template>
   
 <script lang="ts">
-  import { IonButton, IonContent, IonHeader, IonIcon, IonMenuButton, IonPage, IonSearchbar, IonTitle, IonToolbar } from '@ionic/vue';
-  import { cloudDownloadOutline } from 'ionicons/icons'
-  import { defineComponent } from 'vue'
-  import { mapGetters, useStore } from 'vuex'
-  import ReturnListItem from '@/components/ReturnListItem.vue'
-  import { ReturnService } from '@/services/ReturnService'
-  
-  export default defineComponent({
-    name: "Returns",
-    components: {
-      IonButton,
-      IonContent,
-      IonHeader,
-      IonIcon,
-      IonMenuButton,
-      IonSearchbar,
-      IonPage,
-      IonTitle,
-      IonToolbar,
-      ReturnListItem
-    },
-    computed: {
-      ...mapGetters({
-        returns: 'return/getReturns',
-      })
-    },
-    data () {
-      return {
-        queryString: ''
-      }
-    },
-    mounted () {
-      this.getReturns();
-      this.store.dispatch('return/fetchValidReturnStatuses');
-    },
-    methods: {
-      async getReturns(vSize?: any, vIndex?: any) {
-        const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
-        const viewIndex = vIndex ? vIndex : 0;
-        const payload = {
-          "inputFields": {
-            "shipmentTypeId": "SALES_RETURN",
-          },
-          "entityName": "ShipmentAndTypeAndItemCount",
-          "fieldList" : [ "shipmentId","primaryShipGroupSeqId","partyIdFrom","partyIdTo","estimatedArrivalDate","destinationFacilityId","statusId", "shipmentItemCount" ],
-          "noConditionFind": "Y",
-          "viewSize": viewSize,
-          "viewIndex": viewIndex,
-        } as any
-        
-        if(this.queryString){
-          payload.inputFields["shipmentId"] = this.queryString;
-          payload.inputFields["shipmentId_op"] = "contains";
-          payload.inputFields["shipmentId_ic"] = "Y";
-        }
-        await this.store.dispatch("return/findReturn", payload);
-      },
-      loadMoreReturns() {
-        this.getReturns(process.env.VUE_APP_VIEW_SIZE, Math.ceil(this.returns.length / process.env.VUE_APP_VIEW_SIZE));
-      }
-    },
-    setup() {
-      const store = useStore();
-      return {
-        cloudDownloadOutline,
-        store
-      }
+import { IonButton, IonContent, IonHeader, IonIcon, IonMenuButton, IonPage, IonSearchbar, IonTitle, IonToolbar } from '@ionic/vue';
+import { cloudDownloadOutline } from 'ionicons/icons'
+import { defineComponent } from 'vue'
+import { mapGetters, useStore } from 'vuex'
+import ReturnListItem from '@/components/ReturnListItem.vue'
+
+export default defineComponent({
+  name: "Returns",
+  components: {
+    IonButton,
+    IonContent,
+    IonHeader,
+    IonIcon,
+    IonMenuButton,
+    IonSearchbar,
+    IonPage,
+    IonTitle,
+    IonToolbar,
+    ReturnListItem
+  },
+  computed: {
+    ...mapGetters({
+      returns: 'return/getReturns',
+    })
+  },
+  data () {
+    return {
+      queryString: ''
     }
-  })
+  },
+  mounted () {
+    this.getReturns();
+    this.store.dispatch('return/fetchValidReturnStatuses');
+  },
+  methods: {
+    async getReturns(vSize?: any, vIndex?: any) {
+      const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
+      const viewIndex = vIndex ? vIndex : 0;
+      const payload = {
+        "inputFields": {
+          "shipmentTypeId": "SALES_RETURN",
+        },
+        "entityName": "ShipmentAndTypeAndItemCount",
+        "fieldList" : [ "shipmentId","primaryShipGroupSeqId","partyIdFrom","partyIdTo","estimatedArrivalDate","destinationFacilityId","statusId", "shipmentItemCount" ],
+        "noConditionFind": "Y",
+        "viewSize": viewSize,
+        "viewIndex": viewIndex,
+      } as any
+      
+      if(this.queryString){
+        payload.inputFields["shipmentId"] = this.queryString;
+        payload.inputFields["shipmentId_op"] = "contains";
+        payload.inputFields["shipmentId_ic"] = "Y";
+      }
+      await this.store.dispatch("return/findReturn", payload);
+    },
+    loadMoreReturns() {
+      this.getReturns(process.env.VUE_APP_VIEW_SIZE, Math.ceil(this.returns.length / process.env.VUE_APP_VIEW_SIZE));
+    }
+  },
+  setup() {
+    const store = useStore();
+    return {
+      cloudDownloadOutline,
+      store
+    }
+  }
+})
 </script>
