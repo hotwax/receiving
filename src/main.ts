@@ -1,7 +1,8 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router';
-import { DateTime } from 'luxon';
+import moment from 'moment'
+import "moment-timezone";
 import './registerServiceWorker';
 
 
@@ -42,17 +43,14 @@ app.config.globalProperties.$filters = {
   formatDate(value: any, inFormat?: string, outFormat?: string) {
     // TODO Use Loxon instead
     // TODO Make default format configurable and from environment variables
-    if(inFormat){
-      return DateTime.fromFormat(value, inFormat).toFormat(outFormat ? outFormat : 'MM-DD-YYYY');
-    }
-    return DateTime.fromISO(value).toFormat(outFormat ? outFormat : 'MM-DD-YYYY');
+    return moment(value, inFormat).format(outFormat ? outFormat : 'MM-DD-YYYY');
   },
-  formatUtcDate(value: any, inFormat?: any, outFormat?: string) {
+  formatUtcDate(value: any, inFormat?: string, outFormat?: string) {
     // TODO Use Loxon instead
     // TODO Make default format configurable and from environment variables
     const userProfile = store.getters['user/getUserProfile'];
     // TODO Fix this setDefault should set the default timezone instead of getting it everytiem and setting the tz
-    return DateTime.utc(value, inFormat).setZone(userProfile.userTimeZone).toFormat(outFormat ? outFormat : 'MM-DD-YYYY')
+    return moment.utc(value, inFormat).tz(userProfile.userTimeZone).format(outFormat ? outFormat : 'MM-DD-YYYY');
   },
   getFeature(featureHierarchy: any, featureKey: string) {
     let  featureValue = ''
