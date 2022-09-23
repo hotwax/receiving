@@ -175,9 +175,8 @@ export default defineComponent({
       return alert.present();
     },
     async receiveReturn() {
-      await this.store.dispatch('return/receiveReturn', {payload: this.current}).then(() => {
-        this.router.push('/returns');
-      })   
+      await this.store.dispatch('return/receiveReturn', {payload: this.current});
+      this.router.push('/returns');
     },
     receiveAll(item: any) {
       this.current.items.find((ele: any) => {
