@@ -180,7 +180,7 @@ export default defineComponent({
       })   
     },
     receiveAll(item: any) {
-      this.current.items.filter((ele: any) => {
+      this.current.items.find((ele: any) => {
         if(ele.itemSeqId == item.itemSeqId) {
           ele.quantityAccepted = ele.quantityOrdered;
           ele.progress = ele.quantityAccepted / ele.quantityOrdered
