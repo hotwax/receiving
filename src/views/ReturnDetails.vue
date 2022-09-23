@@ -10,11 +10,14 @@
     <ion-content>
       <main>
         <ion-item lines="none">
-          <h1>{{ $t("Shipment ID") }}: {{ current.shipmentId }}</h1>
-          <div slot="end">
-            <ion-chip>Arrival date</ion-chip>
-            <ion-chip>Internal Id</ion-chip>
-          </div>
+          <ion-list class="ion-text-center">
+            <ion-title>{{ $t("Order: <order name>") }}</ion-title>
+            <ion-label>{{ $t("Customer: <customer name>") }}</ion-label>
+          </ion-list>
+          <ion-item slot="end" lines="none">
+            <ion-badge :color="statusColors[current.statusDesc]" slot="end">{{ current.estimatedArrivalDate ? ($filters.formatDate(current.estimatedArrivalDate)) : current.statusDesc }}</ion-badge>
+            <ion-chip slot="end">Internal Id</ion-chip>
+          </ion-item>
         </ion-item>
 
         <div class="shipment-scanner">
@@ -73,6 +76,7 @@
 <script lang="ts">
 import {
   IonBackButton,
+  IonBadge,
   IonButton,
   IonCard,
   IonChip,
@@ -84,6 +88,7 @@ import {
   IonItem,
   IonInput,
   IonLabel,
+  IonList,
   IonPage,
   IonProgressBar,
   IonThumbnail,
@@ -105,6 +110,7 @@ export default defineComponent({
   name: "ReturnDetails",
   components: {
     IonBackButton,
+    IonBadge,
     IonButton,
     IonCard,
     IonChip,
@@ -116,6 +122,7 @@ export default defineComponent({
     IonItem,
     IonInput,
     IonLabel,
+    IonList,
     IonPage,
     IonProgressBar,
     IonThumbnail,
@@ -126,7 +133,14 @@ export default defineComponent({
   props: ["shipment"],
   data() {
     return {
-      queryString: ''
+      queryString: '',
+      statusColors: {
+        'Received': 'success',
+        'Approved': 'tertiary',
+        'Cancelled': 'danger',
+        'Shipped': 'medium',
+        'Created': 'medium'
+      } as any
     }
   },
   mounted() {
@@ -242,13 +256,10 @@ ion-thumbnail {
   cursor: pointer;
 }
 
-ion-chip {
-
-}
-
 .border-top {
   border-top: 1px solid #ccc;
 }
+
 
 .product-info {
   display: grid;
