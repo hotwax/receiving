@@ -89,6 +89,7 @@ import Image from "@/components/Image.vue";
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import ImageModal from '@/components/ImageModal.vue';
+import { hasError } from '@/utils';
 
 export default defineComponent({
   name: "ReturnDetails",
@@ -175,15 +176,17 @@ export default defineComponent({
       return alert.present();
     },
     async receiveReturn() {
-      await this.store.dispatch('return/receiveReturn', {payload: this.current});
-      this.router.push('/returns');
+      let resp = await this.store.dispatch('return/receiveReturn', {payload: this.current});
+      if(resp.status === 200 && !hasError(resp)) {
+        this.router.push('/returns');
+      }
     },
     receiveAll(item: any) {
-      this.current.items.find((ele: any) => {
+      let element = this.current.items.find((ele: any) => {
         if(ele.itemSeqId == item.itemSeqId) {
-          ele.quantityAccepted = ele.quantityOrdered;
-          ele.progress = ele.quantityAccepted / ele.quantityOrdered
-          return;
+          element.quantityAccepted = ele.quantityOrdered;
+          element.progress = ele.quantityAccepted / ele.quantityOrdered
+          return element;
         }
       })
     },
