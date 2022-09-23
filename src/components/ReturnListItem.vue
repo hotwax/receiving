@@ -4,26 +4,37 @@
       <h2>{{ returnShipment.shipmentId }}</h2>
       <p>{{ returnShipment.shipmentItemCount }} {{ (returnShipment.shipmentItemCount > 1 ? 'Items' : 'Item') }}</p>
     </ion-label>
-    <ion-note slot="end">{{ returnShipment.estimatedArrivalDate ? ($filters.formatDate(returnShipment.estimatedArrivalDate)) : returnShipment.statusDesc }}</ion-note>
+    <ion-badge :color="statusColors[returnShipment.statusDesc]" slot="end">{{ returnShipment.estimatedArrivalDate ? ($filters.formatDate(returnShipment.estimatedArrivalDate)) : returnShipment.statusDesc }}</ion-badge>
   </ion-item>
 </template>
   
 <script lang="ts">
 import { defineComponent } from 'vue'
 import {
+  IonBadge,
   IonItem,
   IonLabel,
-  IonNote
 } from '@ionic/vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex';
 
 export default defineComponent({
   name: "ReturnListItem",
+  data() {
+    return {
+      statusColors: {
+        'Received': 'success',
+        'Approved': 'tertiary',
+        'Cancelled': 'danger',
+        'Shipped': 'medium',
+        'Created': 'medium'
+      } as any
+    }
+  },
   components: {
+    IonBadge,
     IonItem,
     IonLabel,
-    IonNote,
   },
   props: ["returnShipment"],
   methods: {

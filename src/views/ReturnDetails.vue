@@ -3,7 +3,7 @@
     <ion-header :translucent="true">
       <ion-toolbar>
         <ion-back-button default-href="/" slot="start"></ion-back-button>
-        <ion-title>{{ $t("Return Details") }}</ion-title>
+        <ion-title>{{ current.externalId }}</ion-title>
       </ion-toolbar>
     </ion-header>
 
@@ -11,6 +11,10 @@
       <main>
         <ion-item lines="none">
           <h1>{{ $t("Shipment ID") }}: {{ current.shipmentId }}</h1>
+          <div slot="end">
+            <ion-chip>Arrival date</ion-chip>
+            <ion-chip>Internal Id</ion-chip>
+          </div>
         </ion-item>
 
         <div class="shipment-scanner">
@@ -34,6 +38,12 @@
                 <h2>{{ getProduct(item.productId).productName }}</h2> 
                 <p>{{ getProduct(item.productId).productId }}</p>
               </ion-label>
+            </ion-item>
+            <ion-item lines="none">
+              <ion-chip outline="true">
+                <ion-icon :icon="locationOutline" />
+                <ion-label>{{current.locationSeqId}}</ion-label>
+              </ion-chip>
             </ion-item>
             <ion-item class="product-count">
               <ion-label position="floating">{{ $t("Qty") }}</ion-label>
@@ -65,6 +75,7 @@ import {
   IonBackButton,
   IonButton,
   IonCard,
+  IonChip,
   IonContent,
   IonHeader,
   IonFab,
@@ -82,7 +93,7 @@ import {
   alertController,
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
-import { checkmarkDone, barcodeOutline } from 'ionicons/icons';
+import { checkmarkDone, barcodeOutline, locationOutline } from 'ionicons/icons';
 import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
 import Image from "@/components/Image.vue";
@@ -96,6 +107,7 @@ export default defineComponent({
     IonBackButton,
     IonButton,
     IonCard,
+    IonChip,
     IonContent,
     IonHeader,
     IonFab,
@@ -210,6 +222,7 @@ export default defineComponent({
     return {
       barcodeOutline,
       checkmarkDone,
+      locationOutline,
       store,
       router
     };
@@ -229,13 +242,17 @@ ion-thumbnail {
   cursor: pointer;
 }
 
+ion-chip {
+
+}
+
 .border-top {
   border-top: 1px solid #ccc;
 }
 
 .product-info {
   display: grid;
-  grid-template-columns: 1fr .25fr;
+  grid-template-columns: 1fr 1fr .30fr;
   align-items: center;
   padding: 16px;
   padding-left: 0;
