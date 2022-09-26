@@ -40,6 +40,7 @@
   "Returns": "Returns",
   "Returns not found": "Returns not found",
   "rejected": "rejected",
+  "returned": "returned",
   "Scan": "Scan",
   "Scan ASN to start receiving": "Scan ASN to start receiving",
   "Scan barcodes to receive them": "Scan barcodes to receive them",
@@ -56,8 +57,8 @@
   "Shipped": "Shipped",
   "Something went wrong": "Something went wrong",
   "Sorry, your username or password is incorrect. Please try again.": "Sorry, your username or password is incorrect. Please try again.",
-  "eCom Store": "eCom Store",
   "store name": "store name",
+  "This return has been and cannot be edited.": "This return has been {status} and cannot be edited.",
   "Time zone updated successfully": "Time zone updated successfully",
   "Username": "Username",
   "ZeroQuantity": "ZeroQuantity"

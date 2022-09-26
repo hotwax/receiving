@@ -10,7 +10,15 @@
     <ion-content>
       <main>
         <ion-item lines="none">
-          <h1>{{ $t("Shipment ID") }}: {{ current.shipmentId }}</h1>
+          <ion-list class="ion-text-center">
+            <ion-title>{{ current.shopifyOrderName ? current.shopifyOrderName : current.hcOrderId }}</ion-title>
+            <!-- TODO: Fetch Customer name -->
+            <!-- <ion-label>{{ $t("Customer: <customer name>")}}</ion-label> -->
+          </ion-list>
+          <ion-item slot="end" lines="none">
+            <ion-badge :color="statusColorMapping[current.statusDesc]" slot="end">{{ current.statusDesc }}</ion-badge>
+            <ion-chip v-if="current.trackingCode" slot="end">{{ current.trackingCode }}</ion-chip>
+          </ion-item>
         </ion-item>
 
         <div class="shipment-scanner">
@@ -35,24 +43,33 @@
                 <p>{{ getProduct(item.productId).productId }}</p>
               </ion-label>
             </ion-item>
-            <ion-item class="product-count">
+            <ion-item :disabled="true" lines="none">
+              <ion-chip outline="true">
+                <ion-icon :icon="locationOutline" />
+                <ion-label>{{ current.locationSeqId }}</ion-label>
+              </ion-chip>
+            </ion-item>
+            <ion-item v-if="isReturnReceivable(current.statusId)" class="product-count">
               <ion-label position="floating">{{ $t("Qty") }}</ion-label>
               <ion-input type="number" min="0" v-model="item.quantityAccepted" />
+            </ion-item>
+            <ion-item v-if="!isReturnReceivable(current.statusId)" class="product-count" lines="none">
+              <ion-label>{{ item.quantityAccepted }} {{ $t("received") }}</ion-label>
             </ion-item>
           </div>
 
           <ion-item class="border-top" v-if="item.quantityOrdered > 0">
-            <ion-button @click="receiveAll(item)" slot="start" fill="outline">
+            <ion-button v-if="isReturnReceivable(current.statusId)" @click="receiveAll(item)" slot="start" fill="outline">
               {{ $t("Receive All") }}
             </ion-button>
             <ion-progress-bar :value="item.quantityAccepted/item.quantityOrdered" />
-            <p slot="end">{{ item.quantityOrdered }}</p>
+            <p slot="end">{{ item.quantityOrdered }} {{ $t("returned") }}</p>
           </ion-item>
         </ion-card>
       </main>
 
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button v-if="validStatusChange(current.statusId)" @click="completeShipment">
+        <ion-fab-button v-if="isReturnReceivable(current.statusId)" @click="completeShipment">
           <ion-icon :icon="checkmarkDone" />
         </ion-fab-button>
       </ion-fab>
@@ -63,8 +80,10 @@
 <script lang="ts">
 import {
   IonBackButton,
+  IonBadge,
   IonButton,
   IonCard,
+  IonChip,
   IonContent,
   IonHeader,
   IonFab,
@@ -73,6 +92,7 @@ import {
   IonItem,
   IonInput,
   IonLabel,
+  IonList,
   IonPage,
   IonProgressBar,
   IonThumbnail,
@@ -82,20 +102,24 @@ import {
   alertController,
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
-import { checkmarkDone, barcodeOutline } from 'ionicons/icons';
+import { checkmarkDone, barcodeOutline, locationOutline } from 'ionicons/icons';
 import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
 import Image from "@/components/Image.vue";
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import ImageModal from '@/components/ImageModal.vue';
+import { showToast } from '@/utils'
+import { translate } from '@/i18n'
 
 export default defineComponent({
   name: "ReturnDetails",
   components: {
     IonBackButton,
+    IonBadge,
     IonButton,
     IonCard,
+    IonChip,
     IonContent,
     IonHeader,
     IonFab,
@@ -104,6 +128,7 @@ export default defineComponent({
     IonItem,
     IonInput,
     IonLabel,
+    IonList,
     IonPage,
     IonProgressBar,
     IonThumbnail,
@@ -114,17 +139,28 @@ export default defineComponent({
   props: ["shipment"],
   data() {
     return {
-      queryString: ''
+      queryString: '',
+      statusColorMapping: {
+        'Received': 'success',
+        'Approved': 'tertiary',
+        'Cancelled': 'danger',
+        'Shipped': 'medium',
+        'Created': 'medium'
+      } as any
     }
   },
-  mounted() {
-    this.store.dispatch('return/setCurrent', { shipmentId: this.$route.params.id })
+  async mounted() {
+    const current = await this.store.dispatch('return/setCurrent', { shipmentId: this.$route.params.id })
+    if(!this.isReturnReceivable(current.statusId)) {
+      showToast(translate("This return has been and cannot be edited.", { status: current?.statusDesc?.toLowerCase() }));
+    }
   },
   computed: {
     ...mapGetters({
       current: 'return/getCurrent',
       getProduct: 'product/getProduct',
-      validStatusChange: 'return/isReturnReceivable'
+      isReturnReceivable: 'return/isReturnReceivable',
+      returns: 'return/getReturns'
     }),
   },
   methods: {
@@ -187,8 +223,10 @@ export default defineComponent({
         }
       })
     },
-    updateProductCount(payload: any){
+    updateProductCount(payload?: any){
       if(this.queryString) payload = this.queryString
+      // if not a valid status, skip updating the qunatity
+      if(!this.isReturnReceivable(this.current.statusId)) return;
       this.store.dispatch('return/updateReturnProductCount', payload)
     },
     async scanCode () {
@@ -210,6 +248,7 @@ export default defineComponent({
     return {
       barcodeOutline,
       checkmarkDone,
+      locationOutline,
       store,
       router
     };
@@ -233,9 +272,10 @@ ion-thumbnail {
   border-top: 1px solid #ccc;
 }
 
+
 .product-info {
   display: grid;
-  grid-template-columns: 1fr .25fr;
+  grid-template-columns: 1fr 1fr .30fr;
   align-items: center;
   padding: 16px;
   padding-left: 0;
