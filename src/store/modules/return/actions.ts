@@ -66,10 +66,8 @@ const actions: ActionTree<ReturnState, RootState> = {
         } else {
           showToast(translate('Something went wrong'));
           console.error("error", resp.data._ERROR_MESSAGE_);
+          return;
         }
-      }
-      if (!returnShipment) {
-        showToast(translate('Something went wrong.'));
       }
 
       // Get shipment items of return shipment
