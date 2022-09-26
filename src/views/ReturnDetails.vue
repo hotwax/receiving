@@ -130,13 +130,6 @@ export default defineComponent({
       queryString: ''
     }
   },
-  mounted(){
-    const returnShipment = this.returns.find((returnShipment: any) => returnShipment.shipmentId === this.$route.params.id);
-    if(returnShipment.destinationFacilityId && !this.facilityLocationsByFacilityId(returnShipment.destinationFacilityId)){
-      this.store.dispatch('user/getFacilityLocations', returnShipment.destinationFacilityId);
-    }
-    this.store.dispatch('return/setCurrent', { shipmentId: this.$route.params.id })
-  },
   computed: {
     ...mapGetters({
       current: 'return/getCurrent',

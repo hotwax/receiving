@@ -16,7 +16,7 @@ import {
   IonNote
 } from '@ionic/vue'
 import { useRouter } from 'vue-router'
-import { useStore } from 'vuex';
+import { mapGetters, useStore } from 'vuex';
 
 export default defineComponent({
   name: "ReturnListItem",
@@ -26,8 +26,16 @@ export default defineComponent({
     IonNote,
   },
   props: ["returnShipment"],
+  computed: {
+    ...mapGetters({
+      facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
+    }),
+  },
   methods: {
     async viewReturn () {
+      if(this.returnShipment.destinationFacilityId && !this.facilityLocationsByFacilityId(this.returnShipment.destinationFacilityId)){
+        await this.store.dispatch('user/getFacilityLocations', this.returnShipment.destinationFacilityId);
+      }      
       this.store.dispatch('return/setCurrent', { shipmentId: this.returnShipment.shipmentId }).then((resp) => {
         if (resp.items) {
           this.router.push({ path: `/return/${this.returnShipment.shipmentId}` });
