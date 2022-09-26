@@ -46,7 +46,7 @@
             <ion-item :disabled="true" lines="none">
               <ion-chip outline="true">
                 <ion-icon :icon="locationOutline" />
-                <ion-label>{{current.locationSeqId}}</ion-label>
+                <ion-label>{{ current.locationSeqId }}</ion-label>
               </ion-chip>
             </ion-item>
             <ion-item v-if="isReturnReceivable(current.statusId)" class="product-count">
