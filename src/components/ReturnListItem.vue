@@ -5,7 +5,7 @@
       <!-- TODO: Fetch orderID -->
       <!-- <p>{{ returnShipment.orderId }}</p> -->
     </ion-label>
-    <ion-badge :color="statusColors[returnShipment.statusDesc] ? statusColors[returnShipment.statusDesc] : 'medium'" slot="end">{{ returnShipment.statusDesc }}</ion-badge>
+    <ion-badge :color="statusColorsMapping[returnShipment.statusDesc] ? statusColorsMapping[returnShipment.statusDesc] : 'medium'" slot="end">{{ returnShipment.statusDesc }}</ion-badge>
   </ion-item>
 </template>
   
@@ -23,7 +23,7 @@ export default defineComponent({
   name: "ReturnListItem",
   data() {
     return {
-      statusColors: {
+      statusColorsMapping: {
         'Received': 'success',
         'Approved': 'tertiary',
         'Cancelled': 'danger',

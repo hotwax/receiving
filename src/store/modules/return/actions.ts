@@ -108,42 +108,6 @@ const actions: ActionTree<ReturnState, RootState> = {
       console.error(err);
     }
   },
-  async addReturnItem ({ state, commit, dispatch }, payload) {
-    const item = payload.shipmentId ? { ...(payload.item) } : { ...payload }
-    const product = {
-      ...item,
-      quantityAccepted: 0,
-      quantityOrdered: 0
-    }
-    const params = {
-      orderId: payload.orderId,
-      productId: product.productId,
-      quantity: 0,
-      shipmentId: payload.shipmentId ? payload.shipmentId : state.current.shipmentId,
-      returnItemSeqId: payload.shipmentItemSeqId
-    }
-    const resp = await ReturnService.addReturnItem(params);
-    if (resp.status == 200 && !hasError(resp)){
-      dispatch('updateProductCount', { shipmentId: resp.data.shipmentId })
-      if (!payload.shipmentId) commit(types.RETURN_CURRENT_PRODUCT_ADDED, product)
-      return resp;
-    } else {
-      showToast(translate('Something went wrong'));
-      console.error("error", resp._ERROR_MESSAGE_);
-      return Promise.reject(new Error(resp.data._ERROR_MESSAGE_));
-    }
-  },
-  // TODO: Fix this later 
-  async updateProductCount({ commit, state }, payload ) {
-    const returns = state.returns.list;
-    returns.map((returnShipment: any) => {
-      if(returnShipment.shipmentId === payload.shipmentId) {
-        returnShipment.shipmentItemCount = parseInt(returnShipment.shipmentItemCount) + 1;
-        return;
-      }
-    })
-    commit(types.RETURN_LIST_UPDATED, { returns })
-  },
   async clearReturns({ commit }) {
     commit(types.RETURN_LIST_UPDATED, { returns: [] })
     commit(types.RETURN_CURRENT_UPDATED, { current: {} })
