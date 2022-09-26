@@ -69,14 +69,15 @@ const actions: ActionTree<ReturnState, RootState> = {
       return Promise.reject(new Error(err))
     }
   },
-  receiveReturnItem ({ commit }, data) {
+  receiveReturnItem ({ state, commit }, data) {
     const payload = {
       shipmentId: data.shipmentId,
     }
+    const facilityId = state.returns.list.find((returnShipment: any) => returnShipment.shipmentId === data.shipmentId).destinationFacilityId;
     return Promise.all(data.items.map((item: any) => {
       const params = {
         ...payload,
-        facilityId: this.state.user.currentFacility.facilityId,
+        facilityId,
         shipmentItemSeqId: item.shipmentItemSeqId,
         productId: item.productId,
         quantityAccepted: item.quantityAccepted,
