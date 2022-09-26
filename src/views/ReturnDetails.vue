@@ -3,7 +3,7 @@
     <ion-header :translucent="true">
       <ion-toolbar>
         <ion-back-button default-href="/" slot="start"></ion-back-button>
-        <ion-title>{{ returns[0].externalId }}</ion-title>
+        <ion-title>{{ $t("Return Details") }}</ion-title>
       </ion-toolbar>
     </ion-header>
 
@@ -11,13 +11,13 @@
       <main>
         <ion-item lines="none">
           <ion-list class="ion-text-center">
-            <ion-title>{{ returns[0].shopifyOrderName}}</ion-title>
+            <ion-title>{{ current.shopifyOrderName ? current.shopifyOrderName : current.hcOrderId}}</ion-title>
             <!-- TODO: Fetch Customer name -->
             <!-- <ion-label>{{ $t("Customer: <customer name>")}}</ion-label> -->
           </ion-list>
           <ion-item slot="end" lines="none">
             <ion-badge :color="statusColors[current.statusDesc]" slot="end">{{ current.statusDesc }}</ion-badge>
-            <ion-chip v-if="returns[0].trackingCode" slot="end">{{ returns[0].trackingCode }}</ion-chip>
+            <ion-chip v-if="current.trackingCode" slot="end">{{ current.trackingCode }}</ion-chip>
           </ion-item>
         </ion-item>
 
@@ -43,25 +43,25 @@
                 <p>{{ getProduct(item.productId).productId }}</p>
               </ion-label>
             </ion-item>
-            <ion-item lines="none">
+            <ion-item :disabled="true" lines="none">
               <ion-chip outline="true">
                 <ion-icon :icon="locationOutline" />
                 <ion-label>{{current.locationSeqId}}</ion-label>
               </ion-chip>
             </ion-item>
-            <ion-item v-if="validStatusChange(current.statusId)" class="product-count">
+            <ion-item v-if="isReturnReceivable(current.statusId)" class="product-count">
               <ion-label position="floating">{{ $t("Qty") }}</ion-label>
               <ion-input type="number" min="0" v-model="item.quantityAccepted" />
             </ion-item>
-            <ion-item v-if="!validStatusChange(current.statusId)" class="product-count">
-              <ion-label position="floating">{{item.quantityAccepted}} {{ $t("received") }}</ion-label>
+            <ion-item v-if="!isReturnReceivable(current.statusId)" class="product-count" lines="none">
+              <ion-label>{{ item.quantityAccepted }} {{ $t("received") }}</ion-label>
             </ion-item>
           </div>
 
           <ion-item class="border-top" v-if="item.quantityOrdered > 0">
-            <!-- <ion-button @click="receiveAll(item)" slot="start" fill="outline">
+            <ion-button v-if="isReturnReceivable(current.statusId)" @click="receiveAll(item)" slot="start" fill="outline">
               {{ $t("Receive All") }}
-            </ion-button> -->
+            </ion-button>
             <ion-progress-bar :value="item.quantityAccepted/item.quantityOrdered" />
             <p slot="end">{{ item.quantityOrdered }} {{ $t("returned") }}</p>
           </ion-item>
@@ -69,7 +69,7 @@
       </main>
 
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button v-if="validStatusChange(current.statusId)" @click="completeShipment">
+        <ion-fab-button v-if="isReturnReceivable(current.statusId)" @click="completeShipment">
           <ion-icon :icon="checkmarkDone" />
         </ion-fab-button>
       </ion-fab>
@@ -149,18 +149,17 @@ export default defineComponent({
       } as any
     }
   },
-  mounted() {
-    this.store.dispatch('return/setCurrent', { shipmentId: this.$route.params.id })
-    this.getReturnDetails();
-    if(!this.validStatusChange(this.current.statusId)) {
-      showToast(translate("This return has been received and cannot be edited."));
+  async mounted() {
+    const current = await this.store.dispatch('return/setCurrent', { shipmentId: this.$route.params.id })
+    if(!this.isReturnReceivable(current.statusId)) {
+      showToast(translate("This return has been and cannot be edited.", { status: current?.statusDesc?.toLowerCase() }));
     }
   },
   computed: {
     ...mapGetters({
       current: 'return/getCurrent',
       getProduct: 'product/getProduct',
-      validStatusChange: 'return/isReturnReceivable',
+      isReturnReceivable: 'return/isReturnReceivable',
       returns: 'return/getReturns'
     }),
   },
@@ -171,22 +170,6 @@ export default defineComponent({
         componentProps: { imageUrl , productName }
       });
       return imageModal.present();
-    },
-    async getReturnDetails() {
-      console.log("here i am");
-      const viewSize = process.env.VUE_APP_VIEW_SIZE;
-      const viewIndex = 0;
-      const payload = {
-        "entityName": "SalesReturnShipmentView",
-        "inputFields": {
-          "externalId": this.current.externalId
-        },
-        "fieldList" : [ "shipmentId","externalId","statusId","shopifyOrderName","hcOrderId","trackingCode" ],
-        "noConditionFind": "Y",
-        "viewSize": viewSize,
-        "viewIndex": viewIndex,
-      } as any
-      await this.store.dispatch("return/findReturn", payload);
     },
     async addProduct() {
       const modal = await modalController
@@ -240,8 +223,10 @@ export default defineComponent({
         }
       })
     },
-    updateProductCount(payload: any){
+    updateProductCount(payload?: any){
       if(this.queryString) payload = this.queryString
+      // if not a valid status, skip updating the qunatity
+      if(!this.isReturnReceivable(this.current.statusId)) return;
       this.store.dispatch('return/updateReturnProductCount', payload)
     },
     async scanCode () {

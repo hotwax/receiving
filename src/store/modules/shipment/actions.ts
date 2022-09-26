@@ -101,8 +101,6 @@ const actions: ActionTree<ShipmentState, RootState> = {
         "shipmentId": payload.shipment ? payload.shipment.shipmentId : payload.shipmentId,
         "statusId": "PURCH_SHIP_RECEIVED"
       })
-      console.log(resp);
-      
       if (resp.status == 200 && !hasError(resp)) {
         showToast(translate("Shipment Received Successfully") + ' ' + (payload.shipment ? payload.shipment.shipmentId : payload.shipmentId))
       }

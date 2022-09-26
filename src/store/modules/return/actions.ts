@@ -12,8 +12,6 @@ const actions: ActionTree<ReturnState, RootState> = {
     let resp;
     try {
       resp = await ReturnService.findReturns(payload)
-      console.log(resp);
-      
       if (resp.status === 200 && !hasError(resp) && resp.data.docs?.length > 0) {
         let returns = resp.data.docs;
         const statusIds = [...new Set(returns.map((returnShipment: any) => returnShipment.statusId))]
@@ -42,12 +40,44 @@ const actions: ActionTree<ReturnState, RootState> = {
     });
     commit(types.RETURN_CURRENT_UPDATED, state);
   },
-  async setCurrent ({ commit }, payload) {
+  async setCurrent ({ commit, state }, payload) {
     let resp;
     try {
+      // Check if already exist in the returns list
+      let returnShipment = state.returns.list.find((returnShipment: any) => returnShipment.shipmentId === payload.shipmentId);
+
+      if (!returnShipment) {
+        // Fetch shipment records if miss in return list
+        const getReturnShipmentPayload = {
+          "entityName": "SalesReturnShipmentView",
+          "inputFields": {
+            "shipmentId": payload.shipmentId
+          },
+          "fieldList" : [ "shipmentId","externalId","statusId","shopifyOrderName","hcOrderId","trackingCode" ],
+          "noConditionFind": "Y",
+          "viewSize": 1,
+          "viewIndex": 0,
+        } as any
+        resp = await ReturnService.findReturns(getReturnShipmentPayload)
+        if (resp.status === 200 && !hasError(resp) && resp.data.docs?.length > 0) {
+          returnShipment = resp.data.docs[0];
+          const statuses = await this.dispatch('util/fetchStatus', [ returnShipment.statusId ]);
+          returnShipment.statusDesc = statuses[returnShipment.statusId]
+        } else {
+          showToast(translate('Something went wrong'));
+          console.error("error", resp.data._ERROR_MESSAGE_);
+        }
+      }
+      if (!returnShipment) {
+        showToast(translate('Something went wrong.'));
+      }
+
+      // Get shipment items of return shipment
       resp = await ReturnService.getReturnDetail(payload);
+
       if (resp.status === 200 && !hasError(resp) && resp.data.items) {
-        commit(types.RETURN_CURRENT_UPDATED, { current: resp.data })
+        // Current should have data of return shipment as well as items
+        commit(types.RETURN_CURRENT_UPDATED, { current: { ...resp.data, ...returnShipment} })
         const productIds = [ ...new Set(resp.data.items.map((item: any) => item.productId)) ]
 
         if(productIds.length) {

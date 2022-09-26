@@ -60,7 +60,6 @@ export default defineComponent({
   },
   methods: {
     async getReturns(vSize?: any, vIndex?: any) {
-      console.log("here");
       const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
       const viewIndex = vIndex ? vIndex : 0;
       const payload = {
@@ -70,9 +69,11 @@ export default defineComponent({
         "noConditionFind": "Y",
         "viewSize": viewSize,
         "viewIndex": viewIndex,
+        "orderBy": "createdDate ASC"
       } as any
       
       if(this.queryString){
+        // Search query done on shipmentId, trackingCode and externalId
         payload.inputFields["shipmentId"] = this.queryString;
         payload.inputFields["shipmentId_op"] = "contains";
         payload.inputFields["shipmentId_ic"] = "Y";
