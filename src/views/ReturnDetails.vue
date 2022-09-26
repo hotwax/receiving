@@ -91,7 +91,6 @@ import {
   IonToolbar,
   modalController,
   alertController,
-  onIonViewWillEnter,
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { checkmarkDone, barcodeOutline } from 'ionicons/icons';
@@ -128,7 +127,7 @@ export default defineComponent({
   props: ["shipment"],
   data() {
     return {
-      queryString: '',
+      queryString: ''
     }
   },
   async IonViewWillEnter(){
