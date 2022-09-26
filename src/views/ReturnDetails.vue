@@ -140,6 +140,7 @@ export default defineComponent({
     IonTitle,
     IonToolbar,
     Image,
+    LocationPopover
   },
   props: ["shipment"],
   data() {
