@@ -29,7 +29,7 @@ const getters: GetterTree <UserState, RootState> = {
         return state.currentEComStore
     },
     getFacilityLocationsByFacilityId: (state) => (facilityId: string) => {
-        state.facilityLocationsByFacilityId[facilityId];
+        return state.facilityLocationsByFacilityId[facilityId];
     }
 }
 export default getters;

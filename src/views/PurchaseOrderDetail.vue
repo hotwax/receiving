@@ -53,7 +53,7 @@
             </div>
 
             <div class="location">
-              <LocationPopover :item="item" type="purchaseOrder" />
+              <LocationPopover :item="item" type="purchaseOrder" :facilityId="currentFacility.facilityId" />
             </div>
 
             <div class="product-count">

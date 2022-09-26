@@ -8,7 +8,7 @@
     </ion-header>
     <ion-content>
       <main>
-        <ion-searchbar :placeholder="$t('Scan ASN to start receiving')"/>
+        <ion-searchbar :placeholder="$t('Scan ASN to start receiving')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getShipments()" />
 
         <ShipmentListItem v-for="shipment in shipments" :key="shipment.shipmentId" :shipment="shipment"/>
 
@@ -50,6 +50,11 @@ export default defineComponent({
       user: 'user/getCurrentFacility'
     })
   },
+  data() {
+    return {
+      queryString: ''
+    }
+  },
   mounted () {
     this.getShipments();
   },
@@ -78,6 +83,11 @@ export default defineComponent({
         "noConditionFind": "Y",
         "viewSize": viewSize,
         "viewIndex": viewIndex,
+      } as any
+      if(this.queryString){
+        payload.inputFields["shipmentId"] = this.queryString;
+        payload.inputFields["shipmentId_op"] = "contains";
+        payload.inputFields["shipmentId_ic"] = "Y";
       }
       await this.store.dispatch("shipment/findShipment", payload);
     },

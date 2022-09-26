@@ -22,7 +22,7 @@ const state: any = {
 }
 
 const persistState = createPersistedState({
-    paths: ['user'],
+    paths: ['user', 'return.validStatusChange'],
     fetchBeforeUse: true
 })
 

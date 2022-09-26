@@ -23,6 +23,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
         if (payload.viewIndex && payload.viewIndex > 0) shipments = state.shipments.list.concat(shipments);
         commit(types.SHIPMENT_LIST_UPDATED, { shipments })
       } else {
+        if(!payload.viewIndex) commit(types.SHIPMENT_LIST_UPDATED, { shipments: [] })
         showToast(translate("Shipments not found"));
       }
       if (payload.viewIndex === 0) emitter.emit("dismissLoader");

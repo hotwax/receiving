@@ -11,7 +11,7 @@ const actions: ActionTree<ReturnState, RootState> = {
   async findReturn ({ commit, state }, payload) {
     let resp;
     try {
-      resp = await ReturnService.fetchReturns(payload)
+      resp = await ReturnService.findReturns(payload)
       if (resp.status === 200 && !hasError(resp) && resp.data.docs?.length > 0) {
         let returns = resp.data.docs;
         const statusIds = [...new Set(returns.map((returnShipment: any) => returnShipment.statusId))]
@@ -65,45 +65,51 @@ const actions: ActionTree<ReturnState, RootState> = {
     }
   },
   receiveReturnItem ({ commit }, data) {
-    const payload = data.return ? {
-      returnId: data.return.returnId,
-      locationSeqId: data.return.locationSeqId
-    } : {
-      returnId: data.returnId,
+    const payload = {
+      shipmentId: data.shipmentId,
       locationSeqId: data.locationSeqId
     }
     return Promise.all(data.items.map((item: any) => {
       const params = {
         ...payload,
         facilityId: this.state.user.currentFacility.facilityId,
-        returnItemSeqId: item.itemSeqId,
+        shipmentItemSeqId: item.shipmentItemSeqId,
         productId: item.productId,
         quantityAccepted: item.quantityAccepted,
         orderId: item.orderId,
         orderItemSeqId: item.orderItemSeqId,
         unitCost: 0.00
       }
-      return ReturnService.receiveReturnItem(params).catch((err) => {
-        return err;
-      })
+      return ReturnService.receiveReturnItem(params).catch((err) => err)
     }))
   },
   async receiveReturn ({ dispatch }, {payload}) {
     emitter.emit("presentLoader");
-    return await dispatch("receiveReturnItem", payload).then(async( ) => {
-      const resp = await ReturnService.receiveReturn({
-        "returnId": payload.return ? payload.return.returnId : payload.returnId,
-        "statusId": "PURCH_RET_RECEIVED"
-      })
-      if (resp.status === 200 && !hasError(resp)) {
-        showToast(translate("Return Received Successfully") + ' ' + (payload.return ? payload.return.returnId : payload.returnId))
+    let resp;
+    try {
+      resp = await dispatch("receiveReturnItem", payload)
+
+      if(resp.status === 200 && !hasError(resp)) {
+        const receiveReturnResponse = await ReturnService.receiveReturn({
+          "shipmentId": payload.shipmentId,
+          "statusId": "PURCH_SHIP_RECEIVED"
+        })
+        if (receiveReturnResponse.status === 200 && !hasError(receiveReturnResponse)) {
+          showToast(translate("Return Received Successfully") + ' ' + (payload.shipmentId))
+        } else {
+          showToast(translate('Something went wrong'));
+          console.error("error", receiveReturnResponse.data._ERROR_MESSAGE_);
+          return Promise.reject(new Error(resp.data._ERROR_MESSAGE_));
+        }
       }
       emitter.emit("dismissLoader");
       return resp;
-    }).catch(err => err);
+    } catch (err) {
+      console.error(err);
+    }
   },
   async addReturnItem ({ state, commit, dispatch }, payload) {
-    const item = payload.returnId ? { ...(payload.item) } : { ...payload }
+    const item = payload.shipmentId ? { ...(payload.item) } : { ...payload }
     const product = {
       ...item,
       quantityAccepted: 0,
@@ -113,13 +119,13 @@ const actions: ActionTree<ReturnState, RootState> = {
       orderId: payload.orderId,
       productId: product.productId,
       quantity: 0,
-      returnId: payload.returnId ? payload.returnId : state.current.returnId,
-      returnItemSeqId: payload.returnItemSeqId
+      shipmentId: payload.shipmentId ? payload.shipmentId : state.current.shipmentId,
+      returnItemSeqId: payload.shipmentItemSeqId
     }
     const resp = await ReturnService.addReturnItem(params);
     if (resp.status == 200 && !hasError(resp)){
-      dispatch('updateProductCount', { returnId: resp.data.returnId })
-      if (!payload.returnId) commit(types.RETURN_CURRENT_PRODUCT_ADDED, product)
+      dispatch('updateProductCount', { shipmentId: resp.data.shipmentId })
+      if (!payload.shipmentId) commit(types.RETURN_CURRENT_PRODUCT_ADDED, product)
       return resp;
     } else {
       showToast(translate('Something went wrong'));
@@ -127,6 +133,7 @@ const actions: ActionTree<ReturnState, RootState> = {
       return Promise.reject(new Error(resp.data._ERROR_MESSAGE_));
     }
   },
+  // TODO: Fix this later 
   async updateProductCount({ commit, state }, payload ) {
     const returns = state.returns.list;
     returns.map((returnShipment: any) => {
@@ -140,7 +147,40 @@ const actions: ActionTree<ReturnState, RootState> = {
   async clearReturns({ commit }) {
     commit(types.RETURN_LIST_UPDATED, { returns: [] })
     commit(types.RETURN_CURRENT_UPDATED, { current: {} })
-  }
+  },
+  async fetchValidReturnStatuses({ commit }) {
+    let resp;
+    try {
+      resp = await ReturnService.fetchStatusChange({
+        "inputFields": {
+          "statusIdTo": "PURCH_SHIP_RECEIVED",
+          "statusTypeId": "PURCH_SHIP_STATUS",
+          "conditionExpression_op": "empty"
+        },
+        "fieldList": ["statusId", "statusIdTo"],
+        "entityName": "StatusValidChangeToDetail",
+        "noConditionFind": "Y",
+        "viewSize": 100
+      });
+
+      if (resp.status == 200 && resp.data.count && !hasError(resp)) {
+        const returnStatusValidChange = resp.data.docs.reduce((acc: any, obj: any) => {
+          const status = obj['statusId']
+          if (!acc[status]) {
+            acc[status] = []
+          }
+          acc[status].push(obj.statusIdTo)
+          return acc
+        }, {})
+        
+        commit(types.RETURN_VALID_STATUS_CHANGE_UPDATED, returnStatusValidChange)
+      } else {
+        console.error('Unable to fetch valid return status change options')
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  },
 }
 
 export default actions;

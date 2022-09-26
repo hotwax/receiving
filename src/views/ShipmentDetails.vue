@@ -42,7 +42,7 @@
             </div>
 
             <div class="location">
-              <LocationPopover :item="item" type="shipment" />
+              <LocationPopover :item="item" type="shipment" :facilityId="currentFacility.facilityId" />
             </div>
 
             <div class="product-count">

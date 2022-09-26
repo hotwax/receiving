@@ -8,6 +8,9 @@ const getters: GetterTree<ReturnState, RootState> = {
   },
   getCurrent (state) {
     return state.current;
+  },
+  isReturnReceivable: (state) => (statusId: string) => {
+    return state.validStatusChange[statusId]?.includes('PURCH_SHIP_RECEIVED')
   }
 };
 export default getters;
