@@ -47,20 +47,20 @@ const actions: ActionTree<ShipmentState, RootState> = {
     try {
       resp = await ShipmentService.getShipmentDetail(payload);
       if (resp.status === 200 && resp.data.items&& !hasError(resp)) {
-        commit(types.SHIPMENT_CURRENT_UPDATED, { current: resp.data })
-        let productIds: any = new Set();
         const facilityLocations = await this.dispatch('user/getFacilityLocations', this.state.user.currentFacility.facilityId);
         if(facilityLocations.length){
           const locationSeqId = facilityLocations[0].locationSeqId
           resp.data.items.map((item: any) => {
-            productIds.add(item.productId)
             item.locationSeqId = locationSeqId;
           });
         } else {
           showToast(translate("Facility locations were not found corresponding to destination facility of return shipment. Please add facility locations to avoid receive return shipment failure."))
         }
-        
-
+        commit(types.SHIPMENT_CURRENT_UPDATED, { current: resp.data })
+        let productIds: any = new Set();
+        resp.data.items.map((item: any) => {
+          productIds.add(item.productId)
+        }); 
         productIds = [...productIds]
         if(productIds.length) {
           this.dispatch('product/fetchProducts', { productIds })
