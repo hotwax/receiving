@@ -49,9 +49,10 @@ const actions: ActionTree<ShipmentState, RootState> = {
       if (resp.status === 200 && resp.data.items&& !hasError(resp)) {
         commit(types.SHIPMENT_CURRENT_UPDATED, { current: resp.data })
         let productIds: any = new Set();
-        resp.data.items.forEach((item: any) => {
+        const facilityLocations = this.state.user.facilityLocationsByFacilityId[this.state.user.currentFacility.facilityId];
+        resp.data.items.map((item: any) => {
           productIds.add(item.productId)
-          item.locationSeqId = this.state.user.facilityLocations[0].locationSeqId;
+          item.locationSeqId = facilityLocations[0].locationSeqId;
         });
 
         productIds = [...productIds]

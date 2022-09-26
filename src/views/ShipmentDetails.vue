@@ -137,7 +137,7 @@ export default defineComponent({
     }
   },
   mounted() {
-    if(!this.facilityLocations.length && this.currentFacility.facilityId){
+    if(this.currentFacility.facilityId && !this.facilityLocationsByFacilityId(this.currentFacility.facilityId)){
       this.store.dispatch('user/getFacilityLocations', this.currentFacility.facilityId)
     }
     this.store.dispatch('shipment/setCurrent', { shipmentId: this.$route.params.id })
@@ -147,7 +147,7 @@ export default defineComponent({
       current: 'shipment/getCurrent',
       user: 'user/getCurrentFacility',
       getProduct: 'product/getProduct',
-      facilityLocations: 'user/getFacilityLocations',
+      facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
       currentFacility: 'user/getCurrentFacility'
     }),
   },

@@ -14,6 +14,12 @@ const mutations: MutationTree <ReturnState> = {
   },
   [types.RETURN_VALID_STATUS_CHANGE_UPDATED] (state, payload) {
     state.validStatusChange = payload
+  },
+  [types.RETURN_ITEM_LOCATION_SEQ_ID_UPDATED] (state, payload) {
+    const item = state.current.items.find((item: any) => item.itemSeqId === payload.item.itemSeqId)
+    if(item){
+      item.locationSeqId = payload.facilityLocation?.locationSeqId
+    }
   }
 }
 export default mutations;

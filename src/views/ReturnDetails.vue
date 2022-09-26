@@ -39,7 +39,7 @@
               </ion-item>
             </div>
             <div class="location">
-              <LocationPopover :item="item" type="shipment" :facilityId="returns.find((returnShipment) => returnShipment.shipmentId === this.$route.params.id).destinationFacilityId" />
+              <LocationPopover :item="item" type="return" :facilityId="returns.find((returnShipment) => returnShipment.shipmentId === this.$route.params.id)?.destinationFacilityId" />
             </div>
             <div class="product-count">
               <ion-item>
@@ -93,7 +93,7 @@ import {
   alertController,
   onIonViewWillEnter,
 } from '@ionic/vue';
-import { defineComponent, onBeforeMount } from 'vue';
+import { defineComponent } from 'vue';
 import { checkmarkDone, barcodeOutline } from 'ionicons/icons';
 import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
@@ -129,21 +129,16 @@ export default defineComponent({
   data() {
     return {
       queryString: '',
-      destinationFacilityId: ''
     }
   },
   async IonViewWillEnter(){
     await this.store.dispatch('return/setCurrent', { shipmentId: this.$route.params.id }).then(() => {
       const returnShipment = this.returns.find((returnShipment: any) => returnShipment.shipmentId === this.$route.params.id);
-      this.destinationFacilityId = returnShipment.destinationFacilityId;
       if(returnShipment.destinationFacilityId && !this.facilityLocationsByFacilityId(returnShipment.destinationFacilityId)){
         this.store.dispatch('user/getFacilityLocations', returnShipment.destinationFacilityId);
       }
     })
   },
-  // mounted() {
-  //   this.store.dispatch('return/setCurrent', { shipmentId: this.$route.params.id })
-  // },
   computed: {
     ...mapGetters({
       current: 'return/getCurrent',

@@ -18,9 +18,6 @@ const getters: GetterTree <UserState, RootState> = {
     getCurrentFacility (state){
         return state.currentFacility
     },
-    getFacilityLocations(state) {
-        return state.facilityLocations
-    },
     getInstanceUrl (state) {
         const baseUrl = process.env.VUE_APP_BASE_URL;
         return baseUrl ? baseUrl : state.instanceUrl;

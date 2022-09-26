@@ -38,7 +38,7 @@ export default defineComponent({
       if (facilityLocations) {
         const facilityLocation = facilityLocations.find((location: any) => location.locationSeqId === event['detail'].value)
         if(facilityLocation) {
-          this.type === 'purchaseOrder' ? this.store.dispatch('order/setItemLocationSeqId', { item: this.item, facilityLocation }) : this.store.dispatch('shipment/setItemLocationSeqId', { item: this.item, facilityLocation });
+          this.store.dispatch(`${this.type}/setItemLocationSeqId`, { item: this.item, facilityLocation });
         }
       }
     },

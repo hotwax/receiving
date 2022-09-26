@@ -40,7 +40,7 @@ const actions: ActionTree<ReturnState, RootState> = {
     });
     commit(types.RETURN_CURRENT_UPDATED, state);
   },
-  async setCurrent ({ commit }, payload) {
+  async setCurrent ({ state, commit }, payload) {
     let resp;
     try {
       resp = await ReturnService.getReturnDetail(payload);
@@ -51,6 +51,11 @@ const actions: ActionTree<ReturnState, RootState> = {
         if(productIds.length) {
           this.dispatch('product/fetchProducts', { productIds })
         }
+        const facilityId = state.returns.list.find((returnShipment: any) => returnShipment.shipmentId === payload.shipmentId)?.destinationFacilityId;
+        const facilityLocations = this.state.user.facilityLocationsByFacilityId[facilityId];
+        resp.data.items.map((item: any) => {
+          item.locationSeqId = facilityLocations[0].locationSeqId;
+        });
         return resp.data;
       } else {
         showToast(translate('Something went wrong'));
@@ -67,7 +72,6 @@ const actions: ActionTree<ReturnState, RootState> = {
   receiveReturnItem ({ commit }, data) {
     const payload = {
       shipmentId: data.shipmentId,
-      locationSeqId: data.locationSeqId
     }
     return Promise.all(data.items.map((item: any) => {
       const params = {
@@ -78,7 +82,8 @@ const actions: ActionTree<ReturnState, RootState> = {
         quantityAccepted: item.quantityAccepted,
         orderId: item.orderId,
         orderItemSeqId: item.orderItemSeqId,
-        unitCost: 0.00
+        unitCost: 0.00,
+        locationSeqId: item.locationSeqId
       }
       return ReturnService.receiveReturnItem(params).catch((err) => err)
     }))
@@ -181,6 +186,9 @@ const actions: ActionTree<ReturnState, RootState> = {
       console.error(err)
     }
   },
+  setItemLocationSeqId({ commit }, payload) {
+    commit(types.RETURN_ITEM_LOCATION_SEQ_ID_UPDATED, payload)
+  }
 }
 
 export default actions;

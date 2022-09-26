@@ -20,15 +20,11 @@ const mutations: MutationTree <UserState> = {
     [types.USER_INSTANCE_URL_UPDATED] (state, payload) {
         state.instanceUrl = payload;
     },
-    [types.USER_FACILITY_LOCATIONS_UPDATED] (state, payload) {
-        state.facilityLocations = payload;
-    },
     [types.USER_CURRENT_ECOM_STORE_UPDATED](state, payload) {
         state.currentEComStore = payload;
     },
-    [types.USER_FACILITY_LOCARIONS_BY_FACILITY_ID] (state, payload) {
+    [types.USER_FACILITY_LOCATIONS_BY_FACILITY_ID] (state, payload) {
         state.facilityLocationsByFacilityId[payload.facilityId] = payload.facilityLocations;
-        console.log(state)
     }
 }
 export default mutations;

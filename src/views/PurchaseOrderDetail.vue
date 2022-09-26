@@ -53,7 +53,7 @@
             </div>
 
             <div class="location">
-              <LocationPopover :item="item" type="purchaseOrder" :facilityId="currentFacility.facilityId" />
+              <LocationPopover :item="item" type="order" :facilityId="currentFacility.facilityId" />
             </div>
 
             <div class="product-count">
@@ -169,7 +169,7 @@ export default defineComponent({
       order: 'order/getCurrent',
       getProduct: 'product/getProduct',
       getPOItemAccepted: 'order/getPOItemAccepted',
-      facilityLocations: 'user/getFacilityLocations',
+      facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
       currentFacility: 'user/getCurrentFacility'
     })
   },
@@ -248,7 +248,7 @@ export default defineComponent({
     }
   },
   mounted() {
-    if(!this.facilityLocations.length && this.currentFacility.facilityId) {
+    if(this.currentFacility.facilityId && !this.facilityLocationsByFacilityId(this.currentFacility.facilityId)){
       this.store.dispatch('user/getFacilityLocations', this.currentFacility.facilityId)
     }
   },  
