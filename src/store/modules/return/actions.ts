@@ -40,22 +40,53 @@ const actions: ActionTree<ReturnState, RootState> = {
     });
     commit(types.RETURN_CURRENT_UPDATED, state);
   },
-  async setCurrent ({ state, commit }, payload) {
+  async setCurrent ({ commit, state }, payload) {
     let resp;
     try {
+      // Check if already exist in the returns list
+      let returnShipment = state.returns.list.find((returnShipment: any) => returnShipment.shipmentId === payload.shipmentId);
+
+      if (!returnShipment) {
+        // Fetch shipment records if miss in return list
+        const getReturnShipmentPayload = {
+          "entityName": "SalesReturnShipmentView",
+          "inputFields": {
+            "shipmentId": payload.shipmentId
+          },
+          "fieldList" : [ "shipmentId","externalId","statusId","shopifyOrderName","hcOrderId","trackingCode" ],
+          "noConditionFind": "Y",
+          "viewSize": 1,
+          "viewIndex": 0,
+        } as any
+        resp = await ReturnService.findReturns(getReturnShipmentPayload)
+        if (resp.status === 200 && !hasError(resp) && resp.data.docs?.length > 0) {
+          returnShipment = resp.data.docs[0];
+          const statuses = await this.dispatch('util/fetchStatus', [ returnShipment.statusId ]);
+          returnShipment.statusDesc = statuses[returnShipment.statusId]
+        } else {
+          showToast(translate('Something went wrong'));
+          console.error("error", resp.data._ERROR_MESSAGE_);
+        }
+      }
+      if (!returnShipment) {
+        showToast(translate('Something went wrong.'));
+      }
+
+      // Get shipment items of return shipment
       resp = await ReturnService.getReturnDetail(payload);
+
       if (resp.status === 200 && !hasError(resp) && resp.data.items) {
-        commit(types.RETURN_CURRENT_UPDATED, { current: resp.data })
+        // Current should have data of return shipment as well as items
+        const facilityLocations = this.state.user.facilityLocationsByFacilityId[returnShipment.destinationFacilityId];
+        resp.data.items.map((item: any) => {
+          item.locationSeqId = facilityLocations[0].locationSeqId;
+        });
+        commit(types.RETURN_CURRENT_UPDATED, { current: { ...resp.data, ...returnShipment} })
         const productIds = [ ...new Set(resp.data.items.map((item: any) => item.productId)) ]
 
         if(productIds.length) {
           this.dispatch('product/fetchProducts', { productIds })
         }
-        const facilityId = state.returns.list.find((returnShipment: any) => returnShipment.shipmentId === payload.shipmentId)?.destinationFacilityId;
-        const facilityLocations = this.state.user.facilityLocationsByFacilityId[facilityId];
-        resp.data.items.map((item: any) => {
-          item.locationSeqId = facilityLocations[0].locationSeqId;
-        });
         return resp.data;
       } else {
         showToast(translate('Something went wrong'));
@@ -106,42 +137,6 @@ const actions: ActionTree<ReturnState, RootState> = {
       emitter.emit("dismissLoader");
       return resp;
     }).catch(err => err);  
-  },
-  async addReturnItem ({ state, commit, dispatch }, payload) {
-    const item = payload.shipmentId ? { ...(payload.item) } : { ...payload }
-    const product = {
-      ...item,
-      quantityAccepted: 0,
-      quantityOrdered: 0
-    }
-    const params = {
-      orderId: payload.orderId,
-      productId: product.productId,
-      quantity: 0,
-      shipmentId: payload.shipmentId ? payload.shipmentId : state.current.shipmentId,
-      returnItemSeqId: payload.shipmentItemSeqId
-    }
-    const resp = await ReturnService.addReturnItem(params);
-    if (resp.status == 200 && !hasError(resp)){
-      dispatch('updateProductCount', { shipmentId: resp.data.shipmentId })
-      if (!payload.shipmentId) commit(types.RETURN_CURRENT_PRODUCT_ADDED, product)
-      return resp;
-    } else {
-      showToast(translate('Something went wrong'));
-      console.error("error", resp._ERROR_MESSAGE_);
-      return Promise.reject(new Error(resp.data._ERROR_MESSAGE_));
-    }
-  },
-  // TODO: Fix this later 
-  async updateProductCount({ commit, state }, payload ) {
-    const returns = state.returns.list;
-    returns.map((returnShipment: any) => {
-      if(returnShipment.shipmentId === payload.shipmentId) {
-        returnShipment.shipmentItemCount = parseInt(returnShipment.shipmentItemCount) + 1;
-        return;
-      }
-    })
-    commit(types.RETURN_LIST_UPDATED, { returns })
   },
   async clearReturns({ commit }) {
     commit(types.RETURN_LIST_UPDATED, { returns: [] })
