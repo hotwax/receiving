@@ -47,7 +47,7 @@
               </ion-item>
             </div>
             <div class="location">
-              <LocationPopover v-if="isReturnReceivable(current.statusId)" :item="item" type="return" :facilityId="returns.find((returnShipment) => returnShipment.shipmentId === this.$route.params.id)?.destinationFacilityId" />
+              <LocationPopover v-if="isReturnReceivable(current.statusId)" :item="item" type="return" :facilityId="current.destinationFacilityId" />
             </div>
             <div class="product-count">
               <ion-item v-if="isReturnReceivable(current.statusId)" class="product-count">
@@ -157,6 +157,7 @@ export default defineComponent({
   },
   async mounted() {
     const current = await this.store.dispatch('return/setCurrent', { shipmentId: this.$route.params.id })
+
     if(!this.isReturnReceivable(current.statusId)) {
       showToast(translate("This return has been and cannot be edited.", { status: current?.statusDesc?.toLowerCase() }));
     }
