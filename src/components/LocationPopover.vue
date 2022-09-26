@@ -1,7 +1,7 @@
 <template>
   <ion-chip outline>
     <ion-icon :icon="locationOutline"/>
-    <ion-select interface="popover" :placeholder="$t('facility location')" :value="item.locationSeqId ? item.locationSeqId : getFacilityLocationsByFacilityId(facilityId) ? getFacilityLocationsByFacilityId(facilityId)[0].locationSeqId : ''" @ionChange="setFacilityLocation($event)">
+    <ion-select interface="popover" :placeholder="$t('facility location')" :value="item.locationSeqId" @ionChange="setFacilityLocation($event)">
       <ion-select-option v-for="facilityLocation in (getFacilityLocationsByFacilityId(facilityId) ? getFacilityLocationsByFacilityId(facilityId) : [])" :key="facilityLocation.locationSeqId" :value="facilityLocation.locationSeqId" >{{ facilityLocation.locationPath ? facilityLocation.locationPath : facilityLocation.locationSeqId }}</ion-select-option>
     </ion-select>
   </ion-chip>
