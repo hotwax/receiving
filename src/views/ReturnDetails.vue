@@ -3,7 +3,7 @@
     <ion-header :translucent="true">
       <ion-toolbar>
         <ion-back-button default-href="/" slot="start"></ion-back-button>
-        <ion-title>{{ current.externalId }}</ion-title>
+        <ion-title>{{ returns[0].externalId }}</ion-title>
       </ion-toolbar>
     </ion-header>
 
@@ -11,14 +11,13 @@
       <main>
         <ion-item lines="none">
           <ion-list class="ion-text-center">
-            <!-- TODO: Fetch order name & customer name -->
-            <!-- <ion-title>{{ $t("Order: <order name>") }}</ion-title>
-            <ion-label>{{ $t("Customer: <customer name>") }}</ion-label> -->
+            <ion-title>{{ returns[0].shopifyOrderName}}</ion-title>
+            <!-- TODO: Fetch Customer name -->
+            <!-- <ion-label>{{ $t("Customer: <customer name>")}}</ion-label> -->
           </ion-list>
           <ion-item slot="end" lines="none">
-            <ion-badge :color="statusColors[current.statusDesc]" slot="end">{{ current.estimatedArrivalDate ? ($filters.formatDate(current.estimatedArrivalDate)) : current.statusDesc }}</ion-badge>
-            <!-- TODO: Fetch tracking ID -->
-            <!-- <ion-chip slot="end">tracking id</ion-chip> -->
+            <ion-badge :color="statusColors[current.statusDesc]" slot="end">{{ current.statusDesc }}</ion-badge>
+            <ion-chip v-if="returns[0].trackingCode" slot="end">{{ returns[0].trackingCode }}</ion-chip>
           </ion-item>
         </ion-item>
 
@@ -50,18 +49,21 @@
                 <ion-label>{{current.locationSeqId}}</ion-label>
               </ion-chip>
             </ion-item>
-            <ion-item class="product-count">
+            <ion-item v-if="validStatusChange(current.statusId)" class="product-count">
               <ion-label position="floating">{{ $t("Qty") }}</ion-label>
               <ion-input type="number" min="0" v-model="item.quantityAccepted" />
+            </ion-item>
+            <ion-item v-if="!validStatusChange(current.statusId)" class="product-count">
+              <ion-label position="floating">{{item.quantityAccepted}} {{ $t("received") }}</ion-label>
             </ion-item>
           </div>
 
           <ion-item class="border-top" v-if="item.quantityOrdered > 0">
-            <ion-button @click="receiveAll(item)" slot="start" fill="outline">
+            <!-- <ion-button @click="receiveAll(item)" slot="start" fill="outline">
               {{ $t("Receive All") }}
-            </ion-button>
+            </ion-button> -->
             <ion-progress-bar :value="item.quantityAccepted/item.quantityOrdered" />
-            <p slot="end">{{ item.quantityOrdered }}</p>
+            <p slot="end">{{ item.quantityOrdered }} {{ $t("returned") }}</p>
           </ion-item>
         </ion-card>
       </main>
@@ -107,6 +109,8 @@ import Image from "@/components/Image.vue";
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import ImageModal from '@/components/ImageModal.vue';
+import { showToast } from '@/utils'
+import { translate } from '@/i18n'
 
 export default defineComponent({
   name: "ReturnDetails",
@@ -147,12 +151,17 @@ export default defineComponent({
   },
   mounted() {
     this.store.dispatch('return/setCurrent', { shipmentId: this.$route.params.id })
+    this.getReturnDetails();
+    if(!this.validStatusChange(this.current.statusId)) {
+      showToast(translate("This return has been received and cannot be edited."));
+    }
   },
   computed: {
     ...mapGetters({
       current: 'return/getCurrent',
       getProduct: 'product/getProduct',
-      validStatusChange: 'return/isReturnReceivable'
+      validStatusChange: 'return/isReturnReceivable',
+      returns: 'return/getReturns'
     }),
   },
   methods: {
@@ -162,6 +171,22 @@ export default defineComponent({
         componentProps: { imageUrl , productName }
       });
       return imageModal.present();
+    },
+    async getReturnDetails() {
+      console.log("here i am");
+      const viewSize = process.env.VUE_APP_VIEW_SIZE;
+      const viewIndex = 0;
+      const payload = {
+        "entityName": "SalesReturnShipmentView",
+        "inputFields": {
+          "externalId": this.current.externalId
+        },
+        "fieldList" : [ "shipmentId","externalId","statusId","shopifyOrderName","hcOrderId","trackingCode" ],
+        "noConditionFind": "Y",
+        "viewSize": viewSize,
+        "viewIndex": viewIndex,
+      } as any
+      await this.store.dispatch("return/findReturn", payload);
     },
     async addProduct() {
       const modal = await modalController

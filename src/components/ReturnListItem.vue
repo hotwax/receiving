@@ -1,9 +1,8 @@
 <template>
   <ion-item button @click="viewReturn()">
     <ion-label>
-      <h2>{{ returnShipment.shipmentId }}</h2>
-      <!-- TODO: Fetch orderID -->
-      <!-- <p>{{ returnShipment.orderId }}</p> -->
+      <h2>{{ returnShipment.externalId ? returnShipment.externalId : returnShipment.shipmentId }}</h2>
+      <p>{{ returnShipment.shopifyOrderName ? returnShipment.shopifyOrderName : returnShipment.hcOrderId }}</p>
     </ion-label>
     <ion-badge :color="statusColorsMapping[returnShipment.statusDesc] ? statusColorsMapping[returnShipment.statusDesc] : 'medium'" slot="end">{{ returnShipment.statusDesc }}</ion-badge>
   </ion-item>

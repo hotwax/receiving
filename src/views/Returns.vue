@@ -55,19 +55,18 @@ export default defineComponent({
     }
   },
   mounted () {
-    this.getReturns();
     this.store.dispatch('return/fetchValidReturnStatuses');
+    this.getReturns();
   },
   methods: {
     async getReturns(vSize?: any, vIndex?: any) {
+      console.log("here");
       const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
       const viewIndex = vIndex ? vIndex : 0;
       const payload = {
-        "inputFields": {
-          "shipmentTypeId": "SALES_RETURN",
-        },
-        "entityName": "ShipmentAndTypeAndItemCount",
-        "fieldList" : [ "shipmentId","primaryShipGroupSeqId","partyIdFrom","partyIdTo","estimatedArrivalDate","destinationFacilityId","statusId", "shipmentItemCount" ],
+        "entityName": "SalesReturnShipmentView",
+        "inputFields": {},
+        "fieldList" : [ "shipmentId","externalId","statusId","shopifyOrderName","hcOrderId","trackingCode" ],
         "noConditionFind": "Y",
         "viewSize": viewSize,
         "viewIndex": viewIndex,
@@ -77,6 +76,15 @@ export default defineComponent({
         payload.inputFields["shipmentId"] = this.queryString;
         payload.inputFields["shipmentId_op"] = "contains";
         payload.inputFields["shipmentId_ic"] = "Y";
+        payload.inputFields["shipmentId_grp"] = "1";
+        payload.inputFields["trackingCode"] = this.queryString;
+        payload.inputFields["trackingCode_op"] = "contains";
+        payload.inputFields["trackingCode_ic"] = "Y";
+        payload.inputFields["trackingCode_grp"] = "2";
+        payload.inputFields["externalId"] = this.queryString;
+        payload.inputFields["externalId_op"] = "contains";
+        payload.inputFields["externalId_ic"] = "Y";
+        payload.inputFields["externalId_grp"] = "3";
       }
       await this.store.dispatch("return/findReturn", payload);
     },

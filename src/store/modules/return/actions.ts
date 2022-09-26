@@ -12,6 +12,8 @@ const actions: ActionTree<ReturnState, RootState> = {
     let resp;
     try {
       resp = await ReturnService.findReturns(payload)
+      console.log(resp);
+      
       if (resp.status === 200 && !hasError(resp) && resp.data.docs?.length > 0) {
         let returns = resp.data.docs;
         const statusIds = [...new Set(returns.map((returnShipment: any) => returnShipment.statusId))]
