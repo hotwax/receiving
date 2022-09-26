@@ -110,7 +110,7 @@ const actions: ActionTree<ReturnState, RootState> = {
       shipmentId: data.shipmentId,
     }
     const facilityId = state.current.destinationFacilityId;
-    return Promise.all(data.items.map((item: any) => {
+    return Promise.all(data.items.map(async (item: any) => {
       const params = {
         ...payload,
         facilityId,
@@ -122,7 +122,13 @@ const actions: ActionTree<ReturnState, RootState> = {
         unitCost: 0.00,
         locationSeqId: item.locationSeqId
       }
-      return ReturnService.receiveReturnItem(params).catch((err) => err)
+      const resp = await ReturnService.receiveReturnItem(params);
+
+      if(resp.status === 200 && !hasError(resp)){
+       return Promise.resolve(resp);
+      } else {
+       return Promise.reject(resp);
+      } 
     }))
   },
   async receiveReturn ({ dispatch }, {payload}) {
@@ -141,7 +147,10 @@ const actions: ActionTree<ReturnState, RootState> = {
       }
       emitter.emit("dismissLoader");
       return resp;
-    }).catch(err => err);  
+    }).catch(err => {
+      console.error(err)
+      return err;
+    });  
   },
   async clearReturns({ commit }) {
     commit(types.RETURN_LIST_UPDATED, { returns: [] })

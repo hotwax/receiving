@@ -84,7 +84,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
     } : {
       shipmentId: data.shipmentId,
     }
-    return Promise.all(data.items.map((item: any) => {
+    return Promise.all(data.items.map(async (item: any) => {
       const params = {
         ...payload,
         facilityId: this.state.user.currentFacility.facilityId,
@@ -96,9 +96,12 @@ const actions: ActionTree<ShipmentState, RootState> = {
         unitCost: 0.00,
         locationSeqId: item.locationSeqId
       }
-      return ShipmentService.receiveShipmentItem(params).catch((err) => {
-        return err;
-      })
+      const resp = await ShipmentService.receiveShipmentItem(params)
+      if(resp.status === 200 && !hasError(resp)){
+        return Promise.resolve(resp);
+       } else {
+        return Promise.reject(resp);
+       }
     }))
   },
   async receiveShipment ({ dispatch }, {payload}) {
@@ -113,7 +116,10 @@ const actions: ActionTree<ShipmentState, RootState> = {
       }
       emitter.emit("dismissLoader");
       return resp;
-    }).catch(err => err);
+    }).catch(err => {
+      console.error(err)
+      return err;
+    });
   },
   async addShipmentItem ({ state, commit, dispatch }, payload) {
     const item = payload.shipmentId ? { ...(payload.item) } : { ...payload }
