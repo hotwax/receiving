@@ -53,7 +53,7 @@ const actions: ActionTree<ReturnState, RootState> = {
           "inputFields": {
             "shipmentId": payload.shipmentId
           },
-          "fieldList" : [ "shipmentId","externalId","statusId","shopifyOrderName","hcOrderId","trackingCode" ],
+          "fieldList" : [ "shipmentId","externalId","statusId","shopifyOrderName","hcOrderId","trackingCode", "destinationFacilityId" ],
           "noConditionFind": "Y",
           "viewSize": 1,
           "viewIndex": 0,

@@ -246,12 +246,7 @@ export default defineComponent({
         }
       })
     }
-  },
-  mounted() {
-    if(this.currentFacility.facilityId && !this.facilityLocationsByFacilityId(this.currentFacility.facilityId)){
-      this.store.dispatch('user/getFacilityLocations', this.currentFacility.facilityId)
-    }
-  },  
+  }, 
   ionViewWillEnter() {
     this.store.dispatch("order/getOrderDetail", { orderId: this.$route.params.slug }).then(() => {
       this.store.dispatch('order/getPOHistory', { orderId: this.order.orderId })

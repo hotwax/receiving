@@ -175,8 +175,9 @@ const actions: ActionTree<OrderState, RootState> = {
           products[item.productId] = item.locationSeqId
           return products
         }, {});
+        const facilityLocations = await this.dispatch('user/getFacilityLocations', this.state.user.currentFacility.facilityId)
         current.items.map((item: any) => {
-          item.locationSeqId = facilityLocationByProduct[item.productId] ? facilityLocationByProduct[item.productId] : this.state.user.facilityLocationsByFacilityId[this.state.user.currentFacility.facilityId] ? this.state.user.facilityLocationsByFacilityId[this.state.user.currentFacility.facilityId][0].locationSeqId : ""
+          item.locationSeqId = facilityLocationByProduct[item.productId] ? facilityLocationByProduct[item.productId] : facilityLocations ? facilityLocations[0].locationSeqId : "";
         });
         commit(types.ORDER_CURRENT_UPDATED, current);
         return poHistory;

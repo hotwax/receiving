@@ -94,7 +94,7 @@ const actions: ActionTree<UserState, RootState> = {
       }
       commit(types.USER_CURRENT_FACILITY_UPDATED, resp.data.facilities.length > 0 ? resp.data.facilities[0] : {});
       // TODO: Need to remove this check once adding support to not allow user login without facilities.
-      dispatch('getFacilityLocations', resp.data.facilities.length > 0 ? resp.data.facilities[0].facilityId : '')
+      if(resp.data.facilities.length > 0) dispatch('getFacilityLocations', resp.data.facilities[0].facilityId)
     }
     return resp;
   },

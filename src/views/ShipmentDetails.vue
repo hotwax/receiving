@@ -137,9 +137,6 @@ export default defineComponent({
     }
   },
   mounted() {
-    if(this.currentFacility.facilityId && !this.facilityLocationsByFacilityId(this.currentFacility.facilityId)){
-      this.store.dispatch('user/getFacilityLocations', this.currentFacility.facilityId)
-    }
     this.store.dispatch('shipment/setCurrent', { shipmentId: this.$route.params.id })
   },
   computed: {

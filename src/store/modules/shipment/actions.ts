@@ -49,7 +49,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
       if (resp.status === 200 && resp.data.items&& !hasError(resp)) {
         commit(types.SHIPMENT_CURRENT_UPDATED, { current: resp.data })
         let productIds: any = new Set();
-        const facilityLocations = this.state.user.facilityLocationsByFacilityId[this.state.user.currentFacility.facilityId];
+        const facilityLocations = await this.dispatch('user/getFacilityLocations', this.state.user.currentFacility.facilityId);
         if(facilityLocations.length){
           const locationSeqId = facilityLocations[0].locationSeqId
           resp.data.items.map((item: any) => {
