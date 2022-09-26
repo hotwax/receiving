@@ -2,9 +2,10 @@
   <ion-item button @click="viewReturn()">
     <ion-label>
       <h2>{{ returnShipment.shipmentId }}</h2>
-      <p>{{ returnShipment.shipmentItemCount }} {{ (returnShipment.shipmentItemCount > 1 ? 'Items' : 'Item') }}</p>
+      <!-- TODO: Fetch orderID -->
+      <!-- <p>{{ returnShipment.orderId }}</p> -->
     </ion-label>
-    <ion-badge :color="statusColors[returnShipment.statusDesc]" slot="end">{{ returnShipment.estimatedArrivalDate ? ($filters.formatDate(returnShipment.estimatedArrivalDate)) : returnShipment.statusDesc }}</ion-badge>
+    <ion-badge :color="statusColors[returnShipment.statusDesc] ? statusColors[returnShipment.statusDesc] : 'medium'" slot="end">{{ returnShipment.statusDesc }}</ion-badge>
   </ion-item>
 </template>
   

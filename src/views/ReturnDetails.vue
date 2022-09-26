@@ -11,12 +11,14 @@
       <main>
         <ion-item lines="none">
           <ion-list class="ion-text-center">
-            <ion-title>{{ $t("Order: <order name>") }}</ion-title>
-            <ion-label>{{ $t("Customer: <customer name>") }}</ion-label>
+            <!-- TODO: Fetch order name & customer name -->
+            <!-- <ion-title>{{ $t("Order: <order name>") }}</ion-title>
+            <ion-label>{{ $t("Customer: <customer name>") }}</ion-label> -->
           </ion-list>
           <ion-item slot="end" lines="none">
             <ion-badge :color="statusColors[current.statusDesc]" slot="end">{{ current.estimatedArrivalDate ? ($filters.formatDate(current.estimatedArrivalDate)) : current.statusDesc }}</ion-badge>
-            <ion-chip slot="end">Internal Id</ion-chip>
+            <!-- TODO: Fetch tracking ID -->
+            <!-- <ion-chip slot="end">tracking id</ion-chip> -->
           </ion-item>
         </ion-item>
 
