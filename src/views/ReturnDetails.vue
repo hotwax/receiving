@@ -11,12 +11,12 @@
       <main>
         <ion-item lines="none">
           <ion-list class="ion-text-center">
-            <ion-title>{{ current.shopifyOrderName ? current.shopifyOrderName : current.hcOrderId}}</ion-title>
+            <ion-title>{{ current.shopifyOrderName ? current.shopifyOrderName : current.hcOrderId }}</ion-title>
             <!-- TODO: Fetch Customer name -->
             <!-- <ion-label>{{ $t("Customer: <customer name>")}}</ion-label> -->
           </ion-list>
           <ion-item slot="end" lines="none">
-            <ion-badge :color="statusColors[current.statusDesc]" slot="end">{{ current.statusDesc }}</ion-badge>
+            <ion-badge :color="statusColorMapping[current.statusDesc]" slot="end">{{ current.statusDesc }}</ion-badge>
             <ion-chip v-if="current.trackingCode" slot="end">{{ current.trackingCode }}</ion-chip>
           </ion-item>
         </ion-item>
@@ -140,7 +140,7 @@ export default defineComponent({
   data() {
     return {
       queryString: '',
-      statusColors: {
+      statusColorMapping: {
         'Received': 'success',
         'Approved': 'tertiary',
         'Cancelled': 'danger',
