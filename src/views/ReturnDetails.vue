@@ -54,7 +54,7 @@
             <ion-button @click="receiveAll(item)" slot="start" fill="outline">
               {{ $t("Receive All") }}
             </ion-button>
-            <ion-progress-bar :value="item.quantityAccepted/item.quantityOrdered"></ion-progress-bar>
+            <ion-progress-bar :value="item.quantityAccepted/item.quantityOrdered" />
           
             <p slot="end">{{ item.quantityOrdered }}</p>
           </ion-item>
