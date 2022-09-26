@@ -75,11 +75,7 @@ const actions: ActionTree<ReturnState, RootState> = {
 
       if (resp.status === 200 && !hasError(resp) && resp.data.items) {
         // Current should have data of return shipment as well as items
-        
-        const facilityLocations = this.state.user.facilityLocationsByFacilityId[returnShipment.destinationFacilityId];
-        if(!facilityLocations){
-          await this.dispatch('user/getFacilityLocations', returnShipment.destinationFacilityId)
-        }
+        const facilityLocations = await this.dispatch('user/getFacilityLocations', returnShipment.destinationFacilityId)
         resp.data.items.map((item: any) => {
           item.locationSeqId = facilityLocations[0].locationSeqId;
         });

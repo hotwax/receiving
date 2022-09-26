@@ -138,6 +138,10 @@ const actions: ActionTree<UserState, RootState> = {
   },
 
   async getFacilityLocations( { commit }, facilityId ) {
+    const facilityLocations = this.state.user.facilityLocationsByFacilityId[facilityId];
+    if(facilityLocations){
+      return facilityLocations;
+    }
     let resp;
     const payload = {
       "inputFields": {
