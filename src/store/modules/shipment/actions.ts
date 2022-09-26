@@ -50,10 +50,16 @@ const actions: ActionTree<ShipmentState, RootState> = {
         commit(types.SHIPMENT_CURRENT_UPDATED, { current: resp.data })
         let productIds: any = new Set();
         const facilityLocations = this.state.user.facilityLocationsByFacilityId[this.state.user.currentFacility.facilityId];
-        resp.data.items.map((item: any) => {
-          productIds.add(item.productId)
-          item.locationSeqId = facilityLocations[0].locationSeqId;
-        });
+        if(facilityLocations.length){
+          const locationSeqId = facilityLocations[0].locationSeqId
+          resp.data.items.map((item: any) => {
+            productIds.add(item.productId)
+            item.locationSeqId = locationSeqId;
+          });
+        } else {
+          showToast(translate("Facility locations were not found corresponding to destination facility of return shipment. Please add facility locations to avoid receive return shipment failure."))
+        }
+        
 
         productIds = [...productIds]
         if(productIds.length) {
@@ -154,8 +160,12 @@ const actions: ActionTree<ShipmentState, RootState> = {
     commit(types.SHIPMENT_CURRENT_UPDATED, { current: {} })
   },
 
-  setItemLocationSeqId({ commit }, payload) {
-    commit(types.SHIPMENT_ITEM_LOCATION_SEQ_ID_UPDATED, payload)
+  setItemLocationSeqId({ state, commit }, payload) {
+    const item = state.current.items.find((item: any) => item.itemSeqId === payload.item.itemSeqId)
+    if(item){
+      item.locationSeqId = payload.locationSeqId
+    }
+    commit(types.SHIPMENT_CURRENT_UPDATED, state.current)
   }
 }
 

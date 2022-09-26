@@ -76,9 +76,15 @@ const actions: ActionTree<ReturnState, RootState> = {
       if (resp.status === 200 && !hasError(resp) && resp.data.items) {
         // Current should have data of return shipment as well as items
         const facilityLocations = await this.dispatch('user/getFacilityLocations', returnShipment.destinationFacilityId)
-        resp.data.items.map((item: any) => {
-          item.locationSeqId = facilityLocations[0].locationSeqId;
-        });
+        if(facilityLocations.length){
+          const locationSeqId = facilityLocations[0].locationSeqId
+          resp.data.items.map((item: any) => {
+            item.locationSeqId = locationSeqId;
+          });
+        } else {
+          showToast(translate("Facility locations were not found corresponding to destination facility of return shipment. Please add facility locations to avoid receive return shipment failure."))
+        }
+        
         commit(types.RETURN_CURRENT_UPDATED, { current: { ...resp.data, ...returnShipment} })
         const productIds = [ ...new Set(resp.data.items.map((item: any) => item.productId)) ]
 
@@ -103,7 +109,7 @@ const actions: ActionTree<ReturnState, RootState> = {
     const payload = {
       shipmentId: data.shipmentId,
     }
-    const facilityId = state.returns.list.find((returnShipment: any) => returnShipment.shipmentId === data.shipmentId).destinationFacilityId;
+    const facilityId = state.current.destinationFacilityId;
     return Promise.all(data.items.map((item: any) => {
       const params = {
         ...payload,
@@ -174,8 +180,12 @@ const actions: ActionTree<ReturnState, RootState> = {
       console.error(err)
     }
   },
-  setItemLocationSeqId({ commit }, payload) {
-    commit(types.RETURN_ITEM_LOCATION_SEQ_ID_UPDATED, payload)
+  setItemLocationSeqId({ state, commit }, payload) {
+    const item = state.current.items.find((item: any) => item.itemSeqId === payload.item.itemSeqId)
+    if(item){
+      item.locationSeqId = payload.locationSeqId
+    }
+    commit(types.RETURN_CURRENT_UPDATED, state.current)
   }
 }
 

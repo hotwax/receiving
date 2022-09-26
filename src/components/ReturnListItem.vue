@@ -44,14 +44,7 @@ export default defineComponent({
   },
   methods: {
     async viewReturn () {
-      if(this.returnShipment.destinationFacilityId && !this.facilityLocationsByFacilityId(this.returnShipment.destinationFacilityId)){
-        await this.store.dispatch('user/getFacilityLocations', this.returnShipment.destinationFacilityId);
-      }      
-      this.store.dispatch('return/setCurrent', { shipmentId: this.returnShipment.shipmentId }).then((resp) => {
-        if (resp.items) {
-          this.router.push({ path: `/return/${this.returnShipment.shipmentId}` });
-        }
-      });
+      this.router.push({ path: `/return/${this.returnShipment.shipmentId}` });
     }
   },
   setup() {

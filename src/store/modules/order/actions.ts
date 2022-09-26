@@ -176,7 +176,7 @@ const actions: ActionTree<OrderState, RootState> = {
           return products
         }, {});
         current.items.map((item: any) => {
-          item.locationSeqId = facilityLocationByProduct[item.productId] ? facilityLocationByProduct[item.productId] : this.state.user.facilityLocationsByFacilityId[this.state.user.currentFacility.facilityId][0].locationSeqId
+          item.locationSeqId = facilityLocationByProduct[item.productId] ? facilityLocationByProduct[item.productId] : this.state.user.facilityLocationsByFacilityId[this.state.user.currentFacility.facilityId] ? this.state.user.facilityLocationsByFacilityId[this.state.user.currentFacility.facilityId][0].locationSeqId : ""
         });
         commit(types.ORDER_CURRENT_UPDATED, current);
         return poHistory;
@@ -191,8 +191,12 @@ const actions: ActionTree<OrderState, RootState> = {
     commit(types.ORDER_CURRENT_UPDATED, current);
     return resp;
   },
-  setItemLocationSeqId({ commit }, payload) {
-    commit(types.ORDER_ITEM_LOCATION_SEQ_ID_UPDATED, payload)
+  setItemLocationSeqId({ state, commit }, payload) {
+    const item = state.current.items.find((item: any) => item.orderItemSeqId === payload.item.orderItemSeqId)
+    if(item){
+      item.locationSeqId = payload.locationSeqId
+    }
+    commit(types.ORDER_CURRENT_UPDATED, state.current)
   }
 }
 

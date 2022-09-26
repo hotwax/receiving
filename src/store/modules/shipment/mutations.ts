@@ -11,12 +11,6 @@ const mutations: MutationTree <ShipmentState> = {
   },
   [types.SHIPMENT_CURRENT_PRODUCT_ADDED] (state, payload) {
     state.current.items.push(payload)
-  },
-  [types.SHIPMENT_ITEM_LOCATION_SEQ_ID_UPDATED] (state, payload) {
-    const item = state.current.items.find((item: any) => item.itemSeqId === payload.item.itemSeqId)
-    if(item){
-      item.locationSeqId = payload.locationSeqId
-    }
   }
 }
 export default mutations;
