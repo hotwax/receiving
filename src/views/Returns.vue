@@ -56,6 +56,8 @@ export default defineComponent({
   },
   mounted () {
     this.store.dispatch('return/fetchValidReturnStatuses');
+  },
+  ionViewDidEnter(){
     this.getReturns();
   },
   methods: {
