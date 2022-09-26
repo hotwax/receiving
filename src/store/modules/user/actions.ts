@@ -159,7 +159,7 @@ const actions: ActionTree<UserState, RootState> = {
           const locationPath = [location.areaId, location.aisleId, location.sectionId, location.levelId, location.positionId].filter((value: any) => value).join("");
           return {
             locationSeqId: location.locationSeqId,
-            locationPath: locationPath || location.locationSeqId
+            locationPath: locationPath
           }
         })
         commit(types.USER_FACILITY_LOCATIONS_BY_FACILITY_ID, { facilityLocations, facilityId });
