@@ -91,28 +91,21 @@ const actions: ActionTree<ReturnState, RootState> = {
   },
   async receiveReturn ({ dispatch }, {payload}) {
     emitter.emit("presentLoader");
-    let resp;
-    try {
-      resp = await dispatch("receiveReturnItem", payload)
-
-      if(resp.status === 200 && !hasError(resp)) {
-        const receiveReturnResponse = await ReturnService.receiveReturn({
-          "shipmentId": payload.shipmentId,
-          "statusId": "PURCH_SHIP_RECEIVED"
-        })
-        if (receiveReturnResponse.status === 200 && !hasError(receiveReturnResponse)) {
-          showToast(translate("Return Received Successfully") + ' ' + (payload.shipmentId))
-        } else {
-          showToast(translate('Something went wrong'));
-          console.error("error", receiveReturnResponse.data._ERROR_MESSAGE_);
-          return Promise.reject(new Error(resp.data._ERROR_MESSAGE_));
-        }
+    return await dispatch("receiveReturnItem", payload).then(async () => {
+      const resp = await ReturnService.receiveReturn({
+        "shipmentId": payload.shipmentId,
+        "statusId": "PURCH_SHIP_RECEIVED"
+      })
+      if (resp.status === 200 && !hasError(resp)) {
+        showToast(translate("Return Received Successfully") + ' ' + (payload.shipmentId))
+      } else {
+        showToast(translate('Something went wrong'));
+        console.error("error", resp.data._ERROR_MESSAGE_);
+        return Promise.reject(new Error(resp.data._ERROR_MESSAGE_));
       }
       emitter.emit("dismissLoader");
       return resp;
-    } catch (err) {
-      console.error(err);
-    }
+    }).catch(err => err);  
   },
   async addReturnItem ({ state, commit, dispatch }, payload) {
     const item = payload.shipmentId ? { ...(payload.item) } : { ...payload }
