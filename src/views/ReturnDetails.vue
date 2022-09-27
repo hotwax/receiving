@@ -273,41 +273,8 @@ export default defineComponent({
 </script>
 
 <style scoped>
-
-/* .return-meta {
-  display: flex;
-  gap: var(--spacer-xs);
-  justify-content: space-between;
-  align-items: center;
-} */
-
 ion-thumbnail {
   cursor: pointer;
 }
-
-/* .border-top {
-  border-top: 1px solid #ccc;
-} */
-
-
-/* .product-info {
-  display: grid;
-  grid-template-columns: 1fr 1fr .30fr;
-  align-items: center;
-  padding: 16px;
-  padding-left: 0;
-} */
-
-/* .product-count {
-  min-width: 9ch;
-} */
-
-/* @media (min-width: 720px) {
-  .return-id {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-} */
 </style>
   
