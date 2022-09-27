@@ -93,6 +93,8 @@ const actions: ActionTree<UserState, RootState> = {
         await dispatch('getEComStores', { facilityId: resp.data.facilities[0].facilityId })
       }
       commit(types.USER_CURRENT_FACILITY_UPDATED, resp.data.facilities.length > 0 ? resp.data.facilities[0] : {});
+      // TODO: Need to remove this check once adding support to not allow user login without facilities.
+      if(resp.data.facilities.length > 0) dispatch('getFacilityLocations', resp.data.facilities[0].facilityId)
     }
     return resp;
   },
@@ -112,6 +114,7 @@ const actions: ActionTree<UserState, RootState> = {
    * update current facility information
    */
   async setFacility ({ commit, dispatch }, payload) {
+    const facilityLocations = await dispatch('getFacilityLocations', payload.facility.facilityId)
     await dispatch("getEComStores", { facilityId: payload.facility.facilityId });
     commit(types.USER_CURRENT_FACILITY_UPDATED, payload.facility);
   },
@@ -134,6 +137,45 @@ const actions: ActionTree<UserState, RootState> = {
     commit(types.USER_INSTANCE_URL_UPDATED, payload)
   },
 
+  async getFacilityLocations( { commit }, facilityId ) {
+    const facilityLocations = this.state.user.facilityLocationsByFacilityId[facilityId];
+    if(facilityLocations){
+      return facilityLocations;
+    }
+    let resp;
+    const payload = {
+      "inputFields": {
+        facilityId
+      },
+      // Assuming we will not have more than 20 facility locations, hardcoded the viewSize value 20.
+      "viewSize": 20,
+      "fieldList": ["locationSeqId", "areaId", "aisleId", "sectionId", "levelId", "positionId"],
+      "entityName": "FacilityLocation",
+      "distinct": "Y",
+      "noConditionFind": "Y"
+    }
+    try{
+      resp = await UserService.getFacilityLocations(payload);
+      if(resp.status === 200 && !hasError(resp) && resp.data?.count > 0) {
+        let facilityLocations = resp.data.docs
+
+        facilityLocations = facilityLocations.map((location: any) => {
+          const locationPath = [location.areaId, location.aisleId, location.sectionId, location.levelId, location.positionId].filter((value: any) => value).join("");
+          return {
+            locationSeqId: location.locationSeqId,
+            locationPath: locationPath
+          }
+        })
+        commit(types.USER_FACILITY_LOCATIONS_BY_FACILITY_ID, { facilityLocations, facilityId });
+        return facilityLocations;
+      } else {
+        console.error(resp);
+      }
+    } catch(err) {
+      console.error(err);
+    }
+  },
+     
   async getEComStores({ state, commit, dispatch }, payload) {
     let resp;
 

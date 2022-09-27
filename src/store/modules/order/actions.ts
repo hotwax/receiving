@@ -137,15 +137,12 @@ const actions: ActionTree<OrderState, RootState> = {
             })
           })
 
-          // TODO: remove the hardcoded value, currently using harcoded locationSeqId for NotNaked catalog
           const poShipment = {
             shipment: {
               shipmentId,
-              locationSeqId: 'TLTLTLLL02'
             },
             items: payload.order.items
           }
-
           await this.dispatch('shipment/receiveShipment', {payload: poShipment}).catch((err) => console.error(err))
         })
       } else {
@@ -168,12 +165,22 @@ const actions: ActionTree<OrderState, RootState> = {
           "orderId_op": "in"
         },
         "entityName": "ShipmentReceiptAndItem",
-        "fieldsToSelect": ["datetimeReceived", "productId", "quantityAccepted", "quantityRejected", "receivedByUserLoginId", "shipmentId"]
+        "fieldList": ["datetimeReceived", "productId", "quantityAccepted", "quantityRejected", "receivedByUserLoginId", "shipmentId", 'locationSeqId']
       }
       resp = await OrderService.fetchPOHistory(params)
       if (resp.status === 200 && !hasError(resp) && resp.data?.count > 0) {
         const poHistory = resp.data.docs;
         current.poHistory.items = poHistory;
+        const facilityLocationByProduct = poHistory.reduce((products: any, item: any) => {
+          products[item.productId] = item.locationSeqId
+          return products
+        }, {});
+        const facilityLocations = await this.dispatch('user/getFacilityLocations', this.state.user.currentFacility.facilityId)
+        const locationSeqId = facilityLocations ? facilityLocations[0].locationSeqId : "";
+        current.items.map((item: any) => {
+          item.locationSeqId = facilityLocationByProduct[item.productId] ? facilityLocationByProduct[item.productId] : locationSeqId;
+        });
+        commit(types.ORDER_CURRENT_UPDATED, current);
         return poHistory;
       } else {
         current.poHistory.items = [];
@@ -185,6 +192,13 @@ const actions: ActionTree<OrderState, RootState> = {
     }
     commit(types.ORDER_CURRENT_UPDATED, current);
     return resp;
+  },
+  setItemLocationSeqId({ state, commit }, payload) {
+    const item = state.current.items.find((item: any) => item.orderItemSeqId === payload.item.orderItemSeqId)
+    if(item){
+      item.locationSeqId = payload.locationSeqId
+    }
+    commit(types.ORDER_CURRENT_UPDATED, state.current)
   }
 }
 

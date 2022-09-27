@@ -2,7 +2,7 @@
   <ion-page>
     <ion-header :translucent="true">
       <ion-toolbar>
-        <ion-back-button default-href="/" slot="start"></ion-back-button>
+        <ion-back-button default-href="/returns" slot="start"></ion-back-button>
         <ion-title>{{ $t("Return Details") }}</ion-title>
       </ion-toolbar>
     </ion-header>
@@ -22,7 +22,8 @@
           </div>
         </div>
 
-        <div class="shipment-scanner">
+  
+        <div class="scanner">
           <ion-item>
             <ion-label>{{ $t("Scan items") }}</ion-label>
             <ion-input :placeholder="$t('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()" />
@@ -58,7 +59,8 @@
               <ion-label>{{ item.quantityAccepted }} {{ $t("received") }}</ion-label>
             </ion-item>
           </div>
-
+            
+  
           <ion-item class="border-top" v-if="item.quantityOrdered > 0">
             <ion-button v-if="isReturnReceivable(current.statusId)" @click="receiveAll(item)" slot="start" fill="outline">
               {{ $t("Receive All") }}
@@ -66,6 +68,7 @@
             <ion-progress-bar :value="item.quantityAccepted/item.quantityOrdered" />
             <p slot="end">{{ item.quantityOrdered }} {{ $t("returned") }}</p>
           </ion-item>
+
         </ion-card>
       </main>
 
@@ -111,6 +114,7 @@ import Image from "@/components/Image.vue";
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import ImageModal from '@/components/ImageModal.vue';
+import LocationPopover from '@/components/LocationPopover.vue'
 import { showToast } from '@/utils'
 import { translate } from '@/i18n'
 
@@ -135,7 +139,8 @@ export default defineComponent({
     IonThumbnail,
     IonTitle,
     IonToolbar,
-    Image
+    Image,
+    LocationPopover
   },
   props: ["shipment"],
   data() {
@@ -152,6 +157,7 @@ export default defineComponent({
   },
   async mounted() {
     const current = await this.store.dispatch('return/setCurrent', { shipmentId: this.$route.params.id })
+
     if(!this.isReturnReceivable(current.statusId)) {
       showToast(translate("This return has been and cannot be edited.", { status: current?.statusDesc?.toLowerCase() }));
     }
@@ -159,9 +165,12 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       current: 'return/getCurrent',
+      user: 'user/getCurrentFacility',
       getProduct: 'product/getProduct',
+      facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
+      returns: 'return/getReturns',
+      validStatusChange: 'return/isReturnReceivable',
       isReturnReceivable: 'return/isReturnReceivable',
-      returns: 'return/getReturns'
     }),
   },
   methods: {
@@ -192,6 +201,7 @@ export default defineComponent({
       }
       await this.store.dispatch("product/fetchProducts", payload);
     },
+    
     async completeShipment() {
       const alert = await alertController.create({
         header: this.$t("Receive Shipment"),
@@ -212,9 +222,12 @@ export default defineComponent({
       return alert.present();
     },
     async receiveReturn() {
-      await this.store.dispatch('return/receiveReturn', {payload: this.current}).then(() => {
-        this.router.push('/returns');
-      })   
+      await this.store.dispatch('return/receiveReturn', {payload: this.current}).then((resp) => {
+        // Only change the route when getting success from api resp
+        if (resp?.status === 200) {
+          this.router.push('/returns');
+        }
+      })
     },
     receiveAll(item: any) {
       this.current.items.filter((ele: any) => {
@@ -256,6 +269,7 @@ export default defineComponent({
   },
 });
 </script>
+<<<<<<< HEAD
 
 <style scoped>
 .shipment-scanner {
@@ -301,4 +315,6 @@ ion-thumbnail {
   }
 }
 </style>
+=======
+>>>>>>> 820397eabab34e4565e72977479cfb7fce071477
   

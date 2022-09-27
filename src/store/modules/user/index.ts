@@ -12,7 +12,8 @@ const userModule: Module<UserState, RootState> = {
       current: null,
       currentFacility: {},
       currentEComStore: {},
-      instanceUrl: ''
+      instanceUrl: '',
+      facilityLocationsByFacilityId: {}
     },
     getters,
     actions,
