@@ -122,18 +122,19 @@ const actions: ActionTree<ReturnState, RootState> = {
         unitCost: 0.00,
         locationSeqId: item.locationSeqId
       }
-      const resp = await ReturnService.receiveReturnItem(params);
-
-      if(resp.status === 200 && !hasError(resp)){
-       return Promise.resolve(resp);
-      } else {
-       return Promise.reject(resp);
-      } 
+      return ReturnService.receiveReturnItem(params).catch((err) => err)
     }))
   },
   async receiveReturn ({ dispatch }, {payload}) {
     emitter.emit("presentLoader");
-    return await dispatch("receiveReturnItem", payload).then(async () => {
+    return await dispatch("receiveReturnItem", payload).then(async (response: any) => {
+
+      if (response.some((res: any) => res.status !== 200 || hasError(res))) {
+        showToast(translate('Failed to receive some of the items'));
+        emitter.emit("dismissLoader");
+        return;
+      }
+
       const resp = await ReturnService.receiveReturn({
         "shipmentId": payload.shipmentId,
         "statusId": "PURCH_SHIP_RECEIVED"
