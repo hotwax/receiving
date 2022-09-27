@@ -56,6 +56,8 @@ export default defineComponent({
   },
   mounted () {
     this.store.dispatch('return/fetchValidReturnStatuses');
+  },
+  ionViewDidEnter(){
     this.getReturns();
   },
   methods: {
@@ -65,7 +67,7 @@ export default defineComponent({
       const payload = {
         "entityName": "SalesReturnShipmentView",
         "inputFields": {},
-        "fieldList" : [ "shipmentId","externalId","statusId","shopifyOrderName","hcOrderId","trackingCode" ],
+        "fieldList" : [ "shipmentId","externalId","statusId","shopifyOrderName","hcOrderId","trackingCode", "destinationFacilityId" ],
         "noConditionFind": "Y",
         "viewSize": viewSize,
         "viewIndex": viewIndex,

@@ -260,6 +260,47 @@ ion-thumbnail > img {
   margin-top: 25px;
 }
 
+.scanner {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(343px, 1fr));
+  gap: var(--spacer-xs);
+  margin-bottom: var(--spacer-sm);
+}
+
+.product {
+  display: grid;
+  grid: "info    count" 
+        "location location" 
+        / 1fr .35fr;
+  align-items: center;
+  padding: var(--spacer-xs) var(--spacer-xs) var(--spacer-xs) 0; 
+}
+
+.product-info {
+  grid-area: info;
+}
+
+.location {
+  grid-area: location;
+  justify-self: center;
+}
+
+.product-count {
+  grid-area: count;
+  min-width: 9ch;
+}
+
+.product-count > ion-item {
+  max-width: 20ch;
+  margin-left: auto;
+}
+
+@media (min-width: 720px) {
+  .product {
+    grid: "info location count" /  1fr max-content 1fr;
+  }
+}
+    
 @media (prefers-color-scheme: dark) {
   ion-chip > ion-icon {
     color: var(--ion-color-dark);

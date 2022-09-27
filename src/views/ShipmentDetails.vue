@@ -16,7 +16,7 @@
           <h1>{{ $t("Shipment ID") }}: {{ current.shipmentId }}</h1>
         </ion-item>
 
-        <div class="shipment-scanner">
+        <div class="scanner">
           <ion-item>
             <ion-label>{{ $t("Scan items") }}</ion-label>
             <ion-input :placeholder="$t('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()"></ion-input>
@@ -28,27 +28,38 @@
         </div>
 
         <ion-card v-for="item in current.items" :key="item.id">
-          <div class="product-info">
-            <ion-item lines="none">
-              <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
-                <Image :src="getProduct(item.productId).mainImageUrl" />
-              </ion-thumbnail>
-              <ion-label class="ion-text-wrap">
-                <h2>{{ getProduct(item.productId).productName }}</h2> 
-                <p>{{ getProduct(item.productId).productId }}</p>
-              </ion-label>
-            </ion-item>
-            <ion-item class="product-count">
-              <ion-label position="floating">{{ $t("Qty") }}</ion-label>
-              <ion-input type="number" min="0" v-model="item.quantityAccepted"></ion-input>
-            </ion-item>
+          <div class="product">
+            <div class="product-info">
+              <ion-item lines="none">
+                <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
+                  <Image :src="getProduct(item.productId).mainImageUrl" />
+                </ion-thumbnail>
+                <ion-label class="ion-text-wrap">
+                  <h2>{{ getProduct(item.productId).productName }}</h2> 
+                  <p>{{ getProduct(item.productId).productId }}</p>
+                </ion-label>
+              </ion-item>
+            </div>
+
+            <div class="location">
+              <LocationPopover :item="item" type="shipment" :facilityId="currentFacility.facilityId" />
+            </div>
+
+            <div class="product-count">
+              <ion-item>
+                <ion-label position="floating">{{ $t("Qty") }}</ion-label>
+                <ion-input type="number" min="0" v-model="item.quantityAccepted" />
+              </ion-item>
+            </div>
           </div>
 
           <ion-item class="border-top" v-if="item.quantityOrdered > 0">
             <ion-button @click="receiveAll(item)" slot="start" fill="outline">
               {{ $t("Receive All") }}
             </ion-button>
+
             <ion-progress-bar :value="item.quantityAccepted/item.quantityOrdered"></ion-progress-bar>
+            
             <p slot="end">{{ item.quantityOrdered }}</p>
           </ion-item>
         </ion-card>
@@ -84,6 +95,7 @@ import {
   IonToolbar,
   modalController,
   alertController,
+  popoverController
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { add, checkmarkDone, barcodeOutline } from 'ionicons/icons';
@@ -92,6 +104,7 @@ import AddProductModal from '@/views/AddProductModal.vue'
 import Image from "@/components/Image.vue";
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
+import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
 
 export default defineComponent({
@@ -114,7 +127,8 @@ export default defineComponent({
     IonThumbnail,
     IonTitle,
     IonToolbar,
-    Image
+    Image,
+    LocationPopover
   },
   props: ["shipment"],
   data() {
@@ -129,7 +143,9 @@ export default defineComponent({
     ...mapGetters({
       current: 'shipment/getCurrent',
       user: 'user/getCurrentFacility',
-      getProduct: 'product/getProduct'
+      getProduct: 'product/getProduct',
+      facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
+      currentFacility: 'user/getCurrentFacility'
     }),
   },
   methods: {
@@ -224,11 +240,10 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.shipment-scanner {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(343px, 1fr));
-  gap: 8px;
-  margin-bottom: 20px;
+ion-content > div {
+  max-width: 1110px;
+  margin-right: auto;
+  margin-left: auto;
 }
 
 ion-thumbnail {
@@ -237,17 +252,5 @@ ion-thumbnail {
 
 .border-top {
   border-top: 1px solid #ccc;
-}
-
-.product-info {
-  display: grid;
-  grid-template-columns: 1fr .25fr;
-  align-items: center;
-  padding: 16px;
-  padding-left: 0;
-}
-
-.product-count {
-  min-width: 9ch;
 }
 </style>
