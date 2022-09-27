@@ -269,7 +269,6 @@ export default defineComponent({
   },
 });
 </script>
-<<<<<<< HEAD
 
 <style scoped>
 .shipment-scanner {
@@ -315,6 +314,4 @@ ion-thumbnail {
   }
 }
 </style>
-=======
->>>>>>> 820397eabab34e4565e72977479cfb7fce071477
   
