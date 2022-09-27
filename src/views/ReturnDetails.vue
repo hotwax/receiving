@@ -2,7 +2,7 @@
   <ion-page>
     <ion-header :translucent="true">
       <ion-toolbar>
-        <ion-back-button default-href="/" slot="start"></ion-back-button>
+        <ion-back-button default-href="/returns" slot="start"></ion-back-button>
         <ion-title>{{ $t("Return Details") }}</ion-title>
       </ion-toolbar>
     </ion-header>
