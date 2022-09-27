@@ -114,7 +114,6 @@ import Image from "@/components/Image.vue";
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import ImageModal from '@/components/ImageModal.vue';
-import LocationPopover from '@/components/LocationPopover.vue'
 import { showToast } from '@/utils'
 import { translate } from '@/i18n'
 
@@ -140,7 +139,6 @@ export default defineComponent({
     IonTitle,
     IonToolbar,
     Image,
-    LocationPopover
   },
   props: ["shipment"],
   data() {
