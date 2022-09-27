@@ -76,13 +76,11 @@
         </ion-card>
       </main>
 
-      <!-- <div> -->
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
         <ion-fab-button v-if="isReturnReceivable(current.statusId)" @click="completeShipment">
           <ion-icon :icon="checkmarkDone" />
         </ion-fab-button>
       </ion-fab>
-      <!-- </div> -->
     </ion-content>
   </ion-page>
 </template>
@@ -273,8 +271,8 @@ export default defineComponent({
 </script>
 
 <style scoped>
-ion-thumbnail {
-  cursor: pointer;
-}
+  ion-thumbnail {
+    cursor: pointer;
+  }
 </style>
   

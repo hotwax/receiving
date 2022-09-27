@@ -270,10 +270,6 @@ export default defineComponent({
 </script>
 
 <style scoped>
-/* .po-meta {
-  padding: 0 10px;
-} */
-
 .action {
   display: grid;
   grid: "receive progressbar ordered"
