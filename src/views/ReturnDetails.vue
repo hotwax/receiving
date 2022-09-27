@@ -9,14 +9,14 @@
 
     <ion-content>
       <main>
-        <div class="return-id">
+        <div class="doc-id">
           <ion-item lines="none">
             <h1>{{ current.shopifyOrderName ? current.shopifyOrderName : current.hcOrderId }}</h1>
             <!-- TODO: Fetch Customer name -->
             <!-- <p>{{ $t("Customer: <customer name>")}}</p> -->
           </ion-item>
 
-          <div class="return-meta">
+          <div class="doc-meta">
             <ion-badge :color="statusColorMapping[current.statusDesc]" slot="end">{{ current.statusDesc }}</ion-badge>
             <ion-chip v-if="current.trackingCode" slot="end">{{ current.trackingCode }}</ion-chip>
           </div>
@@ -35,50 +35,54 @@
         </div>
 
         <ion-card v-for="item in current.items" :key="item.id">
-          <div class="product-info">
-            <ion-item lines="none">
-              <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
-                <Image :src="getProduct(item.productId).mainImageUrl" />
-              </ion-thumbnail>
-              <ion-label class="ion-text-wrap">
-                <h2>{{ getProduct(item.productId).productName }}</h2> 
-                <p>{{ getProduct(item.productId).productId }}</p>
-              </ion-label>
-            </ion-item>
-            <div>
+          <div class="product">
+            <div class="product-info">
+              <ion-item lines="none">
+                <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
+                  <Image :src="getProduct(item.productId).mainImageUrl" />
+                </ion-thumbnail>
+                <ion-label class="ion-text-wrap">
+                  <h2>{{ getProduct(item.productId).productName }}</h2> 
+                  <p>{{ getProduct(item.productId).productId }}</p>
+                </ion-label>
+              </ion-item>
+            </div>
+
+            <div class="location">
               <ion-chip outline :disabled="true">
                 <ion-icon :icon="locationOutline" />
                 <ion-label>{{ current.locationSeqId }}</ion-label>
               </ion-chip>
             </div>
-            <ion-item v-if="isReturnReceivable(current.statusId)" class="product-count">
-              <ion-label position="floating">{{ $t("Qty") }}</ion-label>
-              <ion-input type="number" min="0" v-model="item.quantityAccepted" />
-            </ion-item>
-            <ion-item v-if="!isReturnReceivable(current.statusId)" class="product-count" lines="none">
-              <ion-label>{{ item.quantityAccepted }} {{ $t("received") }}</ion-label>
-            </ion-item>
+
+            <div class="product-count">
+              <ion-item v-if="isReturnReceivable(current.statusId)">
+                <ion-label position="floating">{{ $t("Qty") }}</ion-label>
+                <ion-input type="number" min="0" v-model="item.quantityAccepted" />
+              </ion-item>
+              <ion-item v-if="!isReturnReceivable(current.statusId)" lines="none">
+                <ion-label>{{ item.quantityAccepted }} {{ $t("received") }}</ion-label>
+              </ion-item>
+            </div>
           </div>
-            
   
-          <ion-item class="border-top" v-if="item.quantityOrdered > 0">
+          <ion-item lines="none" class="border-top" v-if="item.quantityOrdered > 0">
             <ion-button v-if="isReturnReceivable(current.statusId)" @click="receiveAll(item)" slot="start" fill="outline">
               {{ $t("Receive All") }}
             </ion-button>
             <ion-progress-bar :value="item.quantityAccepted/item.quantityOrdered" />
             <p slot="end">{{ item.quantityOrdered }} {{ $t("returned") }}</p>
           </ion-item>
-
         </ion-card>
       </main>
 
-      <div>
-        <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-          <ion-fab-button v-if="isReturnReceivable(current.statusId)" @click="completeShipment">
-            <ion-icon :icon="checkmarkDone" />
-          </ion-fab-button>
-        </ion-fab>
-      </div>
+      <!-- <div> -->
+      <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+        <ion-fab-button v-if="isReturnReceivable(current.statusId)" @click="completeShipment">
+          <ion-icon :icon="checkmarkDone" />
+        </ion-fab-button>
+      </ion-fab>
+      <!-- </div> -->
     </ion-content>
   </ion-page>
 </template>
@@ -269,47 +273,41 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.shipment-scanner {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(343px, 1fr));
-  gap: 8px;
-  margin-bottom: 20px;
-}
 
-.return-meta {
+/* .return-meta {
   display: flex;
   gap: var(--spacer-xs);
   justify-content: space-between;
   align-items: center;
-}
+} */
 
 ion-thumbnail {
   cursor: pointer;
 }
 
-.border-top {
+/* .border-top {
   border-top: 1px solid #ccc;
-}
+} */
 
 
-.product-info {
+/* .product-info {
   display: grid;
   grid-template-columns: 1fr 1fr .30fr;
   align-items: center;
   padding: 16px;
   padding-left: 0;
-}
+} */
 
-.product-count {
+/* .product-count {
   min-width: 9ch;
-}
+} */
 
-@media (min-width: 720px) {
+/* @media (min-width: 720px) {
   .return-id {
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
-}
+} */
 </style>
   

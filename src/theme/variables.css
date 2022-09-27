@@ -252,12 +252,26 @@ main {
   margin: var(--spacer-sm) auto 0;
 }
 
+.border-top {
+  border-top: 1px solid #ccc;
+}
+
 ion-thumbnail > img {
   object-fit: contain;
 }
 
 .load-more-action {
-  margin-top: 25px;
+  margin-top: var(--spacer-base);
+}
+
+.doc-id {
+  /* use this class to style doc-id section globally */
+}
+
+.doc-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacer-xs);
 }
 
 .scanner {
@@ -278,6 +292,10 @@ ion-thumbnail > img {
 
 .product-info {
   grid-area: info;
+  grid-template-columns: 1fr 1fr .30fr;
+  align-items: center;
+  padding: var(--spacer-sm);
+  padding-left: 0;
 }
 
 .location {
@@ -298,6 +316,12 @@ ion-thumbnail > img {
 @media (min-width: 720px) {
   .product {
     grid: "info location count" /  1fr max-content 1fr;
+  }
+
+  .doc-id {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 }
     

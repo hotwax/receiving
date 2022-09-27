@@ -17,12 +17,12 @@
 
     <ion-content>
       <main>
-        <div class="po-id">
+        <div class="doc-id">
           <ion-item lines="none">
             <h1>{{$t("Purchase Order")}}: {{ order.externalOrderId }}</h1>
           </ion-item>
           
-          <div class="po-meta">
+          <div class="doc-meta">
             <ion-chip>{{ order.orderId }}</ion-chip>
           </div>
         </div>
@@ -270,18 +270,18 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.po-meta {
+/* .po-meta {
   padding: 0 10px;
-}
+} */
 
 .action {
   display: grid;
   grid: "receive progressbar ordered"
         "history history     history" 
         / max-content 1fr max-content; 
-  gap: 10px;
+  gap: var(--spacer-xs)
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: var(--spacer-xs)
 }
 
 .receive-all-qty {
@@ -306,7 +306,7 @@ ion-thumbnail {
 } 
 
 @media (min-width: 720px) {
-  .po-id {
+  .doc-id {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -314,7 +314,7 @@ ion-thumbnail {
 
   .action {
     grid: "receive progressbar history ordered" /  max-content 1fr max-content max-content;
-    margin-left: 16px;
+    margin-left: var(--spacer-sm)
   }
 }
 </style>
