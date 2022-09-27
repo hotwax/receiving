@@ -198,7 +198,7 @@ const actions: ActionTree<OrderState, RootState> = {
     if(item){
       item.locationSeqId = payload.locationSeqId
     }
-    commit(types.ORDER_CURRENT_UPDATED, { current: state.current})
+    commit(types.ORDER_CURRENT_UPDATED, state.current)
   }
 }
 
