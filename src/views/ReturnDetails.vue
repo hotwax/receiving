@@ -2,7 +2,7 @@
   <ion-page>
     <ion-header :translucent="true">
       <ion-toolbar>
-        <ion-back-button default-href="/" slot="start"></ion-back-button>
+        <ion-back-button default-href="/returns" slot="start"></ion-back-button>
         <ion-title>{{ $t("Return Details") }}</ion-title>
       </ion-toolbar>
     </ion-header>
@@ -222,9 +222,12 @@ export default defineComponent({
       return alert.present();
     },
     async receiveReturn() {
-      await this.store.dispatch('return/receiveReturn', {payload: this.current}).then(() => {
-        this.router.push('/returns');
-      })   
+      await this.store.dispatch('return/receiveReturn', {payload: this.current}).then((resp) => {
+        // Only change the route when getting success from api resp
+        if (resp?.status === 200) {
+          this.router.push('/returns');
+        }
+      })
     },
     receiveAll(item: any) {
       this.current.items.filter((ele: any) => {
