@@ -194,7 +194,7 @@ const actions: ActionTree<ReturnState, RootState> = {
     if(item){
       item.locationSeqId = payload.locationSeqId
     }
-    commit(types.RETURN_CURRENT_UPDATED, state.current)
+    commit(types.RETURN_CURRENT_UPDATED, { current: state.current})
   }
 }
 
