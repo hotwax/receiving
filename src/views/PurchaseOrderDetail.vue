@@ -279,9 +279,9 @@ export default defineComponent({
   grid: "receive progressbar ordered"
         "history history     history" 
         / max-content 1fr max-content; 
-  gap: var(--spacer-xs)
+  gap: var(--spacer-xs);
   align-items: center;
-  margin-bottom: var(--spacer-xs)
+  margin-bottom: var(--spacer-xs);
 }
 
 .receive-all-qty {
@@ -314,7 +314,7 @@ ion-thumbnail {
 
   .action {
     grid: "receive progressbar history ordered" /  max-content 1fr max-content max-content;
-    margin-left: var(--spacer-sm)
+    margin-left: var(--spacer-sm);
   }
 }
 </style>

@@ -335,6 +335,6 @@ ion-thumbnail > img {
   }
 
   ion-item {
-    --border-color: var(--ion-color-medium)
+    --border-color: var(--ion-color-medium);
   }
 }
