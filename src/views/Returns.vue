@@ -88,6 +88,14 @@ export default defineComponent({
         payload.inputFields["externalId_op"] = "contains";
         payload.inputFields["externalId_ic"] = "Y";
         payload.inputFields["externalId_grp"] = "3";
+        payload.inputFields["hcOrderId"] = this.queryString;
+        payload.inputFields["hcOrderId_op"] = "contains";
+        payload.inputFields["hcOrderId_ic"] = "Y";
+        payload.inputFields["hcOrderId_grp"] = "4";
+        payload.inputFields["shopifyOrderName"] = this.queryString;
+        payload.inputFields["shopifyOrderName_op"] = "contains";
+        payload.inputFields["shopifyOrderName_ic"] = "Y";
+        payload.inputFields["shopifyOrderName_grp"] = "5";
       }
       await this.store.dispatch("return/findReturn", payload);
     },
