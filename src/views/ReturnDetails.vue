@@ -9,17 +9,18 @@
 
     <ion-content>
       <main>
-        <ion-item lines="none">
-          <ion-list class="ion-text-center">
-            <ion-title>{{ current.shopifyOrderName ? current.shopifyOrderName : current.hcOrderId }}</ion-title>
+        <div class="return-id">
+          <ion-item lines="none">
+            <h1>{{ current.shopifyOrderName ? current.shopifyOrderName : current.hcOrderId }}</h1>
             <!-- TODO: Fetch Customer name -->
-            <!-- <ion-label>{{ $t("Customer: <customer name>")}}</ion-label> -->
-          </ion-list>
-          <ion-item slot="end" lines="none">
+            <!-- <p>{{ $t("Customer: <customer name>")}}</p> -->
+          </ion-item>
+
+          <div class="return-meta">
             <ion-badge :color="statusColorMapping[current.statusDesc]" slot="end">{{ current.statusDesc }}</ion-badge>
             <ion-chip v-if="current.trackingCode" slot="end">{{ current.trackingCode }}</ion-chip>
-          </ion-item>
-        </ion-item>
+          </div>
+        </div>
 
         <div class="shipment-scanner">
           <ion-item>
@@ -43,12 +44,12 @@
                 <p>{{ getProduct(item.productId).productId }}</p>
               </ion-label>
             </ion-item>
-            <ion-item :disabled="true" lines="none">
-              <ion-chip outline="true">
+            <div>
+              <ion-chip outline :disabled="true">
                 <ion-icon :icon="locationOutline" />
                 <ion-label>{{current.locationSeqId}}</ion-label>
               </ion-chip>
-            </ion-item>
+            </div>
             <ion-item v-if="isReturnReceivable(current.statusId)" class="product-count">
               <ion-label position="floating">{{ $t("Qty") }}</ion-label>
               <ion-input type="number" min="0" v-model="item.quantityAccepted" />
@@ -68,11 +69,13 @@
         </ion-card>
       </main>
 
-      <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button v-if="isReturnReceivable(current.statusId)" @click="completeShipment">
-          <ion-icon :icon="checkmarkDone" />
-        </ion-fab-button>
-      </ion-fab>
+      <div>
+        <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+          <ion-fab-button v-if="isReturnReceivable(current.statusId)" @click="completeShipment">
+            <ion-icon :icon="checkmarkDone" />
+          </ion-fab-button>
+        </ion-fab>
+      </div>
     </ion-content>
   </ion-page>
 </template>
@@ -92,7 +95,6 @@ import {
   IonItem,
   IonInput,
   IonLabel,
-  IonList,
   IonPage,
   IonProgressBar,
   IonThumbnail,
@@ -128,7 +130,6 @@ export default defineComponent({
     IonItem,
     IonInput,
     IonLabel,
-    IonList,
     IonPage,
     IonProgressBar,
     IonThumbnail,
@@ -264,6 +265,13 @@ export default defineComponent({
   margin-bottom: 20px;
 }
 
+.return-meta {
+  display: flex;
+  gap: var(--spacer-xs);
+  justify-content: space-between;
+  align-items: center;
+}
+
 ion-thumbnail {
   cursor: pointer;
 }
@@ -283,6 +291,14 @@ ion-thumbnail {
 
 .product-count {
   min-width: 9ch;
+}
+
+@media (min-width: 720px) {
+  .return-id {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
 }
 </style>
   
