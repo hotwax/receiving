@@ -53,7 +53,7 @@
             </div>
           </div>
 
-          <ion-item class="border-top" v-if="item.quantityOrdered > 0">
+          <ion-item lines="none" class="border-top" v-if="item.quantityOrdered > 0">
             <ion-button @click="receiveAll(item)" slot="start" fill="outline">
               {{ $t("Receive All") }}
             </ion-button>
@@ -240,7 +240,7 @@ export default defineComponent({
 </script>
 
 <style scoped>
-ion-content > div {
+ion-content > main {
   max-width: 1110px;
   margin-right: auto;
   margin-left: auto;
