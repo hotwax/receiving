@@ -8,7 +8,7 @@
     </ion-header>
     <ion-content>
       <main>
-        <ion-searchbar :placeholder="$t('Scan ASN to start receiving')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getShipments()" />
+        <ion-searchbar ref="searchbarRef" :placeholder="$t('Scan ASN to start receiving')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getShipments()" />
 
         <ShipmentListItem v-for="shipment in shipments" :key="shipment.shipmentId" :shipment="shipment"/>
 
@@ -57,6 +57,10 @@ export default defineComponent({
   },
   mounted () {
     this.getShipments();
+    const focusSearchBar = this.$refs.searchbarRef as any;
+    setTimeout(() => {
+      focusSearchBar.$el.setFocus();
+    }, 300);
   },
   methods: {
     selectSearchBarText(event: any) {

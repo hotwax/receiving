@@ -8,7 +8,7 @@
     </ion-header>
     <ion-content>
       <main>
-        <ion-searchbar :placeholder="$t('Scan ASN to start receiving')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getReturns()" />
+        <ion-searchbar ref="searchbarRef" :placeholder="$t('Scan ASN to start receiving')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getReturns()" />
   
         <ReturnListItem v-for="returnShipment in returns" :key="returnShipment.shipmentId" :returnShipment="returnShipment" />
 
@@ -56,6 +56,10 @@ export default defineComponent({
   },
   mounted () {
     this.store.dispatch('return/fetchValidReturnStatuses');
+    const focusSearchBar = this.$refs.searchbarRef as any;
+    setTimeout(() => {
+      focusSearchBar.$el.setFocus();
+    }, 300);
   },
   ionViewDidEnter(){
     this.getReturns();
