@@ -114,7 +114,7 @@ const actions: ActionTree<ReturnState, RootState> = {
       const params = {
         ...payload,
         facilityId,
-        shipmentItemSeqId: item.shipmentItemSeqId,
+        shipmentItemSeqId: item.itemSeqId,
         productId: item.productId,
         quantityAccepted: item.quantityAccepted,
         orderId: item.orderId,
