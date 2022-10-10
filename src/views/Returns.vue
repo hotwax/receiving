@@ -56,13 +56,13 @@ export default defineComponent({
   },
   mounted () {
     this.store.dispatch('return/fetchValidReturnStatuses');
+    this.getReturns();
+  },
+  ionViewDidEnter(){
     const focusSearchBar = this.$refs.searchbarRef as any;
     setTimeout(() => {
       focusSearchBar.$el.setFocus();
     }, 300);
-  },
-  ionViewDidEnter(){
-    this.getReturns();
   },
   methods: {
     async getReturns(vSize?: any, vIndex?: any) {

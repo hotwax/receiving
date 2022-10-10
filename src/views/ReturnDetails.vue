@@ -2,7 +2,7 @@
   <ion-page>
     <ion-header :translucent="true">
       <ion-toolbar>
-        <ion-back-button default-href="/returns" slot="start"></ion-back-button>
+        <ion-back-button default-href="/returns" slot="start" />
         <ion-title>{{ $t("Return Details") }}</ion-title>
       </ion-toolbar>
     </ion-header>
@@ -25,7 +25,7 @@
         <div class="scanner">
           <ion-item>
             <ion-label>{{ $t("Scan items") }}</ion-label>
-            <ion-input :placeholder="$t('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()" />
+            <ion-input ref="searchbarRef" :placeholder="$t('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()" />
           </ion-item>
 
           <ion-button expand="block" fill="outline" @click="scanCode()">
@@ -161,6 +161,9 @@ export default defineComponent({
     if(!this.isReturnReceivable(current.statusId)) {
       showToast(translate("This return has been and cannot be edited.", { status: current?.statusDesc?.toLowerCase() }));
     }
+
+    const focusSearchBar = this.$refs.searchbarRef as any;
+    focusSearchBar.$el.setFocus();
   },
   computed: {
     ...mapGetters({
