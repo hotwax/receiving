@@ -152,8 +152,8 @@ const actions: ActionTree<ShipmentState, RootState> = {
   async updateProductCount({ commit, state }, payload ) {
     const shipments = state.shipments.list;
     shipments.forEach((shipment: any) => {
-      if(shipment.id === payload.shipmentId) {
-        shipment.noOfItem = parseInt(shipment.noOfItem) + 1;
+      if(shipment.shipmentId === payload.shipmentId) {
+        shipment.shipmentItemCount = parseInt(shipment.shipmentItemCount) + 1;
         return;
       }
     })
