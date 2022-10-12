@@ -1,3 +1,29 @@
+
+# Release 2.1.0
+
+## What's Changed
+* Implemented: Upgraded app to Ionic 6.1.15 (#2ttr83t) by @k2maan in https://github.com/hotwax/receiving/pull/123 and @shashwatbangar in https://github.com/hotwax/receiving/pull/125
+* Fixed: Incorrect information being displayed on PO details page(#2te5khn) by @disha1202 in https://github.com/hotwax/receiving/pull/122
+* Fixed: PO details not updated after changing qty(#2te5d34) by @shashwatbangar in https://github.com/hotwax/receiving/pull/124
+* Implemented: Support to store user preference for selected product store(#2f2h8hu) by @shashwatbangar in https://github.com/hotwax/receiving/pull/116
+* Implemented functionality to add support to select eComStore from the settings page (#251xhvt). by @meet-aniket in https://github.com/hotwax/receiving/pull/96
+* Implemented support to store user preference for selected product store (#2f2h8hu) by @rathoreprashant in https://github.com/hotwax/receiving/pull/107
+* Implemented search functionality on shipments page(#2v1npkr) by @disha1202 in https://github.com/hotwax/receiving/pull/126
+* Implemented: Returns flow to receive returns(#2t2wcjr) by @shashwatbangar in https://github.com/hotwax/receiving/pull/118
+* Added: support to set current location from PO details, shipment details page and return page (#238pmgz)  by @adityasharma7 in https://github.com/hotwax/receiving/pull/134, @meet-aniket in https://github.com/hotwax/receiving/pull/89 and @disha1202 in https://github.com/hotwax/receiving/pull/105
+* Added: support to set current location from PO details, shipment details page and return page (#238pmgz) by @disha1202 in https://github.com/hotwax/receiving/pull/128
+* Fixed: code to not change the route when one of the return shipment item api fails and also change the default href for details page by @ymaheshwari1 in https://github.com/hotwax/receiving/pull/135
+* Fixed: type error on po details page by @ymaheshwari1 in https://github.com/hotwax/receiving/pull/136
+* Fixed: UI of returnDetails page(#2v7gpv1) by @shashwatbangar in https://github.com/hotwax/receiving/pull/138
+* Fixed: issue of shipmentItemSeqId not being passed when receiving shipment item by @ymaheshwari1 in https://github.com/hotwax/receiving/pull/141
+* Updated query for searching PO and fixed default facility location not set on item in case PO history does not exists by @disha1202 in https://github.com/hotwax/receiving/pull/139
+
+## New Contributors
+* @k2maan made their first contribution in https://github.com/hotwax/receiving/pull/123
+
+**Full Changelog**: https://github.com/hotwax/receiving/compare/v2.0.0...v2.1.0
+
+
 # Release 2.0.0
 
 ## What's Changed
