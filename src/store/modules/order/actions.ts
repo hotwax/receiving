@@ -35,7 +35,7 @@ const actions: ActionTree<OrderState, RootState> = {
         showToast(translate("Orders not found"));
       }
     } catch(error){
-      console.log(error)
+      console.error(error)
       showToast(translate("Something went wrong"));
     }
     return resp;
