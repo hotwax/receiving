@@ -11,6 +11,10 @@ labels: bug
 ## Expected behavior
 <!-- Describe what the desired behavior should be. -->
 
+<!-- I think we don't need
+<div class="item-bottom"><slot name="error"></slot><slot name="helper"></slot></div>
+in http://localhost:8100/return/12718 -->
+
 
 ## Steps to reproduce the issue
 <!-- Please provide the steps to reproduce and if possible a *minimal reproducible example* of the problem -->
