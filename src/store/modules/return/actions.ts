@@ -102,7 +102,7 @@ const actions: ActionTree<ReturnState, RootState> = {
     } catch (err) {
       showToast(translate('Something went wrong'));
       console.error("error", err);
-      return Promise.reject(new Error("err"))
+      return Promise.reject(new Error(err))
     }
   },
   receiveReturnItem ({ state, commit }, data) {
