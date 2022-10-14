@@ -23,7 +23,7 @@
           </ion-item>
           
           <div class="doc-meta">
-            <ion-chip>{{ order.orderId }}</ion-chip>
+            <ion-chip @click="copyOrderIdToClipboard">{{ order.orderId }}<ion-icon :icon="copy"/></ion-chip>
           </div>
         </div>
         
@@ -125,7 +125,7 @@ import {
   popoverController
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
-import { addOutline, cameraOutline, checkmarkDone, saveOutline, timeOutline } from 'ionicons/icons';
+import { addOutline, cameraOutline, checkmarkDone, saveOutline, timeOutline, copy } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import Image from "@/components/Image.vue";
 import { useStore, mapGetters } from 'vuex';
@@ -134,6 +134,8 @@ import Scanner from "@/components/Scanner.vue"
 import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
 import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
+import { Plugins } from '@capacitor/core';
+const { Clipboard } = Plugins;
 
 export default defineComponent({
   name: "PurchaseOrderDetails",
@@ -245,6 +247,11 @@ export default defineComponent({
           ele.progress = ele.quantityAccepted / ele.quantity;
         }
       })
+    },
+    copyOrderIdToClipboard() {
+      Clipboard.write({
+        string: this.order.orderId,
+      });
     }
   }, 
   ionViewWillEnter() {
@@ -263,7 +270,8 @@ export default defineComponent({
       router,
       saveOutline,
       store,
-      timeOutline
+      timeOutline,
+      copy
     };
   },
 });
