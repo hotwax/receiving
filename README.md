@@ -74,3 +74,6 @@ Documentation is available in the documentation folder and can be viewed by open
 
 `Please do all changes and in your local systems branch and make a pull request to hacktoberfest branch not in master branch of remote repo`
 
+I think we don't need 
+<div class="item-bottom"><slot name="error"></slot><slot name="helper"></slot></div> 
+in  http://localhost:8100/return/12718
