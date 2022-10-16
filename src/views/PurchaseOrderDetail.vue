@@ -134,8 +134,7 @@ import Scanner from "@/components/Scanner.vue"
 import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
 import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
-import { Plugins } from '@capacitor/core';
-const { Clipboard } = Plugins;
+import { copyToClipboard } from '@/utils';
 
 export default defineComponent({
   name: "PurchaseOrderDetails",
@@ -249,9 +248,7 @@ export default defineComponent({
       })
     },
     copyOrderIdToClipboard() {
-      Clipboard.write({
-        string: this.order.orderId,
-      });
+      copyToClipboard(this.order.orderId);
     }
   }, 
   ionViewWillEnter() {
