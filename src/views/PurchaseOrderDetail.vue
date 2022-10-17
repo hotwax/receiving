@@ -262,6 +262,7 @@ export default defineComponent({
       cameraOutline,
       checkmarkDone,
       copyOutline,
+      copyToClipboard,
       router,
       saveOutline,
       store,
