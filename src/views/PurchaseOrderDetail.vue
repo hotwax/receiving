@@ -23,7 +23,7 @@
           </ion-item>
           
           <div class="doc-meta">
-            <ion-chip @click="copyOrderIdToClipboard">{{ order.orderId }}<ion-icon :icon="copy"/></ion-chip>
+            <ion-chip @click="copyOrderIdToClipboard">{{ order.orderId }}<ion-icon :icon="copy-outline"/></ion-chip>
           </div>
         </div>
         
