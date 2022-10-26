@@ -42,8 +42,10 @@
                   <Image :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
+                  <h5>{{ getProduct(item.productId).parentProductName }}</h5>
                   <h2>{{ getProduct(item.productId).productName }}</h2> 
                   <p>{{ getProduct(item.productId).productId }}</p>
+                  <p v-if="$filters.getIdentificationId(getProduct(item.productId).goodIdentifications, goodIdentificationTypeId)">{{ $filters.getIdentificationId(getProduct(item.productId).goodIdentifications, goodIdentificationTypeId) }}</p>
                 </ion-label>
               </ion-item>
             </div>
@@ -152,7 +154,8 @@ export default defineComponent({
         'Cancelled': 'danger',
         'Shipped': 'medium',
         'Created': 'medium'
-      } as any
+      } as any,
+      goodIdentificationTypeId: process.env.VUE_APP_PRDT_IDENT_TYPE_ID
     }
   },
   async mounted() {
