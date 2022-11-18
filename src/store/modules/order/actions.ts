@@ -16,7 +16,7 @@ const actions: ActionTree<OrderState, RootState> = {
     try {
       resp = await OrderService.fetchPurchaseOrders(payload)
 
-      if (resp.status === 200 && !hasError(resp) && resp.data.grouped && resp.data.grouped.orderId.groups?.length > 0) {
+      if (resp.status === 200 && !hasError(resp) && resp.data.grouped?.orderId.groups?.length > 0) {
         const orders = resp.data.grouped.orderId
         
         orders.groups.forEach((order: any) => {
