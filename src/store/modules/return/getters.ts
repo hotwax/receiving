@@ -1,0 +1,16 @@
+import { GetterTree } from "vuex";
+import ReturnState from "./ReturnState";
+import RootState from "../../RootState";
+
+const getters: GetterTree<ReturnState, RootState> = {
+  getReturns(state) {
+    return state.returns.list;
+  },
+  getCurrent (state) {
+    return state.current;
+  },
+  isReturnReceivable: (state) => (statusId: string) => {
+    return state.validStatusChange[statusId]?.includes('PURCH_SHIP_RECEIVED')
+  }
+};
+export default getters;

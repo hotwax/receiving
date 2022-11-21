@@ -17,17 +17,17 @@
 
     <ion-content>
       <main>
-        <div class="po-id">
+        <div class="doc-id">
           <ion-item lines="none">
             <h1>{{$t("Purchase Order")}}: {{ order.externalOrderId }}</h1>
           </ion-item>
           
-          <div class="po-meta">
-            <ion-chip>{{ order.orderId }}</ion-chip>
+          <div class="doc-meta">
+            <ion-chip @click="copyToClipboard(order.orderId)">{{ order.orderId }}<ion-icon :icon="copyOutline"/></ion-chip>
           </div>
         </div>
         
-        <div class="po-scanner">
+        <div class="scanner">
           <ion-item>
             <ion-label position="fixed">{{$t("Scan items")}}</ion-label>
             <ion-input :placeholder="$t('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()" />
@@ -52,11 +52,8 @@
               </ion-item>
             </div>
 
-            <div class="po-item-history">
-              <ion-chip outline>
-                <ion-icon :icon="checkmarkDone"/>
-                <ion-label> {{ getPOItemAccepted(item.productId) }} {{ $t("received") }} </ion-label>
-              </ion-chip>
+            <div class="location">
+              <LocationPopover :item="item" type="order" :facilityId="currentFacility.facilityId" />
             </div>
 
             <div class="product-count">
@@ -67,13 +64,30 @@
             </div>
           </div>
 
-          <ion-item lines="none" class="border-top" v-if="item.quantity > 0">
-            <ion-button @click="receiveAll(item)" slot="start" fill="outline">
-              {{ $t("Receive All") }}
-            </ion-button>
-            <ion-progress-bar :value="item.quantityAccepted/item.quantity" />
-            <p slot="end">{{ item.quantity }} {{ $t("ordered") }}</p>
-          </ion-item>
+          <div class="action border-top" v-if="item.quantity > 0">
+            <div class="receive-all-qty">
+              <ion-button @click="receiveAll(item)" slot="start" fill="outline">
+                {{ $t("Receive All") }}
+              </ion-button>
+            </div>
+
+            <div class="qty-progress">
+              <ion-progress-bar :value="item.quantityAccepted/item.quantity" />
+            </div>
+
+            <div class="po-item-history">
+              <ion-chip outline>
+                <ion-icon :icon="checkmarkDone"/>
+                <ion-label> {{ getPOItemAccepted(item.productId) }} {{ $t("received") }} </ion-label>
+              </ion-chip>
+            </div>
+
+            <div class="qty-ordered">
+              <ion-item lines="none">
+                <ion-label>{{ item.quantity }} {{ $t("ordered") }}</ion-label>   
+              </ion-item>
+            </div>         
+          </div>
         </ion-card>
       </main>  
       
@@ -108,16 +122,19 @@ import {
   IonToolbar,
   modalController,
   alertController,
+  popoverController
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
-import { addOutline, cameraOutline, checkmarkDone, saveOutline, timeOutline } from 'ionicons/icons';
+import { addOutline, cameraOutline, checkmarkDone, saveOutline, timeOutline, copyOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import Image from "@/components/Image.vue";
 import { useStore, mapGetters } from 'vuex';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue"
 import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
+import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
+import { copyToClipboard } from '@/utils';
 
 export default defineComponent({
   name: "PurchaseOrderDetails",
@@ -141,6 +158,7 @@ export default defineComponent({
     IonThumbnail,
     IonTitle,
     IonToolbar,
+    LocationPopover
   },
   data() {
     return {
@@ -151,7 +169,9 @@ export default defineComponent({
     ...mapGetters({
       order: 'order/getCurrent',
       getProduct: 'product/getProduct',
-      getPOItemAccepted: 'order/getPOItemAccepted'
+      getPOItemAccepted: 'order/getPOItemAccepted',
+      facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
+      currentFacility: 'user/getCurrentFacility'
     })
   },
   methods: {
@@ -227,8 +247,8 @@ export default defineComponent({
         }
       })
     }
-  },
-  mounted() {
+  }, 
+  ionViewWillEnter() {
     this.store.dispatch("order/getOrderDetail", { orderId: this.$route.params.slug }).then(() => {
       this.store.dispatch('order/getPOHistory', { orderId: this.order.orderId })
     })
@@ -241,6 +261,8 @@ export default defineComponent({
       addOutline,
       cameraOutline,
       checkmarkDone,
+      copyOutline,
+      copyToClipboard,
       router,
       saveOutline,
       store,
@@ -251,33 +273,22 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.po-meta {
-  padding: 0 10px;
-}
-
-.po-scanner {
+.action {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(343px, 1fr));
-  gap: 8px;
-  margin-bottom: 20px;
-}
-
-ion-thumbnail {
-  cursor: pointer;
-}
-
-.product {
-  display: grid;
-  grid: "info    count" 
-        "history history" 
-        / 1fr .35fr;
+  grid: "receive progressbar ordered"
+        "history history     history" 
+        / max-content 1fr max-content; 
+  gap: var(--spacer-xs);
   align-items: center;
-  padding: 16px;
-  padding-left: 0;
+  margin-bottom: var(--spacer-xs);
 }
 
-.product-info {
-  grid-area: info;
+.receive-all-qty {
+  grid-area: receive;
+}
+
+.qty-progress {
+  grid-area: progressbar;
 }
 
 .po-item-history {
@@ -285,25 +296,24 @@ ion-thumbnail {
   justify-self: center;
 }
 
-.product-count {
-  grid-area: count;
-  min-width: 9ch;
+.qty-ordered {
+  grid-area: ordered;
 }
 
-.product-count > ion-item {
-  max-width: 20ch;
-  margin-left: auto;
-}
+ion-thumbnail {
+  cursor: pointer;
+} 
 
 @media (min-width: 720px) {
-  .po-id {
+  .doc-id {
     display: flex;
     justify-content: space-between;
     align-items: center;
    }
 
-  .product {
-    grid: "info history count" /  1fr max-content 1fr;
+  .action {
+    grid: "receive progressbar history ordered" /  max-content 1fr max-content max-content;
+    margin-left: var(--spacer-sm);
   }
 }
 </style>

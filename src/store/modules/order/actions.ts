@@ -16,7 +16,7 @@ const actions: ActionTree<OrderState, RootState> = {
     try {
       resp = await OrderService.fetchPurchaseOrders(payload)
 
-      if (resp.status === 200 && !hasError(resp) && resp.data.grouped) {
+      if (resp.status === 200 && !hasError(resp) && resp.data.grouped?.orderId.groups?.length > 0) {
         const orders = resp.data.grouped.orderId
         
         orders.groups.forEach((order: any) => {
@@ -35,7 +35,7 @@ const actions: ActionTree<OrderState, RootState> = {
         showToast(translate("Orders not found"));
       }
     } catch(error){
-      console.log(error)
+      console.error(error)
       showToast(translate("Something went wrong"));
     }
     return resp;
@@ -100,9 +100,11 @@ const actions: ActionTree<OrderState, RootState> = {
       }
       else {
         showToast(translate("Something went wrong"));
+        commit(types.ORDER_CURRENT_UPDATED, { orderId, externalOrderId: '', items: [], poHistory: [] })
       }
     } catch (error) {
       showToast(translate("Something went wrong"));
+      commit(types.ORDER_CURRENT_UPDATED, { orderId, externalOrderId: '', items: [], poHistory: [] })
     }
     return resp;
   },
@@ -135,15 +137,12 @@ const actions: ActionTree<OrderState, RootState> = {
             })
           })
 
-          // TODO: remove the hardcoded value, currently using harcoded locationSeqId for NotNaked catalog
           const poShipment = {
             shipment: {
               shipmentId,
-              locationSeqId: 'TLTLTLLL02'
             },
             items: payload.order.items
           }
-
           await this.dispatch('shipment/receiveShipment', {payload: poShipment}).catch((err) => console.error(err))
         })
       } else {
@@ -158,7 +157,7 @@ const actions: ActionTree<OrderState, RootState> = {
 
   async getPOHistory({ commit, state }, payload) {
     let resp;
-
+    const current = state.current as any;
     try {
       const params = {
         "inputFields":{
@@ -166,21 +165,44 @@ const actions: ActionTree<OrderState, RootState> = {
           "orderId_op": "in"
         },
         "entityName": "ShipmentReceiptAndItem",
-        "fieldsToSelect": ["datetimeReceived", "productId", "quantityAccepted", "quantityRejected", "receivedByUserLoginId", "shipmentId"]
+        "fieldList": ["datetimeReceived", "productId", "quantityAccepted", "quantityRejected", "receivedByUserLoginId", "shipmentId", 'locationSeqId']
       }
+      const facilityLocations = await this.dispatch('user/getFacilityLocations', this.state.user.currentFacility.facilityId);
+      const locationSeqId = facilityLocations.length > 0 ? facilityLocations[0].locationSeqId : "";
       resp = await OrderService.fetchPOHistory(params)
-      if ( resp.data.count && resp.data.count > 0 && resp.status === 200 && !hasError(resp)) {
-        const current = state.current as any
+      if (resp.status === 200 && !hasError(resp) && resp.data?.count > 0) {
         const poHistory = resp.data.docs;
         current.poHistory.items = poHistory;
+        const facilityLocationByProduct = poHistory.reduce((products: any, item: any) => {
+          products[item.productId] = item.locationSeqId
+          return products
+        }, {});
+        
+        current.items.map((item: any) => {
+          item.locationSeqId = facilityLocationByProduct[item.productId] ? facilityLocationByProduct[item.productId] : locationSeqId;
+        });
         commit(types.ORDER_CURRENT_UPDATED, current);
         return poHistory;
-      } 
+      } else {
+        current.items.map((item: any) => {
+          item.locationSeqId = locationSeqId;
+        });
+        current.poHistory.items = [];
+      }
     } catch(error){
-      console.log(error)
+      console.error(error)
+      current.poHistory.items = [];
       showToast(translate("Something went wrong"));
     }
+    commit(types.ORDER_CURRENT_UPDATED, current);
     return resp;
+  },
+  setItemLocationSeqId({ state, commit }, payload) {
+    const item = state.current.items.find((item: any) => item.orderItemSeqId === payload.item.orderItemSeqId)
+    if(item){
+      item.locationSeqId = payload.locationSeqId
+    }
+    commit(types.ORDER_CURRENT_UPDATED, state.current)
   }
 }
 

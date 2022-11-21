@@ -14,9 +14,16 @@ const actions: ActionTree<ShipmentState, RootState> = {
       resp = await ShipmentService.fetchShipments(payload)
       if (resp.status === 200 && resp.data.docs?.length > 0 && !hasError(resp)) {
         let shipments = resp.data.docs;
+        const statusIds = [...new Set(shipments.map((shipment: any) => shipment.statusId))]
+        const shipmentIds = shipments.map((shipment: any) => shipment.shipmentId)
+        const statuses = await this.dispatch('util/fetchStatus', statusIds);
+        shipments.map(async (shipment: any) => {
+          shipment.statusDesc = statuses[shipment.statusId]
+        });
         if (payload.viewIndex && payload.viewIndex > 0) shipments = state.shipments.list.concat(shipments);
         commit(types.SHIPMENT_LIST_UPDATED, { shipments })
       } else {
+        if(!payload.viewIndex) commit(types.SHIPMENT_LIST_UPDATED, { shipments: [] })
         showToast(translate("Shipments not found"));
       }
       if (payload.viewIndex === 0) emitter.emit("dismissLoader");
@@ -26,6 +33,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
     }
     return resp;
   },
+
   async updateShipmentProductCount ({ commit, state }, payload) {
     await state.current.items.find((item: any) => {
       if(item.sku === payload){
@@ -39,12 +47,20 @@ const actions: ActionTree<ShipmentState, RootState> = {
     try {
       resp = await ShipmentService.getShipmentDetail(payload);
       if (resp.status === 200 && resp.data.items&& !hasError(resp)) {
+        const facilityLocations = await this.dispatch('user/getFacilityLocations', this.state.user.currentFacility.facilityId);
+        if(facilityLocations.length){
+          const locationSeqId = facilityLocations[0].locationSeqId
+          resp.data.items.map((item: any) => {
+            item.locationSeqId = locationSeqId;
+          });
+        } else {
+          showToast(translate("Facility locations were not found corresponding to destination facility of return shipment. Please add facility locations to avoid receive return shipment failure."))
+        }
         commit(types.SHIPMENT_CURRENT_UPDATED, { current: resp.data })
         let productIds: any = new Set();
-        resp.data.items.forEach((item: any) => {
+        resp.data.items.map((item: any) => {
           productIds.add(item.productId)
-        });
-
+        }); 
         productIds = [...productIds]
         if(productIds.length) {
           this.dispatch('product/fetchProducts', { productIds })
@@ -52,25 +68,23 @@ const actions: ActionTree<ShipmentState, RootState> = {
         return resp.data;
       } else {
         showToast(translate('Something went wrong'));
-        console.log("error", resp.data._ERROR_MESSAGE_);
+        console.error("error", resp.data._ERROR_MESSAGE_);
         return Promise.reject(new Error(resp.data._ERROR_MESSAGE_));
       }
 
     } catch (err) {
       showToast(translate('Something went wrong'));
-      console.log("error", err);
+      console.error("error", err);
       return Promise.reject(new Error(err))
     }
   },
   receiveShipmentItem ({ commit }, data) {
     const payload = data.shipment ? {
       shipmentId: data.shipment.shipmentId,
-      locationSeqId: data.shipment.locationSeqId
     } : {
       shipmentId: data.shipmentId,
-      locationSeqId: data.locationSeqId
     }
-    return Promise.all(data.items.map((item: any) => {
+    return Promise.all(data.items.map(async (item: any) => {
       const params = {
         ...payload,
         facilityId: this.state.user.currentFacility.facilityId,
@@ -79,11 +93,15 @@ const actions: ActionTree<ShipmentState, RootState> = {
         quantityAccepted: item.quantityAccepted,
         orderId: item.orderId,
         orderItemSeqId: item.orderItemSeqId,
-        unitCost: 0.00
+        unitCost: 0.00,
+        locationSeqId: item.locationSeqId
       }
-      return ShipmentService.receiveShipmentItem(params).catch((err) => {
-        return err;
-      })
+      const resp = await ShipmentService.receiveShipmentItem(params)
+      if(resp.status === 200 && !hasError(resp)){
+        return Promise.resolve(resp);
+       } else {
+        return Promise.reject(resp);
+       }
     }))
   },
   async receiveShipment ({ dispatch }, {payload}) {
@@ -98,7 +116,10 @@ const actions: ActionTree<ShipmentState, RootState> = {
       }
       emitter.emit("dismissLoader");
       return resp;
-    }).catch(err => err);
+    }).catch(err => {
+      console.error(err)
+      return err;
+    });
   },
   async addShipmentItem ({ state, commit, dispatch }, payload) {
     const item = payload.shipmentId ? { ...(payload.item) } : { ...payload }
@@ -112,7 +133,8 @@ const actions: ActionTree<ShipmentState, RootState> = {
       productId: product.productId,
       quantity: 0,
       shipmentId: payload.shipmentId ? payload.shipmentId : state.current.shipmentId,
-      shipmentItemSeqId: payload.shipmentItemSeqId
+      shipmentItemSeqId: payload.shipmentItemSeqId,
+      locationSeqId: product.locationSeqId
     }
     const resp = await ShipmentService.addShipmentItem(params);
     if(resp.status == 200 && !hasError(resp)){
@@ -122,7 +144,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
     }
     else {
       showToast(translate('Something went wrong'));
-      console.log("error", resp._ERROR_MESSAGE_);
+      console.error("error", resp._ERROR_MESSAGE_);
       return Promise.reject(new Error(resp.data._ERROR_MESSAGE_));
     }
   },
@@ -130,8 +152,8 @@ const actions: ActionTree<ShipmentState, RootState> = {
   async updateProductCount({ commit, state }, payload ) {
     const shipments = state.shipments.list;
     shipments.forEach((shipment: any) => {
-      if(shipment.id === payload.shipmentId) {
-        shipment.noOfItem = parseInt(shipment.noOfItem) + 1;
+      if(shipment.shipmentId === payload.shipmentId) {
+        shipment.shipmentItemCount = parseInt(shipment.shipmentItemCount) + 1;
         return;
       }
     })
@@ -142,6 +164,14 @@ const actions: ActionTree<ShipmentState, RootState> = {
   async clearShipments({ commit }) {
     commit(types.SHIPMENT_LIST_UPDATED, { shipments: [] })
     commit(types.SHIPMENT_CURRENT_UPDATED, { current: {} })
+  },
+
+  setItemLocationSeqId({ state, commit }, payload) {
+    const item = state.current.items.find((item: any) => item.itemSeqId === payload.item.itemSeqId)
+    if(item){
+      item.locationSeqId = payload.locationSeqId
+    }
+    commit(types.SHIPMENT_CURRENT_UPDATED, { current: state.current })
   }
 }
 

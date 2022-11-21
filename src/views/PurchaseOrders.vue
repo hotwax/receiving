@@ -8,7 +8,7 @@
     </ion-header>
     <ion-content>
       <main>
-        <ion-searchbar :placeholder="$t('Search purchase orders')" v-model="queryString" @keyup.enter="getPurchaseOrders()" />
+        <ion-searchbar :placeholder="$t('Search purchase orders')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getPurchaseOrders()" />
 
         <PurchaseOrderItem v-for="(order, index) in orders" :key="index" :purchaseOrder="order.doclist.docs[0]" />
         
@@ -78,7 +78,7 @@ export default defineComponent({
       if(this.queryString) {
         payload.json.query = '*' + this.queryString + '*';
         payload.json.params.defType = "edismax";
-        payload.json.params.qf = "orderId";
+        payload.json.params.qf = "orderId externalOrderId";
         payload.json.params['q.op'] = "AND";
       }
       this.store.dispatch('order/findPurchaseOrders', payload);

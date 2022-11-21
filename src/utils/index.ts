@@ -1,4 +1,6 @@
 import { toastController } from '@ionic/vue';
+import { translate } from '@/i18n'
+import { Plugins } from '@capacitor/core';
 
 // TODO Use separate files for specific utilities
 
@@ -17,4 +19,14 @@ const showToast = async (message: string) => {
       return toast.present();
 }
 
-export { showToast, hasError }
+const copyToClipboard = async (text: string) => {
+    const { Clipboard } = Plugins;
+
+    await Clipboard.write({
+      string: text,
+    }).then(() => {
+        showToast(translate("Copied", { text }));
+    });
+}
+
+export { showToast, hasError, copyToClipboard }

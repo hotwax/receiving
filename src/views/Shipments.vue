@@ -8,7 +8,7 @@
     </ion-header>
     <ion-content>
       <main>
-        <ion-searchbar :placeholder="$t('Scan ASN to start receiving')"/>
+        <ion-searchbar :placeholder="$t('Scan ASN to start receiving')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getShipments()" />
 
         <ShipmentListItem v-for="shipment in shipments" :key="shipment.shipmentId" :shipment="shipment"/>
 
@@ -50,6 +50,11 @@ export default defineComponent({
       user: 'user/getCurrentFacility'
     })
   },
+  data() {
+    return {
+      queryString: ''
+    }
+  },
   mounted () {
     this.getShipments();
   },
@@ -63,10 +68,26 @@ export default defineComponent({
       const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
       const viewIndex = vIndex ? vIndex : 0;
       const payload = {
-        viewSize,
-        viewIndex,
-        facilityId: this.user.facilityId,
-        statusId: "PURCH_SHIP_SHIPPED"
+        "inputFields": {
+          "destinationFacilityId": this.user.facilityId,
+          "statusId": "PURCH_SHIP_SHIPPED",
+          "shipmentTypeId_fld0_value": "INCOMING_SHIPMENT",
+          "shipmentTypeId_fld0_op": "equals",
+          "shipmentTypeId_fld0_grp": "1",
+          "parentTypeId_fld0_value": "INCOMING_SHIPMENT",
+          "parentTypeId_fld0_op": "equals",
+          "parentTypeId_fld0_grp": "2",
+        },
+        "entityName": "ShipmentAndTypeAndItemCount",
+        "fieldList" : [ "shipmentId","primaryShipGroupSeqId","partyIdFrom","partyIdTo","estimatedArrivalDate","destinationFacilityId","statusId", "shipmentItemCount" ],
+        "noConditionFind": "Y",
+        "viewSize": viewSize,
+        "viewIndex": viewIndex,
+      } as any
+      if(this.queryString){
+        payload.inputFields["shipmentId"] = this.queryString;
+        payload.inputFields["shipmentId_op"] = "contains";
+        payload.inputFields["shipmentId_ic"] = "Y";
       }
       await this.store.dispatch("shipment/findShipment", payload);
     },
