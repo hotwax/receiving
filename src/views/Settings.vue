@@ -31,6 +31,22 @@
         </ion-item>
 
         <ion-item>
+          <ion-icon :icon="storefrontOutline" slot="start" />
+          <ion-label>{{ $t("Primary Product Identifier") }}</ion-label>
+          <ion-select interface="popover" :placeholder="$t('primary identifier')" :value="productIdentificationPref.primaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'primaryId')" :disabled="!productIdentifications">
+            <ion-select-option v-for="identification in productIdentifications" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <ion-item>
+          <ion-icon :icon="storefrontOutline" slot="start" />
+          <ion-label>{{ $t("Secondary Product Identifier") }}</ion-label>
+          <ion-select interface="popover" :placeholder="$t('secondary identifier')" :value="productIdentificationPref.secondaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'secondaryId')" :disabled="!productIdentifications">
+            <ion-select-option v-for="identification in productIdentifications" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <ion-item>
           <ion-icon :icon="personCircleOutline" slot="start" />
           <ion-label>{{ userProfile !== null ? userProfile.partyName : '' }}</ion-label>
           <ion-button slot="end" fill="outline" color="dark" @click="logout()">{{ $t("Logout") }}</ion-button>
@@ -74,7 +90,9 @@ export default defineComponent({
       userProfile: 'user/getUserProfile',
       currentFacility: 'user/getCurrentFacility',
       currentEComStore: 'user/getCurrentEComStore',
-      instanceUrl: 'user/getInstanceUrl'
+      instanceUrl: 'user/getInstanceUrl',
+      productIdentifications: 'util/getProductIdentifications',
+      productIdentificationPref: 'user/getProductIdentificationPref'
     })
   },
   methods: {
@@ -121,6 +139,9 @@ export default defineComponent({
         this.store.dispatch('return/clearReturns');
         this.router.push('/login');
       })
+    },
+    setProductIdentificationPref(value: string, id: string) {
+      this.store.dispatch('user/updateProductIdentificationPref', { id, value })
     }
   },
   setup(){

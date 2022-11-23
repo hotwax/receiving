@@ -8,7 +8,7 @@ import { translate } from '@/i18n'
 import moment from 'moment';
 import emitter from '@/event-bus'
 import "moment-timezone";
-import { updateInstanceUrl, updateToken } from '@hotwax/oms-api'
+import { updateInstanceUrl, updateProductConfiguration, updateToken } from '@hotwax/oms-api'
 
 const actions: ActionTree<UserState, RootState> = {
 
@@ -95,7 +95,7 @@ const actions: ActionTree<UserState, RootState> = {
       if (resp.data.facilities.length > 0) {
         await dispatch('getEComStores', { facilityId: resp.data.facilities[0].facilityId })
       }
-      this.dispatch('util/setProductIdentifications', JSON.parse(process.env.VUE_APP_PRDT_IDENT))
+      this.dispatch('util/setProductIdentifications', process.env.VUE_APP_PRDT_IDENT ? JSON.parse(process.env.VUE_APP_PRDT_IDENT) : [])
       commit(types.USER_CURRENT_FACILITY_UPDATED, resp.data.facilities.length > 0 ? resp.data.facilities[0] : {});
       // TODO: Need to remove this check once adding support to not allow user login without facilities.
       if(resp.data.facilities.length > 0) dispatch('getFacilityLocations', resp.data.facilities[0].facilityId)
@@ -231,6 +231,8 @@ const actions: ActionTree<UserState, RootState> = {
 
   async updateProductIdentificationPref({ commit }, payload) {
     commit(types.USER_PREF_PRODUCT_IDENT_UPDATED, payload)
+    updateProductConfiguration({ [payload.id] : payload.value });
+    this.dispatch('product/clearCachedProduct')
   }
 }
 

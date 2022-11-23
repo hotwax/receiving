@@ -77,6 +77,9 @@ const actions: ActionTree<ProductState, RootState> = {
   },
   async clearSearchedProducts({ commit }) {
     commit(types.PRODUCT_LIST_UPDATED, { products: {}, total: 0 })
+  },
+  async clearCachedProduct({ commit }) {
+    commit(types.PRODUCT_CACHED_CLEARED)
   }
 }
 
