@@ -31,6 +31,8 @@ const actions: ActionTree<ProductState, RootState> = {
       if (products) {
         commit(types.PRODUCT_ADD_TO_CACHED_MULTIPLE, { products });
       }
+    } else {
+      commit(types.PRODUCT_ADD_TO_CACHED_MULTIPLE, { products: [] });
     }
     
     if (productIds.viewIndex === 0) emitter.emit("dismissLoader");

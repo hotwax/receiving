@@ -95,6 +95,7 @@ const actions: ActionTree<UserState, RootState> = {
       if (resp.data.facilities.length > 0) {
         await dispatch('getEComStores', { facilityId: resp.data.facilities[0].facilityId })
       }
+      this.dispatch('util/setProductIdentifications', JSON.parse(process.env.VUE_APP_PRDT_IDENT))
       commit(types.USER_CURRENT_FACILITY_UPDATED, resp.data.facilities.length > 0 ? resp.data.facilities[0] : {});
       // TODO: Need to remove this check once adding support to not allow user login without facilities.
       if(resp.data.facilities.length > 0) dispatch('getFacilityLocations', resp.data.facilities[0].facilityId)
@@ -226,6 +227,10 @@ const actions: ActionTree<UserState, RootState> = {
       console.error(error);
     }
     return []
+  },
+
+  async updateProductIdentificationPref({ commit }, payload) {
+    commit(types.USER_PREF_PRODUCT_IDENT_UPDATED, payload)
   }
 }
 
