@@ -42,9 +42,7 @@
                   <Image :src="getProduct(item.productId).images?.mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
-                  <h5 v-if="getProduct(item.productId).primaryId">{{ getProduct(item.productId).primaryId }}</h5>
-                  <h2>{{ getProduct(item.productId).productName }}</h2> 
-                  <p>{{ getProduct(item.productId).productId }}</p>
+                  <h2 v-if="getProduct(item.productId).primaryId">{{ getProduct(item.productId).primaryId }}</h2>
                   <p v-if="getProduct(item.productId).secondaryId">{{ getProduct(item.productId).secondaryId }}</p>
                 </ion-label>
               </ion-item>

@@ -43,6 +43,7 @@
           <ion-label>{{ $t("Secondary Product Identifier") }}</ion-label>
           <ion-select interface="popover" :placeholder="$t('secondary identifier')" :value="productIdentificationPref.secondaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'secondaryId')" :disabled="!productIdentifications">
             <ion-select-option v-for="identification in productIdentifications" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
+            <ion-select-option value="">{{ $t("None") }}</ion-select-option>
           </ion-select>
         </ion-item>
 

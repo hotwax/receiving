@@ -14,7 +14,7 @@ import { defineComponent } from 'vue';
 import { loadingController } from '@ionic/vue';
 import emitter from "@/event-bus"
 import { mapGetters } from 'vuex';
-import { updateToken, updateInstanceUrl } from '@hotwax/oms-api'
+import { updateToken, updateInstanceUrl, updateProductConfiguration } from '@hotwax/oms-api'
 
 export default defineComponent({
   name: 'App',
@@ -59,6 +59,7 @@ export default defineComponent({
     emitter.on('dismissLoader', this.dismissLoader);
     updateToken(this.userToken)
     updateInstanceUrl(this.instanceUrl)
+    updateProductConfiguration(this.productIdentificationPref);
   },
   unmounted() {
     emitter.off('presentLoader', this.presentLoader);
@@ -69,7 +70,8 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       userToken: 'user/getUserToken',
-      instanceUrl: 'user/getInstanceUrl'
+      instanceUrl: 'user/getInstanceUrl',
+      productIdentificationPref: 'user/getProductIdentificationPref'
     })
   }
 });

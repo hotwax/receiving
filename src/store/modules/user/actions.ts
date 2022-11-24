@@ -95,6 +95,7 @@ const actions: ActionTree<UserState, RootState> = {
       if (resp.data.facilities.length > 0) {
         await dispatch('getEComStores', { facilityId: resp.data.facilities[0].facilityId })
       }
+      // TODO: fetch product identifications from enumeration instead of storing it in env
       this.dispatch('util/setProductIdentifications', process.env.VUE_APP_PRDT_IDENT ? JSON.parse(process.env.VUE_APP_PRDT_IDENT) : [])
       commit(types.USER_CURRENT_FACILITY_UPDATED, resp.data.facilities.length > 0 ? resp.data.facilities[0] : {});
       // TODO: Need to remove this check once adding support to not allow user login without facilities.
