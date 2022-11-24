@@ -8,7 +8,7 @@ import { translate } from '@/i18n'
 import moment from 'moment';
 import emitter from '@/event-bus'
 import "moment-timezone";
-import { updateInstanceUrl, updateProductConfiguration, updateToken } from '@hotwax/oms-api'
+import { updateInstanceUrl, updateToken } from '@hotwax/oms-api'
 
 const actions: ActionTree<UserState, RootState> = {
 
@@ -232,8 +232,6 @@ const actions: ActionTree<UserState, RootState> = {
 
   async updateProductIdentificationPref({ commit }, payload) {
     commit(types.USER_PREF_PRODUCT_IDENT_UPDATED, payload)
-    updateProductConfiguration({ [payload.id] : payload.value });
-    this.dispatch('product/clearCachedProduct')
   }
 }
 
