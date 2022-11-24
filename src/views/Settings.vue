@@ -31,7 +31,7 @@
         </ion-item>
 
         <ion-item>
-          <ion-icon :icon="storefrontOutline" slot="start" />
+          <ion-icon :icon="fileTrayOutline" slot="start" />
           <ion-label>{{ $t("Primary Product Identifier") }}</ion-label>
           <ion-select interface="popover" :placeholder="$t('primary identifier')" :value="productIdentificationPref.primaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'primaryId')" :disabled="!productIdentifications">
             <ion-select-option v-for="identification in productIdentifications" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
@@ -39,7 +39,7 @@
         </ion-item>
 
         <ion-item>
-          <ion-icon :icon="storefrontOutline" slot="start" />
+          <ion-icon :icon="fileTrayStackedOutline" slot="start" />
           <ion-label>{{ $t("Secondary Product Identifier") }}</ion-label>
           <ion-select interface="popover" :placeholder="$t('secondary identifier')" :value="productIdentificationPref.secondaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'secondaryId')" :disabled="!productIdentifications">
             <ion-select-option v-for="identification in productIdentifications" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
@@ -60,7 +60,7 @@
 <script lang="ts">
 import { alertController, IonButton, IonContent, IonHeader,IonIcon, IonItem, IonLabel, IonList, IonMenuButton, IonPage, IonSelect, IonSelectOption, IonTitle, IonToolbar } from '@ionic/vue';
 import { defineComponent } from 'vue';
-import { codeWorkingOutline, ellipsisVertical, globeOutline, personCircleOutline, storefrontOutline} from 'ionicons/icons'
+import { codeWorkingOutline, ellipsisVertical, fileTrayOutline, fileTrayStackedOutline, globeOutline, personCircleOutline, storefrontOutline} from 'ionicons/icons'
 import { mapGetters, useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 
@@ -152,6 +152,8 @@ export default defineComponent({
     return {
       codeWorkingOutline,
       ellipsisVertical,
+      fileTrayOutline,
+      fileTrayStackedOutline,
       globeOutline,
       personCircleOutline,
       storefrontOutline,
