@@ -110,6 +110,7 @@ const actions: ActionTree<UserState, RootState> = {
       'userPrefTypeId': 'SELECTED_BRAND',
       'userPrefValue': payload.eComStore.productStoreId
     });
+    await dispatch('getProductIdentificationPref', payload.eComStore);
   },
 
   /**
@@ -226,8 +227,36 @@ const actions: ActionTree<UserState, RootState> = {
     return []
   },
 
-  async updateProductIdentificationPref({ commit }, payload) {
-    commit(types.USER_PREF_PRODUCT_IDENT_UPDATED, payload)
+  async setProductIdentificationPref({ commit, state }, payload) {
+    // TODO: save the product identification as ProductStorePref
+    const pref = JSON.parse(JSON.stringify(state.productIdentificationPref))
+    try {
+      const resp = UserService.setProductStorePreference({
+        prefId: '',
+        value: pref
+      }) as any
+
+      if(resp.status == 200) {
+        commit(types.USER_PREF_PRODUCT_IDENT_UPDATED, payload)
+      }
+    } catch(err) {
+      console.error(err)
+    }
+  },
+
+  async getProductIdentificationPref({ commit }, eComStoreId) {
+    // TODO: get the product identification as ProductStorePref
+    try {
+      const resp = UserService.getProductStorePreference({
+        prefId: ''
+      }) as any
+
+      if(resp.status == 200) {
+        commit(types.USER_PREF_PRODUCT_IDENT_UPDATED)
+      }
+    } catch(err) {
+      console.error(err)
+    }
   }
 }
 
