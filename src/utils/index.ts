@@ -29,4 +29,15 @@ const copyToClipboard = async (text: string) => {
     });
 }
 
-export { showToast, hasError, copyToClipboard }
+const productIdentificationValue = (id: string, product: any) => {
+  let value = ''
+  Object.keys(product).some((property: any) => {
+    if (property == id) {
+      value = product[property]
+      return true;
+    }
+  })
+  return value;
+}
+
+export { showToast, hasError, copyToClipboard, productIdentificationValue }
