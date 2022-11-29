@@ -110,7 +110,7 @@ const actions: ActionTree<UserState, RootState> = {
       'userPrefTypeId': 'SELECTED_BRAND',
       'userPrefValue': payload.eComStore.productStoreId
     });
-    await dispatch('getProductIdentificationPref', payload.eComStore);
+    await dispatch('getProductIdentificationPref', payload.eComStore.productStoreId);
   },
 
   /**
@@ -228,13 +228,19 @@ const actions: ActionTree<UserState, RootState> = {
   },
 
   async setProductIdentificationPref({ commit, state }, payload) {
-    // TODO: save the product identification as ProductStorePref
+    // TODO: save the product identification as ProductStoreSetting
     const pref = JSON.parse(JSON.stringify(state.productIdentificationPref))
+
+    pref[payload.id] = payload.value
+
+    const params = {
+      "productStoreId": payload.eComStoreId,
+      "settingTypeEnumId": "PRODUCT_STORE_PREF",
+      "settingValue": JSON.stringify(pref)
+    }
+
     try {
-      const resp = UserService.setProductStorePreference({
-        prefId: '',
-        value: pref
-      }) as any
+      const resp = UserService.setProductStorePreference(params) as any
 
       if(resp.status == 200) {
         commit(types.USER_PREF_PRODUCT_IDENT_UPDATED, payload)
@@ -245,15 +251,28 @@ const actions: ActionTree<UserState, RootState> = {
   },
 
   async getProductIdentificationPref({ commit }, eComStoreId) {
-    // TODO: get the product identification as ProductStorePref
-    try {
-      const resp = UserService.getProductStorePreference({
-        prefId: ''
-      }) as any
+    const payload = {
+      "inputFields": {
+        "productStoreId": eComStoreId,
+        "settingTypeEnumId": "PRODUCT_STORE_PREF"
+      },
+      "entityName": "ProductStoreSetting",
+      "fieldList": [ "settingValue" ]
+    }
 
-      if(resp.status == 200) {
-        commit(types.USER_PREF_PRODUCT_IDENT_UPDATED)
+    try {
+      const resp = await UserService.getProductStorePreference(payload) as any
+      const value = {
+        primaryId: 'productId',
+        secondaryId: ''
       }
+      if(resp.status == 200 && resp.data.count > 0) {
+        const respValue = JSON.parse(resp.data.docs[0].settingValue)
+
+        value.primaryId = respValue['primaryId'] ?? 'productId'
+        value.secondaryId = respValue['secondaryId'] ?? ''
+      }
+      commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, value)
     } catch(err) {
       console.error(err)
     }

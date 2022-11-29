@@ -29,6 +29,9 @@ const mutations: MutationTree <UserState> = {
     },
     [types.USER_PREF_PRODUCT_IDENT_UPDATED](state, payload) {
         state.productIdentificationPref[payload.id] = payload.value
+    },
+    [types.USER_PREF_PRODUCT_IDENT_CHANGED](state, payload) {
+        state.productIdentificationPref = payload
     }
 }
 export default mutations;

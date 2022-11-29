@@ -142,7 +142,10 @@ export default defineComponent({
       })
     },
     setProductIdentificationPref(value: string, id: string) {
-      this.store.dispatch('user/updateProductIdentificationPref', { id, value })
+      if(this.productIdentificationPref[id] == value) {
+        return;
+      }
+      this.store.dispatch('user/setProductIdentificationPref', { id, value })
     }
   },
   setup(){
