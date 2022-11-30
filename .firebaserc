@@ -6,14 +6,17 @@
   "targets": {
     "hotwax-digital-commerce": {
       "hosting": {
-        "receiving-dev": [
+        "dev": [
           "receiving-dev"
+        ],
+        "uat": [
+          "receiving-uat"
         ]
       }
     },
     "digital-commerce-71eb8": {
       "hosting": {
-        "hotwax-receiving": [
+        "prod": [
           "hotwax-receiving"
         ]
       }
