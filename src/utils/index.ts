@@ -30,6 +30,13 @@ const copyToClipboard = async (text: string) => {
 }
 
 const productIdentificationValue = (id: string, product: any) => {
+
+  // handled this case as on page load initially the data is not available, so not to execute furthur code
+  // untill product are available
+  if(!Object.keys(product).length) {
+    return;
+  }
+
   let value = ''
   Object.keys(product).some((property: any) => {
     if (property == id) {
@@ -37,6 +44,17 @@ const productIdentificationValue = (id: string, product: any) => {
       return true;
     }
   })
+
+  if(!value) {
+    product['goodIdentifications'].some((identification: string) => {
+      const goodIdentification = identification.split('/')
+      if(id == goodIdentification[0]) {
+        value = goodIdentification[1]
+        return true;
+      }
+    })
+  }
+
   return value;
 }
 

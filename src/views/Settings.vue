@@ -33,7 +33,7 @@
         <ion-item>
           <ion-icon :icon="fileTrayOutline" slot="start" />
           <ion-label>{{ $t("Primary Product Identifier") }}</ion-label>
-          <ion-select interface="popover" :placeholder="$t('primary identifier')" :value="productIdentificationPref.primaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'primaryId')" :disabled="!productIdentifications">
+          <ion-select interface="popover" :placeholder="$t('primary identifier')" :value="productIdentificationPref.primaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'primaryId')">
             <ion-select-option v-for="identification in productIdentifications" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
           </ion-select>
         </ion-item>
@@ -41,7 +41,7 @@
         <ion-item>
           <ion-icon :icon="fileTrayStackedOutline" slot="start" />
           <ion-label>{{ $t("Secondary Product Identifier") }}</ion-label>
-          <ion-select interface="popover" :placeholder="$t('secondary identifier')" :value="productIdentificationPref.secondaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'secondaryId')" :disabled="!productIdentifications">
+          <ion-select interface="popover" :placeholder="$t('secondary identifier')" :value="productIdentificationPref.secondaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'secondaryId')">
             <ion-select-option v-for="identification in productIdentifications" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
             <ion-select-option value="">{{ $t("None") }}</ion-select-option>
           </ion-select>
