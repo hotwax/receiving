@@ -228,51 +228,96 @@ const actions: ActionTree<UserState, RootState> = {
   },
 
   async setProductIdentificationPref({ commit, state }, payload) {
-    // TODO: save the product identification as ProductStoreSetting
-    const pref = JSON.parse(JSON.stringify(state.productIdentificationPref))
+    let prefValue = JSON.parse(JSON.stringify(state.productIdentificationPref))
 
-    pref[payload.id] = payload.value
+    // when selecting none as ecom store, not updating the pref as it's not possible to store pref with empty productStoreId
+    if(!(state.currentEComStore as any).productStoreId) {
+      commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, prefValue)
+      return;
+    }
+
+    prefValue[payload.id] = payload.value
 
     const params = {
-      "productStoreId": payload.eComStoreId,
+      "fromDate": prefValue.fromDate,
+      "productStoreId": (state.currentEComStore as any).productStoreId,
       "settingTypeEnumId": "PRODUCT_STORE_PREF",
-      "settingValue": JSON.stringify(pref)
+      "settingValue": JSON.stringify({'primaryId': prefValue.primaryId,'secondaryId': prefValue.secondaryId})
     }
 
     try {
-      const resp = UserService.setProductStorePreference(params) as any
+      const resp = await UserService.updateProductStoreSetting(params) as any
 
       if(resp.status == 200) {
-        commit(types.USER_PREF_PRODUCT_IDENT_UPDATED, payload)
+        showToast(translate('Product Identifier preference updated successfully'))
+      } else {
+        showToast(translate('Failed to update Product Identifier preference'))
+        prefValue = JSON.parse(JSON.stringify(state.productIdentificationPref))
+      }
+    } catch(err) {
+      showToast(translate('Failed to update Product Identifier preference'))
+      prefValue = JSON.parse(JSON.stringify(state.productIdentificationPref))
+      console.error(err)
+    }
+    commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, prefValue)
+  },
+
+  async createProductIdentificationPref({ commit, state }, payload) {
+    const params = {
+      "fromDate": payload.fromDate,
+      "productStoreId": (state.currentEComStore as any).productStoreId,
+      "settingTypeEnumId": "PRODUCT_STORE_PREF",
+      "settingValue": JSON.stringify({'primaryId': payload.primaryId,'secondaryId': payload.secondaryId})
+    }
+
+    try {
+      const resp = await UserService.createProductStoreSetting(params) as any
+
+      if(resp.status == 200) {
+        commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, payload)
+      } else {
+        commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, JSON.parse(JSON.stringify(state.productIdentificationPref)))
       }
     } catch(err) {
       console.error(err)
     }
   },
 
-  async getProductIdentificationPref({ commit }, eComStoreId) {
+  async getProductIdentificationPref({ commit, dispatch }, eComStoreId) {
+    const value = {
+      primaryId: 'productId',
+      secondaryId: '',
+      fromDate: Date.now()
+    }
+
+    // when selecting none as ecom store, not fetching the pref as it returns all the entries with the pref id
+    if(!eComStoreId) {
+      commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, value)
+      return;
+    }
+
     const payload = {
       "inputFields": {
         "productStoreId": eComStoreId,
         "settingTypeEnumId": "PRODUCT_STORE_PREF"
       },
       "entityName": "ProductStoreSetting",
-      "fieldList": [ "settingValue" ]
+      "fieldList": ["settingValue", "fromDate"],
+      "viewSize": 1
     }
 
     try {
-      const resp = await UserService.getProductStorePreference(payload) as any
-      const value = {
-        primaryId: 'productId',
-        secondaryId: ''
-      }
+      const resp = await UserService.getProductStoreSetting(payload) as any
       if(resp.status == 200 && resp.data.count > 0) {
         const respValue = JSON.parse(resp.data.docs[0].settingValue)
 
         value.primaryId = respValue['primaryId'] ?? 'productId'
         value.secondaryId = respValue['secondaryId'] ?? ''
+        value.fromDate = resp.data.docs[0].fromDate
+        commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, value)
+      } else if(resp.status == 200 && resp.data.error) {
+        dispatch('createProductIdentificationPref', value)
       }
-      commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, value)
     } catch(err) {
       console.error(err)
     }

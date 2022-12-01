@@ -76,15 +76,23 @@ const getUserPreference = async (payload: any): Promise<any> => {
   });
 }
 
-const setProductStorePreference = async (payload: any): Promise<any> => {
+const updateProductStoreSetting = async (payload: any): Promise<any> => {
   return api({
-    url: "",
+    url: "service/updateProductStoreSetting",
     method: "post",
     data: payload
   });
 }
 
-const getProductStorePreference = async (payload: any): Promise<any> => {
+const createProductStoreSetting = async (payload: any): Promise<any> => {
+  return api({
+    url: "service/createProductStoreSetting",
+    method: "post",
+    data: payload
+  });
+}
+
+const getProductStoreSetting = async (payload: any): Promise<any> => {
   return api({
     url: "performFind",
     //TODO Due to security reasons service model OMS 1.0 does not support sending parameters in get request that's why we use post here
@@ -100,8 +108,9 @@ export const UserService = {
     setUserTimeZone,
     getFacilityLocations,
     getEComStores,
-    getProductStorePreference,
-    setProductStorePreference,
+    getProductStoreSetting,
+    createProductStoreSetting,
+    updateProductStoreSetting,
     setUserPreference,
     getUserPreference,
     checkPermission
