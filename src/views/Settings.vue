@@ -148,6 +148,9 @@ export default defineComponent({
       this.store.dispatch('user/setProductIdentificationPref', { id, value })
     }
   },
+  ionViewDidEnter() {
+    this.store.dispatch('user/getProductIdentificationPref', this.currentEComStore.productStoreId);
+  },
   setup(){
     const store = useStore();
     const router = useRouter();

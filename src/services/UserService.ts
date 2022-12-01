@@ -97,7 +97,8 @@ const getProductStoreSetting = async (payload: any): Promise<any> => {
     url: "performFind",
     //TODO Due to security reasons service model OMS 1.0 does not support sending parameters in get request that's why we use post here
     method: "post",
-    data: payload
+    data: payload,
+    cache: true
   });
 }
 

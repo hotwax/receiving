@@ -249,13 +249,13 @@ const actions: ActionTree<UserState, RootState> = {
       const resp = await UserService.updateProductStoreSetting(params) as any
 
       if(resp.status == 200) {
-        showToast(translate('Product Identifier preference updated successfully'))
+        showToast(translate('Product identifier preference updated'))
       } else {
-        showToast(translate('Failed to update Product Identifier preference'))
+        showToast(translate('Failed to update product identifier preference'))
         prefValue = JSON.parse(JSON.stringify(state.productIdentificationPref))
       }
     } catch(err) {
-      showToast(translate('Failed to update Product Identifier preference'))
+      showToast(translate('Failed to update product identifier preference'))
       prefValue = JSON.parse(JSON.stringify(state.productIdentificationPref))
       console.error(err)
     }
