@@ -230,7 +230,7 @@ const actions: ActionTree<UserState, RootState> = {
   async setProductIdentificationPref({ commit, state }, payload) {
     let prefValue = JSON.parse(JSON.stringify(state.productIdentificationPref))
 
-    // when selecting none as ecom store, not updating the pref as it's not possible to store pref with empty productStoreId
+    // when selecting none as ecom store, not updating the pref as it's not possible to save pref with empty productStoreId
     if(!(state.currentEComStore as any).productStoreId) {
       commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, prefValue)
       return;
@@ -311,8 +311,8 @@ const actions: ActionTree<UserState, RootState> = {
       if(resp.status == 200 && resp.data.count > 0) {
         const respValue = JSON.parse(resp.data.docs[0].settingValue)
 
-        value.primaryId = respValue['primaryId'] ?? 'productId'
-        value.secondaryId = respValue['secondaryId'] ?? ''
+        value.primaryId = respValue['primaryId']
+        value.secondaryId = respValue['secondaryId']
         value.fromDate = resp.data.docs[0].fromDate
         commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, value)
       } else if(resp.status == 200 && resp.data.error) {

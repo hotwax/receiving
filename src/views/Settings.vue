@@ -142,6 +142,7 @@ export default defineComponent({
       })
     },
     setProductIdentificationPref(value: string, id: string) {
+      // Not dispatching an action if the value for id is same as saved in state
       if(this.productIdentificationPref[id] == value) {
         return;
       }
