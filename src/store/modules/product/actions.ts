@@ -5,7 +5,7 @@ import * as types from './mutation-types'
 import { showToast } from '@/utils'
 import emitter from '@/event-bus'
 import { translate } from '@/i18n'
-import { isError, fetchProducts } from '@/adapter'
+import { isError, fetchProducts, Product } from '@/adapter'
 
 const actions: ActionTree<ProductState, RootState> = {
   async fetchProducts ({commit, state}, { productIds }) {
@@ -26,7 +26,7 @@ const actions: ActionTree<ProductState, RootState> = {
       viewIndex: 0
     })
     if (!isError(resp) && resp.total > 0) {
-      const products = resp.products;
+      const products: Array<Product> = resp.products;
       // Handled empty response in case of failed query
       if (products) {
         commit(types.PRODUCT_ADD_TO_CACHED_MULTIPLE, { products });
@@ -44,13 +44,13 @@ const actions: ActionTree<ProductState, RootState> = {
     if (payload.viewIndex === 0) emitter.emit("presentLoader");
     try {
       resp = await fetchProducts({
-        "filters": { 'isVirtual': false },
+        "filters": { 'isVirtual': { 'value': false }},
         "viewSize": payload.viewSize,
         "viewIndex": payload.viewIndex * payload.viewSize,
         "queryString": payload.queryString
       })
       if (!isError(resp)) {
-        let products = resp.products;
+        let products: Product = resp.products;
         const total = resp.total;
 
         if (payload.viewIndex && payload.viewIndex > 0) products = state.list.items.concat(products)
