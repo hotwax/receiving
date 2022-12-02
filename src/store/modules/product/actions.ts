@@ -5,7 +5,7 @@ import * as types from './mutation-types'
 import { showToast } from '@/utils'
 import emitter from '@/event-bus'
 import { translate } from '@/i18n'
-import { isError, fetchProducts } from '@hotwax/oms-api'
+import { isError, fetchProducts } from '@/adapter'
 
 const actions: ActionTree<ProductState, RootState> = {
   async fetchProducts ({commit, state}, { productIds }) {
