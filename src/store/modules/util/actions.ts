@@ -44,10 +44,6 @@ const actions: ActionTree<UtilState, RootState> = {
       console.error('Something went wrong while fetching status for shipments')
     }
     return cachedStatus;
-  },
-
-  async setProductIdentifications({ commit }, payload) {
-    commit(types.UTIL_PRODUCT_IDENT_UPDATED, payload)
   }
 }
 

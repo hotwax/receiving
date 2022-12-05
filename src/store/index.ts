@@ -22,7 +22,7 @@ const state: any = {
 }
 
 const persistState = createPersistedState({
-    paths: ['user', 'return.validStatusChange', 'util.productIdentifications'],
+    paths: ['user', 'return.validStatusChange'],
     fetchBeforeUse: true
 })
 

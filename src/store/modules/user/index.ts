@@ -13,11 +13,7 @@ const userModule: Module<UserState, RootState> = {
       currentFacility: {},
       currentEComStore: {},
       instanceUrl: '',
-      facilityLocationsByFacilityId: {},
-      productIdentificationPref: {
-        primaryId: 'productId',
-        secondaryId: ''
-      }
+      facilityLocationsByFacilityId: {}
     },
     getters,
     actions,
