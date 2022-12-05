@@ -14,7 +14,6 @@ const userModule: Module<UserState, RootState> = {
       currentEComStore: {},
       instanceUrl: '',
       facilityLocationsByFacilityId: {},
-      preferredDateTimeFormat: ''
     },
     getters,
     actions,

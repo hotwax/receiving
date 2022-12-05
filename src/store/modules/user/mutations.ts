@@ -26,9 +26,6 @@ const mutations: MutationTree <UserState> = {
     },
     [types.USER_FACILITY_LOCATIONS_BY_FACILITY_ID] (state, payload) {
         state.facilityLocationsByFacilityId[payload.facilityId] = payload.facilityLocations;
-    },
-    [types.USER_DATETIME_FORMAT_UPDATED] (state, payload) {
-        state.preferredDateTimeFormat = payload;
     }
 }
 export default mutations;
