@@ -233,11 +233,10 @@ const actions: ActionTree<UserState, RootState> = {
 
     // when selecting none as ecom store, not updating the pref as it's not possible to save pref with empty productStoreId
     if(!(state.currentEComStore as any).productStoreId) {
+      showToast(translate('Unable to update product identifier preference'))
       commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, prefValue)
       return;
     }
-
-    console.log('twice');
 
     prefValue[payload.id] = payload.value
 
@@ -272,6 +271,7 @@ const actions: ActionTree<UserState, RootState> = {
     }
 
     const params = {
+      "fromDate": Date.now(),
       "productStoreId": (state.currentEComStore as any).productStoreId,
       "settingTypeEnumId": "PRODUCT_STORE_PREF",
       "settingValue": JSON.stringify(prefValue)

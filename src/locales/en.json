@@ -73,6 +73,7 @@
   "Store": "Store",
   "This return has been and cannot be edited.": "This return has been {status} and cannot be edited.",
   "Time zone updated successfully": "Time zone updated successfully",
+  "Unable to update product identifier preference": "Unable to update product identifier preference",
   "Username": "Username",
   "ZeroQuantity": "ZeroQuantity"
 }
