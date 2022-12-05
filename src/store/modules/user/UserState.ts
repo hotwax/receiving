@@ -5,4 +5,5 @@ export default interface UserState {
     currentEComStore: object;
     instanceUrl: string;
     facilityLocationsByFacilityId: any;
+    preferredDateTimeFormat: string;
 }
