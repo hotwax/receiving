@@ -35,8 +35,8 @@
                   <Image :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
-                  <h2>{{ productIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
-                  <p>{{ productIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                  <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
+                  <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
                 </ion-label>
               </ion-item>
             </div>
@@ -106,7 +106,7 @@ import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
-import { productIdentificationValue } from '@/utils'
+import { getProductIdentificationValue } from '@/utils'
 
 export default defineComponent({
   name: "ShipmentDetails",
@@ -235,7 +235,7 @@ export default defineComponent({
       barcodeOutline,
       checkmarkDone,
       store,
-      productIdentificationValue,
+      getProductIdentificationValue,
       router
     };
   },

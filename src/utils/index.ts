@@ -29,7 +29,7 @@ const copyToClipboard = async (text: string) => {
     });
 }
 
-const productIdentificationValue = (id: string, product: any) => {
+const getProductIdentificationValue = (id: string, product: any) => {
 
   // handled this case as on page load initially the data is not available, so not to execute furthur code
   // untill product are available
@@ -37,25 +37,17 @@ const productIdentificationValue = (id: string, product: any) => {
     return;
   }
 
-  let value = ''
-  Object.keys(product).some((property: any) => {
-    if (property == id) {
-      value = product[property]
-      return true;
-    }
-  })
+  let value = product[id]
 
-  if(!value) {
-    product['goodIdentifications'].some((identification: string) => {
-      const goodIdentification = identification.split('/')
-      if(id == goodIdentification[0]) {
-        value = goodIdentification[1]
-        return true;
-      }
-    })
+  // considered that the goodIdentification will always have values in the format "id/value" and there will be no entry like "id/"
+  const identification = product['goodIdentifications'].find((identification: string) =>  identification.startsWith(id + "/"))
+
+  if(identification) {
+    const goodIdentification = identification.split('/')
+    value = goodIdentification[1]
   }
 
   return value;
 }
 
-export { showToast, hasError, copyToClipboard, productIdentificationValue }
+export { showToast, hasError, copyToClipboard, getProductIdentificationValue }
