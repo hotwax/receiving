@@ -13,7 +13,7 @@ import Menu from '@/components/Menu.vue';
 import { defineComponent } from 'vue';
 import { loadingController } from '@ionic/vue';
 import emitter from "@/event-bus"
-
+import { mapGetters, useStore } from "vuex";
 
 export default defineComponent({
   name: 'App',
@@ -27,6 +27,12 @@ export default defineComponent({
     return {
       loader: null as any
     }
+  },
+  computed: {
+    ...mapGetters({
+      currentEComStore: 'user/getCurrentEComStore',
+      productIdentifications: 'util/getProductIdentifications'
+    })
   },
   methods: {
     async presentLoader() {
@@ -56,10 +62,23 @@ export default defineComponent({
       });
     emitter.on('presentLoader', this.presentLoader);
     emitter.on('dismissLoader', this.dismissLoader);
+
+    if (this.productIdentifications.length > 0) {
+      // TODO: fetch product identifications from enumeration instead of storing it in env
+      await this.store.dispatch('util/setProductIdentifications', process.env.VUE_APP_PRDT_IDENT ? JSON.parse(process.env.VUE_APP_PRDT_IDENT) : [])
+    }
+    this.store.dispatch('user/getProductIdentificationPref', this.currentEComStore.productStoreId);
   },
   unmounted() {
     emitter.off('presentLoader', this.presentLoader);
     emitter.off('dismissLoader', this.dismissLoader);
   },
+  setup() {
+    const store = useStore();
+
+    return {
+      store
+    }
+  }
 });
 </script>
