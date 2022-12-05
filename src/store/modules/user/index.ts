@@ -16,8 +16,7 @@ const userModule: Module<UserState, RootState> = {
       facilityLocationsByFacilityId: {},
       productIdentificationPref: {
         primaryId: 'productId',
-        secondaryId: '',
-        fromDate: ''
+        secondaryId: ''
       }
     },
     getters,

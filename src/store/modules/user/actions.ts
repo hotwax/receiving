@@ -227,8 +227,9 @@ const actions: ActionTree<UserState, RootState> = {
     return []
   },
 
-  async setProductIdentificationPref({ commit, state }, payload) {
+  async setProductIdentificationPref({ commit, state, dispatch }, payload) {
     let prefValue = JSON.parse(JSON.stringify(state.productIdentificationPref))
+    const eComStoreId = (state.currentEComStore as any).productStoreId
 
     // when selecting none as ecom store, not updating the pref as it's not possible to save pref with empty productStoreId
     if(!(state.currentEComStore as any).productStoreId) {
@@ -236,13 +237,15 @@ const actions: ActionTree<UserState, RootState> = {
       return;
     }
 
+    console.log('twice');
+
     prefValue[payload.id] = payload.value
 
     const params = {
-      "fromDate": prefValue.fromDate,
-      "productStoreId": (state.currentEComStore as any).productStoreId,
+      "fromDate": await dispatch('getProductIdentificationPref', eComStoreId),
+      "productStoreId": eComStoreId,
       "settingTypeEnumId": "PRODUCT_STORE_PREF",
-      "settingValue": JSON.stringify({'primaryId': prefValue.primaryId,'secondaryId': prefValue.secondaryId})
+      "settingValue": JSON.stringify(prefValue)
     }
 
     try {
@@ -262,38 +265,36 @@ const actions: ActionTree<UserState, RootState> = {
     commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, prefValue)
   },
 
-  async createProductIdentificationPref({ commit, state }, payload) {
+  async createProductIdentificationPref({ commit, state }) {
+    const prefValue = {
+      primaryId: 'productId',
+      secondaryId: ''
+    }
+
     const params = {
-      "fromDate": payload.fromDate,
       "productStoreId": (state.currentEComStore as any).productStoreId,
       "settingTypeEnumId": "PRODUCT_STORE_PREF",
-      "settingValue": JSON.stringify({'primaryId': payload.primaryId,'secondaryId': payload.secondaryId})
+      "settingValue": JSON.stringify(prefValue)
     }
 
     try {
-      const resp = await UserService.createProductStoreSetting(params) as any
-
-      if(resp.status == 200) {
-        commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, payload)
-      } else {
-        commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, JSON.parse(JSON.stringify(state.productIdentificationPref)))
-      }
+      await UserService.createProductStoreSetting(params) as any
     } catch(err) {
       console.error(err)
     }
+
+    // not checking for resp success and fail case as every time we need to update the state with the
+    // default value when creating a pref
+    commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, prefValue)
   },
 
   async getProductIdentificationPref({ commit, dispatch }, eComStoreId) {
-    const value = {
-      primaryId: 'productId',
-      secondaryId: '',
-      fromDate: Date.now()
-    }
+    let fromDate;
 
     // when selecting none as ecom store, not fetching the pref as it returns all the entries with the pref id
     if(!eComStoreId) {
-      commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, value)
-      return;
+      commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, {'primaryId': 'productId', 'secondaryId': ''})
+      return Date.now();
     }
 
     const payload = {
@@ -311,16 +312,16 @@ const actions: ActionTree<UserState, RootState> = {
       if(resp.status == 200 && resp.data.count > 0) {
         const respValue = JSON.parse(resp.data.docs[0].settingValue)
 
-        value.primaryId = respValue['primaryId']
-        value.secondaryId = respValue['secondaryId']
-        value.fromDate = resp.data.docs[0].fromDate
-        commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, value)
+        fromDate = resp.data.docs[0].fromDate
+        commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, {'primaryId': respValue['primaryId'], 'secondaryId': respValue['secondaryId']})
       } else if(resp.status == 200 && resp.data.error) {
-        dispatch('createProductIdentificationPref', value)
+        dispatch('createProductIdentificationPref')
       }
     } catch(err) {
       console.error(err)
     }
+
+    return fromDate ? fromDate : Date.now();
   }
 }
 

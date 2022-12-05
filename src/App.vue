@@ -31,7 +31,8 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       currentEComStore: 'user/getCurrentEComStore',
-      productIdentifications: 'util/getProductIdentifications'
+      productIdentifications: 'util/getProductIdentifications',
+      userProfile: 'user/getUserProfile'
     })
   },
   methods: {
@@ -63,11 +64,14 @@ export default defineComponent({
     emitter.on('presentLoader', this.presentLoader);
     emitter.on('dismissLoader', this.dismissLoader);
 
-    if (this.productIdentifications.length > 0) {
+    if(this.productIdentifications.length <= 0) {
       // TODO: fetch product identifications from enumeration instead of storing it in env
       await this.store.dispatch('util/setProductIdentifications', process.env.VUE_APP_PRDT_IDENT ? JSON.parse(process.env.VUE_APP_PRDT_IDENT) : [])
     }
-    this.store.dispatch('user/getProductIdentificationPref', this.currentEComStore.productStoreId);
+
+    if(this.userProfile) {
+      this.store.dispatch('user/getProductIdentificationPref', this.currentEComStore.productStoreId);
+    }
   },
   unmounted() {
     emitter.off('presentLoader', this.presentLoader);
