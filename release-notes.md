@@ -1,3 +1,18 @@
+# Release 2.2.0
+
+## What's Changed
+* Fixed: Shipment count not being updated on the Shipments page on  adding an item from Shipment details page. (#2u59n2d) by @k2maan in https://github.com/hotwax/receiving/pull/145
+* Added support to alias specific instance URL with environment configuration(#2wv2fh0) by @disha1202 in https://github.com/hotwax/receiving/pull/147
+* Changed console.log to console.error #hactoberfest by @divyanshugour in https://github.com/hotwax/receiving/pull/154
+* Implemented: feature to copy internal id to clipboard on the detail page for POs by @franciscoemanuel in https://github.com/hotwax/receiving/pull/157
+* Fixed: Displaying toast message when no orders found on clicking Load more Purchase orders (#2vjux71) by @k2maan in https://github.com/hotwax/receiving/pull/162
+* Upgraded Ionic to 6.2(#2w9wz26) by @disha1202 in https://github.com/hotwax/receiving/pull/164
+
+## New Contributors
+* @divyanshugour made their first contribution in https://github.com/hotwax/receiving/pull/154
+* @franciscoemanuel made their first contribution in https://github.com/hotwax/receiving/pull/157
+
+**Full Changelog**: https://github.com/hotwax/receiving/compare/v2.1.0...v2.2.0
 
 # Release 2.1.0
 
