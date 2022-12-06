@@ -1,7 +1,7 @@
 const getProductIdentificationValue = (id: string, product: any) => {
 
   // handled this case as on page load initially the data is not available, so not to execute furthur code
-  // untill product are available
+  // untill product are not available
   if(!Object.keys(product).length) {
     return;
   }
@@ -9,7 +9,7 @@ const getProductIdentificationValue = (id: string, product: any) => {
   let value = product[id]
 
   // considered that the goodIdentification will always have values in the format "id/value" and there will be no entry like "id/"
-  const identification = product['goodIdentifications'].find((identification: string) =>  identification.startsWith(id + "/"))
+  const identification = product['goodIdentifications'].find((identification: string) => identification.startsWith(id + "/"))
 
   if(identification) {
     const goodIdentification = identification.split('/')
