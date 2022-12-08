@@ -74,7 +74,7 @@ const actions: ActionTree<UserState, RootState> = {
   async logout ({ commit }) {
     // TODO add any other tasks if need
     commit(types.USER_END_SESSION)
-    
+    this.dispatch('util/setProductIdentifications', [])
   },
 
   /**
@@ -248,7 +248,7 @@ const actions: ActionTree<UserState, RootState> = {
     }
 
     try {
-      const resp = await UserService.updateProductStoreSetting(params) as any
+      const resp = await UserService.updateProductIdentificationPref(params) as any
 
       if(resp.status == 200) {
         showToast(translate('Product identifier preference updated'))
@@ -278,7 +278,7 @@ const actions: ActionTree<UserState, RootState> = {
     }
 
     try {
-      await UserService.createProductStoreSetting(params) as any
+      await UserService.createProductIdentificationPref(params) as any
     } catch(err) {
       console.error(err)
     }
@@ -302,13 +302,14 @@ const actions: ActionTree<UserState, RootState> = {
         "productStoreId": eComStoreId,
         "settingTypeEnumId": "PRODUCT_STORE_PREF"
       },
+      "filterByDate": 'Y',
       "entityName": "ProductStoreSetting",
       "fieldList": ["settingValue", "fromDate"],
       "viewSize": 1
     }
 
     try {
-      const resp = await UserService.getProductStoreSetting(payload) as any
+      const resp = await UserService.getProductIdentificationPref(payload) as any
       if(resp.status == 200 && resp.data.count > 0) {
         const respValue = JSON.parse(resp.data.docs[0].settingValue)
 
