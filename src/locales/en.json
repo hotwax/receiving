@@ -10,7 +10,7 @@
   "Copied": "Copied { text }",
   "eCommerce": "eCommerce",
   "eCom Store": "eCom Store",
-  "eCommerce stores are directly connected to one Shop Configs. If your OMS is connected to multiple eCommerce stores selling the same catalog operating as one Company, you may have multiple Shop Configs for the selected Product Store.": "eCommerce stores are directly connected to one Shop Configs. If your OMS is connected to multiple eCommerce stores selling the same catalog operating as one Company, you may have multiple Shop Configs for the selected Product Store.",
+  "eCommerce stores are directly connected to one Shop Config. If your OMS is connected to multiple eCommerce stores selling the same catalog operating as one Company, you may have multiple Shop Configs for the selected Product Store.": "eCommerce stores are directly connected to one Shop Config. If your OMS is connected to multiple eCommerce stores selling the same catalog operating as one Company, you may have multiple Shop Configs for the selected Product Store.",
   "Enter a custom date time format that you want to use when uploading documents to HotWax Commerce.": "Enter a custom date time format that you want to use when uploading documents to HotWax Commerce.",
   "External ID": "External ID",
   "Location": "Location",
