@@ -102,6 +102,32 @@ const getProductIdentificationPref = async (payload: any): Promise<any> => {
   });
 }
 
+const getProductIdentificationPrefFromDate = async(eComStoreId: string) => {
+  let fromDate;
+
+  const payload = {
+    "inputFields": {
+      "productStoreId": eComStoreId,
+      "settingTypeEnumId": "PRODUCT_STORE_PREF"
+    },
+    "filterByDate": 'Y',
+    "entityName": "ProductStoreSetting",
+    "fieldList": ["fromDate"],
+    "viewSize": 1
+  }
+
+  try {
+    const resp = await UserService.getProductIdentificationPref(payload) as any
+    if(resp.status == 200 && resp.data.count > 0) {
+      fromDate = resp.data.docs[0].fromDate
+    }
+  } catch(err) {
+    console.error(err)
+  }
+
+  return fromDate;
+}
+
 export const UserService = {
     login,
     getAvailableTimeZones,
@@ -110,6 +136,7 @@ export const UserService = {
     getFacilityLocations,
     getEComStores,
     getProductIdentificationPref,
+    getProductIdentificationPrefFromDate,
     createProductIdentificationPref,
     updateProductIdentificationPref,
     setUserPreference,

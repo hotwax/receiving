@@ -98,9 +98,13 @@
         <ion-card>
           <ion-card-header>
             <ion-card-title>
-              {{ $t('Primary Product Identifier') }}
+              {{ $t('Product Identifier') }}
             </ion-card-title>
           </ion-card-header>
+
+          <ion-card-content>
+            {{ $t('Choosing a product identifier allows you to view products with your preferred identifiers.') }}
+          </ion-card-content>
 
           <ion-item>
             <ion-label>{{ $t("Primary Product Identifier") }}</ion-label>
@@ -108,15 +112,6 @@
               <ion-select-option v-for="identification in productIdentifications" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
             </ion-select>
           </ion-item>
-        </ion-card>
-
-        <ion-card>
-          <ion-card-header>
-            <ion-card-title>
-              {{ $t('Secondary Product Identifier') }}
-            </ion-card-title>
-          </ion-card-header>
-
           <ion-item>
             <ion-label>{{ $t("Secondary Product Identifier") }}</ion-label>
             <ion-select interface="popover" :placeholder="$t('secondary identifier')" :value="productIdentificationPref.secondaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'secondaryId')">

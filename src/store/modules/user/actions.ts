@@ -227,12 +227,14 @@ const actions: ActionTree<UserState, RootState> = {
     return []
   },
 
-  async setProductIdentificationPref({ commit, state, dispatch }, payload) {
+  async setProductIdentificationPref({ commit, state }, payload) {
     let prefValue = JSON.parse(JSON.stringify(state.productIdentificationPref))
     const eComStoreId = (state.currentEComStore as any).productStoreId
 
+    const fromDate = UserService.getProductIdentificationPrefFromDate(eComStoreId)
+
     // when selecting none as ecom store, not updating the pref as it's not possible to save pref with empty productStoreId
-    if(!(state.currentEComStore as any).productStoreId) {
+    if(!(state.currentEComStore as any).productStoreId || !fromDate) {
       showToast(translate('Unable to update product identifier preference'))
       commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, prefValue)
       return;
@@ -241,7 +243,7 @@ const actions: ActionTree<UserState, RootState> = {
     prefValue[payload.id] = payload.value
 
     const params = {
-      "fromDate": await dispatch('getProductIdentificationPref', eComStoreId),
+      "fromDate": fromDate,
       "productStoreId": eComStoreId,
       "settingTypeEnumId": "PRODUCT_STORE_PREF",
       "settingValue": JSON.stringify(prefValue)
@@ -289,12 +291,11 @@ const actions: ActionTree<UserState, RootState> = {
   },
 
   async getProductIdentificationPref({ commit, dispatch }, eComStoreId) {
-    let fromDate;
 
     // when selecting none as ecom store, not fetching the pref as it returns all the entries with the pref id
     if(!eComStoreId) {
       commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, {'primaryId': 'productId', 'secondaryId': ''})
-      return Date.now();
+      return;
     }
 
     const payload = {
@@ -312,8 +313,6 @@ const actions: ActionTree<UserState, RootState> = {
       const resp = await UserService.getProductIdentificationPref(payload) as any
       if(resp.status == 200 && resp.data.count > 0) {
         const respValue = JSON.parse(resp.data.docs[0].settingValue)
-
-        fromDate = resp.data.docs[0].fromDate
         commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, {'primaryId': respValue['primaryId'], 'secondaryId': respValue['secondaryId']})
       } else if(resp.status == 200 && resp.data.error) {
         dispatch('createProductIdentificationPref')
@@ -321,8 +320,6 @@ const actions: ActionTree<UserState, RootState> = {
     } catch(err) {
       console.error(err)
     }
-
-    return fromDate ? fromDate : Date.now();
   }
 }
 
