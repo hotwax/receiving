@@ -231,7 +231,25 @@ const actions: ActionTree<UserState, RootState> = {
     let prefValue = JSON.parse(JSON.stringify(state.productIdentificationPref))
     const eComStoreId = (state.currentEComStore as any).productStoreId
 
-    const fromDate = UserService.getProductIdentificationPrefFromDate(eComStoreId)
+    let fromDate;
+
+    try {
+      const resp = await UserService.getProductIdentificationPref({
+        "inputFields": {
+          "productStoreId": eComStoreId,
+          "settingTypeEnumId": "PRDT_IDEN_PREF"
+        },
+        "filterByDate": 'Y',
+        "entityName": "ProductStoreSetting",
+        "fieldList": ["fromDate"],
+        "viewSize": 1
+      }) as any
+      if(resp.status == 200 && resp.data.count > 0) {
+        fromDate = resp.data.docs[0].fromDate
+      }
+    } catch(err) {
+      console.error(err)
+    }
 
     // when selecting none as ecom store, not updating the pref as it's not possible to save pref with empty productStoreId
     if(!(state.currentEComStore as any).productStoreId || !fromDate) {
@@ -245,7 +263,7 @@ const actions: ActionTree<UserState, RootState> = {
     const params = {
       "fromDate": fromDate,
       "productStoreId": eComStoreId,
-      "settingTypeEnumId": "PRODUCT_STORE_PREF",
+      "settingTypeEnumId": "PRDT_IDEN_PREF",
       "settingValue": JSON.stringify(prefValue)
     }
 
@@ -275,7 +293,7 @@ const actions: ActionTree<UserState, RootState> = {
     const params = {
       "fromDate": Date.now(),
       "productStoreId": (state.currentEComStore as any).productStoreId,
-      "settingTypeEnumId": "PRODUCT_STORE_PREF",
+      "settingTypeEnumId": "PRDT_IDEN_PREF",
       "settingValue": JSON.stringify(prefValue)
     }
 
@@ -301,7 +319,7 @@ const actions: ActionTree<UserState, RootState> = {
     const payload = {
       "inputFields": {
         "productStoreId": eComStoreId,
-        "settingTypeEnumId": "PRODUCT_STORE_PREF"
+        "settingTypeEnumId": "PRDT_IDEN_PREF"
       },
       "filterByDate": 'Y',
       "entityName": "ProductStoreSetting",
