@@ -14,6 +14,10 @@ const userModule: Module<UserState, RootState> = {
       currentEComStore: {},
       instanceUrl: '',
       facilityLocationsByFacilityId: {},
+      productIdentificationPref: {
+        primaryId: 'productId',
+        secondaryId: ''
+      }
     },
     getters,
     actions,

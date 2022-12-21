@@ -92,6 +92,35 @@
         </ion-card>
       </section>
       <hr />
+
+      <h1>{{ $t('App') }}</h1>
+      <section>
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>
+              {{ $t('Product Identifier') }}
+            </ion-card-title>
+          </ion-card-header>
+
+          <ion-card-content>
+            {{ $t('Choosing a product identifier allows you to view products with your preferred identifiers.') }}
+          </ion-card-content>
+
+          <ion-item>
+            <ion-label>{{ $t("Primary Product Identifier") }}</ion-label>
+            <ion-select interface="popover" :placeholder="$t('primary identifier')" :value="productIdentificationPref.primaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'primaryId')">
+              <ion-select-option v-for="identification in productIdentifications" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
+            </ion-select>
+          </ion-item>
+          <ion-item>
+            <ion-label>{{ $t("Secondary Product Identifier") }}</ion-label>
+            <ion-select interface="popover" :placeholder="$t('secondary identifier')" :value="productIdentificationPref.secondaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'secondaryId')">
+              <ion-select-option v-for="identification in productIdentifications" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
+              <ion-select-option value="">{{ $t("None") }}</ion-select-option>
+            </ion-select>
+          </ion-item>
+        </ion-card>
+      </section>
     </ion-content>
   </ion-page>
 </template>
@@ -99,7 +128,7 @@
 <script lang="ts">
 import { alertController, IonAvatar, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader,IonIcon, IonItem, IonLabel, IonMenuButton, IonPage, IonSelect, IonSelectOption, IonTitle, IonToolbar, modalController } from '@ionic/vue';
 import { defineComponent } from 'vue';
-import { codeWorkingOutline, ellipsisVertical, globeOutline, openOutline, personCircleOutline, saveOutline, storefrontOutline} from 'ionicons/icons'
+import { codeWorkingOutline, ellipsisVertical, openOutline, saveOutline, globeOutline, personCircleOutline, storefrontOutline} from 'ionicons/icons'
 import { mapGetters, useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import Image from '@/components/Image.vue';
@@ -139,6 +168,8 @@ export default defineComponent({
       currentFacility: 'user/getCurrentFacility',
       currentEComStore: 'user/getCurrentEComStore',
       instanceUrl: 'user/getInstanceUrl',
+      productIdentifications: 'util/getProductIdentifications',
+      productIdentificationPref: 'user/getProductIdentificationPref'
     })
   },
   methods: {
@@ -185,6 +216,13 @@ export default defineComponent({
         this.store.dispatch('return/clearReturns');
         this.router.push('/login');
       })
+    },
+    setProductIdentificationPref(value: string, id: string) {
+      // Not dispatching an action if the value for id is same as saved in state
+      if(this.productIdentificationPref[id] == value) {
+        return;
+      }
+      this.store.dispatch('user/setProductIdentificationPref', { id, value })
     },
     goToOms(){
       window.open(this.instanceUrl.startsWith('http') ? this.instanceUrl.replace('api/', "") : `https://${this.instanceUrl}.hotwax.io/`, '_blank', 'noopener, noreferrer');
