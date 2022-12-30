@@ -1,3 +1,14 @@
+# Release 2.3.0
+
+## What's Changed
+* Implemented: Updated UI of settings page(#32j3r6t) by @shashwatbangar in https://github.com/hotwax/receiving/pull/169
+* Implemented functionality to let user select primary and secondary identification for product(#2y8n6qv) by @ymaheshwari1 in https://github.com/hotwax/receiving/pull/166
+* Updated: version of package for minor release to 2.3.0 by @k2maan in https://github.com/hotwax/receiving/pull/170
+
+
+**Full Changelog**: https://github.com/hotwax/receiving/compare/v2.2.0...v2.3.0
+
+
 # Release 2.2.0
 
 ## What's Changed
