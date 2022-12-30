@@ -46,8 +46,8 @@
                   <Image :src="getProduct(item.productId).images?.mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
-                  {{ getProduct(item.productId).productName }}
-                  <p>{{ item.productId }}</p>
+                  <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
+                  <p>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
                 </ion-label>
               </ion-item>
             </div>
@@ -134,7 +134,7 @@ import Scanner from "@/components/Scanner.vue"
 import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
 import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
-import { copyToClipboard } from '@/utils';
+import { copyToClipboard, productHelpers } from '@/utils';
 
 export default defineComponent({
   name: "PurchaseOrderDetails",
@@ -171,7 +171,8 @@ export default defineComponent({
       getProduct: 'product/getProduct',
       getPOItemAccepted: 'order/getPOItemAccepted',
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
-      currentFacility: 'user/getCurrentFacility'
+      currentFacility: 'user/getCurrentFacility',
+      productIdentificationPref: 'user/getProductIdentificationPref'
     })
   },
   methods: {
@@ -263,6 +264,7 @@ export default defineComponent({
       checkmarkDone,
       copyOutline,
       copyToClipboard,
+      productHelpers,
       router,
       saveOutline,
       store,
