@@ -1,19 +1,11 @@
-const getProductIdentificationValue = (productIdentifier: string, product: any) => {
+import { Product } from "@/adapter";
 
-  // handled this case as on page load initially the data is not available, so not to execute furthur code
-  // untill product are not available
-  if(!Object.keys(product).length) {
-    return;
-  }
+const getProductIdentificationValue = (productIdentifier: string, product: Product) => {
 
   let value = product[productIdentifier]
 
-  // considered that the goodIdentification will always have values in the format "productIdentifier/value" and there will be no entry like "productIdentifier/"
-  const identification = product['goodIdentifications']?.find((identification: string) => identification.startsWith(productIdentifier + "/"))
-
-  if(identification) {
-    const goodIdentification = identification.split('/')
-    value = goodIdentification[1]
+  if(!value) {
+    value = product['identifications']?.find((identification: any) => identification.productIdTypeEnumId === productIdentifier)?.idValue
   }
 
   return value;
