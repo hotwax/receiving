@@ -13,7 +13,8 @@ import Menu from '@/components/Menu.vue';
 import { defineComponent } from 'vue';
 import { loadingController } from '@ionic/vue';
 import emitter from "@/event-bus"
-import { mapGetters, useStore } from "vuex";
+import { mapGetters, useStore } from 'vuex';
+import { updateToken, updateInstanceUrl } from '@/adapter'
 
 export default defineComponent({
   name: 'App',
@@ -32,7 +33,9 @@ export default defineComponent({
     ...mapGetters({
       currentEComStore: 'user/getCurrentEComStore',
       productIdentifications: 'util/getProductIdentifications',
-      userProfile: 'user/getUserProfile'
+      userProfile: 'user/getUserProfile',
+      userToken: 'user/getUserToken',
+      instanceUrl: 'user/getInstanceUrl'
     })
   },
   methods: {
@@ -72,10 +75,15 @@ export default defineComponent({
     if(this.userProfile) {
       this.store.dispatch('user/getProductIdentificationPref', this.currentEComStore.productStoreId);
     }
+
+    updateToken(this.userToken)
+    updateInstanceUrl(this.instanceUrl)
   },
   unmounted() {
     emitter.off('presentLoader', this.presentLoader);
     emitter.off('dismissLoader', this.dismissLoader);
+    updateToken('')
+    updateInstanceUrl('')
   },
   setup() {
     const store = useStore();

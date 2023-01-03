@@ -1,36 +1,38 @@
-import { ProductService } from '@/services/ProductService'
 import { ActionTree } from 'vuex'
 import RootState from '@/store/RootState'
 import ProductState from './ProductState'
 import * as types from './mutation-types'
-import { hasError, showToast } from '@/utils'
+import { showToast } from '@/utils'
 import emitter from '@/event-bus'
 import { translate } from '@/i18n'
+import { isError, fetchProducts, Product } from '@/adapter'
 
 const actions: ActionTree<ProductState, RootState> = {
   async fetchProducts ({commit, state}, { productIds }) {
     const cachedProductIds = Object.keys(state.cached)
-    const productIdFilter = productIds.reduce((filter: string, productId: any) => {
-      // If product already exist in cached products skip
-      if (cachedProductIds.includes(productId)) {
-        return filter;
-      } else {
-        if (filter !== '') filter += ' OR '
-        return filter += productId;
+    const productIdFilter= productIds.reduce((filter: Array<any>, productId: any) => {
+      // If product does not exist in cached products then add the id
+      if (!cachedProductIds.includes(productId) && productId) {
+        filter.push(productId);
       }
-    }, '');
+      return filter;
+    }, []);
 
-    if(productIdFilter === '') return;
-    const resp = await ProductService.fetchProducts({
-      "viewSize": productIds.length,
-      "filters": ['productId: (' + productIdFilter + ')']
+    // If there are no product ids to search skip the API call
+    if (productIdFilter.length <= 0) return;
+    const resp = await fetchProducts({
+      filters: { 'productId': { 'value': productIdFilter, 'op': 'OR' }},
+      viewSize: productIdFilter.length,
+      viewIndex: 0
     })
-    if (resp.status === 200 && !hasError(resp)) {
-      const products = resp.data.response.docs;
+    if (!isError(resp) && resp.total > 0) {
+      const products: Array<Product> = resp.products;
       // Handled empty response in case of failed query
-      if (resp.data) {
+      if (products) {
         commit(types.PRODUCT_ADD_TO_CACHED_MULTIPLE, { products });
       }
+    } else {
+      commit(types.PRODUCT_ADD_TO_CACHED_MULTIPLE, { products: [] });
     }
     
     if (productIds.viewIndex === 0) emitter.emit("dismissLoader");
@@ -41,15 +43,15 @@ const actions: ActionTree<ProductState, RootState> = {
     let resp;
     if (payload.viewIndex === 0) emitter.emit("presentLoader");
     try {
-      resp = await ProductService.fetchProducts({
-        "filters": ['isVirtual: false'],
+      resp = await fetchProducts({
+        "filters": { 'isVirtual': { 'value': false }},
         "viewSize": payload.viewSize,
-        "viewIndex": payload.viewIndex,
-        "keyword":  payload.queryString
+        "viewIndex": payload.viewIndex * payload.viewSize,
+        "queryString": payload.queryString
       })
-      if (resp.status === 200 && resp.data.response?.docs.length > 0 && !hasError(resp)) {
-        let products = resp.data.response.docs;
-        const total = resp.data.response.numFound;
+      if (!isError(resp)) {
+        let products: Product = resp.products;
+        const total = resp.total;
 
         if (payload.viewIndex && payload.viewIndex > 0) products = state.list.items.concat(products)
         commit(types.PRODUCT_LIST_UPDATED, { products, total });

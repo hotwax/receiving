@@ -13,7 +13,7 @@
     <ion-list v-for="(item, index) in poHistory.items" :key="index">
       <ion-item>
         <ion-thumbnail slot="start">
-          <Image :src="getProduct(item.productId).mainImageUrl" />
+          <Image :src="getProduct(item.productId).images?.mainImageUrl" />
         </ion-thumbnail>
         <ion-label>
           {{ item.receivedByUserLoginId }}

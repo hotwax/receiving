@@ -1,7 +1,9 @@
+import { Product } from '@/adapter'
+
 export default interface ProductState {
   cached: any;
   list: {
     total: number;
-    items: any[];
+    items: Array<Product>;
   }
 }
