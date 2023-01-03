@@ -1,6 +1,7 @@
 import { toastController } from '@ionic/vue';
 import { translate } from '@/i18n'
 import { Plugins } from '@capacitor/core';
+import productHelpers from './product'
 
 // TODO Use separate files for specific utilities
 
@@ -29,4 +30,4 @@ const copyToClipboard = async (text: string) => {
     });
 }
 
-export { showToast, hasError, copyToClipboard }
+export { showToast, hasError, copyToClipboard, productHelpers }
