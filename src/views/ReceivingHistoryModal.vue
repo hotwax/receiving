@@ -10,7 +10,7 @@
     </ion-toolbar>
   </ion-header>
   <ion-content>
-    <ion-list v-for="(item, index) in poHistory.items" :key="index">
+    <ion-list v-for="(item, index) in items" :key="index">
       <ion-item>
         <ion-thumbnail slot="start">
           <Image :src="getProduct(item.productId).mainImageUrl" />
@@ -66,7 +66,15 @@ export default defineComponent({
     IonTitle,
     IonToolbar,
   },
-  props: ["order"],
+  data() {
+    return {
+      items: []
+    }
+  },
+  props: ["productId"],
+  mounted() {
+    this.items = this.productId ? this.poHistory.items.filter(item => item.productId === this.productId) : this.poHistory.items;
+  },
   computed: {
     ...mapGetters({
       poHistory: 'order/getPOHistory',
