@@ -209,7 +209,7 @@ export default defineComponent({
       })  
       return modal.present();
     },
-    async receivingHistory(productId?: any) {
+    async receivingHistory(productId?: string) {
       const modal = await modalController
         .create({
           component: ReceivingHistoryModal,
