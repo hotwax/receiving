@@ -5,7 +5,7 @@
         <ion-back-button default-href="/purchase-orders" slot="start" />
         <ion-title> {{$t("Purchase Order Details")}} </ion-title>
         <ion-buttons slot="end">
-          <ion-button @click="receivingHistory">
+          <ion-button @click="receivingHistory()">
             <ion-icon slot="icon-only" :icon="timeOutline"/>
           </ion-button>
           <ion-button @click="addProduct">
@@ -76,7 +76,7 @@
             </div>
 
             <div class="po-item-history">
-              <ion-chip outline>
+              <ion-chip outline @click="receivingHistory(item.productId)">
                 <ion-icon :icon="checkmarkDone"/>
                 <ion-label> {{ getPOItemAccepted(item.productId) }} {{ $t("received") }} </ion-label>
               </ion-chip>
@@ -209,11 +209,11 @@ export default defineComponent({
       })  
       return modal.present();
     },
-    async receivingHistory() {
+    async receivingHistory(productId?: string) {
       const modal = await modalController
         .create({
           component: ReceivingHistoryModal,
-          componentProps: {order: this.order}
+          componentProps: {productId}
         })
       return modal.present();
     },
