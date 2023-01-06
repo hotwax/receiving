@@ -1,3 +1,12 @@
+# Release 2.4.0
+
+## What's Changed
+* Implemented: showing receiving history upon clicking on shipment item 'received' chip (#85zrhcn67) by @k2maan in https://github.com/hotwax/receiving/pull/174
+
+
+**Full Changelog**: https://github.com/hotwax/receiving/compare/v2.3.0...v2.4.0
+
+
 # Release 2.3.0
 
 ## What's Changed
