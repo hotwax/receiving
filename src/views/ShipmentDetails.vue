@@ -95,7 +95,6 @@ import {
   IonToolbar,
   modalController,
   alertController,
-  popoverController
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { add, checkmarkDone, barcodeOutline } from 'ionicons/icons';
