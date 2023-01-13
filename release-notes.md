@@ -1,3 +1,12 @@
+# Release 2.5.0
+
+## What's Changed
+* Fixed build issue due to eslint version mismatch in dependencies and fixed warnings (#85zrhpak3) by @k2maan in https://github.com/hotwax/receiving/pull/178
+
+
+**Full Changelog**: https://github.com/hotwax/receiving/compare/v2.4.0...v2.5.0
+
+
 # Release 2.4.0
 
 ## What's Changed
