@@ -14,10 +14,10 @@
             <ion-avatar slot="start" v-if="userProfile?.partyImageUrl">
               <Image :src="userProfile.partyImageUrl"/>
             </ion-avatar>
-            <ion-label>
-              {{ userProfile?.partyName }}
-              <p>{{ userProfile?.userLoginId }}</p>
-            </ion-label>
+            <ion-card-header>
+              <ion-card-subtitle>{{ userProfile?.userLoginId }}</ion-card-subtitle>
+              <ion-card-title>{{ userProfile?.partyName }}</ion-card-title>
+            </ion-card-header>
           </ion-item>
           <ion-button fill="outline" color="danger" @click="logout()">{{ $t("Logout") }}</ion-button>
           <!-- Commenting this code as we currently do not have reset password functionality -->
@@ -25,7 +25,9 @@
         </ion-card>
       </div>
 
-      <h1>{{ $t('OMS') }}</h1>
+      <div class="section-header">
+        <h1>{{ $t('OMS') }}</h1>
+      </div>
       <section>
         <ion-card>
           <ion-card-header>
@@ -93,7 +95,13 @@
       </section>
       <hr />
 
-      <h1>{{ $t('App') }}</h1>
+      <div class="section-header">
+        <h1>
+          {{ $t('App') }}
+          <p class="overline" >{{ "Version: " + appVersion }}</p>
+        </h1>
+        <p class="overline">{{ "Built: " + getDateTime(appInfo.builtTime) }}</p>
+      </div>
       <section>
         <ion-card>
           <ion-card-header>
@@ -132,6 +140,7 @@ import { codeWorkingOutline, ellipsisVertical, openOutline, saveOutline, globeOu
 import { mapGetters, useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import Image from '@/components/Image.vue';
+import { DateTime } from 'luxon';
 
 export default defineComponent({
   name: 'Settings',
@@ -159,7 +168,9 @@ export default defineComponent({
   data() {
     return {
       baseURL: process.env.VUE_APP_BASE_URL,
-      currentStore: ''
+      currentStore: '',
+      appInfo: (process.env.VUE_APP_VERSION_INFO ? JSON.parse(process.env.VUE_APP_VERSION_INFO) : {}) as any,
+      appVersion: ""
     };
   },
   computed: {
@@ -171,6 +182,9 @@ export default defineComponent({
       productIdentifications: 'util/getProductIdentifications',
       productIdentificationPref: 'user/getProductIdentificationPref'
     })
+  },
+  mounted() {
+    this.appVersion = this.appInfo.branch ? (this.appInfo.branch + "-" + this.appInfo.revision) : this.appInfo.tag;
   },
   methods: {
     setEComStore(store: any) {
@@ -226,6 +240,9 @@ export default defineComponent({
     },
     goToOms(){
       window.open(this.instanceUrl.startsWith('http') ? this.instanceUrl.replace('api/', "") : `https://${this.instanceUrl}.hotwax.io/`, '_blank', 'noopener, noreferrer');
+    },
+    getDateTime(time: any) {
+      return DateTime.fromMillis(time).toLocaleString(DateTime.DATETIME_MED);
     }
   },
   setup(){
@@ -265,5 +282,11 @@ export default defineComponent({
   }
   hr {
     border-top: 1px solid var(--ion-color-medium);
+  }
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacer-xs) 10px 0px;
   }
 </style>
