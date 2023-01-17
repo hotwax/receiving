@@ -122,7 +122,6 @@ import {
   IonToolbar,
   modalController,
   alertController,
-  popoverController
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { addOutline, cameraOutline, checkmarkDone, saveOutline, timeOutline, copyOutline } from 'ionicons/icons';

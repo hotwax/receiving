@@ -72,7 +72,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
         return Promise.reject(new Error(resp.data._ERROR_MESSAGE_));
       }
 
-    } catch (err) {
+    } catch (err: any) {
       showToast(translate('Something went wrong'));
       console.error("error", err);
       return Promise.reject(new Error(err))

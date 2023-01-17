@@ -134,7 +134,7 @@
 </template>
 
 <script lang="ts">
-import { alertController, IonAvatar, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader,IonIcon, IonItem, IonLabel, IonMenuButton, IonPage, IonSelect, IonSelectOption, IonTitle, IonToolbar, modalController } from '@ionic/vue';
+import { alertController, IonAvatar, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader,IonIcon, IonItem, IonLabel, IonMenuButton, IonPage, IonSelect, IonSelectOption, IonTitle, IonToolbar } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { codeWorkingOutline, ellipsisVertical, openOutline, saveOutline, globeOutline, personCircleOutline, storefrontOutline} from 'ionicons/icons'
 import { mapGetters, useStore } from 'vuex';
