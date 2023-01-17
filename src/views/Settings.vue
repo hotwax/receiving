@@ -63,30 +63,25 @@
 
           <ion-item lines="none">
             <ion-label> {{ $t("Select store") }} </ion-label>
-            <ion-select interface="popover" :placeholder="$t('store name')" :value="currentFacility.facilityId" @ionChange="setFacility($event)">
-              <ion-select-option v-for="facility in (userProfile && userProfile?.facilities ? userProfile?.facilities : [])" :key="facility.facilityId" :value="facility.facilityId" >{{ facility.name }}</ion-select-option>
+            <ion-select interface="popover" :placeholder="$t('store name')" :value="currentEComStore.productStoreId" @ionChange="setEComStore($event)">
+              <ion-select-option v-for="store in (userProfile ? userProfile.stores : [])" :key="store.productStoreId" :value="store.productStoreId" >{{ store.storeName }}</ion-select-option>
             </ion-select>
           </ion-item>
         </ion-card>
 
         <ion-card>
           <ion-card-header>
-            <ion-card-subtitle>
-              {{ $t("Shop Config") }}
-            </ion-card-subtitle>
             <ion-card-title>
-              {{ $t("eCommerce") }}
+              {{ $t("Facility") }}
             </ion-card-title>
           </ion-card-header>
-
           <ion-card-content>
-            {{ $t('eCommerce stores are directly connected to one Shop Config. If your OMS is connected to multiple eCommerce stores selling the same catalog operating as one Company, you may have multiple Shop Configs for the selected Product Store.') }}
+            {{ $t('Specify which facility you want to operate from. Order, inventory and other configuration data will be specific to the facility you select.') }}
           </ion-card-content>
-
           <ion-item lines="none">
-            <ion-label>{{ $t("Select eCommerce") }}</ion-label>
-            <ion-select interface="popover" :value="currentEComStore.productStoreId" @ionChange="setEComStore($event)">
-              <ion-select-option v-for="store in (userProfile ? userProfile.stores : [])" :key="store.productStoreId" :value="store.productStoreId" >{{ store.storeName }}</ion-select-option>
+            <ion-label>{{ $t("Select facility") }}</ion-label>
+            <ion-select interface="popover" :value="currentFacility.facilityId" @ionChange="setFacility($event)">
+              <ion-select-option v-for="facility in (userProfile ? userProfile.facilities : [])" :key="facility.facilityId" :value="facility.facilityId" >{{ facility.name }}</ion-select-option>
             </ion-select>
           </ion-item>
         </ion-card>
