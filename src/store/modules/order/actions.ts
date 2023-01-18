@@ -202,6 +202,9 @@ const actions: ActionTree<OrderState, RootState> = {
       item.locationSeqId = payload.locationSeqId
     }
     commit(types.ORDER_CURRENT_UPDATED, state.current)
+  },
+  clearPurchaseOrders({ commit }) {
+    commit(types.ORDER_PRCHS_ORDRS_UPDATED, { list: [], total: 0 })
   }
 }
 
