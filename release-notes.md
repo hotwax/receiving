@@ -1,3 +1,12 @@
+# Release 2.6.0
+
+## What's Changed
+* Added hotwax-theme-apps package(#85zrj08rb) by @disha1202 in https://github.com/hotwax/receiving/pull/182
+* Fixed: facilitiesId section is labelled with shopify eCommerce on Settings page(#85zrjcmft) by @shashwatbangar in https://github.com/hotwax/receiving/pull/184
+
+
+**Full Changelog**: https://github.com/hotwax/receiving/compare/v2.5.0...v2.6.0
+
 # Release 2.5.0
 
 ## What's Changed
