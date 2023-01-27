@@ -14,6 +14,8 @@ import { defineComponent } from 'vue';
 import { loadingController } from '@ionic/vue';
 import emitter from "@/event-bus"
 import { mapGetters, useStore } from "vuex";
+import { showToast } from './utils';
+import { translate } from "@/i18n";
 
 export default defineComponent({
   name: 'App',
@@ -25,8 +27,19 @@ export default defineComponent({
   },
   data() {
     return {
-      loader: null as any
+      loader: null as any,
+      refreshing: false,
+      registration: null,
+      updateExists: false,
     }
+  },
+  created() {
+    document.addEventListener('swUpdated', this.updateAvailable, { once: true })
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (this.refreshing) return
+      this.refreshing = true
+      window.location.reload()
+    })
   },
   computed: {
     ...mapGetters({
@@ -52,7 +65,21 @@ export default defineComponent({
         this.loader.dismiss();
         this.loader = null as any;
       }
-    }
+    },
+    updateAvailable($event: any) {
+      this.registration = $event.detail
+      this.updateExists = true
+      showToast(translate("New version available, please update the app."), [{
+        text: translate('Update'),
+        role: 'Update',
+        handler: this.refreshApp
+      }])
+    },
+    refreshApp() {
+      this.updateExists = false
+      if (!this.registration || !(this.registration as any).waiting) return
+      (this.registration as any).waiting.postMessage({ type: 'SKIP_WAITING' })
+    },
   },
   async mounted() {
     this.loader = await loadingController
