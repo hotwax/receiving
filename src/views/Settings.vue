@@ -65,30 +65,25 @@
 
           <ion-item lines="none">
             <ion-label> {{ $t("Select store") }} </ion-label>
-            <ion-select interface="popover" :placeholder="$t('store name')" :value="currentFacility.facilityId" @ionChange="setFacility($event)">
-              <ion-select-option v-for="facility in (userProfile && userProfile?.facilities ? userProfile?.facilities : [])" :key="facility.facilityId" :value="facility.facilityId" >{{ facility.name }}</ion-select-option>
+            <ion-select interface="popover" :placeholder="$t('store name')" :value="currentEComStore.productStoreId" @ionChange="setEComStore($event)">
+              <ion-select-option v-for="store in (userProfile ? userProfile.stores : [])" :key="store.productStoreId" :value="store.productStoreId" >{{ store.storeName }}</ion-select-option>
             </ion-select>
           </ion-item>
         </ion-card>
 
         <ion-card>
           <ion-card-header>
-            <ion-card-subtitle>
-              {{ $t("Shop Config") }}
-            </ion-card-subtitle>
             <ion-card-title>
-              {{ $t("eCommerce") }}
+              {{ $t("Facility") }}
             </ion-card-title>
           </ion-card-header>
-
           <ion-card-content>
-            {{ $t('eCommerce stores are directly connected to one Shop Config. If your OMS is connected to multiple eCommerce stores selling the same catalog operating as one Company, you may have multiple Shop Configs for the selected Product Store.') }}
+            {{ $t('Specify which facility you want to operate from. Order, inventory and other configuration data will be specific to the facility you select.') }}
           </ion-card-content>
-
           <ion-item lines="none">
-            <ion-label>{{ $t("Select eCommerce") }}</ion-label>
-            <ion-select interface="popover" :value="currentEComStore.productStoreId" @ionChange="setEComStore($event)">
-              <ion-select-option v-for="store in (userProfile ? userProfile.stores : [])" :key="store.productStoreId" :value="store.productStoreId" >{{ store.storeName }}</ion-select-option>
+            <ion-label>{{ $t("Select facility") }}</ion-label>
+            <ion-select interface="popover" :value="currentFacility.facilityId" @ionChange="setFacility($event)">
+              <ion-select-option v-for="facility in (userProfile ? userProfile.facilities : [])" :key="facility.facilityId" :value="facility.facilityId" >{{ facility.name }}</ion-select-option>
             </ion-select>
           </ion-item>
         </ion-card>
@@ -128,19 +123,34 @@
             </ion-select>
           </ion-item>
         </ion-card>
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>
+              {{ $t('Timezone') }}
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            {{ $t('The timezone you select is used to ensure automations you schedule are always accurate to the time you select.') }}
+          </ion-card-content>
+          <ion-item lines="none">
+            <ion-label> {{ userProfile && userProfile.userTimeZone ? userProfile.userTimeZone : '-' }} </ion-label>
+            <ion-button @click="changeTimeZone()" slot="end" fill="outline" color="dark">{{ $t("Change") }}</ion-button>
+          </ion-item>
+        </ion-card>
       </section>
     </ion-content>
   </ion-page>
 </template>
 
 <script lang="ts">
-import { alertController, IonAvatar, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader,IonIcon, IonItem, IonLabel, IonMenuButton, IonPage, IonSelect, IonSelectOption, IonTitle, IonToolbar } from '@ionic/vue';
+import { alertController, IonAvatar, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader,IonIcon, IonItem, IonLabel, IonMenuButton, IonPage, IonSelect, IonSelectOption, IonTitle, IonToolbar, modalController } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { codeWorkingOutline, ellipsisVertical, openOutline, saveOutline, globeOutline, personCircleOutline, storefrontOutline} from 'ionicons/icons'
 import { mapGetters, useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import Image from '@/components/Image.vue';
 import { DateTime } from 'luxon';
+import TimeZoneModal from '@/views/TimezoneModal.vue';
 
 export default defineComponent({
   name: 'Settings',
@@ -187,6 +197,12 @@ export default defineComponent({
     this.appVersion = this.appInfo.branch ? (this.appInfo.branch + "-" + this.appInfo.revision) : this.appInfo.tag;
   },
   methods: {
+    async changeTimeZone() {
+      const timeZoneModal = await modalController.create({
+        component: TimeZoneModal,
+      });
+      return timeZoneModal.present();
+    },
     setEComStore(store: any) {
       if(this.userProfile) {
         this.store.dispatch('user/setEComStore', {
