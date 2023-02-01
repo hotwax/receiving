@@ -8,7 +8,7 @@
     </ion-header>
     <ion-content>
       <main>
-        <ion-searchbar ref="searchbarRef" :placeholder="$t('Search purchase orders')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getPurchaseOrders()" />
+        <ion-searchbar :placeholder="$t('Search purchase orders')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getPurchaseOrders()" />
 
         <PurchaseOrderItem v-for="(order, index) in orders" :key="index" :purchaseOrder="order.doclist.docs[0]" />
         
@@ -92,10 +92,6 @@ export default defineComponent({
   },
   mounted () {
     this.getPurchaseOrders();
-    const focusSearchBar = this.$refs.searchbarRef as any;
-    setTimeout(() => {
-      focusSearchBar.$el.setFocus();
-    }, 300);
   },
   setup () {
     const store = useStore();

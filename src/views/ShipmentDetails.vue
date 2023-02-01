@@ -19,7 +19,7 @@
         <div class="scanner">
           <ion-item>
             <ion-label>{{ $t("Scan items") }}</ion-label>
-            <ion-input :placeholder="$t('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()"></ion-input>
+            <ion-input ref="searchbarRef" :placeholder="$t('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()"></ion-input>
           </ion-item>
 
           <ion-button expand="block" fill="outline" @click="scanCode()">
@@ -138,6 +138,8 @@ export default defineComponent({
   },
   mounted() {
     this.store.dispatch('shipment/setCurrent', { shipmentId: this.$route.params.id })
+    const focusSearchBar = this.$refs.searchbarRef as any;
+    setTimeout(() => { focusSearchBar.$el.setFocus() }, 300);
   },
   computed: {
     ...mapGetters({

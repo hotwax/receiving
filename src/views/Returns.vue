@@ -8,7 +8,7 @@
     </ion-header>
     <ion-content>
       <main>
-        <ion-searchbar ref="searchbarRef" :placeholder="$t('Scan ASN to start receiving')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getReturns()" />
+        <ion-searchbar :placeholder="$t('Scan ASN to start receiving')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getReturns()" />
   
         <ReturnListItem v-for="returnShipment in returns" :key="returnShipment.shipmentId" :returnShipment="returnShipment" />
 
@@ -56,13 +56,9 @@ export default defineComponent({
   },
   mounted () {
     this.store.dispatch('return/fetchValidReturnStatuses');
-    this.getReturns();
   },
   ionViewDidEnter(){
-    const focusSearchBar = this.$refs.searchbarRef as any;
-    setTimeout(() => {
-      focusSearchBar.$el.setFocus();
-    }, 300);
+    this.getReturns();
   },
   methods: {
     async getReturns(vSize?: any, vIndex?: any) {
@@ -92,6 +88,14 @@ export default defineComponent({
         payload.inputFields["externalId_op"] = "contains";
         payload.inputFields["externalId_ic"] = "Y";
         payload.inputFields["externalId_grp"] = "3";
+        payload.inputFields["hcOrderId"] = this.queryString;
+        payload.inputFields["hcOrderId_op"] = "contains";
+        payload.inputFields["hcOrderId_ic"] = "Y";
+        payload.inputFields["hcOrderId_grp"] = "4";
+        payload.inputFields["shopifyOrderName"] = this.queryString;
+        payload.inputFields["shopifyOrderName_op"] = "contains";
+        payload.inputFields["shopifyOrderName_ic"] = "Y";
+        payload.inputFields["shopifyOrderName_grp"] = "5";
       }
       await this.store.dispatch("return/findReturn", payload);
     },
