@@ -9,17 +9,18 @@
 
     <ion-content>
       <main>
-        <ion-item lines="none">
-          <ion-list class="ion-text-center">
-            <ion-title>{{ current.shopifyOrderName ? current.shopifyOrderName : current.hcOrderId }}</ion-title>
+        <div class="doc-id">
+          <ion-item lines="none">
+            <h1>{{ current.shopifyOrderName ? current.shopifyOrderName : current.hcOrderId }}</h1>
             <!-- TODO: Fetch Customer name -->
-            <!-- <ion-label>{{ $t("Customer: <customer name>")}}</ion-label> -->
-          </ion-list>
-          <ion-item slot="end" lines="none">
+            <!-- <p>{{ $t("Customer: <customer name>")}}</p> -->
+          </ion-item>
+
+          <div class="doc-meta">
             <ion-badge :color="statusColorMapping[current.statusDesc]" slot="end">{{ current.statusDesc }}</ion-badge>
             <ion-chip v-if="current.trackingCode" slot="end">{{ current.trackingCode }}</ion-chip>
-          </ion-item>
-        </ion-item>
+          </div>
+        </div>
 
   
         <div class="scanner">
@@ -41,34 +42,37 @@
                   <Image :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
-                  <h2>{{ getProduct(item.productId).productName }}</h2> 
-                  <p>{{ getProduct(item.productId).productId }}</p>
+                  <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
+                  <p>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
                 </ion-label>
               </ion-item>
             </div>
+
             <div class="location">
-              <LocationPopover v-if="isReturnReceivable(current.statusId)" :item="item" type="return" :facilityId="current.destinationFacilityId" />
+              <ion-chip outline :disabled="true">
+                <ion-icon :icon="locationOutline" />
+                <ion-label>{{ current.locationSeqId }}</ion-label>
+              </ion-chip>
             </div>
+
             <div class="product-count">
-              <ion-item v-if="isReturnReceivable(current.statusId)" class="product-count">
+              <ion-item v-if="isReturnReceivable(current.statusId)">
                 <ion-label position="floating">{{ $t("Qty") }}</ion-label>
                 <ion-input type="number" min="0" v-model="item.quantityAccepted" />
               </ion-item>
-              <ion-item v-if="!isReturnReceivable(current.statusId)" class="product-count" lines="none">
+              <ion-item v-if="!isReturnReceivable(current.statusId)" lines="none">
                 <ion-label>{{ item.quantityAccepted }} {{ $t("received") }}</ion-label>
               </ion-item>
             </div>
           </div>
-            
   
-          <ion-item class="border-top" v-if="item.quantityOrdered > 0">
+          <ion-item lines="none" class="border-top" v-if="item.quantityOrdered > 0">
             <ion-button v-if="isReturnReceivable(current.statusId)" @click="receiveAll(item)" slot="start" fill="outline">
               {{ $t("Receive All") }}
             </ion-button>
             <ion-progress-bar :value="item.quantityAccepted/item.quantityOrdered" />
             <p slot="end">{{ item.quantityOrdered }} {{ $t("returned") }}</p>
           </ion-item>
-
         </ion-card>
       </main>
 
@@ -96,7 +100,6 @@ import {
   IonItem,
   IonInput,
   IonLabel,
-  IonList,
   IonPage,
   IonProgressBar,
   IonThumbnail,
@@ -113,8 +116,7 @@ import Image from "@/components/Image.vue";
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import ImageModal from '@/components/ImageModal.vue';
-import LocationPopover from '@/components/LocationPopover.vue'
-import { showToast } from '@/utils'
+import { showToast, productHelpers } from '@/utils'
 import { translate } from '@/i18n'
 
 export default defineComponent({
@@ -133,14 +135,12 @@ export default defineComponent({
     IonItem,
     IonInput,
     IonLabel,
-    IonList,
     IonPage,
     IonProgressBar,
     IonThumbnail,
     IonTitle,
     IonToolbar,
     Image,
-    LocationPopover
   },
   props: ["shipment"],
   data() {
@@ -174,6 +174,7 @@ export default defineComponent({
       returns: 'return/getReturns',
       validStatusChange: 'return/isReturnReceivable',
       isReturnReceivable: 'return/isReturnReceivable',
+      productIdentificationPref: 'user/getProductIdentificationPref'
     }),
   },
   methods: {
@@ -267,9 +268,16 @@ export default defineComponent({
       checkmarkDone,
       locationOutline,
       store,
+      productHelpers,
       router
     };
   },
 });
 </script>
+
+<style scoped>
+  ion-thumbnail {
+    cursor: pointer;
+  }
+</style>
   

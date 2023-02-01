@@ -1,8 +1,7 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router';
-import moment from 'moment'
-import "moment-timezone";
+import { DateTime } from 'luxon';
 import './registerServiceWorker';
 
 
@@ -10,6 +9,7 @@ import { IonicVue } from '@ionic/vue';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/vue/css/core.css';
+import '@hotwax/apps-theme';
 
 /* Basic CSS for apps built with Ionic */
 import '@ionic/vue/css/normalize.css';
@@ -41,16 +41,17 @@ const app = createApp(App)
 // Filters are removed in Vue 3 and global filter introduced https://v3.vuejs.org/guide/migration/filters.html#global-filters
 app.config.globalProperties.$filters = {
   formatDate(value: any, inFormat?: string, outFormat?: string) {
-    // TODO Use Loxon instead
-    // TODO Make default format configurable and from environment variables
-    return moment(value, inFormat).format(outFormat ? outFormat : 'MM-DD-YYYY');
+    if(inFormat){
+      return DateTime.fromFormat(value, inFormat).toFormat(outFormat ? outFormat : 'MM-DD-YYYY');
+    }
+    return DateTime.fromISO(value).toFormat(outFormat ? outFormat : 'MM-DD-YYYY');
   },
-  formatUtcDate(value: any, inFormat?: string, outFormat?: string) {
+  formatUtcDate(value: any, inFormat?: any, outFormat?: string) {
     // TODO Use Loxon instead
     // TODO Make default format configurable and from environment variables
     const userProfile = store.getters['user/getUserProfile'];
     // TODO Fix this setDefault should set the default timezone instead of getting it everytiem and setting the tz
-    return moment.utc(value, inFormat).tz(userProfile.userTimeZone).format(outFormat ? outFormat : 'MM-DD-YYYY');
+    return DateTime.fromISO(value, { zone: "utc" }).setZone(userProfile.userTimeZone).toFormat(outFormat ? outFormat : 'MM-dd-yyyy')
   },
   getFeature(featureHierarchy: any, featureKey: string) {
     let  featureValue = ''

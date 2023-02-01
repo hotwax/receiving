@@ -5,7 +5,7 @@
         <ion-back-button default-href="/purchase-orders" slot="start" />
         <ion-title> {{$t("Purchase Order Details")}} </ion-title>
         <ion-buttons slot="end">
-          <ion-button @click="receivingHistory">
+          <ion-button @click="receivingHistory()">
             <ion-icon slot="icon-only" :icon="timeOutline"/>
           </ion-button>
           <ion-button @click="addProduct">
@@ -17,13 +17,13 @@
 
     <ion-content>
       <main>
-        <div class="po-id">
+        <div class="doc-id">
           <ion-item lines="none">
             <h1>{{$t("Purchase Order")}}: {{ order.externalOrderId }}</h1>
           </ion-item>
           
-          <div class="po-meta">
-            <ion-chip>{{ order.orderId }}</ion-chip>
+          <div class="doc-meta">
+            <ion-chip @click="copyToClipboard(order.orderId)">{{ order.orderId }}<ion-icon :icon="copyOutline"/></ion-chip>
           </div>
         </div>
         
@@ -46,8 +46,8 @@
                   <Image :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
-                  {{ getProduct(item.productId).productName }}
-                  <p>{{ item.productId }}</p>
+                  <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
+                  <p>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
                 </ion-label>
               </ion-item>
             </div>
@@ -76,7 +76,7 @@
             </div>
 
             <div class="po-item-history">
-              <ion-chip outline>
+              <ion-chip outline @click="receivingHistory(item.productId)">
                 <ion-icon :icon="checkmarkDone"/>
                 <ion-label> {{ getPOItemAccepted(item.productId) }} {{ $t("received") }} </ion-label>
               </ion-chip>
@@ -122,10 +122,9 @@ import {
   IonToolbar,
   modalController,
   alertController,
-  popoverController
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
-import { addOutline, cameraOutline, checkmarkDone, saveOutline, timeOutline } from 'ionicons/icons';
+import { addOutline, cameraOutline, checkmarkDone, saveOutline, timeOutline, copyOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import Image from "@/components/Image.vue";
 import { useStore, mapGetters } from 'vuex';
@@ -134,6 +133,7 @@ import Scanner from "@/components/Scanner.vue"
 import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
 import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
+import { copyToClipboard, productHelpers } from '@/utils';
 
 export default defineComponent({
   name: "PurchaseOrderDetails",
@@ -170,7 +170,8 @@ export default defineComponent({
       getProduct: 'product/getProduct',
       getPOItemAccepted: 'order/getPOItemAccepted',
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
-      currentFacility: 'user/getCurrentFacility'
+      currentFacility: 'user/getCurrentFacility',
+      productIdentificationPref: 'user/getProductIdentificationPref'
     })
   },
   mounted() {
@@ -211,11 +212,11 @@ export default defineComponent({
       })  
       return modal.present();
     },
-    async receivingHistory() {
+    async receivingHistory(productId?: string) {
       const modal = await modalController
         .create({
           component: ReceivingHistoryModal,
-          componentProps: {order: this.order}
+          componentProps: {productId}
         })
       return modal.present();
     },
@@ -264,6 +265,9 @@ export default defineComponent({
       addOutline,
       cameraOutline,
       checkmarkDone,
+      copyOutline,
+      copyToClipboard,
+      productHelpers,
       router,
       saveOutline,
       store,
@@ -274,18 +278,14 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.po-meta {
-  padding: 0 10px;
-}
-
 .action {
   display: grid;
   grid: "receive progressbar ordered"
         "history history     history" 
         / max-content 1fr max-content; 
-  gap: 10px;
+  gap: var(--spacer-xs);
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: var(--spacer-xs);
 }
 
 .receive-all-qty {
@@ -310,7 +310,7 @@ ion-thumbnail {
 } 
 
 @media (min-width: 720px) {
-  .po-id {
+  .doc-id {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -318,7 +318,7 @@ ion-thumbnail {
 
   .action {
     grid: "receive progressbar history ordered" /  max-content 1fr max-content max-content;
-    margin-left: 16px;
+    margin-left: var(--spacer-sm);
   }
 }
 </style>

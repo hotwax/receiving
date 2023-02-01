@@ -35,8 +35,8 @@
                   <Image :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
-                  <h2>{{ getProduct(item.productId).productName }}</h2> 
-                  <p>{{ getProduct(item.productId).productId }}</p>
+                  <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
+                  <p>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
                 </ion-label>
               </ion-item>
             </div>
@@ -53,7 +53,7 @@
             </div>
           </div>
 
-          <ion-item class="border-top" v-if="item.quantityOrdered > 0">
+          <ion-item lines="none" class="border-top" v-if="item.quantityOrdered > 0">
             <ion-button @click="receiveAll(item)" slot="start" fill="outline">
               {{ $t("Receive All") }}
             </ion-button>
@@ -95,7 +95,6 @@ import {
   IonToolbar,
   modalController,
   alertController,
-  popoverController
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { add, checkmarkDone, barcodeOutline } from 'ionicons/icons';
@@ -106,6 +105,7 @@ import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
+import { productHelpers } from '@/utils'
 
 export default defineComponent({
   name: "ShipmentDetails",
@@ -147,7 +147,8 @@ export default defineComponent({
       user: 'user/getCurrentFacility',
       getProduct: 'product/getProduct',
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
-      currentFacility: 'user/getCurrentFacility'
+      currentFacility: 'user/getCurrentFacility',
+      productIdentificationPref: 'user/getProductIdentificationPref'
     }),
   },
   methods: {
@@ -235,6 +236,7 @@ export default defineComponent({
       barcodeOutline,
       checkmarkDone,
       store,
+      productHelpers,
       router
     };
   },
@@ -242,7 +244,7 @@ export default defineComponent({
 </script>
 
 <style scoped>
-ion-content > div {
+ion-content > main {
   max-width: 1110px;
   margin-right: auto;
   margin-left: auto;

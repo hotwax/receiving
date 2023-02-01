@@ -5,7 +5,6 @@ import OrderState from './OrderState'
 import * as types from './mutation-types'
 import { hasError, showToast } from '@/utils'
 import { translate } from '@/i18n'
-import emitter from "@/event-bus";
 
 
 const actions: ActionTree<OrderState, RootState> = {
@@ -16,7 +15,7 @@ const actions: ActionTree<OrderState, RootState> = {
     try {
       resp = await OrderService.fetchPurchaseOrders(payload)
 
-      if (resp.status === 200 && !hasError(resp) && resp.data.grouped) {
+      if (resp.status === 200 && !hasError(resp) && resp.data.grouped?.orderId.groups?.length > 0) {
         const orders = resp.data.grouped.orderId
         
         orders.groups.forEach((order: any) => {
@@ -35,7 +34,7 @@ const actions: ActionTree<OrderState, RootState> = {
         showToast(translate("Orders not found"));
       }
     } catch(error){
-      console.log(error)
+      console.error(error)
       showToast(translate("Something went wrong"));
     }
     return resp;
@@ -167,6 +166,8 @@ const actions: ActionTree<OrderState, RootState> = {
         "entityName": "ShipmentReceiptAndItem",
         "fieldList": ["datetimeReceived", "productId", "quantityAccepted", "quantityRejected", "receivedByUserLoginId", "shipmentId", 'locationSeqId']
       }
+      const facilityLocations = await this.dispatch('user/getFacilityLocations', this.state.user.currentFacility.facilityId);
+      const locationSeqId = facilityLocations.length > 0 ? facilityLocations[0].locationSeqId : "";
       resp = await OrderService.fetchPOHistory(params)
       if (resp.status === 200 && !hasError(resp) && resp.data?.count > 0) {
         const poHistory = resp.data.docs;
@@ -175,14 +176,16 @@ const actions: ActionTree<OrderState, RootState> = {
           products[item.productId] = item.locationSeqId
           return products
         }, {});
-        const facilityLocations = await this.dispatch('user/getFacilityLocations', this.state.user.currentFacility.facilityId)
-        const locationSeqId = facilityLocations ? facilityLocations[0].locationSeqId : "";
+        
         current.items.map((item: any) => {
           item.locationSeqId = facilityLocationByProduct[item.productId] ? facilityLocationByProduct[item.productId] : locationSeqId;
         });
         commit(types.ORDER_CURRENT_UPDATED, current);
         return poHistory;
       } else {
+        current.items.map((item: any) => {
+          item.locationSeqId = locationSeqId;
+        });
         current.poHistory.items = [];
       }
     } catch(error){

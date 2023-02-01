@@ -68,13 +68,13 @@ const actions: ActionTree<ShipmentState, RootState> = {
         return resp.data;
       } else {
         showToast(translate('Something went wrong'));
-        console.log("error", resp.data._ERROR_MESSAGE_);
+        console.error("error", resp.data._ERROR_MESSAGE_);
         return Promise.reject(new Error(resp.data._ERROR_MESSAGE_));
       }
 
-    } catch (err) {
+    } catch (err: any) {
       showToast(translate('Something went wrong'));
-      console.log("error", err);
+      console.error("error", err);
       return Promise.reject(new Error(err))
     }
   },
@@ -144,7 +144,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
     }
     else {
       showToast(translate('Something went wrong'));
-      console.log("error", resp._ERROR_MESSAGE_);
+      console.error("error", resp._ERROR_MESSAGE_);
       return Promise.reject(new Error(resp.data._ERROR_MESSAGE_));
     }
   },
@@ -152,8 +152,8 @@ const actions: ActionTree<ShipmentState, RootState> = {
   async updateProductCount({ commit, state }, payload ) {
     const shipments = state.shipments.list;
     shipments.forEach((shipment: any) => {
-      if(shipment.id === payload.shipmentId) {
-        shipment.noOfItem = parseInt(shipment.noOfItem) + 1;
+      if(shipment.shipmentId === payload.shipmentId) {
+        shipment.shipmentItemCount = parseInt(shipment.shipmentItemCount) + 1;
         return;
       }
     })
