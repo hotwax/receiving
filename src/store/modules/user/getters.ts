@@ -24,6 +24,12 @@ const getters: GetterTree <UserState, RootState> = {
     },
     getCurrentEComStore(state) {
         return state.currentEComStore
+    },
+    getFacilityLocationsByFacilityId: (state) => (facilityId: string) => {
+        return state.facilityLocationsByFacilityId[facilityId];
+    },
+    getProductIdentificationPref: (state) => {
+        return state.productIdentificationPref;
     }
 }
 export default getters;

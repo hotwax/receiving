@@ -55,28 +55,47 @@ export default defineComponent({
     }
   },
   mounted () {
-    this.getReturns();
     this.store.dispatch('return/fetchValidReturnStatuses');
+  },
+  ionViewDidEnter(){
+    this.getReturns();
   },
   methods: {
     async getReturns(vSize?: any, vIndex?: any) {
       const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
       const viewIndex = vIndex ? vIndex : 0;
       const payload = {
-        "inputFields": {
-          "shipmentTypeId": "SALES_RETURN",
-        },
-        "entityName": "ShipmentAndTypeAndItemCount",
-        "fieldList" : [ "shipmentId","primaryShipGroupSeqId","partyIdFrom","partyIdTo","estimatedArrivalDate","destinationFacilityId","statusId", "shipmentItemCount" ],
+        "entityName": "SalesReturnShipmentView",
+        "inputFields": {},
+        "fieldList" : [ "shipmentId","externalId","statusId","shopifyOrderName","hcOrderId","trackingCode", "destinationFacilityId" ],
         "noConditionFind": "Y",
         "viewSize": viewSize,
         "viewIndex": viewIndex,
+        "orderBy": "createdDate ASC"
       } as any
       
       if(this.queryString){
+        // Search query done on shipmentId, trackingCode and externalId
         payload.inputFields["shipmentId"] = this.queryString;
         payload.inputFields["shipmentId_op"] = "contains";
         payload.inputFields["shipmentId_ic"] = "Y";
+        payload.inputFields["shipmentId_grp"] = "1";
+        payload.inputFields["trackingCode"] = this.queryString;
+        payload.inputFields["trackingCode_op"] = "contains";
+        payload.inputFields["trackingCode_ic"] = "Y";
+        payload.inputFields["trackingCode_grp"] = "2";
+        payload.inputFields["externalId"] = this.queryString;
+        payload.inputFields["externalId_op"] = "contains";
+        payload.inputFields["externalId_ic"] = "Y";
+        payload.inputFields["externalId_grp"] = "3";
+        payload.inputFields["hcOrderId"] = this.queryString;
+        payload.inputFields["hcOrderId_op"] = "contains";
+        payload.inputFields["hcOrderId_ic"] = "Y";
+        payload.inputFields["hcOrderId_grp"] = "4";
+        payload.inputFields["shopifyOrderName"] = this.queryString;
+        payload.inputFields["shopifyOrderName_op"] = "contains";
+        payload.inputFields["shopifyOrderName_ic"] = "Y";
+        payload.inputFields["shopifyOrderName_grp"] = "5";
       }
       await this.store.dispatch("return/findReturn", payload);
     },

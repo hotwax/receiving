@@ -4,4 +4,6 @@ export default interface UserState {
     currentFacility: object | null;
     currentEComStore: object;
     instanceUrl: string;
+    facilityLocationsByFacilityId: any;
+    productIdentificationPref: any;
 }

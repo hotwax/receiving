@@ -235,41 +235,76 @@ http://ionicframework.com/docs/theming/ */
   }
 }
 
-body {
-  /** Spacer variables **/
-  --spacer-2xs: 0.25rem; /* 4px */
-  --spacer-xs: 0.5rem;   /* 8px */
-  --spacer-sm: 1rem;     /* 16px */
-  --spacer-base: 1.5rem; /* 24px */
-  --spacer-lg: 2rem;     /* 32px */
-  --spacer-xl: 2.5rem;   /* 40px */
-  --spacer-2xl: 5rem;    /* 80px */
-  --spacer-3xl: 10rem;   /* 160px */
-}
-
 main {
   max-width: 1100px;
   margin: var(--spacer-sm) auto 0;
 }
 
-ion-thumbnail > img {
-  object-fit: contain;
+.border-top {
+  border-top: 1px solid #ccc;
 }
 
 .load-more-action {
-  margin-top: 25px;
+  margin-top: var(--spacer-base);
 }
 
-@media (prefers-color-scheme: dark) {
-  ion-chip > ion-icon {
-    color: var(--ion-color-dark);
+.doc-id {
+  /* use this class to style doc-id section globally */
+}
+
+.doc-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacer-xs);
+}
+
+.scanner {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(343px, 1fr));
+  gap: var(--spacer-xs);
+  margin-bottom: var(--spacer-sm);
+}
+
+.product {
+  display: grid;
+  grid: "info    count" 
+        "location location" 
+        / 1fr .35fr;
+  align-items: center;
+  padding: var(--spacer-xs) var(--spacer-xs) var(--spacer-xs) 0; 
+}
+
+.product-info {
+  grid-area: info;
+  grid-template-columns: 1fr 1fr .30fr;
+  align-items: center;
+  padding: var(--spacer-sm);
+  padding-left: 0;
+}
+
+.location {
+  grid-area: location;
+  justify-self: center;
+}
+
+.product-count {
+  grid-area: count;
+  min-width: 9ch;
+}
+
+.product-count > ion-item {
+  max-width: 20ch;
+  margin-left: auto;
+}
+
+@media (min-width: 720px) {
+  .product {
+    grid: "info location count" /  1fr max-content 1fr;
   }
 
-  .chip-outline {
-    border-color: var(--ion-color-dark);
-  }
-
-  ion-item {
-    --border-color: var(--ion-color-medium)
+  .doc-id {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 }
