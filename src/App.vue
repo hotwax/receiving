@@ -16,6 +16,7 @@ import emitter from "@/event-bus"
 import { mapGetters, useStore } from "vuex";
 import { showToast } from './utils';
 import { translate } from "@/i18n";
+import { Settings } from 'luxon';
 
 export default defineComponent({
   name: 'App',
@@ -98,6 +99,11 @@ export default defineComponent({
 
     if(this.userProfile) {
       this.store.dispatch('user/getProductIdentificationPref', this.currentEComStore.productStoreId);
+    }
+    // Handles case when user resumes or reloads the app
+    // Luxon timezzone should be set with the user's selected timezone
+    if (this.userProfile && this.userProfile.userTimeZone) {
+      Settings.defaultZone = this.userProfile.userTimeZone;
     }
   },
   unmounted() {
