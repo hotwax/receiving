@@ -245,6 +245,7 @@ export default defineComponent({
         if(ele.productId == item.productId) {
           ele.quantityAccepted = ele.quantity;
           ele.progress = ele.quantityAccepted / ele.quantity;
+          return true;
         }
       })
     }
