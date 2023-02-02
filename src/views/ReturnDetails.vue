@@ -116,12 +116,9 @@ import Image from "@/components/Image.vue";
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import ImageModal from '@/components/ImageModal.vue';
-<<<<<<< HEAD
 import { hasError } from '@/utils';
-=======
 import { showToast, productHelpers } from '@/utils'
 import { translate } from '@/i18n'
->>>>>>> 0afdd42906ecf18432286318d0106a47904a29af
 
 export default defineComponent({
   name: "ReturnDetails",
@@ -227,19 +224,16 @@ export default defineComponent({
       return alert.present();
     },
     async receiveReturn() {
-      await this.store.dispatch('return/receiveReturn', {payload: this.current}).then((resp) => {
-        // Only change the route when getting success from api resp
-        if (resp?.status === 200) {
-          this.router.push('/returns');
-        }
-      })
+      let resp = await this.store.dispatch('return/receiveReturn', {payload: this.current});
+      if(resp.status === 200 && !hasError(resp)) {
+        this.router.push('/returns');
+      }
     },
     receiveAll(item: any) {
-      let element = this.current.items.find((ele: any) => {
+      this.current.items.find((ele: any) => {
         if(ele.itemSeqId == item.itemSeqId) {
-          element.quantityAccepted = ele.quantityOrdered;
-          element.progress = ele.quantityAccepted / ele.quantityOrdered
-          return element;
+          ele.quantityAccepted = ele.quantityOrdered;
+          ele.progress = ele.quantityAccepted / ele.quantityOrdered
         }
       })
     },

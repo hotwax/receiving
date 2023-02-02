@@ -133,7 +133,7 @@ import Scanner from "@/components/Scanner.vue"
 import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
 import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
-import { copyToClipboard, productHelpers } from '@/utils';
+import { copyToClipboard, hasError, productHelpers } from '@/utils';
 
 export default defineComponent({
   name: "PurchaseOrderDetails",
@@ -235,12 +235,13 @@ export default defineComponent({
       return alert.present();
     },
     async createShipment() {
-      this.store.dispatch('order/createPurchaseShipment', { order: this.order }).then(() => {
+      const resp = await this.store.dispatch('order/createPurchaseShipment', { order: this.order })
+      if (resp.status === 200 && !hasError(resp)) {
         this.router.push('/purchase-orders')
-      })
+      }
     },
     receiveAll(item: any) {
-      this.order.items.filter((ele: any) => {
+      this.order.items.find((ele: any) => {
         if(ele.productId == item.productId) {
           ele.quantityAccepted = ele.quantity;
           ele.progress = ele.quantityAccepted / ele.quantity;
