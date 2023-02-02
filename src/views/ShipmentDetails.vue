@@ -105,7 +105,7 @@ import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
-import { productHelpers } from '@/utils'
+import { hasError, productHelpers } from '@/utils'
 
 export default defineComponent({
   name: "ShipmentDetails",
@@ -197,15 +197,17 @@ export default defineComponent({
       return alert.present();
     },
     async receiveShipment() {
-      this.store.dispatch('shipment/receiveShipment', {payload: this.current}).then(() => {
+      const resp = await this.store.dispatch('shipment/receiveShipment', { payload: this.current })
+      if (resp.status === 200 && !hasError(resp)) {
         this.router.push('/shipments');
-      })   
+      }
     },
     receiveAll(item: any) {
-      this.current.items.filter((ele: any) => {
+      this.current.items.find((ele: any) => {
         if(ele.itemSeqId == item.itemSeqId) {
           ele.quantityAccepted = ele.quantityOrdered;
           ele.progress = ele.quantityAccepted / ele.quantityOrdered
+          return true;
         }
       })
     },

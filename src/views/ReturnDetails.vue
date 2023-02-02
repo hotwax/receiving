@@ -116,6 +116,7 @@ import Image from "@/components/Image.vue";
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import ImageModal from '@/components/ImageModal.vue';
+import { hasError } from '@/utils';
 import { showToast, productHelpers } from '@/utils'
 import { translate } from '@/i18n'
 
@@ -223,18 +224,17 @@ export default defineComponent({
       return alert.present();
     },
     async receiveReturn() {
-      await this.store.dispatch('return/receiveReturn', {payload: this.current}).then((resp) => {
-        // Only change the route when getting success from api resp
-        if (resp?.status === 200) {
-          this.router.push('/returns');
-        }
-      })
+      let resp = await this.store.dispatch('return/receiveReturn', {payload: this.current});
+      if(resp.status === 200 && !hasError(resp)) {
+        this.router.push('/returns');
+      }
     },
     receiveAll(item: any) {
-      this.current.items.filter((ele: any) => {
+      this.current.items.find((ele: any) => {
         if(ele.itemSeqId == item.itemSeqId) {
           ele.quantityAccepted = ele.quantityOrdered;
           ele.progress = ele.quantityAccepted / ele.quantityOrdered
+          return true;
         }
       })
     },
