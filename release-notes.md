@@ -3,6 +3,10 @@
 ## What's Changed
 * Added hotwax-theme-apps package(#85zrj08rb) by @disha1202 in https://github.com/hotwax/receiving/pull/182
 * Fixed: facilitiesId section is labelled with shopify eCommerce on Settings page(#85zrjcmft) by @shashwatbangar in https://github.com/hotwax/receiving/pull/184
+* Added timezone support and migrated from moment to luxon (#2dewerv2) by @k2maan in https://github.com/hotwax/receiving/pull/188 and by @shashwatbangar in https://github.com/hotwax/receiving/pull/179
+* Implemented: Code to show app version & build information on Settings page (#85zrhn8w8) by @k2maan in https://github.com/hotwax/receiving/pull/189 and by @shashwatbangar in https://github.com/hotwax/receiving/pull/181
+* fix: purchase order data not cleared on logout(#85zrkramx) by @disha1202 in https://github.com/hotwax/receiving/pull/190
+* Refactored receiveAll and receiveReturn methods on all detail pages (#2t2wcjr) by @k2maan in https://github.com/hotwax/receiving/pull/193 and by @shashwatbangar in https://github.com/hotwax/receiving/pull/130
 
 
 **Full Changelog**: https://github.com/hotwax/receiving/compare/v2.5.0...v2.6.0
