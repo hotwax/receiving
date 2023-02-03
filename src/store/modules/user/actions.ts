@@ -5,9 +5,7 @@ import UserState from './UserState'
 import * as types from './mutation-types'
 import { hasError, showToast } from '@/utils'
 import { translate } from '@/i18n'
-import moment from 'moment';
-import emitter from '@/event-bus'
-import "moment-timezone";
+import { Settings } from 'luxon';
 
 const actions: ActionTree<UserState, RootState> = {
 
@@ -75,6 +73,7 @@ const actions: ActionTree<UserState, RootState> = {
     // TODO add any other tasks if need
     commit(types.USER_END_SESSION)
     this.dispatch('util/setProductIdentifications', [])
+    this.dispatch('order/clearPurchaseOrders');
   },
 
   /**
@@ -83,11 +82,9 @@ const actions: ActionTree<UserState, RootState> = {
   async getProfile ( { commit, dispatch }) {
     const resp = await UserService.getProfile()
     if (resp.status === 200) {
-      const localTimeZone = moment.tz.guess();
-      if (resp.data.userTimeZone !== localTimeZone) {
-        emitter.emit('timeZoneDifferent', { profileTimeZone: resp.data.userTimeZone, localTimeZone});
+      if (resp.data.userTimeZone) {
+        Settings.defaultZone = resp.data.userTimeZone;
       }
-
       commit(types.USER_INFO_UPDATED, resp.data);
       if (resp.data.facilities.length > 0) {
         await dispatch('getEComStores', { facilityId: resp.data.facilities[0].facilityId })
@@ -129,8 +126,9 @@ const actions: ActionTree<UserState, RootState> = {
     const resp = await UserService.setUserTimeZone(payload)
     if (resp.status === 200 && !hasError(resp)) {
       const current: any = state.current;
-      current.userTimeZone = payload.tzId;
+      current.userTimeZone = payload.timeZoneId;
       commit(types.USER_INFO_UPDATED, current);
+      Settings.defaultZone = current.userTimeZone;
       showToast(translate("Time zone updated successfully"));
     }
   },
