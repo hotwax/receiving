@@ -64,6 +64,9 @@ export default defineComponent({
       this.router.push("/login")
     }
   },
+  created() {
+    init(this.userToken, this.instanceUrl, this.maxAge)
+  },
   async mounted() {
     this.loader = await loadingController
       .create({
@@ -74,7 +77,6 @@ export default defineComponent({
     emitter.on('presentLoader', this.presentLoader);
     emitter.on('dismissLoader', this.dismissLoader);
     emitter.on('unauthorized', this.unauthorized);
-    init(this.userToken, this.instanceUrl, this.maxAge)
 
     if(this.productIdentifications.length <= 0) {
       // TODO: fetch product identifications from enumeration instead of storing it in env
