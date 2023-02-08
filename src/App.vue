@@ -15,6 +15,8 @@ import { loadingController } from '@ionic/vue';
 import emitter from "@/event-bus"
 import { mapGetters, useStore } from "vuex";
 import { Settings } from 'luxon';
+import { init, resetConfig } from '@/adapter'
+import { useRouter } from 'vue-router';
 
 export default defineComponent({
   name: 'App',
@@ -26,14 +28,17 @@ export default defineComponent({
   },
   data() {
     return {
-      loader: null as any
+      loader: null as any,
+      maxAge: process.env.VUE_APP_CACHE_MAX_AGE ? parseInt(process.env.VUE_APP_CACHE_MAX_AGE) : 0
     }
   },
   computed: {
     ...mapGetters({
       currentEComStore: 'user/getCurrentEComStore',
       productIdentifications: 'util/getProductIdentifications',
-      userProfile: 'user/getUserProfile'
+      userProfile: 'user/getUserProfile',
+      userToken: 'user/getUserToken',
+      instanceUrl: 'user/getInstanceUrl'
     })
   },
   methods: {
@@ -53,7 +58,14 @@ export default defineComponent({
         this.loader.dismiss();
         this.loader = null as any;
       }
+    },
+    async unauthorized() {
+      this.store.dispatch("user/logout");
+      this.router.push("/login")
     }
+  },
+  created() {
+    init(this.userToken, this.instanceUrl, this.maxAge)
   },
   async mounted() {
     this.loader = await loadingController
@@ -64,6 +76,7 @@ export default defineComponent({
       });
     emitter.on('presentLoader', this.presentLoader);
     emitter.on('dismissLoader', this.dismissLoader);
+    emitter.on('unauthorized', this.unauthorized);
 
     if(this.productIdentifications.length <= 0) {
       // TODO: fetch product identifications from enumeration instead of storing it in env
@@ -82,11 +95,15 @@ export default defineComponent({
   unmounted() {
     emitter.off('presentLoader', this.presentLoader);
     emitter.off('dismissLoader', this.dismissLoader);
+    emitter.off('unauthorized', this.unauthorized);
+    resetConfig()
   },
   setup() {
     const store = useStore();
+    const router = useRouter();
 
     return {
+      router,
       store
     }
   }
