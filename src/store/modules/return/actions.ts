@@ -105,7 +105,7 @@ const actions: ActionTree<ReturnState, RootState> = {
       return Promise.reject(new Error(err))
     }
   },
-  receiveReturnItem ({ state, commit }, data) {
+  receiveReturnItem ({ state }, data) {
     const payload = {
       shipmentId: data.shipmentId,
     }

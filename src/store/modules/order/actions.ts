@@ -46,7 +46,7 @@ const actions: ActionTree<OrderState, RootState> = {
     });
     commit(types.ORDER_CURRENT_UPDATED, state.current )
   },
-  async addOrderItem ({ state, commit }, payload) {
+  async addOrderItem ({ commit }, payload) {
     const product = { 
       ...payload,
       quantityAccepted: 0,
