@@ -119,7 +119,6 @@ const actions: ActionTree<UserState, RootState> = {
    * update current facility information
    */
   async setFacility ({ commit, dispatch }, payload) {
-    const facilityLocations = await dispatch('getFacilityLocations', payload.facility.facilityId)
     await dispatch("getEComStores", { facilityId: payload.facility.facilityId });
     commit(types.USER_CURRENT_FACILITY_UPDATED, payload.facility);
   },

@@ -15,7 +15,6 @@ const actions: ActionTree<ShipmentState, RootState> = {
       if (resp.status === 200 && resp.data.docs?.length > 0 && !hasError(resp)) {
         let shipments = resp.data.docs;
         const statusIds = [...new Set(shipments.map((shipment: any) => shipment.statusId))]
-        const shipmentIds = shipments.map((shipment: any) => shipment.shipmentId)
         const statuses = await this.dispatch('util/fetchStatus', statusIds);
         shipments.map(async (shipment: any) => {
           shipment.statusDesc = statuses[shipment.statusId]
