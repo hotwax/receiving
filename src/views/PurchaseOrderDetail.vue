@@ -30,7 +30,7 @@
         <div class="scanner">
           <ion-item>
             <ion-label position="fixed">{{$t("Scan items")}}</ion-label>
-            <ion-input :placeholder="$t('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()" />
+            <ion-input autofocus :placeholder="$t('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()" />
           </ion-item>
           <ion-button expand="block" fill="outline" @click="scan">
             <ion-icon slot="start" :icon="cameraOutline" />
