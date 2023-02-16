@@ -163,7 +163,8 @@ const actions: ActionTree<OrderState, RootState> = {
           "orderId_op": "in"
         },
         "entityName": "ShipmentReceiptAndItem",
-        "fieldList": ["datetimeReceived", "productId", "quantityAccepted", "quantityRejected", "receivedByUserLoginId", "shipmentId", 'locationSeqId']
+        "fieldList": ["datetimeReceived", "productId", "quantityAccepted", "quantityRejected", "receivedByUserLoginId", "shipmentId", 'locationSeqId'],
+        "orderBy": 'datetimeReceived DESC'
       }
       const facilityLocations = await this.dispatch('user/getFacilityLocations', this.state.user.currentFacility.facilityId);
       const locationSeqId = facilityLocations.length > 0 ? facilityLocations[0].locationSeqId : "";
