@@ -21,6 +21,7 @@
           <ion-item lines="none">
             <h1>{{$t("Purchase Order")}}: {{ order.externalOrderId }}</h1>
           </ion-item>
+
           <div class="doc-meta">
             <ion-chip @click="copyToClipboard(order.orderId)">{{ order.orderId }}<ion-icon :icon="copyOutline"/></ion-chip>
             <ion-badge :color="order.orderStatusId === 'ORDER_CREATED' ? 'medium' : 'primary'">{{ order.orderStatusDesc }}</ion-badge>
