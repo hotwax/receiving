@@ -72,7 +72,8 @@
             </div>
 
             <div class="qty-progress">
-              <ion-progress-bar :color="item.quantityAccepted/(item.quantity - getPOItemAccepted(item.productId)) > 1 ? 'danger' : 'primary'" :value="item.quantityAccepted/item.quantity" />
+              <!-- TODO: improve the handling of quantityAccepted -->
+              <ion-progress-bar :color="parseInt(item.quantityAccepted)/(item.quantity - getPOItemAccepted(item.productId)) > 1 ? 'danger' : 'primary'" :value="(parseInt(item.quantityAccepted) +  getPOItemAccepted(item.productId))/(item.quantity)" />
             </div>
 
             <div class="po-item-history">
@@ -316,7 +317,7 @@ ion-thumbnail {
 
   .action {
     grid: "receive progressbar history ordered" /  max-content 1fr max-content max-content;
-    margin-left: var(--spacer-sm);
+    padding-left: var(--spacer-sm);
   }
 }
 </style>
