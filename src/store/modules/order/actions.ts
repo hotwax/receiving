@@ -153,7 +153,7 @@ const actions: ActionTree<OrderState, RootState> = {
     return resp;
   },
 
-  async getPOHistory({ commit, state }, payload) {
+  async getPOHistory({ commit, state, dispatch }, payload) {
     let resp;
     const current = state.current as any;
     try {
@@ -169,6 +169,7 @@ const actions: ActionTree<OrderState, RootState> = {
       const facilityLocations = await this.dispatch('user/getFacilityLocations', this.state.user.currentFacility.facilityId);
       const locationSeqId = facilityLocations.length > 0 ? facilityLocations[0].locationSeqId : "";
       resp = await OrderService.fetchPOHistory(params)
+      dispatch("getReceiverDetails");
       if (resp.status === 200 && !hasError(resp) && resp.data?.count > 0) {
         const poHistory = resp.data.docs;
         current.poHistory.items = poHistory;
@@ -208,6 +209,22 @@ const actions: ActionTree<OrderState, RootState> = {
       list: [],
       total: 0
     })
+  },
+  async getReceiverDetails({commit}) {
+    let resp;
+    try {
+      const params = {
+        "inputFields": {
+          "userLoginId": 'hotwax.user'
+        },
+        "fieldList": ["firstName", "lastName"],
+        "entityName": "PersonAndUserLoginAndContactDetails",
+      }
+      resp = await OrderService.getReceiverDetails(params);
+      console.log(resp);
+    } catch(err) {
+      console.error(err);
+    }
   }
 }
 

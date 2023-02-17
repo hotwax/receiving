@@ -11,6 +11,7 @@
   </ion-header>
   <ion-content>
     <ion-list v-for="(item, index) in items" :key="index">
+      {{item}}
       <ion-item>
         <ion-thumbnail slot="start">
           <Image :src="getProduct(item.productId).mainImageUrl" />
