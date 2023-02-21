@@ -226,8 +226,7 @@ const actions: ActionTree<OrderState, RootState> = {
         "userLoginId": unavailableReceiversLoginIds,
       },
       "fieldList": ["firstName", "lastName", "userLoginId"],
-      "entityName": "PersonAndUserLoginAndContactDetails",
-      "distinct": "Y",
+      "entityName": "PartyAndUserLoginAndPerson",
       "viewSize": unavailableReceiversLoginIds.length,
       "noConditionFind": "Y"
     }
