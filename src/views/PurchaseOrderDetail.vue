@@ -73,7 +73,7 @@
 
             <div class="qty-progress">
               <!-- TODO: improve the handling of quantityAccepted -->
-              <ion-progress-bar :color="parseInt(item.quantityAccepted)/(item.quantity - getPOItemAccepted(item.productId)) > 1 ? 'danger' : 'primary'" :value="(parseInt(item.quantityAccepted) +  getPOItemAccepted(item.productId))/(item.quantity)" />
+              <ion-progress-bar :color="areItemsReceivedGreaterThanItemsOrdered(item) ? 'danger' : 'primary'" :value="getNumberOfItemsReceived(item)" />
             </div>
 
             <div class="po-item-history">
@@ -176,6 +176,12 @@ export default defineComponent({
     })
   },
   methods: {
+    getNumberOfItemsReceived(item: any){
+      return (parseInt(item.quantityAccepted) +  this.getPOItemAccepted(item.productId))/(item.quantity)
+    },
+    areItemsReceivedGreaterThanItemsOrdered(item: any){
+      return item.quantityAccepted > (item.quantity - this.getPOItemAccepted(item.productId))
+    },
     async openImage(imageUrl: string, productName: string) {
       const imageModal = await modalController.create({
         component: ImageModal,
