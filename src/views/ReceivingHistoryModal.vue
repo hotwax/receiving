@@ -11,14 +11,13 @@
   </ion-header>
   <ion-content>
     <ion-list v-for="(item, index) in items" :key="index">
-      {{item}}
       <ion-item>
         <ion-thumbnail slot="start">
           <Image :src="getProduct(item.productId).mainImageUrl" />
         </ion-thumbnail>
         <ion-label>
-          {{ item.receivedByUserLoginId }}
-          <p>{{ item.shipmentId }}</p>
+          {{ item.receiversFullName }}
+          <p>{{ $t("Shipment ID") }}: {{ item.shipmentId }}</p>
         </ion-label>
         <ion-label>
           <ion-note>{{ item.quantityAccepted }} {{ $t("received") }} | {{ item.quantityRejected }} {{ $t("rejected") }}</ion-note>

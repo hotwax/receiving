@@ -169,7 +169,6 @@ const actions: ActionTree<OrderState, RootState> = {
       const facilityLocations = await this.dispatch('user/getFacilityLocations', this.state.user.currentFacility.facilityId);
       const locationSeqId = facilityLocations.length > 0 ? facilityLocations[0].locationSeqId : "";
       resp = await OrderService.fetchPOHistory(params)
-      dispatch("getReceiverDetails");
       if (resp.status === 200 && !hasError(resp) && resp.data?.count > 0) {
         const poHistory = resp.data.docs;
         current.poHistory.items = poHistory;
@@ -177,10 +176,16 @@ const actions: ActionTree<OrderState, RootState> = {
           products[item.productId] = item.locationSeqId
           return products
         }, {});
-        
+
+        const receiversLoginIds = [...new Set(current.poHistory.items.map((item: any) => item.receivedByUserLoginId))]
+        const receiversDetails = await dispatch('getReceiversDetails', receiversLoginIds);
+        current.poHistory.items.map((item: any) => {
+          item.receiversFullName = receiversDetails[item.receivedByUserLoginId].fullName;
+        })
         current.items.map((item: any) => {
           item.locationSeqId = facilityLocationByProduct[item.productId] ? facilityLocationByProduct[item.productId] : locationSeqId;
         });
+
         commit(types.ORDER_CURRENT_UPDATED, current);
         return poHistory;
       } else {
@@ -210,21 +215,40 @@ const actions: ActionTree<OrderState, RootState> = {
       total: 0
     })
   },
-  async getReceiverDetails({commit}) {
+  async getReceiversDetails({commit, state}, receiversLoginIds) {
+    const unavailableReceiversLoginIds = receiversLoginIds.filter((receiversLoginId: any) => !state.receiversDetails[receiversLoginId]);
+
+    if(!unavailableReceiversLoginIds.length) return state.receiversDetails;
+
     let resp;
-    try {
-      const params = {
-        "inputFields": {
-          "userLoginId": 'hotwax.user'
-        },
-        "fieldList": ["firstName", "lastName"],
-        "entityName": "PersonAndUserLoginAndContactDetails",
+    const params = {
+      "inputFields": {
+        "userLoginId": unavailableReceiversLoginIds,
+      },
+      "fieldList": ["firstName", "lastName", "userLoginId"],
+      "entityName": "PersonAndUserLoginAndContactDetails",
+      "distinct": "Y",
+      "viewSize": unavailableReceiversLoginIds.length,
+      "noConditionFind": "Y"
+    }
+    try { 
+      resp = await OrderService.getReceiversDetails(params);
+      if (resp.status == 200 && !hasError(resp) && resp.data.count > 0) {
+        const receiversDetails = resp.data.docs;
+
+        const receiversDetailByLoginId = receiversDetails.reduce((receiversDetailByLoginId: any, receiverDetails: any) => {
+          receiverDetails.fullName = receiverDetails.firstName + ' ' + receiverDetails.lastName;
+          receiversDetailByLoginId[receiverDetails.userLoginId] = receiverDetails;
+          return receiversDetailByLoginId;
+        }, {});
+        commit(types.ORDER_RECEIVERS_DETAIL_UPDATED, receiversDetailByLoginId);
+      } else {
+        console.error(resp);
       }
-      resp = await OrderService.getReceiverDetails(params);
-      console.log(resp);
     } catch(err) {
       console.error(err);
     }
+    return state.receiversDetails;
   }
 }
 
