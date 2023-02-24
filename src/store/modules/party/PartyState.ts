@@ -1,3 +1,3 @@
 export default interface PartyState {
-  namesByUserLogin: any;
+  namesByLoginId: any;
 }

@@ -5,14 +5,14 @@ import { Module } from 'vuex'
 import PartyState from './PartyState'
 import RootState from '../../RootState'
 
-const OrderModule: Module<PartyState, RootState> = {
+const PartyModule: Module<PartyState, RootState> = {
     namespaced: true,
     state: {
-      namesByUserLogin: {},
+      namesByLoginId: {},
     },
     getters,
     actions,
     mutations,
 }
 
-export default OrderModule;
+export default PartyModule;

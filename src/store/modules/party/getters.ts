@@ -1,8 +1,8 @@
 import { GetterTree } from "vuex";
-import OrderState from "./PartyState";
+import PartyState from "./PartyState";
 import RootState from "../../RootState";
 
-const getters: GetterTree<OrderState, RootState> = {
+const getters: GetterTree<PartyState, RootState> = {
   
 };
 export default getters;
