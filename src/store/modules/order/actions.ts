@@ -224,6 +224,7 @@ const actions: ActionTree<OrderState, RootState> = {
     const params = {
       "inputFields": {
         "userLoginId": unavailableReceiversLoginIds,
+        "userLoginId_op": 'in'
       },
       "fieldList": ["firstName", "lastName", "userLoginId"],
       "entityName": "PartyAndUserLoginAndPerson",
