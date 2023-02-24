@@ -12,7 +12,6 @@ const OrderModule: Module<OrderState, RootState> = {
         list: [],
         total: 0
       },
-      receiversDetails: {},
       current: {
         orderId: '',
         externalOrderId: '',

@@ -1,0 +1,2 @@
+export const SN_PARTY = 'party'
+export const PARTY_RECEIVERS_DETAIL_UPDATED = SN_PARTY + '/RECEIVERS_DETAIL_UPDATED'

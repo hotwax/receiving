@@ -178,7 +178,7 @@ const actions: ActionTree<OrderState, RootState> = {
         }, {});
 
         const receiversLoginIds = [...new Set(current.poHistory.items.map((item: any) => item.receivedByUserLoginId))]
-        const receiversDetails = await dispatch('getReceiversDetails', receiversLoginIds);
+        const receiversDetails = await this.dispatch('party/getReceiversDetails', receiversLoginIds);
         current.poHistory.items.map((item: any) => {
           item.receiversFullName = receiversDetails[item.receivedByUserLoginId].fullName;
         })
@@ -214,41 +214,6 @@ const actions: ActionTree<OrderState, RootState> = {
       list: [],
       total: 0
     })
-  },
-  async getReceiversDetails({commit, state}, receiversLoginIds) {
-    const unavailableReceiversLoginIds = receiversLoginIds.filter((receiversLoginId: any) => !state.receiversDetails[receiversLoginId]);
-
-    if(!unavailableReceiversLoginIds.length) return state.receiversDetails;
-
-    let resp;
-    const params = {
-      "inputFields": {
-        "userLoginId": unavailableReceiversLoginIds,
-        "userLoginId_op": 'in'
-      },
-      "fieldList": ["firstName", "lastName", "userLoginId"],
-      "entityName": "PartyAndUserLoginAndPerson",
-      "viewSize": unavailableReceiversLoginIds.length,
-      "noConditionFind": "Y"
-    }
-    try { 
-      resp = await OrderService.getReceiversDetails(params);
-      if (resp.status == 200 && !hasError(resp) && resp.data.count > 0) {
-        const receiversDetails = resp.data.docs;
-
-        const receiversDetailByLoginId = receiversDetails.reduce((receiversDetailByLoginId: any, receiverDetails: any) => {
-          receiverDetails.fullName = receiverDetails.firstName + ' ' + receiverDetails.lastName;
-          receiversDetailByLoginId[receiverDetails.userLoginId] = receiverDetails;
-          return receiversDetailByLoginId;
-        }, {});
-        commit(types.ORDER_RECEIVERS_DETAIL_UPDATED, receiversDetailByLoginId);
-      } else {
-        console.error(resp);
-      }
-    } catch(err) {
-      console.error(err);
-    }
-    return state.receiversDetails;
   }
 }
 

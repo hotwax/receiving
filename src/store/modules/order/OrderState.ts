@@ -3,6 +3,5 @@ export default interface OrderState {
     list: any;
     total: number;
   },
-  receiversDetails: any;
   current: any;
 }
