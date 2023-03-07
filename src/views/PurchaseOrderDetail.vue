@@ -72,7 +72,8 @@
             </div>
 
             <div class="qty-progress">
-              <ion-progress-bar :value="item.quantityAccepted/item.quantity" />
+              <!-- TODO: improve the handling of quantityAccepted -->
+              <ion-progress-bar :color="getRcvdToOrderedFraction(item) > 1 ? 'danger' : 'primary'" :value="getRcvdToOrderedFraction(item)" />
             </div>
 
             <div class="po-item-history">
@@ -175,6 +176,9 @@ export default defineComponent({
     })
   },
   methods: {
+    getRcvdToOrderedFraction(item: any){
+      return (parseInt(item.quantityAccepted) +  this.getPOItemAccepted(item.productId))/(item.quantity)
+    },
     async openImage(imageUrl: string, productName: string) {
       const imageModal = await modalController.create({
         component: ImageModal,
@@ -316,7 +320,7 @@ ion-thumbnail {
 
   .action {
     grid: "receive progressbar history ordered" /  max-content 1fr max-content max-content;
-    margin-left: var(--spacer-sm);
+    padding-left: var(--spacer-sm);
   }
 }
 </style>
