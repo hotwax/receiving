@@ -1,3 +1,15 @@
+# Release 2.7.0
+
+## What's Changed
+* Implemented: support for using api and client method from OMS api package( #85zrm1ktj)  by @k2maan in https://github.com/hotwax/receiving/pull/195
+* Updated: autofocus on ion-input on all details page (#2vd9jaf) by @k2maan in https://github.com/hotwax/receiving/pull/194
+* Fixed: build console warnings (#85zrmq7yv) by @k2maan in https://github.com/hotwax/receiving/pull/196
+* Improved: show the most recent record in the history modal(#85zrna7wr) by @disha1202 in https://github.com/hotwax/receiving/pull/197
+* updated: UI for over receiving(#85zrnfx68) by @disha1202 in https://github.com/hotwax/receiving/pull/199
+
+
+**Full Changelog**: https://github.com/hotwax/receiving/compare/v2.6.0...v2.7.0
+
 # Release 2.6.0
 
 ## What's Changed
