@@ -15,7 +15,7 @@ import { loadingController } from '@ionic/vue';
 import emitter from "@/event-bus"
 import { mapGetters, useStore } from "vuex";
 import { Settings } from 'luxon';
-import { init, resetConfig } from '@/adapter'
+import { initialise, resetConfig } from '@/adapter'
 import { useRouter } from 'vue-router';
 
 export default defineComponent({
@@ -65,7 +65,20 @@ export default defineComponent({
     }
   },
   created() {
-    init(this.userToken, this.instanceUrl, this.maxAge)
+    initialise({
+      token: this.userToken,
+      instanceUrl: this.instanceUrl,
+      cacheMaxAge: this.maxAge,
+      events: {
+        unauthorised: this.unauthorized,
+        responseErrror: () => {
+          setTimeout(() => this.dismissLoader(), 100);
+        },
+        queueTask: (payload: any) => {
+          emitter.emit("queueTask", payload);
+        }
+      }
+    })
   },
   async mounted() {
     this.loader = await loadingController
@@ -76,7 +89,6 @@ export default defineComponent({
       });
     emitter.on('presentLoader', this.presentLoader);
     emitter.on('dismissLoader', this.dismissLoader);
-    emitter.on('unauthorized', this.unauthorized);
 
     if(this.productIdentifications.length <= 0) {
       // TODO: fetch product identifications from enumeration instead of storing it in env
@@ -95,7 +107,6 @@ export default defineComponent({
   unmounted() {
     emitter.off('presentLoader', this.presentLoader);
     emitter.off('dismissLoader', this.dismissLoader);
-    emitter.off('unauthorized', this.unauthorized);
     resetConfig()
   },
   setup() {
