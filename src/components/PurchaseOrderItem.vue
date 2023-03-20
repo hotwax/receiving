@@ -5,7 +5,10 @@
       <h3>{{ purchaseOrder.externalOrderId }}</h3>
       <p>{{ purchaseOrder.orderName ? purchaseOrder.orderName : purchaseOrder.orderId }}</p>
     </ion-label>
-    <ion-note slot="end">{{ purchaseOrder.estimatedDeliveryDate ? $filters.formatUtcDate(purchaseOrder.estimatedDeliveryDate, 'YYYY-MM-DDTHH:mm:ssZ') : " - " }}</ion-note>
+    <ion-label slot="end">
+      <p>{{ purchaseOrder.estimatedDeliveryDate ? $filters.formatUtcDate(purchaseOrder.estimatedDeliveryDate, 'YYYY-MM-DDTHH:mm:ssZ') : " - " }}</p>
+      <ion-badge :color="orderStatusColor[purchaseOrder.orderStatusId]">{{ purchaseOrder.orderStatusDesc }}</ion-badge>
+    </ion-label>
   </ion-item>
 </template>
 
@@ -13,7 +16,6 @@
 import { defineComponent } from 'vue'
 import {
   IonItem,
-  IonNote,
   IonLabel
 } from '@ionic/vue'
 import { useRouter } from 'vue-router'
@@ -23,10 +25,19 @@ export default defineComponent({
   name: "PurchaseOrderItem",
   components: {
     IonItem,
-    IonNote,
     IonLabel
   },
   props: ["purchaseOrder"],
+  data(){
+    return {
+      orderStatusColor: {
+        ORDER_CREATED: 'medium',
+        ORDER_APPROVED: 'primary',
+        ORDER_REJECTED: 'danger',
+        ORDER_COMPLETED: 'success'
+      }
+    }
+  },
   methods: {
     async getOrderDetail(orderId?: any) {
       await this.store.dispatch("order/getOrderDetail", {orderId})

@@ -66,7 +66,7 @@ const actions: ActionTree<OrderState, RootState> = {
       return orders.some((order: any) => {
         if (order.doclist.docs[0]?.orderId === orderId) {
           this.dispatch('product/fetchProductInformation',  { order: order.doclist.docs });
-          commit(types.ORDER_CURRENT_UPDATED, { ...state.current, orderId: order.doclist.docs[0]?.orderId, externalOrderId: order.doclist.docs[0]?.externalOrderId, items: order.doclist.docs })
+          commit(types.ORDER_CURRENT_UPDATED, { ...state.current, orderId: order.doclist.docs[0]?.orderId, externalOrderId: order.doclist.docs[0]?.externalOrderId, orderStatusId: order.doclist.docs[0]?.orderStatusId, orderStatusDesc: order.doclist.docs[0]?.orderStatusDesc, items: order.doclist.docs })
           return current;
         }
       })
@@ -94,15 +94,15 @@ const actions: ActionTree<OrderState, RootState> = {
           product.quantityAccepted = 0;
         })
         this.dispatch('product/fetchProductInformation', { order: order.doclist.docs });
-        commit(types.ORDER_CURRENT_UPDATED, { orderId: order.groupValue, externalOrderId: order.doclist.docs[0]?.externalOrderId, items: order.doclist.docs, poHistory: [] })
+        commit(types.ORDER_CURRENT_UPDATED, { orderId: order.groupValue, externalOrderId: order.doclist.docs[0]?.externalOrderId, orderStatusId: order.doclist.docs[0]?.orderStatusId, orderStatusDesc: order.doclist.docs[0]?.orderStatusDesc, items: order.doclist.docs, poHistory: [] })
       }
       else {
         showToast(translate("Something went wrong"));
-        commit(types.ORDER_CURRENT_UPDATED, { orderId, externalOrderId: '', items: [], poHistory: [] })
+        commit(types.ORDER_CURRENT_UPDATED, { orderId, externalOrderId: '', orderStatusId: '', orderStatusDesc: '', items: [], poHistory: [] })
       }
     } catch (error) {
       showToast(translate("Something went wrong"));
-      commit(types.ORDER_CURRENT_UPDATED, { orderId, externalOrderId: '', items: [], poHistory: [] })
+      commit(types.ORDER_CURRENT_UPDATED, { orderId, externalOrderId: '', orderStatusId: '', orderStatusDesc: '', items: [], poHistory: [] })
     }
     return resp;
   },

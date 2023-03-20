@@ -21,9 +21,10 @@
           <ion-item lines="none">
             <h1>{{$t("Purchase Order")}}: {{ order.externalOrderId }}</h1>
           </ion-item>
-          
+
           <div class="doc-meta">
             <ion-chip @click="copyToClipboard(order.orderId)">{{ order.orderId }}<ion-icon :icon="copyOutline"/></ion-chip>
+            <ion-badge :color="order.orderStatusId === 'ORDER_CREATED' ? 'medium' : 'primary'">{{ order.orderStatusDesc }}</ion-badge>
           </div>
         </div>
         
@@ -38,8 +39,9 @@
           </ion-button>
         </div>
         
-        <ion-card v-for="(item, index) in order.items" :key="index">
-          <div class="product">
+        <!-- TODO: need UI for rejected and completed items -->
+        <ion-card v-for="(item, index) in order.items" v-show="item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED'" :key="index">
+          <div  class="product">
             <div class="product-info">
               <ion-item lines="none">
                 <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
