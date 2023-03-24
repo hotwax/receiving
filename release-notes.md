@@ -1,3 +1,11 @@
+# Release 2.8.0
+
+## What's Changed
+* Implemented: display order and item status on POs(#85zrndfmd) by @disha1202 in https://github.com/hotwax/receiving/pull/198
+
+**Full Changelog**: https://github.com/hotwax/receiving/compare/v2.7.0...v2.8.0
+
+
 # Release 2.7.0
 
 ## What's Changed
