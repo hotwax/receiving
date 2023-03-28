@@ -15,6 +15,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import {
+  IonBadge,
   IonItem,
   IonLabel
 } from '@ionic/vue'
@@ -24,6 +25,7 @@ import { useStore } from 'vuex';
 export default defineComponent({
   name: "PurchaseOrderItem",
   components: {
+    IonBadge,
     IonItem,
     IonLabel
   },

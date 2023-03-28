@@ -16,12 +16,12 @@
           <Image :src="getProduct(item.productId).mainImageUrl" />
         </ion-thumbnail>
         <ion-label>
-          {{ item.receivedByUserLoginId }}
-          <p>{{ item.shipmentId }}</p>
+          {{ item.receiversFullName }}
+          <p>{{ $t("Shipment ID") }}: {{ item.shipmentId }}</p>
         </ion-label>
         <ion-label>
           <ion-note>{{ item.quantityAccepted }} {{ $t("received") }} | {{ item.quantityRejected }} {{ $t("rejected") }}</ion-note>
-          <ion-note>{{ item.datetimeReceived ? $filters.formatDate(item.datetimeReceived, undefined, "H:MM A DD/MM/YYYY") : "-" }}</ion-note>
+          <ion-note>{{ item.datetimeReceived ? getTime(item.datetimeReceived) : "-" }}</ion-note>
         </ion-label>
       </ion-item>
     </ion-list>
@@ -48,6 +48,7 @@ import { defineComponent } from 'vue';
 import { closeOutline } from 'ionicons/icons';
 import Image from "@/components/Image.vue";
 import { mapGetters, useStore } from "vuex";
+import { DateTime } from 'luxon';
 
 export default defineComponent({
   name: "ReceivingHistoryModal",
@@ -85,6 +86,9 @@ export default defineComponent({
     closeModal() {
       modalController.dismiss({ dismissed: true });
     },
+    getTime(time) {
+      return DateTime.fromMillis(time).toFormat("H:mm a dd/MM/yyyy")
+    }
   },
   setup() {
     const store = useStore();

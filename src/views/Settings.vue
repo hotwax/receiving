@@ -244,6 +244,7 @@ export default defineComponent({
       this.store.dispatch('user/logout').then(() => {
         this.store.dispatch('shipment/clearShipments');
         this.store.dispatch('return/clearReturns');
+        this.store.dispatch("party/resetReceiversDetails");
         this.router.push('/login');
       })
     },
