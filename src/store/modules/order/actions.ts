@@ -153,7 +153,7 @@ const actions: ActionTree<OrderState, RootState> = {
     return resp;
   },
 
-  async getPOHistory({ commit, state }, payload) {
+  async getPOHistory({ commit, state, dispatch }, payload) {
     let resp;
     const current = state.current as any;
     try {
@@ -176,10 +176,16 @@ const actions: ActionTree<OrderState, RootState> = {
           products[item.productId] = item.locationSeqId
           return products
         }, {});
-        
+
+        const receiversLoginIds = [...new Set(current.poHistory.items.map((item: any) => item.receivedByUserLoginId))]
+        const receiversDetails = await this.dispatch('party/getReceiversDetails', receiversLoginIds);
+        current.poHistory.items.map((item: any) => {
+          item.receiversFullName = receiversDetails[item.receivedByUserLoginId].fullName;
+        })
         current.items.map((item: any) => {
           item.locationSeqId = facilityLocationByProduct[item.productId] ? facilityLocationByProduct[item.productId] : locationSeqId;
         });
+
         commit(types.ORDER_CURRENT_UPDATED, current);
         return poHistory;
       } else {

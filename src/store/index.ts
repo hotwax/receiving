@@ -10,6 +10,7 @@ import shipmentModule from "./modules/shipment"
 import productModule from "./modules/product"
 import utilModule from "./modules/util"
 import returnModule from "./modules/return"
+import partyModule from './modules/party'
 
 
 // TODO check how to register it from the components only
@@ -39,7 +40,8 @@ const store = createStore<RootState>({
         'product': productModule,
         'return': returnModule,
         'shipment': shipmentModule,
-        'util': utilModule
+        'util': utilModule,
+        'party': partyModule
     },
 })
 
