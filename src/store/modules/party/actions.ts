@@ -34,7 +34,7 @@ const actions: ActionTree<PartyState, RootState> = {
           receiversDetailByLoginId[receiverDetails.userLoginId] = receiverDetails;
           return receiversDetailByLoginId;
         }, {});
-        commit(types.PARTY_NAMES_BY_LOGIN_ID_UPDATED, receiversDetailsByLoginId);
+        commit(types.PARTY_NMS_BY_LGN_ID_BULK_UPDATED, receiversDetailsByLoginId);
       } else {
         console.error(resp);
       }
@@ -42,6 +42,9 @@ const actions: ActionTree<PartyState, RootState> = {
       console.error(err);
     }
     return state.namesByLoginId;
+  },
+  async resetReceiversDetails({commit}) {
+    commit(types.PARTY_NAMES_BY_LOGIN_ID_UPDATED, {});
   }
 }
 

@@ -106,6 +106,7 @@
 <script lang="ts">
 import {
   IonBackButton,
+  IonBadge,
   IonButton,
   IonButtons,
   IonCard,
@@ -143,6 +144,7 @@ export default defineComponent({
   components: {
     Image,
     IonBackButton,
+    IonBadge,
     IonButton,
     IonButtons,
     IonCard,
