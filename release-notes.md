@@ -1,3 +1,11 @@
+# Release 2.9.0
+
+## What's Changed
+* Implemented: logic to fetch receivers details(#85zrnfjuc)  by @disha1202 in https://github.com/hotwax/receiving/pull/200 and  @adityasharma7 in https://github.com/hotwax/receiving/pull/205
+
+
+**Full Changelog**: https://github.com/hotwax/receiving/compare/v2.8.0...v2.9.0
+
 # Release 2.8.0
 
 ## What's Changed
