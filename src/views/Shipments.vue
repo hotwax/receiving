@@ -55,7 +55,7 @@ export default defineComponent({
       queryString: ''
     }
   },
-  mounted () {
+  ionViewWillEnter () {
     this.getShipments();
   },
   methods: {
