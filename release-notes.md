@@ -1,3 +1,12 @@
+# Release 2.10.0
+
+## What's Changed
+* Improved: code to display the externalId for shipments on list and detail page if present, otherwise display shipmentId(#85zrvy2rk) by @ymaheshwari1 in https://github.com/hotwax/receiving/pull/209
+* Fixed: issue of shipment not being removed from the list page after receiving(#85zrvy23b) by @ymaheshwari1 in https://github.com/hotwax/receiving/pull/210
+
+
+**Full Changelog**: https://github.com/hotwax/receiving/compare/v2.9.0...v2.10.0
+
 # Release 2.9.0
 
 ## What's Changed
