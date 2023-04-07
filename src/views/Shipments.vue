@@ -79,7 +79,7 @@ export default defineComponent({
           "parentTypeId_fld0_grp": "2",
         },
         "entityName": "ShipmentAndTypeAndItemCount",
-        "fieldList" : [ "shipmentId","primaryShipGroupSeqId","partyIdFrom","partyIdTo","estimatedArrivalDate","destinationFacilityId","statusId", "shipmentItemCount" ],
+        "fieldList" : [ "shipmentId","primaryShipGroupSeqId","partyIdFrom","partyIdTo","estimatedArrivalDate","destinationFacilityId","statusId", "shipmentItemCount", "externalId" ],
         "noConditionFind": "Y",
         "viewSize": viewSize,
         "viewIndex": viewIndex,
