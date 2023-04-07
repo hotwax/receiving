@@ -13,7 +13,8 @@
     <ion-content>
       <main>
         <ion-item lines="none">
-          <h1>{{ $t("Shipment ID") }}: {{ current.shipmentId }}</h1>
+          <h1 v-if="current.externalId">{{ $t("External ID") }}: {{ current.externalId }}</h1>
+          <h1 v-else>{{ $t("Shipment ID") }}: {{ current.shipmentId }}</h1>
         </ion-item>
 
         <div class="scanner">
