@@ -84,7 +84,7 @@ const actions: ActionTree<UserState, RootState> = {
       
       let preferredStore = userProfile.stores[0];
 
-      const preferredStoreId =  await UserService.getUserPreference(token);
+      const preferredStoreId =  await UserService.getPreferredStore(token);
       if (preferredStoreId) {
         const store = userProfile.stores.find((store: any) => store.productStoreId === preferredStoreId);
         store && (preferredStore = store)
@@ -155,7 +155,7 @@ const actions: ActionTree<UserState, RootState> = {
 
     let preferredStore = userProfile.stores[0];
 
-    const preferredStoreId =  await UserService.getUserPreference(undefined);
+    const preferredStoreId =  await UserService.getPreferredStore(undefined);
     if (preferredStoreId) {
       const store = userProfile.stores.find((store: any) => store.productStoreId === preferredStoreId);
       store && (preferredStore = store)

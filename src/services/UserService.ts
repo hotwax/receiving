@@ -108,7 +108,7 @@ const setUserPreference = async (payload: any): Promise<any> => {
   });
 }
 
-const getUserPreference = async (token: any): Promise<any> => {
+const getPreferredStore = async (token: any): Promise<any> => {
   const baseURL = store.getters['user/getBaseUrl'];
   try {
     const resp = await client({
@@ -259,6 +259,6 @@ export const UserService = {
     createProductIdentificationPref,
     updateProductIdentificationPref,
     setUserPreference,
-    getUserPreference,
+    getPreferredStore,
     checkPermission
 }
