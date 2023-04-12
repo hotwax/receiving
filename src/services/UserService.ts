@@ -36,6 +36,7 @@ const getUserProfile = async (token: any): Promise<any> => {
       }
     });
     if(hasError(resp)) return Promise.reject("Error getting user profile: " + JSON.stringify(resp.data));
+    if(resp.data.facilities.length === 0) return Promise.reject("User is not associated with any facilities: " + JSON.stringify(resp.data));
     return Promise.resolve(resp.data)
   } catch(error: any) {
     return Promise.reject(error)
@@ -65,11 +66,6 @@ const getFacilityLocations = async (payload: any): Promise<any> => {
 }
   
 const getEComStores = async (token: any, facilityId: any): Promise<any> => {
-  // If the facilityId is not provided, it may be case of user not associated with any facility or the logout
-  if (!facilityId) {
-    return Promise.resolve({});
-  }
-
   try {
     const params = {
       "inputFields": {

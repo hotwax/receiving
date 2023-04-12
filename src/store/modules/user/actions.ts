@@ -19,7 +19,7 @@ const actions: ActionTree<UserState, RootState> = {
   /**
  * Login user and return token
  */
-  async login ({ commit }, { username, password }) {
+  async login ({ commit, dispatch }, { username, password }) {
     try {
       const resp = await UserService.login(username, password);
       // Further we will have only response having 2xx status
@@ -70,6 +70,8 @@ const actions: ActionTree<UserState, RootState> = {
       }
 
       const userProfile = await UserService.getUserProfile(token);
+
+      // Getting unique facilities
       userProfile.facilities.reduce((uniqueFacilities: any, facility: any, index: number) => {
         if(uniqueFacilities.includes(facility.facilityId)) userProfile.facilities.splice(index, 1);
         else uniqueFacilities.push(facility.facilityId);
@@ -77,10 +79,10 @@ const actions: ActionTree<UserState, RootState> = {
       }, []);
 
       // TODO Use a separate API for getting facilities, this should handle user like admin accessing the app
-      const currentFacility = userProfile.facilities.length > 0 ? userProfile.facilities[0] : {};
-      userProfile.stores = await UserService.getEComStores(token, currentFacility?.facilityId);
+      const currentFacility = userProfile.facilities[0];
+      userProfile.stores = await UserService.getEComStores(token, currentFacility.facilityId);
       
-      let preferredStore = userProfile.stores.length ?  userProfile.stores[0] : {};
+      let preferredStore = userProfile.stores[0];
 
       const preferredStoreId =  await UserService.getUserPreference(token);
       if (preferredStoreId) {
@@ -96,13 +98,15 @@ const actions: ActionTree<UserState, RootState> = {
 
       // TODO user single mutation
       commit(types.USER_INFO_UPDATED, userProfile);
-      // TODO: fetch product identifications from enumeration instead of storing it in env
-      this.dispatch('util/setProductIdentifications', process.env.VUE_APP_PRDT_IDENT ? JSON.parse(process.env.VUE_APP_PRDT_IDENT) : [])
       commit(types.USER_CURRENT_FACILITY_UPDATED, currentFacility);
       commit(types.USER_CURRENT_ECOM_STORE_UPDATED, preferredStore);
       commit(types.USER_PERMISSIONS_UPDATED, appPermissions);
       commit(types.USER_TOKEN_CHANGED, { newToken: token })
-      
+      // Get facility location of selected facility
+      dispatch('getFacilityLocations', currentFacility.facilityId);
+      // TODO: fetch product identifications from enumeration instead of storing it in env
+      this.dispatch('util/setProductIdentifications', process.env.VUE_APP_PRDT_IDENT ? JSON.parse(process.env.VUE_APP_PRDT_IDENT) : [])
+      dispatch('getProductIdentificationPref', preferredStore.productStoreId);
       // Handling case for warnings like password may expire in few days
       if (resp.data._EVENT_MESSAGE_ && resp.data._EVENT_MESSAGE_.startsWith("Alert:")) {
       // TODO Internationalise text
