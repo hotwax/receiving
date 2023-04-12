@@ -77,7 +77,7 @@
       </main>
 
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button v-if="isReturnReceivable(current.statusId)" @click="completeShipment">
+        <ion-fab-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE)" v-if="isReturnReceivable(current.statusId)" @click="completeShipment">
           <ion-icon :icon="checkmarkDone" />
         </ion-fab-button>
       </ion-fab>
@@ -119,6 +119,7 @@ import ImageModal from '@/components/ImageModal.vue';
 import { hasError } from '@/utils';
 import { showToast, productHelpers } from '@/utils'
 import { translate } from '@/i18n'
+import { Actions, hasPermission } from '@/authorization'
 
 export default defineComponent({
   name: "ReturnDetails",
@@ -261,8 +262,10 @@ export default defineComponent({
     const router = useRouter();
 
     return {
+      Actions,
       barcodeOutline,
       checkmarkDone,
+      hasPermission,
       locationOutline,
       store,
       productHelpers,

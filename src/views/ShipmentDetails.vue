@@ -5,7 +5,7 @@
         <ion-back-button default-href="/" slot="start"></ion-back-button>
         <ion-title>{{ $t("Shipment Details") }}</ion-title>
         <ion-buttons slot="end">
-          <ion-button @click="addProduct"><ion-icon :icon="add"/></ion-button>
+          <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_ADMIN)" @click="addProduct"><ion-icon :icon="add"/></ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
@@ -67,7 +67,7 @@
       </main>
 
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button @click="completeShipment">
+        <ion-fab-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE)" @click="completeShipment">
           <ion-icon :icon="checkmarkDone" />
         </ion-fab-button>
       </ion-fab>
@@ -107,6 +107,7 @@ import Scanner from "@/components/Scanner.vue";
 import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
 import { hasError, productHelpers } from '@/utils'
+import { Actions, hasPermission } from '@/authorization'
 
 export default defineComponent({
   name: "ShipmentDetails",
@@ -233,9 +234,11 @@ export default defineComponent({
     const router = useRouter();
 
     return {
+      Actions,
       add,
       barcodeOutline,
       checkmarkDone,
+      hasPermission,
       store,
       productHelpers,
       router
