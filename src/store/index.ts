@@ -11,6 +11,7 @@ import productModule from "./modules/product"
 import utilModule from "./modules/util"
 import returnModule from "./modules/return"
 import partyModule from './modules/party'
+import { setPermissions } from '@/authorization'
 
 
 // TODO check how to register it from the components only
@@ -44,6 +45,8 @@ const store = createStore<RootState>({
         'party': partyModule
     },
 })
+
+setPermissions(store.getters['user/getUserPermissions']);
 
 export default store
 export function useStore(): typeof store {

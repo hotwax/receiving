@@ -9,6 +9,11 @@ const getters: GetterTree <UserState, RootState> = {
     isUserAuthenticated(state) {
         return state.token && state.current
     },
+    getBaseUrl (state) {
+        let baseURL = process.env.VUE_APP_BASE_URL;
+        if (!baseURL) baseURL = state.instanceUrl;
+        return baseURL.startsWith('http') ? baseURL : `https://${baseURL}.hotwax.io/api/`;
+    },
     getUserToken (state) {
         return state.token
     },
@@ -21,6 +26,9 @@ const getters: GetterTree <UserState, RootState> = {
     getInstanceUrl (state) {
         const baseUrl = process.env.VUE_APP_BASE_URL;
         return baseUrl ? baseUrl : state.instanceUrl;
+    },
+    getUserPermissions (state) {
+        return state.permissions;
     },
     getCurrentEComStore(state) {
         return state.currentEComStore

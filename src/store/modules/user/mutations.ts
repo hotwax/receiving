@@ -10,7 +10,8 @@ const mutations: MutationTree <UserState> = {
       state.token = ''
       state.current = {}
       state.currentFacility = {},
-      state.facilityLocationsByFacilityId = {}
+      state.facilityLocationsByFacilityId = {},
+      state.permissions = []
     },
     [types.USER_INFO_UPDATED] (state, payload) {
         state.current = payload
@@ -29,6 +30,9 @@ const mutations: MutationTree <UserState> = {
     },
     [types.USER_PREF_PRODUCT_IDENT_CHANGED](state, payload) {
         state.productIdentificationPref = payload
+    },
+    [types.USER_PERMISSIONS_UPDATED] (state, payload) {
+        state.permissions = payload
     }
 }
 export default mutations;

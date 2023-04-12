@@ -8,7 +8,7 @@
           <ion-button @click="receivingHistory()">
             <ion-icon slot="icon-only" :icon="timeOutline"/>
           </ion-button>
-          <ion-button @click="addProduct">
+          <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_ADMIN)" @click="addProduct">
             <ion-icon slot="icon-only" :icon="addOutline"/>
           </ion-button>
         </ion-buttons>
@@ -95,7 +95,7 @@
       </main>  
       
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button @click="savePODetails">
+        <ion-fab-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE)" @click="savePODetails">
           <ion-icon :icon="saveOutline" />
         </ion-fab-button>
       </ion-fab>
@@ -138,6 +138,7 @@ import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
 import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
 import { copyToClipboard, hasError, productHelpers } from '@/utils';
+import { Actions, hasPermission } from '@/authorization'
 
 export default defineComponent({
   name: "PurchaseOrderDetails",
@@ -268,11 +269,13 @@ export default defineComponent({
     const router = useRouter();
 
     return {
+      Actions,
       addOutline,
       cameraOutline,
       checkmarkDone,
       copyOutline,
       copyToClipboard,
+      hasPermission,
       productHelpers,
       router,
       saveOutline,
