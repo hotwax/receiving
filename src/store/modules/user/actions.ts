@@ -149,10 +149,21 @@ const actions: ActionTree<UserState, RootState> = {
   /**
    * update current facility information
    */
-  async setFacility ({ commit, dispatch }, payload) {
-    await dispatch('getFacilityLocations', payload.facility.facilityId)
-    await dispatch("getEComStores", { facilityId: payload.facility.facilityId });
+  async setFacility ({ commit, dispatch, state }, payload) {
+    const userProfile = JSON.parse(JSON.stringify(state.current));
+    userProfile.stores = await UserService.getEComStores(undefined, payload.facility.facilityId);
+
+    let preferredStore = userProfile.stores[0];
+
+    const preferredStoreId =  await UserService.getUserPreference(undefined);
+    if (preferredStoreId) {
+      const store = userProfile.stores.find((store: any) => store.productStoreId === preferredStoreId);
+      store && (preferredStore = store)
+    }
+    commit(types.USER_INFO_UPDATED, userProfile);
+    commit(types.USER_CURRENT_ECOM_STORE_UPDATED, preferredStore);
     commit(types.USER_CURRENT_FACILITY_UPDATED, payload.facility);
+    await dispatch('getFacilityLocations', payload.facility.facilityId)
   },
   
   /**
