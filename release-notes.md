@@ -1,3 +1,10 @@
+# Release 2.11.0
+
+## What's Changed
+* Implemented: logic to identify authorisations for the given user (#85zrwe38a)  by @k2maan in https://github.com/hotwax/receiving/pull/215 and @adityasharma7 in https://github.com/hotwax/receiving/pull/216
+
+**Full Changelog**: https://github.com/hotwax/receiving/compare/v2.10.0...v2.11.0
+
 # Release 2.10.0
 
 ## What's Changed
