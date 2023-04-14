@@ -263,6 +263,7 @@ main {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(343px, 1fr));
   gap: var(--spacer-xs);
+  align-items: center;
   margin-bottom: var(--spacer-sm);
 }
 

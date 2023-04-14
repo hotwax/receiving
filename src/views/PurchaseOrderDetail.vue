@@ -87,7 +87,7 @@
 
             <div class="qty-ordered">
               <ion-item lines="none">
-                <ion-label>{{ item.quantity }} {{ $t("ordered") }}</ion-label>   
+                <ion-label slot="end">{{ item.quantity }} {{ $t("ordered") }}</ion-label>   
               </ion-item>
             </div>         
           </div>
@@ -290,10 +290,11 @@ export default defineComponent({
 
 .action {
   display: grid;
-  grid: "receive progressbar ordered"
-        "history history     history" 
-        / max-content 1fr max-content; 
+  grid: "progressbar ordered"
+        "receive     history" 
+        / 1fr max-content; 
   gap: var(--spacer-xs);
+  padding: var(--spacer-xs);
   align-items: center;
 }
 
