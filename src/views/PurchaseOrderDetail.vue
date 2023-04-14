@@ -68,7 +68,7 @@
 
           <div class="action border-top" v-if="item.quantity > 0">
             <div class="receive-all-qty">
-              <ion-button @click="receiveAll(item)" slot="start" fill="outline">
+              <ion-button @click="receiveAll(item)" slot="start" size="small" fill="outline">
                 {{ $t("Receive All") }}
               </ion-button>
             </div>
