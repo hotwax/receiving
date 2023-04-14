@@ -256,6 +256,7 @@ main {
   display: flex;
   align-items: center;
   gap: var(--spacer-xs);
+  padding-inline: var(--spacer-xs);
 }
 
 .scanner {
@@ -297,6 +298,14 @@ main {
   margin-left: auto;
 }
 
+/* mobile only */
+@media (max-width: 720px) {
+  .scanner > ion-button {
+    padding-inline: var(--spacer-xs);
+  }
+}
+
+/* desktop only */
 @media (min-width: 720px) {
   .product {
     grid: "info location count" /  1fr max-content 1fr;
@@ -306,5 +315,9 @@ main {
     display: flex;
     justify-content: space-between;
     align-items: center;
+  }
+  
+  .scanner {
+    padding-inline-end: var(--spacer-xs);
   }
 }

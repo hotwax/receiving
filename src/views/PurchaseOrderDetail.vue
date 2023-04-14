@@ -287,6 +287,7 @@ export default defineComponent({
 </script>
 
 <style scoped>
+
 .action {
   display: grid;
   grid: "receive progressbar ordered"
@@ -294,7 +295,6 @@ export default defineComponent({
         / max-content 1fr max-content; 
   gap: var(--spacer-xs);
   align-items: center;
-  height: 51px; /* make this the same height as the other action sections that use ion-item */
 }
 
 .receive-all-qty {
