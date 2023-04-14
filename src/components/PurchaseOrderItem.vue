@@ -5,7 +5,7 @@
       <h3>{{ purchaseOrder.externalOrderId }}</h3>
       <p>{{ purchaseOrder.orderName ? purchaseOrder.orderName : purchaseOrder.orderId }}</p>
     </ion-label>
-    <ion-label slot="end">
+    <ion-label class="ion-text-end" slot="end">
       <p>{{ purchaseOrder.estimatedDeliveryDate ? $filters.formatUtcDate(purchaseOrder.estimatedDeliveryDate, 'YYYY-MM-DDTHH:mm:ssZ') : " - " }}</p>
       <ion-badge :color="orderStatusColor[purchaseOrder.orderStatusId]">{{ purchaseOrder.orderStatusDesc }}</ion-badge>
     </ion-label>
