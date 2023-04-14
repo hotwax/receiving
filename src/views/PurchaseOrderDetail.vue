@@ -294,7 +294,7 @@ export default defineComponent({
         / max-content 1fr max-content; 
   gap: var(--spacer-xs);
   align-items: center;
-  margin-bottom: var(--spacer-xs);
+  height: 51px; /* make this the same height as the other action sections that use ion-item */
 }
 
 .receive-all-qty {
