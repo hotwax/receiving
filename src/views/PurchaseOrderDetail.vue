@@ -86,9 +86,7 @@
             </div>
 
             <div class="qty-ordered">
-              <ion-item lines="none">
-                <ion-label slot="end">{{ item.quantity }} {{ $t("ordered") }}</ion-label>   
-              </ion-item>
+              <ion-label>{{ item.quantity }} {{ $t("ordered") }}</ion-label>   
             </div>         
           </div>
         </ion-card>
@@ -313,6 +311,8 @@ export default defineComponent({
 
 .qty-ordered {
   grid-area: ordered;
+  text-align: end;
+  font-size: 16px;
 }
 
 ion-thumbnail {
