@@ -118,3 +118,15 @@ export default defineComponent({
   },
 });
 </script>
+
+<style scoped>
+ion-menu.md ion-item.selected ion-icon {
+  color: var(--ion-color-secondary);
+}
+ion-menu.ios ion-item.selected ion-icon {
+  color: var(--ion-color-secondary);
+}
+ion-item.selected {
+  --color: var(--ion-color-secondary);
+}
+</style>
