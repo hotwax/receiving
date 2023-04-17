@@ -23,7 +23,7 @@
           </ion-item>
 
           <div class="doc-meta">
-            <ion-chip @click="copyToClipboard(order.orderId)">{{ order.orderId }}<ion-icon :icon="copyOutline"/></ion-chip>
+            <ion-chip @click="copyToClipboard(order.orderId, 'Internal ID saved to clipboard')">{{ order.orderId }}<ion-icon :icon="copyOutline"/></ion-chip>
             <ion-badge :color="order.orderStatusId === 'ORDER_CREATED' ? 'medium' : 'primary'">{{ order.orderStatusDesc }}</ion-badge>
           </div>
         </div>

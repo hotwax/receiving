@@ -21,13 +21,13 @@ const showToast = async (message: string) => {
       return toast.present();
 }
 
-const copyToClipboard = async (text: string) => {
+const copyToClipboard = async (value: string, text?: string) => {
     const { Clipboard } = Plugins;
 
     await Clipboard.write({
-      string: text,
+      string: value,
     }).then(() => {
-        showToast(translate("Copied", { text }));
+      text ? showToast(translate(text)) : showToast(translate("Copied", { value }));
     });
 }
 
