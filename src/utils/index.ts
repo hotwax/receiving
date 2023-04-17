@@ -1,4 +1,6 @@
 import { toastController } from '@ionic/vue';
+import { translate } from '@/i18n'
+import { Plugins } from '@capacitor/core';
 import productHelpers from './product'
 import { DateTime } from "luxon";
 
@@ -19,6 +21,16 @@ const showToast = async (message: string) => {
       return toast.present();
 }
 
+const copyToClipboard = async (text: string) => {
+    const { Clipboard } = Plugins;
+
+    await Clipboard.write({
+      string: text,
+    }).then(() => {
+        showToast(translate("Copied", { text }));
+    });
+}
+
 const handleDateTimeInput = (dateTimeValue: any) => {
   // TODO Handle it in a better way
   // Remove timezone and then convert to timestamp
@@ -27,4 +39,4 @@ const handleDateTimeInput = (dateTimeValue: any) => {
   return DateTime.fromISO(dateTime).toMillis()
 }
 
-export { handleDateTimeInput, showToast, hasError, productHelpers }
+export { handleDateTimeInput, showToast, hasError, copyToClipboard, productHelpers }

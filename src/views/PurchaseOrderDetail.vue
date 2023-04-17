@@ -23,7 +23,7 @@
           </ion-item>
 
           <div class="doc-meta">
-            <ion-chip @click="copyOrderId(order.orderId)">{{ order.orderId }}<ion-icon :icon="copyOutline"/></ion-chip>
+            <ion-chip @click="copyToClipboard(order.orderId)">{{ order.orderId }}<ion-icon :icon="copyOutline"/></ion-chip>
             <ion-badge :color="order.orderStatusId === 'ORDER_CREATED' ? 'medium' : 'primary'">{{ order.orderStatusDesc }}</ion-badge>
           </div>
         </div>
@@ -117,7 +117,7 @@ import {
   IonItem,
   IonInput,
   IonLabel,
-  IonPage,         
+  IonPage,
   IonProgressBar,
   IonThumbnail,
   IonTitle,
@@ -135,9 +135,8 @@ import Scanner from "@/components/Scanner.vue"
 import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
 import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
-import { hasError, productHelpers, showToast } from '@/utils';
+import { copyToClipboard, hasError, productHelpers } from '@/utils';
 import { Actions, hasPermission } from '@/authorization'
-import { Plugins } from '@capacitor/core';
 
 export default defineComponent({
   name: "PurchaseOrderDetails",
@@ -256,15 +255,6 @@ export default defineComponent({
           return true;
         }
       })
-    },
-    async copyOrderId(orderId: string) {
-      const { Clipboard } = Plugins;
-
-      await Clipboard.write({
-        string: orderId
-      }).then(() => {
-        showToast(this.$t("Internal ID saved to clipboard"));
-      })
     }
   }, 
   ionViewWillEnter() {
@@ -282,6 +272,7 @@ export default defineComponent({
       cameraOutline,
       checkmarkDone,
       copyOutline,
+      copyToClipboard,
       hasPermission,
       productHelpers,
       router,
