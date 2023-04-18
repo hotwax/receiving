@@ -8,27 +8,27 @@ import { DateTime } from "luxon";
 
 // TODO Remove it when HC APIs are fully REST compliant
 const hasError = (response: any) => {
-    return typeof response.data != "object" || !!response.data._ERROR_MESSAGE_ || !!response.data._ERROR_MESSAGE_LIST_ || !!response.data.error;
+  return typeof response.data != "object" || !!response.data._ERROR_MESSAGE_ || !!response.data._ERROR_MESSAGE_LIST_ || !!response.data.error;
 }
 
 const showToast = async (message: string) => {
-    const toast = await toastController
-        .create({
-          message,
-          duration: 3000,
-          position: 'bottom',
-        })
-      return toast.present();
+  const toast = await toastController
+    .create({
+      message,
+      duration: 3000,
+      position: 'bottom',
+    })
+  return toast.present();
 }
 
-const copyToClipboard = async (text: string) => {
-    const { Clipboard } = Plugins;
+const copyToClipboard = async (value: string, text?: string) => {
+  const { Clipboard } = Plugins;
 
-    await Clipboard.write({
-      string: text,
-    }).then(() => {
-        showToast(translate("Copied", { text }));
-    });
+  await Clipboard.write({
+    string: value,
+  }).then(() => {
+    text ? showToast(translate(text)) : showToast(translate("Copied", { value }));
+  });
 }
 
 const handleDateTimeInput = (dateTimeValue: any) => {
