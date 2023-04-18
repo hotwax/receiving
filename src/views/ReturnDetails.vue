@@ -70,7 +70,7 @@
             <ion-button v-if="isReturnReceivable(current.statusId)" @click="receiveAll(item)" slot="start" fill="outline">
               {{ $t("Receive All") }}
             </ion-button>
-            <ion-progress-bar :value="item.quantityAccepted/item.quantityOrdered" />
+            <ion-progress-bar :color="getRcvdToOrdrdFraction(item) > 1 ? 'danger' : 'primary'" :value="getRcvdToOrdrdFraction(item)" />
             <p slot="end">{{ item.quantityOrdered }} {{ $t("returned") }}</p>
           </ion-item>
         </ion-card>
@@ -177,6 +177,9 @@ export default defineComponent({
     }),
   },
   methods: {
+    getRcvdToOrdrdFraction(item: any){
+      return item.quantityAccepted / item.quantityOrdered;
+    },
     async openImage(imageUrl: string, productName: string) {
       const imageModal = await modalController.create({
         component: ImageModal,

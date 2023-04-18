@@ -59,7 +59,7 @@
               {{ $t("Receive All") }}
             </ion-button>
 
-            <ion-progress-bar :value="item.quantityAccepted/item.quantityOrdered"></ion-progress-bar>
+            <ion-progress-bar :color="getRcvdToOrdrdFraction(item) > 1 ? 'danger' : 'primary'" :value="getRcvdToOrdrdFraction(item)" />
             
             <p slot="end">{{ item.quantityOrdered }}</p>
           </ion-item>
@@ -152,6 +152,9 @@ export default defineComponent({
     }),
   },
   methods: {
+    getRcvdToOrdrdFraction(item: any){
+      return item.quantityAccepted / item.quantityOrdered;
+    },
     async openImage(imageUrl: string, productName: string) {
       const imageModal = await modalController.create({
         component: ImageModal,
