@@ -9,13 +9,7 @@
     <ion-content>
       <ion-list id="receiving-list">
         <ion-menu-toggle auto-hide="false" v-for="(p, i) in appPages" :key="i">
-          <ion-item 
-            button
-            @click="selectedIndex = i"
-            router-direction="root"
-            :router-link="p.url"
-            class="hydrated"
-            :class="{ selected: selectedIndex === i }">
+          <ion-item button @click="selectedIndex = i" router-direction="root" :router-link="p.url" class="hydrated" :class="{ selected: selectedIndex === i }">
             <ion-icon slot="start" :ios="p.iosIcon" :md="p.mdIcon" />
             <ion-label>{{ p.title }}</ion-label>
           </ion-item>
