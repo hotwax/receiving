@@ -76,7 +76,7 @@ export default defineComponent({
         }
       }
       if(this.queryString) {
-        payload.json.query = '*' + this.queryString + '*';
+        payload.json.query = this.queryString;
         payload.json.params.defType = "edismax";
         payload.json.params.qf = "orderId externalOrderId";
         payload.json.params['q.op'] = "AND";
