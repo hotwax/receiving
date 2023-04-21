@@ -1,3 +1,15 @@
+
+# Release 2.12.0
+## What's Changed
+* Implemented: over receiving on shipment details and return details page (#85zrx4zww) by @k2maan in https://github.com/hotwax/receiving/pull/226
+* Fixed: show the selected route with secondary color in the menu (#85zrx4jgc) by @k2maan in https://github.com/hotwax/receiving/pull/224
+* Improved: changed UI toast message for copying internal ID on PO details page (#85zrx4mju) by @k2maan in https://github.com/hotwax/receiving/pull/225
+* Improved: optimised search query by removing wildcards by @adityasharma7 in https://github.com/hotwax/receiving/pull/228
+
+
+**Full Changelog**: https://github.com/hotwax/receiving/compare/v2.11.0...v2.12.0
+
+
 # Release 2.11.0
 
 ## What's Changed
