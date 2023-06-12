@@ -18,8 +18,9 @@
           <Image :src="product.mainImageUrl" />
         </ion-thumbnail>
         <ion-label>
-          <h2>{{ product.productName}}</h2>
-          <p>{{ product.productId}}</p>
+          <!-- Honouring the identifications set by the user on the settings page -->
+          <h2>{{ product[productIdentificationPref.primaryId] }}</h2>
+          <p>{{ product[productIdentificationPref.secondaryId] }}</p>
         </ion-label>
         <ion-icon v-if="isProductAvailableInShipment(product.productId)" color="success" :icon="checkmarkCircle" />
         <ion-button v-else fill="outline" @click="addtoShipment(product)">{{ $t("Add to Shipment") }}</ion-button>
@@ -86,7 +87,8 @@ export default defineComponent({
     ...mapGetters({
       products: 'product/getProducts',
       isScrollable: 'product/isScrollable',
-      isProductAvailableInShipment: 'product/isProductAvailableInShipment'
+      isProductAvailableInShipment: 'product/isProductAvailableInShipment',
+      productIdentificationPref: 'user/getProductIdentificationPref'
     })
   },
   methods: {
