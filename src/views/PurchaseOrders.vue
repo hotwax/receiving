@@ -18,13 +18,29 @@
             {{ $t("Load more purchase order") }}
           </ion-button>
         </div>
+
+        <ion-refresher slot="fixed" @ionRefresh="refreshPurchaseOrders($event)">
+          <ion-refresher-content pullingIcon="crescent" refreshingSpinner="crescent" />
+        </ion-refresher>
       </main>
     </ion-content>
   </ion-page>
 </template>
 
 <script lang="ts">
-import { IonButton, IonContent, IonHeader, IonIcon, IonMenuButton, IonPage, IonSearchbar, IonTitle, IonToolbar } from '@ionic/vue';
+import {
+  IonButton,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonMenuButton,
+  IonPage,
+  IonRefresher,
+  IonRefresherContent,
+  IonSearchbar,
+  IonTitle,
+  IonToolbar
+} from '@ionic/vue';
 import { cloudDownloadOutline } from 'ionicons/icons'
 import { defineComponent } from 'vue';
 import { mapGetters, useStore } from 'vuex';
@@ -39,6 +55,8 @@ export default defineComponent({
     IonIcon, 
     IonMenuButton,
     IonPage,
+    IonRefresher,
+    IonRefresherContent,
     IonSearchbar,
     IonTitle,
     IonToolbar,
@@ -88,7 +106,12 @@ export default defineComponent({
         undefined,
         Math.ceil(this.orders.length / process.env.VUE_APP_VIEW_SIZE)
       );
-    }
+    },
+    async refreshPurchaseOrders(event: any) {
+      this.getPurchaseOrders().then(() => {
+        if (event) event.target.complete();
+      })
+    },
   },
   mounted () {
     this.getPurchaseOrders();
