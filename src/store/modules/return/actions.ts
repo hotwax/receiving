@@ -105,15 +105,12 @@ const actions: ActionTree<ReturnState, RootState> = {
       return Promise.reject(new Error(err))
     }
   },
-  receiveReturnItem ({ state }, data) {
-    const payload = {
-      shipmentId: data.shipmentId,
-    }
+  receiveReturnItem ({ state }, payload) {
     const facilityId = state.current.destinationFacilityId;
-    return Promise.all(data.items.map(async (item: any) => {
+    return Promise.all(payload.items.map(async (item: any) => {
       const params = {
-        ...payload,
         facilityId,
+        shipmentId: payload.shipmentId,
         shipmentItemSeqId: item.itemSeqId,
         productId: item.productId,
         quantityAccepted: item.quantityAccepted,
@@ -125,7 +122,7 @@ const actions: ActionTree<ReturnState, RootState> = {
       return ReturnService.receiveReturnItem(params).catch((err) => err)
     }))
   },
-  async receiveReturn ({ dispatch }, {payload}) {
+  async receiveReturn ({ dispatch }, payload) {
     emitter.emit("presentLoader");
     return await dispatch("receiveReturnItem", payload).then(async (response: any) => {
 
@@ -140,7 +137,7 @@ const actions: ActionTree<ReturnState, RootState> = {
         "statusId": "PURCH_SHIP_RECEIVED"
       })
       if (resp.status === 200 && !hasError(resp)) {
-        showToast(translate("Return Received Successfully") + ' ' + (payload.shipmentId))
+        showToast(translate("Return received successfully", { shipmentId: payload.shipmentId }))
       } else {
         showToast(translate('Something went wrong'));
         console.error("error", resp.data._ERROR_MESSAGE_);

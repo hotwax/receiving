@@ -77,15 +77,10 @@ const actions: ActionTree<ShipmentState, RootState> = {
       return Promise.reject(new Error(err))
     }
   },
-  receiveShipmentItem ({ commit }, data) {
-    const payload = data.shipment ? {
-      shipmentId: data.shipment.shipmentId,
-    } : {
-      shipmentId: data.shipmentId,
-    }
-    return Promise.all(data.items.map(async (item: any) => {
+  receiveShipmentItem ({ commit }, payload) {
+    return Promise.all(payload.items.map(async (item: any) => {
       const params = {
-        ...payload,
+        shipmentId: payload.shipmentId,
         facilityId: this.state.user.currentFacility.facilityId,
         shipmentItemSeqId: item.itemSeqId,
         productId: item.productId,
@@ -103,15 +98,15 @@ const actions: ActionTree<ShipmentState, RootState> = {
        }
     }))
   },
-  async receiveShipment ({ dispatch }, {payload}) {
+  async receiveShipment ({ dispatch }, payload) {
     emitter.emit("presentLoader");
-    return await dispatch("receiveShipmentItem", payload).then(async( ) => {
+    return await dispatch("receiveShipmentItem", payload).then(async () => {
       const resp = await ShipmentService.receiveShipment({
-        "shipmentId": payload.shipment ? payload.shipment.shipmentId : payload.shipmentId,
+        "shipmentId": payload.shipmentId,
         "statusId": "PURCH_SHIP_RECEIVED"
       })
       if (resp.status == 200 && !hasError(resp)) {
-        showToast(translate("Shipment Received Successfully") + ' ' + (payload.shipment ? payload.shipment.shipmentId : payload.shipmentId))
+        showToast(translate("Shipment received successfully", { shipmentId: payload.shipmentId }))
       }
       emitter.emit("dismissLoader");
       return resp;
@@ -140,8 +135,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
       dispatch('updateProductCount', { shipmentId: resp.data.shipmentId })
       if (!payload.shipmentId) commit(types.SHIPMENT_CURRENT_PRODUCT_ADDED, product)
       return resp;
-    }
-    else {
+    } else {
       showToast(translate('Something went wrong'));
       console.error("error", resp._ERROR_MESSAGE_);
       return Promise.reject(new Error(resp.data._ERROR_MESSAGE_));
