@@ -248,9 +248,10 @@ export default defineComponent({
       }
     },
     receiveAll(item: any) {
+      const qtyAlreadyAccepted = this.getPOItemAccepted(item.productId)
       this.order.items.find((ele: any) => {
         if(ele.productId == item.productId) {
-          ele.quantityAccepted = ele.quantity;
+          ele.quantityAccepted = ele.quantity - qtyAlreadyAccepted;
           ele.progress = ele.quantityAccepted / ele.quantity;
           return true;
         }
