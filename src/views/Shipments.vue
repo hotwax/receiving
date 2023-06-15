@@ -18,13 +18,29 @@
             {{ $t("Load more shipments") }}
           </ion-button>
         </div>
+
+        <ion-refresher slot="fixed" @ionRefresh="refreshShipments($event)">
+          <ion-refresher-content pullingIcon="crescent" refreshingSpinner="crescent" />
+        </ion-refresher>
       </main>
     </ion-content>
   </ion-page>
 </template>
 
 <script lang="ts">
-import { IonButton, IonContent, IonHeader, IonIcon, IonMenuButton, IonPage, IonSearchbar, IonTitle, IonToolbar } from '@ionic/vue';
+import {
+  IonButton,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonMenuButton,
+  IonPage,
+  IonRefresher,
+  IonRefresherContent,
+  IonSearchbar,
+  IonTitle,
+  IonToolbar
+} from '@ionic/vue';
 import { cloudDownloadOutline } from 'ionicons/icons'
 import { defineComponent } from 'vue'
 import { mapGetters, useStore } from 'vuex'
@@ -40,6 +56,8 @@ export default defineComponent({
     IonMenuButton,
     IonSearchbar,
     IonPage,
+    IonRefresher,
+    IonRefresherContent,
     IonTitle,
     IonToolbar,
     ShipmentListItem
@@ -93,7 +111,12 @@ export default defineComponent({
     },
     loadMoreShipments() {
       this.getShipments(process.env.VUE_APP_VIEW_SIZE, Math.ceil(this.shipments.length / process.env.VUE_APP_VIEW_SIZE));
-    }
+    },
+    async refreshShipments(event: any) {
+      this.getShipments().then(() => {
+        if (event) event.target.complete();
+      })
+    },
   },
   setup() {
     const store = useStore();
