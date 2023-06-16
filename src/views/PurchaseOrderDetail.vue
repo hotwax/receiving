@@ -93,7 +93,7 @@
       </main>  
       
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE)" @click="savePODetails">
+        <ion-fab-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibileForCreatingShipment()" @click="savePODetails">
           <ion-icon :icon="saveOutline" />
         </ion-fab-button>
       </ion-fab>
@@ -242,10 +242,14 @@ export default defineComponent({
       return alert.present();
     },
     async createShipment() {
-      const resp = await this.store.dispatch('order/createPurchaseShipment', { order: this.order })
+      const eligibleItems = this.order.items.filter((item: any) => item.quantityAccepted > 0)
+      const resp = await this.store.dispatch('order/createPurchaseShipment', { items: eligibleItems, orderId: this.order.orderId })
       if (resp.status === 200 && !hasError(resp)) {
         this.router.push('/purchase-orders')
       }
+    },
+    isEligibileForCreatingShipment() {
+      return this.order.items.some((item: any) => item.quantityAccepted > 0)
     },
     receiveAll(item: any) {
       const qtyAlreadyAccepted = this.getPOItemAccepted(item.productId)

@@ -77,7 +77,7 @@
       </main>
 
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE)" v-if="isReturnReceivable(current.statusId)" @click="completeShipment">
+        <ion-fab-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || isEligibleForReceivingReturns()" v-if="isReturnReceivable(current.statusId)" @click="completeShipment">
           <ion-icon :icon="checkmarkDone" />
         </ion-fab-button>
       </ion-fab>
@@ -228,10 +228,15 @@ export default defineComponent({
       return alert.present();
     },
     async receiveReturn() {
-      let resp = await this.store.dispatch('return/receiveReturn', {payload: this.current});
+      const eligibleItems = this.current.items.filter((item: any) => item.quantityAccepted > 0)
+      const shipmentId = this.current.shipment ? this.current.shipment.shipmentId : this.current.shipmentId 
+      let resp = await this.store.dispatch('return/receiveReturn', { items: eligibleItems, shipmentId });
       if(resp.status === 200 && !hasError(resp)) {
         this.router.push('/returns');
       }
+    },
+    isEligibleForReceivingReturns() {
+      return this.current.items.some((item: any) => item.quantityAccepted > 0)
     },
     receiveAll(item: any) {
       this.current.items.find((ele: any) => {

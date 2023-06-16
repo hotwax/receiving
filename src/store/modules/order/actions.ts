@@ -107,11 +107,10 @@ const actions: ActionTree<OrderState, RootState> = {
     return resp;
   },
   async createPurchaseShipment({ commit }, payload) {
-
     let resp;
     try {
       const params = {
-        orderId: payload.order.orderId,
+        orderId: payload.orderId,
         facilityId: this.state.user.currentFacility.facilityId
       }
 
@@ -120,15 +119,14 @@ const actions: ActionTree<OrderState, RootState> = {
       if (resp.status === 200 && !hasError(resp) && resp.data.shipmentId) {
         const shipmentId = resp.data.shipmentId
 
-        Promise.all(payload.order.items.map((item: any, index: number) => {
+        Promise.all(payload.items.map((item: any, index: number) => {
           // TODO: improve code to don't pass shipmentItemSeqId
           const shipmentItemSeqId = `0000${index+1}`
-          return this.dispatch('shipment/addShipmentItem', {item, shipmentId, shipmentItemSeqId, orderId: params.orderId})
+          return this.dispatch('shipment/addShipmentItem', { item, shipmentId, shipmentItemSeqId, orderId: params.orderId })
         })).then(async (resp) => {
-
           // adding shipmentItemSeqId property in item
           resp.map((response: any) => {
-            payload.order.items.map((item: any) => {
+            payload.items.map((item: any) => {
               if (item.productId === response.data.productId) {
                 item.itemSeqId = response.data.shipmentItemSeqId
               }
@@ -136,12 +134,10 @@ const actions: ActionTree<OrderState, RootState> = {
           })
 
           const poShipment = {
-            shipment: {
-              shipmentId,
-            },
-            items: payload.order.items
+            shipmentId,
+            items: payload.items
           }
-          await this.dispatch('shipment/receiveShipment', {payload: poShipment}).catch((err) => console.error(err))
+          await this.dispatch('shipment/receiveShipment', poShipment).catch((err) => console.error(err))
         })
       } else {
         showToast(translate("Something went wrong"));
@@ -153,7 +149,7 @@ const actions: ActionTree<OrderState, RootState> = {
     return resp;
   },
 
-  async getPOHistory({ commit, state, dispatch }, payload) {
+  async getPOHistory({ commit, state }, payload) {
     let resp;
     const current = state.current as any;
     try {
