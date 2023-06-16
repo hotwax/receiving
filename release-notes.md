@@ -1,3 +1,17 @@
+# Release 2.13.0
+
+## What's Changed
+* Improved: showed product identifications in the add product to PO modal search list (#85zt92ey4) by @k2maan in https://github.com/hotwax/receiving/pull/233
+* Updated favicon by @Nidbhagwat in https://github.com/hotwax/receiving/pull/236
+* Implemented: pull to refresh on all find screens (#229) by @k2maan in https://github.com/hotwax/receiving/pull/237
+* Fixed: receive all prefill should honour already accepted item quantity (#231) by @k2maan in https://github.com/hotwax/receiving/pull/235
+* Fixed: server error when zero as quantity is passed (#232) by @k2maan in https://github.com/hotwax/receiving/pull/234
+
+## New Contributors
+* @Nidbhagwat made their first contribution in https://github.com/hotwax/receiving/pull/236
+
+**Full Changelog**: https://github.com/hotwax/receiving/compare/v2.12.0...v2.13.0
+
 
 # Release 2.12.0
 ## What's Changed
