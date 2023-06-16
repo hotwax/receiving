@@ -67,7 +67,7 @@
       </main>
 
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !checkEligibilityForReceivingShipment()" @click="completeShipment">
+        <ion-fab-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibleForReceivingShipment()" @click="completeShipment">
           <ion-icon :icon="checkmarkDone" />
         </ion-fab-button>
       </ion-fab>
@@ -209,7 +209,7 @@ export default defineComponent({
         this.router.push('/shipments');
       }
     },
-    checkEligibilityForReceivingShipment() {
+    isEligibleForReceivingShipment() {
       return this.current.items.some((item: any) => item.quantityAccepted > 0)
     },
     receiveAll(item: any) {
