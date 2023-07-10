@@ -13,7 +13,7 @@
     <ion-list v-for="(item, index) in items" :key="index">
       <ion-item>
         <ion-thumbnail slot="start">
-          <Image :src="getProduct(item.productId).mainImageUrl" />
+          <ShopifyImg :src="getProduct(item.productId).mainImageUrl" />
         </ion-thumbnail>
         <ion-label>
           {{ item.receiversFullName }}
@@ -46,14 +46,14 @@ import {
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { closeOutline } from 'ionicons/icons';
-import Image from "@/components/Image.vue";
+import { ShopifyImg } from 'dxp-components';
 import { mapGetters, useStore } from "vuex";
 import { DateTime } from 'luxon';
 
 export default defineComponent({
   name: "ReceivingHistoryModal",
   components: {
-    Image,
+    ShopifyImg,
     IonButton,
     IonButtons,
     IonContent,

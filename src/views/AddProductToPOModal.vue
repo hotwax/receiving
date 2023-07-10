@@ -15,7 +15,7 @@
     <ion-list v-for="product in products" :key="product.productId">
       <ion-item lines="none">
         <ion-thumbnail slot="start">
-          <Image :src="product.mainImageUrl" />
+          <ShopifyImg :src="product.mainImageUrl" />
         </ion-thumbnail>
         <ion-label>
           <!-- Honouring the identifications set by the user on the settings page -->
@@ -55,7 +55,7 @@ import { defineComponent } from 'vue';
 import { closeOutline, checkmarkCircle } from 'ionicons/icons';
 import { mapGetters } from 'vuex'
 import { useStore } from "@/store";
-import Image from "@/components/Image.vue"
+import { ShopifyImg } from 'dxp-components';
 import { showToast } from '@/utils'
 import { translate } from '@/i18n'
 
@@ -76,7 +76,7 @@ export default defineComponent({
     IonThumbnail,
     IonTitle,
     IonToolbar,
-    Image
+    ShopifyImg
   },
   data() {
     return {

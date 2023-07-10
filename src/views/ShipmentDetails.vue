@@ -33,7 +33,7 @@
             <div class="product-info">
               <ion-item lines="none">
                 <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
-                  <Image :src="getProduct(item.productId).mainImageUrl" />
+                  <ShopifyImg :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
                   <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
@@ -101,7 +101,7 @@ import { defineComponent } from 'vue';
 import { add, checkmarkDone, barcodeOutline } from 'ionicons/icons';
 import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
-import Image from "@/components/Image.vue";
+import { ShopifyImg } from 'dxp-components';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import LocationPopover from '@/components/LocationPopover.vue'
@@ -129,7 +129,7 @@ export default defineComponent({
     IonThumbnail,
     IonTitle,
     IonToolbar,
-    Image,
+    ShopifyImg,
     LocationPopover
   },
   props: ["shipment"],
