@@ -12,7 +12,7 @@
         <ion-card>
           <ion-item lines="full">
             <ion-avatar slot="start" v-if="userProfile?.partyImageUrl">
-              <ShopifyImg :src="userProfile.partyImageUrl"/>
+              <Image :src="userProfile.partyImageUrl"/>
             </ion-avatar>
             <ion-card-header>
               <ion-card-subtitle>{{ userProfile.userLoginId }}</ion-card-subtitle>
@@ -148,7 +148,7 @@ import { defineComponent } from 'vue';
 import { codeWorkingOutline, ellipsisVertical, openOutline, saveOutline, globeOutline, personCircleOutline, storefrontOutline} from 'ionicons/icons'
 import { mapGetters, useStore } from 'vuex';
 import { useRouter } from 'vue-router';
-import { ShopifyImg } from 'dxp-components';
+import Image from '@/components/Image.vue'
 import { DateTime } from 'luxon';
 import TimeZoneModal from '@/views/TimezoneModal.vue';
 
@@ -173,7 +173,7 @@ export default defineComponent({
     IonSelectOption,
     IonTitle, 
     IonToolbar,
-    ShopifyImg
+    Image
   },
   data() {
     return {
