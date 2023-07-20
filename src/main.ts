@@ -32,6 +32,8 @@ import store from './store'
 import permissionPlugin from '@/authorization';
 import permissionRules from '@/authorization/Rules';
 import permissionActions from '@/authorization/Actions';
+import { dxpComponents } from '@hotwax/dxp-components';
+import { setProductIdentificationPref, getProductIdentificationPref } from '@hotwax/oms-api';
 
 const app = createApp(App)
   .use(IonicVue, {
@@ -43,12 +45,17 @@ const app = createApp(App)
   .use(permissionPlugin, {
     rules: permissionRules,
     actions: permissionActions
+  })
+  .use(dxpComponents, {
+    defaultImgUrl: require("@/assets/images/defaultImage.png"),
+    setProductIdentificationPref,
+    getProductIdentificationPref
   });
 
 // Filters are removed in Vue 3 and global filter introduced https://v3.vuejs.org/guide/migration/filters.html#global-filters
 app.config.globalProperties.$filters = {
   formatDate(value: any, inFormat?: string, outFormat?: string) {
-    if(inFormat){
+    if (inFormat) {
       return DateTime.fromFormat(value, inFormat).toFormat(outFormat ? outFormat : 'MM-DD-YYYY');
     }
     return DateTime.fromISO(value).toFormat(outFormat ? outFormat : 'MM-DD-YYYY');
@@ -61,7 +68,7 @@ app.config.globalProperties.$filters = {
     return DateTime.fromISO(value, { zone: "utc" }).setZone(userProfile.userTimeZone).toFormat(outFormat ? outFormat : 'MM-dd-yyyy')
   },
   getFeature(featureHierarchy: any, featureKey: string) {
-    let  featureValue = ''
+    let featureValue = ''
     if (featureHierarchy) {
       const feature = featureHierarchy.find((featureItem: any) => featureItem.startsWith(featureKey))
       const featureSplit = feature ? feature.split('/') : [];

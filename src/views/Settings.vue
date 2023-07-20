@@ -98,6 +98,8 @@
         <p class="overline">{{ "Built: " + getDateTime(appInfo.builtTime) }}</p>
       </div>
       <section>
+
+        <!-- Product Identifier -->
         <ion-card>
           <ion-card-header>
             <ion-card-title>
@@ -112,13 +114,13 @@
           <ion-item>
             <ion-label>{{ $t("Primary Product Identifier") }}</ion-label>
             <ion-select interface="popover" :placeholder="$t('primary identifier')" :value="productIdentificationPref.primaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'primaryId')">
-              <ion-select-option v-for="identification in productIdentifications" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
+              <ion-select-option v-for="identification in productIdentificationOptions" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
             </ion-select>
           </ion-item>
           <ion-item>
             <ion-label>{{ $t("Secondary Product Identifier") }}</ion-label>
             <ion-select interface="popover" :placeholder="$t('secondary identifier')" :value="productIdentificationPref.secondaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'secondaryId')">
-              <ion-select-option v-for="identification in productIdentifications" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
+              <ion-select-option v-for="identification in productIdentificationOptions" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
               <ion-select-option value="">{{ $t("None") }}</ion-select-option>
             </ion-select>
           </ion-item>
@@ -144,13 +146,14 @@
 
 <script lang="ts">
 import { alertController, IonAvatar, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader,IonIcon, IonItem, IonLabel, IonMenuButton, IonPage, IonSelect, IonSelectOption, IonTitle, IonToolbar, modalController } from '@ionic/vue';
-import { defineComponent } from 'vue';
+import { defineComponent, inject } from 'vue';
 import { codeWorkingOutline, ellipsisVertical, openOutline, saveOutline, globeOutline, personCircleOutline, storefrontOutline} from 'ionicons/icons'
 import { mapGetters, useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import Image from '@/components/Image.vue';
 import { DateTime } from 'luxon';
 import TimeZoneModal from '@/views/TimezoneModal.vue';
+import { useProductIdentificationStore } from '@hotwax/dxp-components';
 
 export default defineComponent({
   name: 'Settings',
@@ -188,9 +191,7 @@ export default defineComponent({
       userProfile: 'user/getUserProfile',
       currentFacility: 'user/getCurrentFacility',
       currentEComStore: 'user/getCurrentEComStore',
-      instanceUrl: 'user/getInstanceUrl',
-      productIdentifications: 'util/getProductIdentifications',
-      productIdentificationPref: 'user/getProductIdentificationPref'
+      instanceUrl: 'user/getInstanceUrl'
     })
   },
   mounted() {
@@ -248,13 +249,6 @@ export default defineComponent({
         this.router.push('/login');
       })
     },
-    setProductIdentificationPref(value: string, id: string) {
-      // Not dispatching an action if the value for id is same as saved in state
-      if(this.productIdentificationPref[id] == value) {
-        return;
-      }
-      this.store.dispatch('user/setProductIdentificationPref', { id, value })
-    },
     goToOms(){
       window.open(this.instanceUrl.startsWith('http') ? this.instanceUrl.replace('api/', "") : `https://${this.instanceUrl}.hotwax.io/`, '_blank', 'noopener, noreferrer');
     },
@@ -266,6 +260,25 @@ export default defineComponent({
     const store = useStore();
     const router = useRouter();
 
+    /* Start Product Identifier */
+
+    const productIdentificationStore = useProductIdentificationStore();
+    const productIdentificationOptions = productIdentificationStore.getProductIdentificationOptions;
+
+    // Injecting identifier preference from app.view
+    const productIdentificationPref: any  = inject("productIdentificationPref");
+
+    // Function to set the value of productIdentificationPref using dxp-component
+    const setProductIdentificationPref = (value: string, id: string) =>  {   
+      const eComStore = store.getters['user/getCurrentEComStore'];
+      if(eComStore.productStoreId){
+        productIdentificationStore.setProductIdentificationPref(id, value, eComStore.productStoreId)
+          .catch(error => console.log(error)); 
+      } 
+    }
+
+    /* End Product Identifier */
+
     return {
       codeWorkingOutline,
       ellipsisVertical,
@@ -275,7 +288,10 @@ export default defineComponent({
       saveOutline,
       storefrontOutline,
       store,
-      router
+      router,
+      productIdentificationPref,
+      setProductIdentificationPref,
+      productIdentificationOptions
     }
   }
 });

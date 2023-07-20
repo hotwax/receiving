@@ -13,13 +13,14 @@ import {
   resetPermissions,
   setPermissions
 } from '@/authorization'
+import { useProductIdentificationStore } from '@hotwax/dxp-components'
 
 const actions: ActionTree<UserState, RootState> = {
 
   /**
  * Login user and return token
  */
-  async login ({ commit, dispatch }, { username, password }) {
+  async login({ commit, dispatch }, { username, password }) {
     try {
       const resp = await UserService.login(username, password);
       // Further we will have only response having 2xx status
@@ -59,7 +60,7 @@ const actions: ActionTree<UserState, RootState> = {
       if (permissionId) {
         // As the token is not yet set in the state passing token headers explicitly
         // TODO Abstract this out, how token is handled should be part of the method not the callee
-        const hasPermission = appPermissions.some((appPermissionId: any) => appPermissionId === permissionId );
+        const hasPermission = appPermissions.some((appPermissionId: any) => appPermissionId === permissionId);
         // If there are any errors or permission check fails do not allow user to login
         if (hasPermission) {
           const permissionError = 'You do not have permission to access the app.';
@@ -73,7 +74,7 @@ const actions: ActionTree<UserState, RootState> = {
 
       // Getting unique facilities
       userProfile.facilities.reduce((uniqueFacilities: any, facility: any, index: number) => {
-        if(uniqueFacilities.includes(facility.facilityId)) userProfile.facilities.splice(index, 1);
+        if (uniqueFacilities.includes(facility.facilityId)) userProfile.facilities.splice(index, 1);
         else uniqueFacilities.push(facility.facilityId);
         return uniqueFacilities
       }, []);
@@ -81,10 +82,10 @@ const actions: ActionTree<UserState, RootState> = {
       // TODO Use a separate API for getting facilities, this should handle user like admin accessing the app
       const currentFacility = userProfile.facilities[0];
       userProfile.stores = await UserService.getEComStores(token, currentFacility.facilityId);
-      
+
       let preferredStore = userProfile.stores[0];
 
-      const preferredStoreId =  await UserService.getPreferredStore(token);
+      const preferredStoreId = await UserService.getPreferredStore(token);
       if (preferredStoreId) {
         const store = userProfile.stores.find((store: any) => store.productStoreId === preferredStoreId);
         store && (preferredStore = store)
@@ -109,7 +110,7 @@ const actions: ActionTree<UserState, RootState> = {
       dispatch('getProductIdentificationPref', preferredStore.productStoreId);
       // Handling case for warnings like password may expire in few days
       if (resp.data._EVENT_MESSAGE_ && resp.data._EVENT_MESSAGE_.startsWith("Alert:")) {
-      // TODO Internationalise text
+        // TODO Internationalise text
         showToast(translate(resp.data._EVENT_MESSAGE_));
       }
 
@@ -125,7 +126,7 @@ const actions: ActionTree<UserState, RootState> = {
   /**
    * Logout user
    */
-  async logout ({ commit }) {
+  async logout({ commit }) {
     // TODO add any other tasks if need
     commit(types.USER_END_SESSION)
     this.dispatch('util/setProductIdentifications', [])
@@ -149,13 +150,13 @@ const actions: ActionTree<UserState, RootState> = {
   /**
    * update current facility information
    */
-  async setFacility ({ commit, dispatch, state }, payload) {
+  async setFacility({ commit, dispatch, state }, payload) {
     const userProfile = JSON.parse(JSON.stringify(state.current));
     userProfile.stores = await UserService.getEComStores(undefined, payload.facility.facilityId);
 
     let preferredStore = userProfile.stores[0];
 
-    const preferredStoreId =  await UserService.getPreferredStore(undefined);
+    const preferredStoreId = await UserService.getPreferredStore(undefined);
     if (preferredStoreId) {
       const store = userProfile.stores.find((store: any) => store.productStoreId === preferredStoreId);
       store && (preferredStore = store)
@@ -163,13 +164,19 @@ const actions: ActionTree<UserState, RootState> = {
     commit(types.USER_INFO_UPDATED, userProfile);
     commit(types.USER_CURRENT_ECOM_STORE_UPDATED, preferredStore);
     commit(types.USER_CURRENT_FACILITY_UPDATED, payload.facility);
-    await dispatch('getFacilityLocations', payload.facility.facilityId)
+    await dispatch('getFacilityLocations', payload.facility.facilityId);
+
+    // Get product identification from api using dxp-component and set the state if eComStore is defined
+    if (preferredStore.productStoreId) {
+      await useProductIdentificationStore().getIdentificationPref(preferredStore.productStoreId)
+        .catch((error) => console.log(error));
+    }
   },
-  
+
   /**
    * Update user timeZone
    */
-  async setUserTimeZone ( { state, commit }, payload) {
+  async setUserTimeZone({ state, commit }, payload) {
     const resp = await UserService.setUserTimeZone(payload)
     if (resp.status === 200 && !hasError(resp)) {
       const current: any = state.current;
@@ -181,14 +188,14 @@ const actions: ActionTree<UserState, RootState> = {
   },
 
   // Set User Instance Url
-  setUserInstanceUrl ({ commit }, payload){
+  setUserInstanceUrl({ commit }, payload) {
     commit(types.USER_INSTANCE_URL_UPDATED, payload)
     updateInstanceUrl(payload)
   },
 
-  async getFacilityLocations( { commit }, facilityId ) {
+  async getFacilityLocations({ commit }, facilityId) {
     const facilityLocations = this.state.user.facilityLocationsByFacilityId[facilityId];
-    if(facilityLocations){
+    if (facilityLocations) {
       return facilityLocations;
     }
     let resp;
@@ -203,9 +210,9 @@ const actions: ActionTree<UserState, RootState> = {
       "distinct": "Y",
       "noConditionFind": "Y"
     }
-    try{
+    try {
       resp = await UserService.getFacilityLocations(payload);
-      if(resp.status === 200 && !hasError(resp) && resp.data?.count > 0) {
+      if (resp.status === 200 && !hasError(resp) && resp.data?.count > 0) {
         let facilityLocations = resp.data.docs
 
         facilityLocations = facilityLocations.map((location: any) => {
@@ -221,12 +228,12 @@ const actions: ActionTree<UserState, RootState> = {
         console.error(resp);
         return [];
       }
-    } catch(err) {
+    } catch (err) {
       console.error(err);
       return [];
     }
   },
-     
+
   async setProductIdentificationPref({ commit, state }, payload) {
     let prefValue = JSON.parse(JSON.stringify(state.productIdentificationPref))
     const eComStoreId = (state.currentEComStore as any).productStoreId
@@ -244,15 +251,15 @@ const actions: ActionTree<UserState, RootState> = {
         "fieldList": ["fromDate"],
         "viewSize": 1
       }) as any
-      if(resp.status == 200 && resp.data.count > 0) {
+      if (resp.status == 200 && resp.data.count > 0) {
         fromDate = resp.data.docs[0].fromDate
       }
-    } catch(err) {
+    } catch (err) {
       console.error(err)
     }
 
     // when selecting none as ecom store, not updating the pref as it's not possible to save pref with empty productStoreId
-    if(!(state.currentEComStore as any).productStoreId || !fromDate) {
+    if (!(state.currentEComStore as any).productStoreId || !fromDate) {
       showToast(translate('Unable to update product identifier preference'))
       commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, prefValue)
       return;
@@ -270,13 +277,13 @@ const actions: ActionTree<UserState, RootState> = {
     try {
       const resp = await UserService.updateProductIdentificationPref(params) as any
 
-      if(resp.status == 200) {
+      if (resp.status == 200) {
         showToast(translate('Product identifier preference updated'))
       } else {
         showToast(translate('Failed to update product identifier preference'))
         prefValue = JSON.parse(JSON.stringify(state.productIdentificationPref))
       }
-    } catch(err) {
+    } catch (err) {
       showToast(translate('Failed to update product identifier preference'))
       prefValue = JSON.parse(JSON.stringify(state.productIdentificationPref))
       console.error(err)
@@ -299,7 +306,7 @@ const actions: ActionTree<UserState, RootState> = {
 
     try {
       await UserService.createProductIdentificationPref(params) as any
-    } catch(err) {
+    } catch (err) {
       console.error(err)
     }
 
@@ -311,8 +318,8 @@ const actions: ActionTree<UserState, RootState> = {
   async getProductIdentificationPref({ commit, dispatch }, eComStoreId) {
 
     // when selecting none as ecom store, not fetching the pref as it returns all the entries with the pref id
-    if(!eComStoreId) {
-      commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, {'primaryId': 'productId', 'secondaryId': ''})
+    if (!eComStoreId) {
+      commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, { 'primaryId': 'productId', 'secondaryId': '' })
       return;
     }
 
@@ -329,13 +336,13 @@ const actions: ActionTree<UserState, RootState> = {
 
     try {
       const resp = await UserService.getProductIdentificationPref(payload) as any
-      if(resp.status == 200 && resp.data.count > 0) {
+      if (resp.status == 200 && resp.data.count > 0) {
         const respValue = JSON.parse(resp.data.docs[0].settingValue)
-        commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, {'primaryId': respValue['primaryId'], 'secondaryId': respValue['secondaryId']})
-      } else if(resp.status == 200 && resp.data.error) {
+        commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, { 'primaryId': respValue['primaryId'], 'secondaryId': respValue['secondaryId'] })
+      } else if (resp.status == 200 && resp.data.error) {
         dispatch('createProductIdentificationPref')
       }
-    } catch(err) {
+    } catch (err) {
       console.error(err)
     }
   }
