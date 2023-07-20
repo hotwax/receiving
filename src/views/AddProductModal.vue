@@ -51,7 +51,7 @@ import {
   IonToolbar,
   modalController,
 } from '@ionic/vue';
-import { defineComponent } from 'vue';
+import { defineComponent, inject } from 'vue';
 import { closeOutline, checkmarkCircle } from 'ionicons/icons';
 import { mapGetters } from 'vuex'
 import { useStore } from "@/store";
@@ -87,8 +87,7 @@ export default defineComponent({
     ...mapGetters({
       products: 'product/getProducts',
       isScrollable: 'product/isScrollable',
-      isProductAvailableInShipment: 'product/isProductAvailableInShipment',
-      productIdentificationPref: 'user/getProductIdentificationPref'
+      isProductAvailableInShipment: 'product/isProductAvailableInShipment'
     })
   },
   methods: {
@@ -129,10 +128,15 @@ export default defineComponent({
   },
   setup() {
     const store = useStore();
+
+    // Injecting identifier preference from app.view
+    const productIdentificationPref: any  = inject("productIdentificationPref");
+
     return {
       closeOutline,
       checkmarkCircle,
       store,
+      productIdentificationPref
     };
   },
 });
