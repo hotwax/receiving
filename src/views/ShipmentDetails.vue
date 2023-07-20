@@ -36,8 +36,8 @@
                   <Image :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
-                  <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
-                  <p>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                  <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
+                  <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
                 </ion-label>
               </ion-item>
             </div>
@@ -97,7 +97,7 @@ import {
   modalController,
   alertController,
 } from '@ionic/vue';
-import { defineComponent } from 'vue';
+import { defineComponent, inject } from 'vue';
 import { add, checkmarkDone, barcodeOutline } from 'ionicons/icons';
 import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
@@ -106,7 +106,7 @@ import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
-import { hasError, productHelpers } from '@/utils'
+import { hasError, getProductIdentificationValue } from '@/utils'
 import { Actions, hasPermission } from '@/authorization'
 
 export default defineComponent({
@@ -147,8 +147,7 @@ export default defineComponent({
       user: 'user/getCurrentFacility',
       getProduct: 'product/getProduct',
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
-      currentFacility: 'user/getCurrentFacility',
-      productIdentificationPref: 'user/getProductIdentificationPref'
+      currentFacility: 'user/getCurrentFacility'
     }),
   },
   methods: {
@@ -241,6 +240,9 @@ export default defineComponent({
     const store = useStore(); 
     const router = useRouter();
 
+    // Injecting identifier preference from app.view
+    const productIdentificationPref: any  = inject("productIdentificationPref");
+
     return {
       Actions,
       add,
@@ -248,8 +250,9 @@ export default defineComponent({
       checkmarkDone,
       hasPermission,
       store,
-      productHelpers,
-      router
+      getProductIdentificationValue,
+      router,
+      productIdentificationPref
     };
   },
 });

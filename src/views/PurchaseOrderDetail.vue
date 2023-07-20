@@ -48,8 +48,8 @@
                   <Image :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
-                  <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
-                  <p>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                  <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
+                  <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
                 </ion-label>
               </ion-item>
             </div>
@@ -125,7 +125,7 @@ import {
   modalController,
   alertController,
 } from '@ionic/vue';
-import { defineComponent } from 'vue';
+import { defineComponent, inject } from 'vue';
 import { addOutline, cameraOutline, checkmarkDone, saveOutline, timeOutline, copyOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import Image from "@/components/Image.vue";
@@ -135,7 +135,7 @@ import Scanner from "@/components/Scanner.vue"
 import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
 import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
-import { copyToClipboard, hasError, productHelpers } from '@/utils';
+import { copyToClipboard, hasError, getProductIdentificationValue } from '@/utils';
 import { Actions, hasPermission } from '@/authorization'
 
 export default defineComponent({
@@ -174,8 +174,7 @@ export default defineComponent({
       getProduct: 'product/getProduct',
       getPOItemAccepted: 'order/getPOItemAccepted',
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
-      currentFacility: 'user/getCurrentFacility',
-      productIdentificationPref: 'user/getProductIdentificationPref'
+      currentFacility: 'user/getCurrentFacility'
     })
   },
   methods: {
@@ -271,6 +270,9 @@ export default defineComponent({
     const store = useStore();
     const router = useRouter();
 
+    // Injecting identifier preference from app.view
+    const productIdentificationPref: any  = inject("productIdentificationPref");
+
     return {
       Actions,
       addOutline,
@@ -279,11 +281,12 @@ export default defineComponent({
       copyOutline,
       copyToClipboard,
       hasPermission,
-      productHelpers,
+      getProductIdentificationValue,
       router,
       saveOutline,
       store,
-      timeOutline
+      timeOutline,
+      productIdentificationPref
     };
   },
 });
