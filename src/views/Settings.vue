@@ -98,6 +98,20 @@
         <p class="overline">{{ "Built: " + getDateTime(appInfo.builtTime) }}</p>
       </div>
       <section>
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>
+              {{ $t('Timezone') }}
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            {{ $t('The timezone you select is used to ensure automations you schedule are always accurate to the time you select.') }}
+          </ion-card-content>
+          <ion-item lines="none">
+            <ion-label> {{ userProfile && userProfile.userTimeZone ? userProfile.userTimeZone : '-' }} </ion-label>
+            <ion-button @click="changeTimeZone()" slot="end" fill="outline" color="dark">{{ $t("Change") }}</ion-button>
+          </ion-item>
+        </ion-card>
 
         <!-- Product Identifier -->
         <ion-card>
@@ -123,20 +137,6 @@
               <ion-select-option v-for="identification in productIdentificationOptions" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
               <ion-select-option value="">{{ $t("None") }}</ion-select-option>
             </ion-select>
-          </ion-item>
-        </ion-card>
-        <ion-card>
-          <ion-card-header>
-            <ion-card-title>
-              {{ $t('Timezone') }}
-            </ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            {{ $t('The timezone you select is used to ensure automations you schedule are always accurate to the time you select.') }}
-          </ion-card-content>
-          <ion-item lines="none">
-            <ion-label> {{ userProfile && userProfile.userTimeZone ? userProfile.userTimeZone : '-' }} </ion-label>
-            <ion-button @click="changeTimeZone()" slot="end" fill="outline" color="dark">{{ $t("Change") }}</ion-button>
           </ion-item>
         </ion-card>
       </section>

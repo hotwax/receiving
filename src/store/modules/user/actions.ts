@@ -142,6 +142,12 @@ const actions: ActionTree<UserState, RootState> = {
       'userPrefTypeId': 'SELECTED_BRAND',
       'userPrefValue': payload.eComStore.productStoreId
     });
+
+    // Get product identification from api using dxp-component and set the state if eComStore is defined
+    if (payload.eComStore.productStoreId) {
+      await useProductIdentificationStore().getIdentificationPref(payload.eComStore.productStoreId)
+        .catch((error) => console.log(error));
+    }
   },
 
   /**
@@ -162,12 +168,6 @@ const actions: ActionTree<UserState, RootState> = {
     commit(types.USER_CURRENT_ECOM_STORE_UPDATED, preferredStore);
     commit(types.USER_CURRENT_FACILITY_UPDATED, payload.facility);
     await dispatch('getFacilityLocations', payload.facility.facilityId);
-
-    // Get product identification from api using dxp-component and set the state if eComStore is defined
-    if (preferredStore.productStoreId) {
-      await useProductIdentificationStore().getIdentificationPref(preferredStore.productStoreId)
-        .catch((error) => console.log(error));
-    }
   },
 
   /**
