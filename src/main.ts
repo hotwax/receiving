@@ -34,10 +34,14 @@ import permissionRules from '@/authorization/Rules';
 import permissionActions from '@/authorization/Actions';
 import { dxpComponents } from '@hotwax/dxp-components';
 import { setProductIdentificationPref, getProductIdentificationPref } from '@hotwax/oms-api';
+import logger from './logger';
 
 const app = createApp(App)
   .use(IonicVue, {
     mode: 'md'
+  })
+  .use(logger, {
+    level: process.env.VUE_APP_DEFAULT_LOG_LEVEL
   })
   .use(router)
   .use(i18n)

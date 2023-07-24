@@ -18,7 +18,7 @@ import { Settings } from 'luxon';
 import { initialise, resetConfig } from '@/adapter'
 import { useRouter } from 'vue-router';
 import { useProductIdentificationStore } from '@hotwax/dxp-components';
-import { showToast } from './utils';
+import logger from './logger';
 
 export default defineComponent({
   name: 'App',
@@ -105,7 +105,7 @@ export default defineComponent({
     // Get product identification from api using dxp-component and set the state if eComStore is defined
     if (this.currentEComStore.productStoreId) {
       await useProductIdentificationStore().getIdentificationPref(this.currentEComStore.productStoreId)
-        .catch((error) => console.log(error));
+        .catch((error) => logger.error('Failed to fetch product identification preference', error));
     }
   },
   unmounted() {
