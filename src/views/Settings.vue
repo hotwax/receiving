@@ -245,7 +245,7 @@ export default defineComponent({
         this.store.dispatch('shipment/clearShipments');
         this.store.dispatch('return/clearReturns');
         this.store.dispatch("party/resetReceiversDetails");
-        this.router.push('/login');
+        window.location.href = process.env.VUE_APP_LOGIN_URL as string;
       })
     },
     setProductIdentificationPref(value: string, id: string) {
