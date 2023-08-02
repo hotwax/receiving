@@ -18,7 +18,6 @@ import { Settings } from 'luxon';
 import { initialise, resetConfig } from '@/adapter'
 import { useRouter } from 'vue-router';
 import { useProductIdentificationStore } from '@hotwax/dxp-components';
-import { showToast } from './utils';
 
 export default defineComponent({
   name: 'App',
