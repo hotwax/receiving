@@ -24,6 +24,7 @@
   "Failed to update product identifier preference": "Failed to update product identifier preference",
   "facility location": "facility location",
   "Facility locations were not found corresponding to destination facility of return shipment. Please add facility locations to avoid receive return shipment failure.": "Facility locations were not found corresponding to destination facility of return shipment. Please add facility locations to avoid receive return shipment failure.",
+  "Go to Launchpad": "Go to Launchpad",
   "Go to OMS": "Go to OMS",
   "History": "History",
   "Internal ID saved to clipboard": "Internal ID saved to clipboard",
