@@ -11,6 +11,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
   async findShipment ({ commit, state }, payload) {
     let resp;
     try {
+      console.log("========payload==", payload);
       resp = await ShipmentService.fetchShipments(payload)
       if (resp.status === 200 && resp.data.docs?.length > 0 && !hasError(resp)) {
         let shipments = resp.data.docs;
