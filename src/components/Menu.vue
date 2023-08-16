@@ -9,7 +9,7 @@
     <ion-content>
       <ion-list id="receiving-list">
         <ion-menu-toggle auto-hide="false" v-for="(p, i) in appPages" :key="i">
-          <ion-item button @click="selectedIndex = i" router-direction="root" :router-link="p.url" class="hydrated" :class="{ selected: selectedIndex === i }">
+          <ion-item button router-direction="root" :router-link="p.url" class="hydrated" :class="{ selected: selectedIndex === i }">
             <ion-icon slot="start" :ios="p.iosIcon" :md="p.mdIcon" />
             <ion-label>{{ p.title }}</ion-label>
           </ion-item>
@@ -32,10 +32,11 @@ import {
   IonMenu,
   IonMenuToggle,
 } from "@ionic/vue";
-import { defineComponent, ref } from "vue";
+import { computed, defineComponent } from "vue";
 import { mapGetters } from "vuex";
 import { calendar, download, gitPullRequestOutline, settings } from "ionicons/icons";
 import { useStore } from "@/store";
+import { useRouter } from "vue-router";
 
 export default defineComponent({
   name: "Menu",
@@ -51,29 +52,15 @@ export default defineComponent({
     IonMenu,
     IonMenuToggle,
   },
-  created() {
-    // When open any specific page it should show that page selected
-    this.selectedIndex = this.appPages.findIndex((page) => {
-      return page.url === this.$router.currentRoute.value.path;
-    })
-  },
   computed: {
     ...mapGetters({
       isUserAuthenticated: 'user/isUserAuthenticated',
       currentFacility: 'user/getCurrentFacility',
     })
   },
-  watch:{
-    $route (to) {
-      // When logout and login it should point to Oth index
-      if (to.path === '/login') {
-        this.selectedIndex = 0;
-      }
-    },
-  }, 
   setup() {
     const store = useStore();
-    const selectedIndex = ref(0);
+    const router = useRouter();
     const appPages = [
       {
         title: "Shipments",
@@ -99,7 +86,13 @@ export default defineComponent({
         iosIcon: settings,
         mdIcon: settings,
       }
-    ];
+    ] as any;
+
+    const selectedIndex = computed(() => {
+      const path = router.currentRoute.value.path
+      return appPages.findIndex((screen: any) => screen.url === path || screen.childRoutes?.includes(path))
+    })
+
     return {
       selectedIndex,
       appPages,
@@ -108,7 +101,7 @@ export default defineComponent({
       store,
       calendar
     };
-  },
+  }
 });
 </script>
 
