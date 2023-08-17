@@ -65,18 +65,21 @@ export default defineComponent({
       {
         title: "Shipments",
         url: "/shipments",
+        childRoutes: ["/shipment/"],
         iosIcon: download,
         mdIcon: download,
       },
       {
         title: "Returns",
         url: "/returns",
+        childRoutes: ["/return/"],
         iosIcon: gitPullRequestOutline,
         mdIcon: gitPullRequestOutline,
       },
       {
         title: "Purchase Orders",
         url: "/purchase-orders",
+        childRoutes: ["/purchase-order-detail/"],
         iosIcon: calendar,
         mdIcon: calendar
       },
@@ -86,11 +89,11 @@ export default defineComponent({
         iosIcon: settings,
         mdIcon: settings,
       }
-    ] as any;
+    ];
 
     const selectedIndex = computed(() => {
       const path = router.currentRoute.value.path
-      return appPages.findIndex((screen: any) => screen.url === path || screen.childRoutes?.includes(path))
+      return appPages.findIndex((screen) => screen.url === path || screen.childRoutes?.includes(path) || screen.childRoutes?.some((route) => path.includes(route)))
     })
 
     return {
