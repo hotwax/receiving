@@ -97,15 +97,20 @@ export default defineComponent({
           "parentTypeId_fld0_grp": "2",
         },
         "entityName": "ShipmentAndTypeAndItemCount",
-        "fieldList" : [ "shipmentId","primaryShipGroupSeqId","partyIdFrom","partyIdTo","estimatedArrivalDate","destinationFacilityId","statusId", "shipmentItemCount", "externalId" ],
+        "fieldList" : [ "shipmentId","primaryShipGroupSeqId","partyIdFrom","partyIdTo","estimatedArrivalDate","destinationFacilityId","statusId", "shipmentItemCount", "externalId", "externalOrderId", "shipmentTypeId" ],
         "noConditionFind": "Y",
         "viewSize": viewSize,
         "viewIndex": viewIndex,
       } as any
       if(this.queryString){
-        payload.inputFields["shipmentId"] = this.queryString;
-        payload.inputFields["shipmentId_op"] = "contains";
-        payload.inputFields["shipmentId_ic"] = "Y";
+          payload.inputFields["shipmentId_value"] = this.queryString
+          payload.inputFields["shipmentId_op"] = 'contains'
+          payload.inputFields["shipmentId_ic"] = 'Y'
+          payload.inputFields["shipmentId_grp"] = '1'
+          payload.inputFields["externalOrderId_value"] = this.queryString
+          payload.inputFields["externalOrderId_op"] = 'contains'
+          payload.inputFields["externalOrderId_ic"] = 'Y'
+          payload.inputFields["externalOrderId_grp"] = '2'
       }
       await this.store.dispatch("shipment/findShipment", payload);
     },
