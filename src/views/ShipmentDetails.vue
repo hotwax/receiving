@@ -98,6 +98,7 @@ import {
   IonThumbnail,
   IonTitle,
   IonToolbar,
+  IonChip,
   modalController,
   alertController,
 } from '@ionic/vue';
@@ -133,6 +134,7 @@ export default defineComponent({
     IonThumbnail,
     IonTitle,
     IonToolbar,
+    IonChip,
     Image,
     LocationPopover
   },
