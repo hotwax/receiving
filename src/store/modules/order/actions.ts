@@ -5,11 +5,13 @@ import OrderState from './OrderState'
 import * as types from './mutation-types'
 import { hasError, showToast } from '@/utils'
 import { translate } from '@/i18n'
+import emitter from "@/event-bus";
 
 
 const actions: ActionTree<OrderState, RootState> = {
 
   async findPurchaseOrders ({ commit, state }, payload) {
+    if (payload.json.params.start === 0) emitter.emit("presentLoader");
     let resp;
     try {
       resp = await OrderService.fetchPurchaseOrders(payload)
@@ -35,6 +37,7 @@ const actions: ActionTree<OrderState, RootState> = {
       console.error(error)
       showToast(translate("Something went wrong"));
     }
+    if (payload.json.params.start === 0) emitter.emit("dismissLoader");
     return resp;
   },
   async updateProductCount({ commit, state }, payload ) {

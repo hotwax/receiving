@@ -20,7 +20,7 @@
         </div>
 
         <!-- Empty state -->
-        <div class="empty-state" v-if="!orders.length">
+        <div class="empty-state" v-if="!orders.length && !fetchingOrders">
           <img src="../assets/images/empty-state.png" alt="empty state">
           <p>{{ $t("There are no purchase orders to receive")}}</p>
           <ion-button fill="outline" color="dark" @click="refreshPurchaseOrders()">
@@ -76,7 +76,8 @@ export default defineComponent({
   },
   data() {
     return {
-      queryString: ''
+      queryString: '',
+      fetchingOrders: false
     }
   },
   computed: {
@@ -88,6 +89,7 @@ export default defineComponent({
   },
   methods: {
     async getPurchaseOrders(vSize?: any, vIndex?: any){
+      this.fetchingOrders = true;
       const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
       const viewIndex = vIndex ? vIndex : 0;
       const payload = {
@@ -110,7 +112,9 @@ export default defineComponent({
         payload.json.params.qf = "orderId externalOrderId";
         payload.json.params['q.op'] = "AND";
       }
-      return this.store.dispatch('order/findPurchaseOrders', payload);
+      await this.store.dispatch('order/findPurchaseOrders', payload);
+      this.fetchingOrders = false;
+      return Promise.resolve();
     },
     async loadMoreOrders() {
       this.getPurchaseOrders(

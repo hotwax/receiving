@@ -81,16 +81,11 @@ export default defineComponent({
       }
     })
   },
-  async mounted() {
-    this.loader = await loadingController
-      .create({
-        message: this.$t("Click the backdrop to dismiss."),
-        translucent: true,
-        backdropDismiss: true
-      });
+  beforeMount() {
     emitter.on('presentLoader', this.presentLoader);
     emitter.on('dismissLoader', this.dismissLoader);
-
+  },
+  async mounted() {
     if(this.productIdentifications.length <= 0) {
       // TODO: fetch product identifications from enumeration instead of storing it in env
       this.store.dispatch('util/setProductIdentifications', process.env.VUE_APP_PRDT_IDENT ? JSON.parse(process.env.VUE_APP_PRDT_IDENT) : [])

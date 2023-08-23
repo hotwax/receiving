@@ -20,7 +20,7 @@
         </div>
 
         <!-- Empty state -->
-        <div class="empty-state" v-if="!shipments.length">
+        <div class="empty-state" v-if="!shipments.length && !fetchingShipments">
           <img src="../assets/images/empty-state.png" alt="empty state">
           <p>{{ $t("There are no incoming shipments")}}</p>
           <ion-button fill="outline" color="dark" @click="refreshShipments()">
@@ -82,7 +82,8 @@ export default defineComponent({
   },
   data() {
     return {
-      queryString: ''
+      queryString: '',
+      fetchingShipments: false
     }
   },
   ionViewWillEnter () {
@@ -95,6 +96,7 @@ export default defineComponent({
       })
     },
     async getShipments(vSize?: any, vIndex?: any) {
+      this.fetchingShipments = true;
       const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
       const viewIndex = vIndex ? vIndex : 0;
       const payload = {
@@ -124,7 +126,9 @@ export default defineComponent({
           payload.inputFields["externalOrderId_ic"] = 'Y'
           payload.inputFields["externalOrderId_grp"] = '2'
       }
-      return await this.store.dispatch("shipment/findShipment", payload);
+      await this.store.dispatch("shipment/findShipment", payload);
+      this.fetchingShipments = false;
+      return Promise.resolve();
     },
     loadMoreShipments() {
       this.getShipments(process.env.VUE_APP_VIEW_SIZE, Math.ceil(this.shipments.length / process.env.VUE_APP_VIEW_SIZE));

@@ -20,7 +20,7 @@
         </div>
 
         <!-- Empty state -->
-        <div class="empty-state" v-if="!returns.length">
+        <div class="empty-state" v-if="!returns.length && !fetchingReturns">
           <img src="../assets/images/empty-state.png" alt="empty state">
           <p>{{ $t("There are no returns to receive")}}</p>
           <ion-button fill="outline" color="dark" @click="refreshReturns()">
@@ -81,7 +81,8 @@ export default defineComponent({
   },
   data () {
     return {
-      queryString: ''
+      queryString: '',
+      fetchingReturns: false
     }
   },
   mounted () {
@@ -92,6 +93,7 @@ export default defineComponent({
   },
   methods: {
     async getReturns(vSize?: any, vIndex?: any) {
+      this.fetchingReturns = true;
       const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
       const viewIndex = vIndex ? vIndex : 0;
       const payload = {
@@ -127,7 +129,9 @@ export default defineComponent({
         payload.inputFields["shopifyOrderName_ic"] = "Y";
         payload.inputFields["shopifyOrderName_grp"] = "5";
       }
-      return await this.store.dispatch("return/findReturn", payload);
+      await this.store.dispatch("return/findReturn", payload);
+      this.fetchingReturns = false;
+      return Promise.resolve();
     },
     loadMoreReturns() {
       this.getReturns(process.env.VUE_APP_VIEW_SIZE, Math.ceil(this.returns.length / process.env.VUE_APP_VIEW_SIZE));
