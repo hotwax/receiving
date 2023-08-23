@@ -12,10 +12,20 @@
 
         <PurchaseOrderItem v-for="(order, index) in orders" :key="index" :purchaseOrder="order.doclist.docs[0]" />
         
-        <div class="load-more-action ion-text-center">
+        <div v-if="orders.length" class="load-more-action ion-text-center">
           <ion-button fill="outline" color="dark" @click="loadMoreOrders()">
             <ion-icon :icon="cloudDownloadOutline" slot="start" />
             {{ $t("Load more purchase order") }}
+          </ion-button>
+        </div>
+
+        <!-- Empty state -->
+        <div class="empty-state" v-if="!orders.length">
+          <img src="../assets/images/empty-state.png" alt="empty state">
+          <p>{{ $t("There are no purchase orders to receive")}}</p>
+          <ion-button fill="outline" color="dark" @click="refreshPurchaseOrders()">
+            <ion-icon :icon="reload" slot="start" />
+            {{ $t("Refresh") }}
           </ion-button>
         </div>
 
@@ -41,10 +51,12 @@ import {
   IonTitle,
   IonToolbar
 } from '@ionic/vue';
-import { cloudDownloadOutline } from 'ionicons/icons'
+import { cloudDownloadOutline, reload } from 'ionicons/icons'
 import { defineComponent } from 'vue';
 import { mapGetters, useStore } from 'vuex';
 import PurchaseOrderItem from '@/components/PurchaseOrderItem.vue'
+import { showToast } from '@/utils';
+import { translate } from '@/i18n';
 
 export default defineComponent({
   name: 'PurchaseOrders',
@@ -78,7 +90,6 @@ export default defineComponent({
     async getPurchaseOrders(vSize?: any, vIndex?: any){
       const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
       const viewIndex = vIndex ? vIndex : 0;
-
       const payload = {
         "json": {
           "params": {
@@ -99,7 +110,7 @@ export default defineComponent({
         payload.json.params.qf = "orderId externalOrderId";
         payload.json.params['q.op'] = "AND";
       }
-      this.store.dispatch('order/findPurchaseOrders', payload);
+      return this.store.dispatch('order/findPurchaseOrders', payload);
     },
     async loadMoreOrders() {
       this.getPurchaseOrders(
@@ -107,9 +118,10 @@ export default defineComponent({
         Math.ceil(this.orders.length / process.env.VUE_APP_VIEW_SIZE)
       );
     },
-    async refreshPurchaseOrders(event: any) {
+    async refreshPurchaseOrders(event?: any) {
       this.getPurchaseOrders().then(() => {
         if (event) event.target.complete();
+        if(!this.orders.length) showToast(translate("Orders not found"));
       })
     },
   },
@@ -121,6 +133,7 @@ export default defineComponent({
 
     return {
       cloudDownloadOutline,
+      reload,
       store
     }
   }

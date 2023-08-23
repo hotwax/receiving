@@ -12,10 +12,20 @@
   
         <ReturnListItem v-for="returnShipment in returns" :key="returnShipment.shipmentId" :returnShipment="returnShipment" />
 
-        <div class="load-more-action ion-text-center">
+        <div v-if="returns.length" class="load-more-action ion-text-center">
           <ion-button fill="outline" color="dark" @click="loadMoreReturns()">
             <ion-icon :icon="cloudDownloadOutline" slot="start" />
             {{ $t("Load more returns") }}
+          </ion-button>
+        </div>
+
+        <!-- Empty state -->
+        <div class="empty-state" v-if="!returns.length">
+          <img src="../assets/images/empty-state.png" alt="empty state">
+          <p>{{ $t("There are no returns to receive")}}</p>
+          <ion-button fill="outline" color="dark" @click="refreshReturns()">
+            <ion-icon :icon="reload" slot="start" />
+            {{ $t("Refresh") }}
           </ion-button>
         </div>
 
@@ -41,10 +51,12 @@ import {
   IonTitle,
   IonToolbar
 } from '@ionic/vue';
-import { cloudDownloadOutline } from 'ionicons/icons'
+import { cloudDownloadOutline, reload } from 'ionicons/icons'
 import { defineComponent } from 'vue'
 import { mapGetters, useStore } from 'vuex'
 import ReturnListItem from '@/components/ReturnListItem.vue'
+import { showToast } from '@/utils';
+import { translate } from '@/i18n';
 
 export default defineComponent({
   name: "Returns",
@@ -115,14 +127,15 @@ export default defineComponent({
         payload.inputFields["shopifyOrderName_ic"] = "Y";
         payload.inputFields["shopifyOrderName_grp"] = "5";
       }
-      await this.store.dispatch("return/findReturn", payload);
+      return await this.store.dispatch("return/findReturn", payload);
     },
     loadMoreReturns() {
       this.getReturns(process.env.VUE_APP_VIEW_SIZE, Math.ceil(this.returns.length / process.env.VUE_APP_VIEW_SIZE));
     },
-    async refreshReturns(event: any) {
+    async refreshReturns(event?: any) {
       this.getReturns().then(() => {
         if (event) event.target.complete();
+        if(!this.returns.length) showToast(translate("Returns not found"));
       })
     },
   },
@@ -130,6 +143,7 @@ export default defineComponent({
     const store = useStore();
     return {
       cloudDownloadOutline,
+      reload,
       store
     }
   }

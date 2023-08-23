@@ -22,8 +22,7 @@ const actions: ActionTree<ReturnState, RootState> = {
         if (payload.viewIndex && payload.viewIndex > 0) returns = state.returns.list.concat(returns);
         commit(types.RETURN_LIST_UPDATED, returns )
       } else {
-        if(!payload.viewIndex) commit(types.RETURN_LIST_UPDATED, [])
-        showToast(translate("Returns not found"));
+        payload.viewIndex ? showToast(translate("Returns not found")) : commit(types.RETURN_LIST_UPDATED, []);
       }
       if (payload.viewIndex === 0) emitter.emit("dismissLoader");
     } catch(error){
