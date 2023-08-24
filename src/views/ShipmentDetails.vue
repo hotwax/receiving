@@ -13,8 +13,12 @@
     <ion-content>
       <main>
         <ion-item lines="none">
-          <h1 v-if="current.externalId">{{ $t("External ID") }}: {{ current.externalId }}</h1>
-          <h1 v-else>{{ $t("Shipment ID") }}: {{ current.shipmentId }}</h1>
+          <ion-label>
+            <p class="overline" v-show="current.externalOrderId">{{ current.externalOrderId }}</p>
+            <h1 v-if="current.externalId">{{ $t("External ID") }}: {{ current.externalId }}</h1>
+            <h1 v-else>{{ $t("Shipment ID") }}: {{ current.shipmentId }}</h1>
+          </ion-label>
+          <ion-chip v-show="current.trackingIdNumber">{{current.trackingIdNumber}}</ion-chip>
         </ion-item>
 
         <div class="scanner">
@@ -94,6 +98,7 @@ import {
   IonThumbnail,
   IonTitle,
   IonToolbar,
+  IonChip,
   modalController,
   alertController,
 } from '@ionic/vue';
@@ -130,6 +135,7 @@ export default defineComponent({
     IonTitle,
     IonToolbar,
     ShopifyImg,
+    IonChip,
     LocationPopover
   },
   props: ["shipment"],
