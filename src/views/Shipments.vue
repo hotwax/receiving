@@ -8,7 +8,7 @@
     </ion-header>
     <ion-content>
       <main>
-        <ion-searchbar :placeholder="$t('Scan ASN to start receiving')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getShipments()" />
+        <ion-searchbar :placeholder="$t('Scan ASN to start receiving')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getShipments();" />
 
         <ShipmentListItem v-for="shipment in shipments" :key="shipment.shipmentId" :shipment="shipment"/>
 
@@ -21,6 +21,7 @@
 
         <!-- Empty state -->
         <div class="empty-state" v-if="!shipments.length && !fetchingShipments">
+          <p v-if="showErrorMessage">{{ $t("No results found")}}</p>
           <img src="../assets/images/empty-state.png" alt="empty state">
           <p>{{ $t("There are no incoming shipments")}}</p>
           <ion-button fill="outline" color="dark" @click="refreshShipments()">
@@ -83,7 +84,8 @@ export default defineComponent({
   data() {
     return {
       queryString: '',
-      fetchingShipments: false
+      fetchingShipments: false,
+      showErrorMessage: false 
     }
   },
   ionViewWillEnter () {
@@ -96,6 +98,7 @@ export default defineComponent({
       })
     },
     async getShipments(vSize?: any, vIndex?: any) {
+      this.queryString ? this.showErrorMessage = true : this.showErrorMessage = false;
       this.fetchingShipments = true;
       const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
       const viewIndex = vIndex ? vIndex : 0;

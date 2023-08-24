@@ -21,6 +21,7 @@
 
         <!-- Empty state -->
         <div class="empty-state" v-if="!returns.length && !fetchingReturns">
+          <p v-if="showErrorMessage">{{ $t("No results found")}}</p>
           <img src="../assets/images/empty-state.png" alt="empty state">
           <p>{{ $t("There are no returns to receive")}}</p>
           <ion-button fill="outline" color="dark" @click="refreshReturns()">
@@ -82,7 +83,8 @@ export default defineComponent({
   data () {
     return {
       queryString: '',
-      fetchingReturns: false
+      fetchingReturns: false,
+      showErrorMessage: false
     }
   },
   mounted () {
@@ -93,6 +95,7 @@ export default defineComponent({
   },
   methods: {
     async getReturns(vSize?: any, vIndex?: any) {
+      this.queryString ? this.showErrorMessage = true : this.showErrorMessage = false;
       this.fetchingReturns = true;
       const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
       const viewIndex = vIndex ? vIndex : 0;

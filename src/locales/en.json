@@ -40,6 +40,7 @@
   "Make sure you have entered all the inventory you received. You cannot edit this information after proceeding.": "Make sure you have entered all the inventory you received. { space } You cannot edit this information after proceeding.",
   "No more shipments found": "No more shipments found",
   "None": "None",
+  "No results found": "No results found",
   "No time zone found": "No time zone found",
   "No shipments have been received against this purchase order yet": "No shipments have been received against {lineBreak} this purchase order yet",
   "OMS": "OMS",

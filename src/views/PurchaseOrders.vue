@@ -21,6 +21,7 @@
 
         <!-- Empty state -->
         <div class="empty-state" v-if="!orders.length && !fetchingOrders">
+          <p v-if="showErrorMessage">{{ $t("No results found")}}</p>
           <img src="../assets/images/empty-state.png" alt="empty state">
           <p>{{ $t("There are no purchase orders to receive")}}</p>
           <ion-button fill="outline" color="dark" @click="refreshPurchaseOrders()">
@@ -77,7 +78,8 @@ export default defineComponent({
   data() {
     return {
       queryString: '',
-      fetchingOrders: false
+      fetchingOrders: false,
+      showErrorMessage: false
     }
   },
   computed: {
@@ -89,6 +91,7 @@ export default defineComponent({
   },
   methods: {
     async getPurchaseOrders(vSize?: any, vIndex?: any){
+      this.queryString ? this.showErrorMessage = true : this.showErrorMessage = false;
       this.fetchingOrders = true;
       const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
       const viewIndex = vIndex ? vIndex : 0;
