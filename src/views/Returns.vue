@@ -142,7 +142,6 @@ export default defineComponent({
     async refreshReturns(event?: any) {
       this.getReturns().then(() => {
         if (event) event.target.complete();
-        if(!this.returns.length) showToast(translate("Returns not found"));
       })
     },
   },

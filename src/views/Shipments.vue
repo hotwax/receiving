@@ -139,7 +139,6 @@ export default defineComponent({
     async refreshShipments(event?: any) {
       this.getShipments().then(() => {
         if (event) event.target.complete();
-        if(!this.shipments.length) showToast(translate("Shipments not found"));
       })
     },
   },

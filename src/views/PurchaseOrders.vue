@@ -128,7 +128,6 @@ export default defineComponent({
     async refreshPurchaseOrders(event?: any) {
       this.getPurchaseOrders().then(() => {
         if (event) event.target.complete();
-        if(!this.orders.length) showToast(translate("Orders not found"));
       })
     },
   },
