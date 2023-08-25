@@ -155,7 +155,7 @@ import { defineComponent } from 'vue';
 import { codeWorkingOutline, ellipsisVertical, openOutline, saveOutline, globeOutline, personCircleOutline, storefrontOutline} from 'ionicons/icons'
 import { mapGetters, useStore } from 'vuex';
 import { useRouter } from 'vue-router';
-import Image from '@/components/Image.vue';
+import Image from '@/components/Image.vue'
 import { DateTime } from 'luxon';
 import TimeZoneModal from '@/views/TimezoneModal.vue';
 

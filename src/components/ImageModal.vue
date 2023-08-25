@@ -11,7 +11,8 @@
   </ion-header>
 
   <ion-content class="ion-text-center">
-    <Image :src="imageUrl" />
+    <ShopifyImg :src="imageUrl" />
+
   </ion-content>
 </template>
 
@@ -28,7 +29,7 @@ import {
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { closeOutline } from 'ionicons/icons';
-import Image from '@/components/Image.vue';
+import { ShopifyImg } from '@hotwax/dxp-components';
 
 export default defineComponent({
   name: 'ImageModal',
@@ -40,7 +41,7 @@ export default defineComponent({
     IonIcon,
     IonTitle,
     IonToolbar,
-    Image,
+    ShopifyImg
   },
   props: ["imageUrl", "productName"],
   methods: {

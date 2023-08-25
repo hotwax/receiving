@@ -45,7 +45,7 @@
             <div class="product-info">
               <ion-item lines="none">
                 <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
-                  <Image :src="getProduct(item.productId).mainImageUrl" />
+                  <ShopifyImg :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
                   <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
@@ -128,7 +128,7 @@ import {
 import { defineComponent } from 'vue';
 import { addOutline, cameraOutline, checkmarkDone, saveOutline, timeOutline, copyOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
-import Image from "@/components/Image.vue";
+import { ShopifyImg } from '@hotwax/dxp-components';
 import { useStore, mapGetters } from 'vuex';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue"
@@ -141,7 +141,7 @@ import { Actions, hasPermission } from '@/authorization'
 export default defineComponent({
   name: "PurchaseOrderDetails",
   components: {
-    Image,
+    ShopifyImg,
     IonBackButton,
     IonBadge,
     IonButton,
