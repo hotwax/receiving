@@ -56,8 +56,6 @@ import { cloudDownloadOutline, reload } from 'ionicons/icons'
 import { defineComponent } from 'vue'
 import { mapGetters, useStore } from 'vuex'
 import ReturnListItem from '@/components/ReturnListItem.vue'
-import { showToast } from '@/utils';
-import { translate } from '@/i18n';
 
 export default defineComponent({
   name: "Returns",
