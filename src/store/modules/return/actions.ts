@@ -9,6 +9,7 @@ import emitter from '@/event-bus'
 
 const actions: ActionTree<ReturnState, RootState> = {
   async findReturn ({ commit, state }, payload) {
+    if (payload.viewIndex === 0) emitter.emit("presentLoader");
     let resp;
     try {
       resp = await ReturnService.findReturns(payload)
@@ -22,14 +23,13 @@ const actions: ActionTree<ReturnState, RootState> = {
         if (payload.viewIndex && payload.viewIndex > 0) returns = state.returns.list.concat(returns);
         commit(types.RETURN_LIST_UPDATED, returns )
       } else {
-        if(!payload.viewIndex) commit(types.RETURN_LIST_UPDATED, [])
-        showToast(translate("Returns not found"));
+        payload.viewIndex ? showToast(translate("Returns not found")) : commit(types.RETURN_LIST_UPDATED, []);
       }
-      if (payload.viewIndex === 0) emitter.emit("dismissLoader");
     } catch(error){
       console.error(error)
       showToast(translate("Something went wrong"));
     }
+    if (payload.viewIndex === 0) emitter.emit("dismissLoader");
     return resp;
   },
   async updateReturnProductCount ({ commit, state }, payload) {

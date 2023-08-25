@@ -25,6 +25,12 @@
         </ion-label>
       </ion-item>
     </ion-list>
+
+    <!-- Empty state -->
+    <div class="empty-state" v-if="!items.length">
+      <img src="../assets/images/empty-state-history-modal.png" alt="empty state">
+      <p v-html="emptyStateMessage"></p>
+    </div>
   </ion-content>
 </template>
 
@@ -69,7 +75,8 @@ export default defineComponent({
   },
   data() {
     return {
-      items: []
+      items: [],
+      emptyStateMessage: this.$t("No shipments have been received against this purchase order yet", {lineBreak: '<br />'})
     }
   },
   props: ["productId"],

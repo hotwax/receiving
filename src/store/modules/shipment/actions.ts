@@ -9,6 +9,7 @@ import emitter from '@/event-bus'
 
 const actions: ActionTree<ShipmentState, RootState> = {
   async findShipment ({ commit, state }, payload) {
+    if (payload.viewIndex === 0) emitter.emit("presentLoader");
     let resp;
     try {
       resp = await ShipmentService.fetchShipments(payload)
@@ -22,14 +23,13 @@ const actions: ActionTree<ShipmentState, RootState> = {
         if (payload.viewIndex && payload.viewIndex > 0) shipments = state.shipments.list.concat(shipments);
         commit(types.SHIPMENT_LIST_UPDATED, { shipments })
       } else {
-        if(!payload.viewIndex) commit(types.SHIPMENT_LIST_UPDATED, { shipments: [] })
-        showToast(translate("Shipments not found"));
+        payload.viewIndex ? showToast(translate("Shipments not found")) : commit(types.SHIPMENT_LIST_UPDATED, { shipments: [] })
       }
-      if (payload.viewIndex === 0) emitter.emit("dismissLoader");
     } catch(error){
       console.error(error)
       showToast(translate("Something went wrong"));
     }
+    if (payload.viewIndex === 0) emitter.emit("dismissLoader");
     return resp;
   },
 

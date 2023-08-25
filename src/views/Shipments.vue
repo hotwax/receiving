@@ -8,14 +8,25 @@
     </ion-header>
     <ion-content>
       <main>
-        <ion-searchbar :placeholder="$t('Scan ASN to start receiving')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getShipments()" />
+        <ion-searchbar :placeholder="$t('Scan ASN to start receiving')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getShipments();" />
 
         <ShipmentListItem v-for="shipment in shipments" :key="shipment.shipmentId" :shipment="shipment"/>
 
-        <div class="load-more-action ion-text-center">
+        <div v-if="shipments.length" class="load-more-action ion-text-center">
           <ion-button fill="outline" color="dark" @click="loadMoreShipments()">
             <ion-icon :icon="cloudDownloadOutline" slot="start" />
             {{ $t("Load more shipments") }}
+          </ion-button>
+        </div>
+
+        <!-- Empty state -->
+        <div class="empty-state" v-if="!shipments.length && !fetchingShipments">
+          <p v-if="showErrorMessage">{{ $t("No results found")}}</p>
+          <img src="../assets/images/empty-state.png" alt="empty state">
+          <p>{{ $t("There are no incoming shipments")}}</p>
+          <ion-button fill="outline" color="dark" @click="refreshShipments()">
+            <ion-icon :icon="reload" slot="start" />
+            {{ $t("Refresh") }}
           </ion-button>
         </div>
 
@@ -41,7 +52,7 @@ import {
   IonTitle,
   IonToolbar
 } from '@ionic/vue';
-import { cloudDownloadOutline } from 'ionicons/icons'
+import { cloudDownloadOutline, reload } from 'ionicons/icons'
 import { defineComponent } from 'vue'
 import { mapGetters, useStore } from 'vuex'
 import ShipmentListItem from '@/components/ShipmentListItem.vue'
@@ -70,7 +81,9 @@ export default defineComponent({
   },
   data() {
     return {
-      queryString: ''
+      queryString: '',
+      fetchingShipments: false,
+      showErrorMessage: false 
     }
   },
   ionViewWillEnter () {
@@ -83,6 +96,8 @@ export default defineComponent({
       })
     },
     async getShipments(vSize?: any, vIndex?: any) {
+      this.queryString ? this.showErrorMessage = true : this.showErrorMessage = false;
+      this.fetchingShipments = true;
       const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
       const viewIndex = vIndex ? vIndex : 0;
       const payload = {
@@ -113,11 +128,13 @@ export default defineComponent({
           payload.inputFields["externalOrderId_grp"] = '2'
       }
       await this.store.dispatch("shipment/findShipment", payload);
+      this.fetchingShipments = false;
+      return Promise.resolve();
     },
     loadMoreShipments() {
       this.getShipments(process.env.VUE_APP_VIEW_SIZE, Math.ceil(this.shipments.length / process.env.VUE_APP_VIEW_SIZE));
     },
-    async refreshShipments(event: any) {
+    async refreshShipments(event?: any) {
       this.getShipments().then(() => {
         if (event) event.target.complete();
       })
@@ -127,6 +144,7 @@ export default defineComponent({
     const store = useStore();
     return {
       cloudDownloadOutline,
+      reload,
       store
     }
   }

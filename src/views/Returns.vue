@@ -12,10 +12,21 @@
   
         <ReturnListItem v-for="returnShipment in returns" :key="returnShipment.shipmentId" :returnShipment="returnShipment" />
 
-        <div class="load-more-action ion-text-center">
+        <div v-if="returns.length" class="load-more-action ion-text-center">
           <ion-button fill="outline" color="dark" @click="loadMoreReturns()">
             <ion-icon :icon="cloudDownloadOutline" slot="start" />
             {{ $t("Load more returns") }}
+          </ion-button>
+        </div>
+
+        <!-- Empty state -->
+        <div class="empty-state" v-if="!returns.length && !fetchingReturns">
+          <p v-if="showErrorMessage">{{ $t("No results found")}}</p>
+          <img src="../assets/images/empty-state.png" alt="empty state">
+          <p>{{ $t("There are no returns to receive")}}</p>
+          <ion-button fill="outline" color="dark" @click="refreshReturns()">
+            <ion-icon :icon="reload" slot="start" />
+            {{ $t("Refresh") }}
           </ion-button>
         </div>
 
@@ -41,7 +52,7 @@ import {
   IonTitle,
   IonToolbar
 } from '@ionic/vue';
-import { cloudDownloadOutline } from 'ionicons/icons'
+import { cloudDownloadOutline, reload } from 'ionicons/icons'
 import { defineComponent } from 'vue'
 import { mapGetters, useStore } from 'vuex'
 import ReturnListItem from '@/components/ReturnListItem.vue'
@@ -69,7 +80,9 @@ export default defineComponent({
   },
   data () {
     return {
-      queryString: ''
+      queryString: '',
+      fetchingReturns: false,
+      showErrorMessage: false
     }
   },
   mounted () {
@@ -80,6 +93,8 @@ export default defineComponent({
   },
   methods: {
     async getReturns(vSize?: any, vIndex?: any) {
+      this.queryString ? this.showErrorMessage = true : this.showErrorMessage = false;
+      this.fetchingReturns = true;
       const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
       const viewIndex = vIndex ? vIndex : 0;
       const payload = {
@@ -116,11 +131,13 @@ export default defineComponent({
         payload.inputFields["shopifyOrderName_grp"] = "5";
       }
       await this.store.dispatch("return/findReturn", payload);
+      this.fetchingReturns = false;
+      return Promise.resolve();
     },
     loadMoreReturns() {
       this.getReturns(process.env.VUE_APP_VIEW_SIZE, Math.ceil(this.returns.length / process.env.VUE_APP_VIEW_SIZE));
     },
-    async refreshReturns(event: any) {
+    async refreshReturns(event?: any) {
       this.getReturns().then(() => {
         if (event) event.target.complete();
       })
@@ -130,6 +147,7 @@ export default defineComponent({
     const store = useStore();
     return {
       cloudDownloadOutline,
+      reload,
       store
     }
   }

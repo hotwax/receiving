@@ -12,10 +12,21 @@
 
         <PurchaseOrderItem v-for="(order, index) in orders" :key="index" :purchaseOrder="order.doclist.docs[0]" />
         
-        <div class="load-more-action ion-text-center">
+        <div v-if="orders.length" class="load-more-action ion-text-center">
           <ion-button fill="outline" color="dark" @click="loadMoreOrders()">
             <ion-icon :icon="cloudDownloadOutline" slot="start" />
             {{ $t("Load more purchase order") }}
+          </ion-button>
+        </div>
+
+        <!-- Empty state -->
+        <div class="empty-state" v-if="!orders.length && !fetchingOrders">
+          <p v-if="showErrorMessage">{{ $t("No results found")}}</p>
+          <img src="../assets/images/empty-state.png" alt="empty state">
+          <p>{{ $t("There are no purchase orders to receive")}}</p>
+          <ion-button fill="outline" color="dark" @click="refreshPurchaseOrders()">
+            <ion-icon :icon="reload" slot="start" />
+            {{ $t("Refresh") }}
           </ion-button>
         </div>
 
@@ -41,7 +52,7 @@ import {
   IonTitle,
   IonToolbar
 } from '@ionic/vue';
-import { cloudDownloadOutline } from 'ionicons/icons'
+import { cloudDownloadOutline, reload } from 'ionicons/icons'
 import { defineComponent } from 'vue';
 import { mapGetters, useStore } from 'vuex';
 import PurchaseOrderItem from '@/components/PurchaseOrderItem.vue'
@@ -64,7 +75,9 @@ export default defineComponent({
   },
   data() {
     return {
-      queryString: ''
+      queryString: '',
+      fetchingOrders: false,
+      showErrorMessage: false
     }
   },
   computed: {
@@ -76,9 +89,10 @@ export default defineComponent({
   },
   methods: {
     async getPurchaseOrders(vSize?: any, vIndex?: any){
+      this.queryString ? this.showErrorMessage = true : this.showErrorMessage = false;
+      this.fetchingOrders = true;
       const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
       const viewIndex = vIndex ? vIndex : 0;
-
       const payload = {
         "json": {
           "params": {
@@ -99,7 +113,9 @@ export default defineComponent({
         payload.json.params.qf = "orderId externalOrderId";
         payload.json.params['q.op'] = "AND";
       }
-      this.store.dispatch('order/findPurchaseOrders', payload);
+      await this.store.dispatch('order/findPurchaseOrders', payload);
+      this.fetchingOrders = false;
+      return Promise.resolve();
     },
     async loadMoreOrders() {
       this.getPurchaseOrders(
@@ -107,7 +123,7 @@ export default defineComponent({
         Math.ceil(this.orders.length / process.env.VUE_APP_VIEW_SIZE)
       );
     },
-    async refreshPurchaseOrders(event: any) {
+    async refreshPurchaseOrders(event?: any) {
       this.getPurchaseOrders().then(() => {
         if (event) event.target.complete();
       })
@@ -121,6 +137,7 @@ export default defineComponent({
 
     return {
       cloudDownloadOutline,
+      reload,
       store
     }
   }
