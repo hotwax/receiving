@@ -1,0 +1,171 @@
+<template>
+  <ion-header>
+    <ion-toolbar>
+      <ion-buttons slot="start">
+        <ion-button @click="closeModal">
+          <ion-icon slot="icon-only" :icon="arrowBackOutline" />
+        </ion-button>
+      </ion-buttons>
+      <ion-title>{{ $t("Close purchase order items") }}</ion-title>
+      <ion-buttons slot="end" @click="selectAllItems">
+        <ion-button color="primary">{{ $t("Select all") }}</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content>
+    <ion-item lines="none">
+      <ion-list-header>{{ $t("To close the purchase order, select all.") }}</ion-list-header>
+    </ion-item>
+    <ion-list v-for="(item, index) in order.items" :key="index">
+      <ion-item>
+        <ion-thumbnail slot="start">
+          <ShopifyImg :src="getProduct(item.productId).mainImageUrl" />
+        </ion-thumbnail>
+        <ion-label>
+            <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
+            <p>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+        </ion-label>
+        <ion-buttons>
+          <ion-badge v-if="item.orderItemStatusId === 'ITEM_COMPLETED'" slot="end">Completed</ion-badge>
+          <ion-badge v-else-if="item.orderItemStatusId === 'ITEM_REJECTED'" color="danger" slot="end">Rejected</ion-badge>
+          <ion-checkbox v-else slot="end" v-model="item.isChecked"></ion-checkbox>
+        </ion-buttons>
+      </ion-item>
+    </ion-list>
+  </ion-content>
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibleToClosePOItems()" @click="saveAndClosePODetails">
+      <ion-icon :icon="saveOutline" />
+    </ion-fab-button>
+  </ion-fab>
+</template>
+
+<script lang="ts">
+import {
+  IonButton,
+  IonButtons,
+  IonBadge,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonTitle,
+  IonToolbar,
+  IonList,
+  IonItem,
+  IonListHeader,
+  IonThumbnail,
+  IonLabel,
+  IonCheckbox,
+  IonFab,
+  IonFabButton,
+  alertController,
+  modalController
+} from '@ionic/vue';
+import { defineComponent } from 'vue';
+import { closeOutline, checkmarkCircle, arrowBackOutline, saveOutline } from 'ionicons/icons';
+import { mapGetters } from 'vuex'
+import { ShopifyImg } from '@hotwax/dxp-components';
+import { Actions, hasPermission } from '@/authorization'
+import { productHelpers } from '@/utils';
+import { OrderService } from "@/services/OrderService";
+
+export default defineComponent({
+  name: "closePurchaseOrder",
+  components: {
+    ShopifyImg,
+    IonButton,
+    IonButtons,
+    IonBadge,
+    IonContent,
+    IonHeader,
+    IonIcon,
+    IonTitle,
+    IonToolbar,
+    IonThumbnail,
+    IonList,
+    IonItem,
+    IonListHeader,
+    IonLabel,
+    IonCheckbox,
+    IonFab,
+    IonFabButton
+  },
+  computed: {
+    ...mapGetters({
+      order: 'order/getCurrent',
+      getProduct: 'product/getProduct',
+      productIdentificationPref: 'user/getProductIdentificationPref'
+    })
+  },
+  setup() {
+    return {
+      arrowBackOutline,
+      closeOutline,
+      saveOutline,
+      checkmarkCircle,
+      hasPermission,
+      Actions,
+      productHelpers,
+      OrderService
+    };
+  },
+  props: ['createShipment', 'isEligibileForCreatingShipment'],
+  methods: {
+    closeModal() {
+      modalController.dismiss({ dismissed: true });
+    },
+    async saveAndClosePODetails() {
+      const alert = await alertController.create({
+        header: this.$t('Close purchase order items'),
+        message: this.$t('Are you sure you have received the purchase order for the selected items? Once closed, the shipments for the selected items wont be available for receiving later.', { space: '<br /><br />' }),
+        buttons: [{
+          text: this.$t('Cancel'),
+          role: 'cancel'
+        },
+        {
+          text: this.$t('Proceed'),
+          role: 'proceed',
+          handler: async () => {
+            if(this.isEligibileForCreatingShipment){
+              await this.createShipment()
+            }
+            await this.updatePOItemStatus()
+          }
+        }]
+      });
+      return alert.present();
+    },
+    async updatePOItemStatus() {
+      const eligibleItems = this.order.items.filter((item: any) => item.isChecked == true)
+      const isAllSelected = this.isAllItemSelected(eligibleItems)
+
+      eligibleItems.forEach(async (item:any) => {
+        if(isAllSelected){
+          await OrderService.updatePOItemStatus({orderId: item.orderId, orderItemSeqId: item.orderItemSeqId})
+          .catch((err)=>{
+            console.error(err);
+          })
+        }else {
+          await OrderService.updatePOItemStatus({orderId: item.orderId, statusId: "ITEM_COMPLETED", orderItemSeqId: item.orderItemSeqId})
+          .catch((err)=>{
+            console.error(err);
+          })
+        }
+      });
+    },
+    isAllItemSelected(eligibleItems:any) {
+      return eligibleItems.length === this.order.items.filter((item:any) => item.orderItemStatusId != "ITEM_COMPLETED" || item.orderItemStatusId != "ITEM_REJECTED").length
+    },
+    isEligibleToClosePOItems() {
+      return this.order.items.some((item: any) => item.isChecked > 0)
+    },
+    selectAllItems() {
+      this.order.items.map((item:any) => {
+        if ( !(item.orderItemStatusId === "ITEM_COMPLETED") || !(item.orderItemStatusId === "ITEM_REJECTED")) item.isChecked = true;
+      })
+    }
+  }
+});
+</script>
