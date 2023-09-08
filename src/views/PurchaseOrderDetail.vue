@@ -19,15 +19,18 @@
       <main>
         <div class="doc-id">
           <ion-item lines="none">
-            <h1>{{$t("Purchase Order")}}: {{ order.externalOrderId }}</h1>
+            <ion-label>
+              <h1>{{ $t("Purchase Order")}}: {{ order.externalOrderId }}</h1>
+              <p>{{ $t("Item count") }}: {{ order.items.length }}</p>
+            </ion-label>
           </ion-item>
-
+          
           <div class="doc-meta">
             <ion-chip @click="copyToClipboard(order.orderId, 'Internal ID saved to clipboard')">{{ order.orderId }}<ion-icon :icon="copyOutline"/></ion-chip>
             <ion-badge :color="order.orderStatusId === 'ORDER_CREATED' ? 'medium' : 'primary'">{{ order.orderStatusDesc }}</ion-badge>
           </div>
         </div>
-        
+
         <div class="scanner">
           <ion-item>
             <ion-label position="fixed">{{$t("Scan items")}}</ion-label>
@@ -38,8 +41,13 @@
             {{ $t("Scan") }}
           </ion-button>
         </div>
-        
-        <!-- TODO: need UI for rejected and completed items -->
+
+        <ion-item lines="none">
+          <ion-label color="medium">
+            {{ $t("PENDING:", { pendingItemsCount: getPOItemsCount('pending') > 1 ? `${getPOItemsCount('pending')} ITEMS` : `${getPOItemsCount('pending')} ITEM` }) }}
+          </ion-label>
+        </ion-item>
+
         <ion-card v-for="(item, index) in order.items" v-show="item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED'" :key="index">
           <div  class="product">
             <div class="product-info">
@@ -53,7 +61,7 @@
                 </ion-label>
               </ion-item>
             </div>
-
+            
             <div class="location">
               <LocationPopover :item="item" type="order" :facilityId="currentFacility.facilityId" />
             </div>
@@ -90,6 +98,44 @@
             </div>         
           </div>
         </ion-card>
+
+        <ion-item lines="none">
+          <ion-text color="medium" class="ion-margin-end">
+            {{ $t("COMPLETED:", { completedItemsCount: getPOItemsCount('completed') > 1 ? `${getPOItemsCount('completed')} ITEMS` : `${getPOItemsCount('completed')} ITEM` }) }}
+          </ion-text>
+          <ion-icon v-if="isCompletedItemsVisible" :icon="eyeOutline" @click="isCompletedItemsVisible = !isCompletedItemsVisible" ></ion-icon>
+          <ion-icon v-else-if="!isCompletedItemsVisible" :icon="eyeOffOutline" @click="isCompletedItemsVisible = !isCompletedItemsVisible" ></ion-icon>
+        </ion-item>
+        
+        <ion-card v-for="(item, index) in order.items" v-show="isCompletedItemsVisible && item.orderItemStatusId === 'ITEM_COMPLETED'" :key="index">
+          <div class="product">
+            <div class="product-info">
+              <ion-item lines="none">
+                <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
+                  <ShopifyImg :src="getProduct(item.productId).mainImageUrl" />
+                </ion-thumbnail>
+                <ion-label class="ion-text-wrap">
+                  <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
+                  <p>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                </ion-label>
+              </ion-item>
+            </div>
+            
+            <div class="location">
+              <ion-chip :disabled="true" outline>
+                <ion-icon :icon="locationOutline"/>
+                <ion-label>{{ item.locationSeqId }}</ion-label>
+              </ion-chip>
+            </div>
+            
+            <div>
+              <ion-item lines="none" class="ion-float-end">
+                <ion-badge color="medium" class="ion-margin-end">{{ item.quantity }} {{ $t("ordered") }}</ion-badge>
+                <ion-badge color="success">{{ getPOItemAccepted(item.productId) }} {{ $t("received") }}</ion-badge>
+              </ion-item>
+            </div>
+          </div>
+        </ion-card>
       </main>  
       
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
@@ -119,6 +165,7 @@ import {
   IonLabel,
   IonPage,
   IonProgressBar,
+  IonText,
   IonThumbnail,
   IonTitle,
   IonToolbar,
@@ -126,7 +173,7 @@ import {
   alertController,
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
-import { addOutline, cameraOutline, checkmarkDone, saveOutline, timeOutline, copyOutline } from 'ionicons/icons';
+import { addOutline, cameraOutline, checkmarkDone, copyOutline, eyeOffOutline, eyeOutline, locationOutline, saveOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import { ShopifyImg } from '@hotwax/dxp-components';
 import { useStore, mapGetters } from 'vuex';
@@ -158,6 +205,7 @@ export default defineComponent({
     IonLabel,
     IonPage,
     IonProgressBar,
+    IonText,
     IonThumbnail,
     IonTitle,
     IonToolbar,
@@ -165,7 +213,8 @@ export default defineComponent({
   },
   data() {
     return {
-      queryString: ''
+      queryString: '',
+      isCompletedItemsVisible: false
     }
   },
   computed: {
@@ -203,6 +252,13 @@ export default defineComponent({
     async updateProductCount(payload: any) {
       if(this.queryString) payload = this.queryString
       this.store.dispatch('order/updateProductCount', payload)
+    },
+    getPOItemsCount(orderType: string) {
+      if(orderType === 'completed') {
+        return this.order.items.filter((item: any) => item.orderItemStatusId === 'ITEM_COMPLETED').length
+      } else if(orderType === 'pending') {
+        return this.order.items.filter((item: any) => item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED').length
+      }
     },
     async addProduct() {
       const modal = await modalController
@@ -251,7 +307,7 @@ export default defineComponent({
     isEligibileForCreatingShipment() {
       return this.order.items.some((item: any) => item.quantityAccepted > 0)
     },
-    receiveAll(item: any) {
+    receiveAll(item: any) {      
       const qtyAlreadyAccepted = this.getPOItemAccepted(item.productId)
       this.order.items.find((ele: any) => {
         if(ele.productId == item.productId) {
@@ -265,7 +321,7 @@ export default defineComponent({
   ionViewWillEnter() {
     this.store.dispatch("order/getOrderDetail", { orderId: this.$route.params.slug }).then(() => {
       this.store.dispatch('order/getPOHistory', { orderId: this.order.orderId })
-    })
+    })    
   },
   setup() {
     const store = useStore();
@@ -278,7 +334,10 @@ export default defineComponent({
       checkmarkDone,
       copyOutline,
       copyToClipboard,
+      eyeOffOutline,
+      eyeOutline,
       hasPermission,
+      locationOutline,
       productHelpers,
       router,
       saveOutline,
