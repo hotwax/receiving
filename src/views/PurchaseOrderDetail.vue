@@ -96,7 +96,7 @@
     <ion-footer>
       <ion-toolbar>
         <ion-item slot="end">
-          <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE)" fill="outline" class="ion-margin-end" @click="saveAndClosePODetails">{{ $t("Receive And Close") }}</ion-button>
+          <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE)" fill="outline" class="ion-margin-end" @click="closePO">{{ $t("Receive And Close") }}</ion-button>
           <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibileForCreatingShipment()" @click="savePODetails">{{ $t("Receive") }}</ion-button>
         </ion-item>
       </ion-toolbar>
@@ -135,7 +135,7 @@ import { useStore, mapGetters } from 'vuex';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue"
 import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
-import closePurchaseOrderModal from '@/views/closePurchaseOrderModal.vue'
+import ClosePurchaseOrderModal from '@/views/ClosePurchaseOrderModal.vue'
 import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
 import { copyToClipboard, hasError, productHelpers } from '@/utils';
@@ -243,12 +243,12 @@ export default defineComponent({
       });
       return alert.present();
     },
-    async saveAndClosePODetails() {
+    async closePO() {
       const modal = await modalController.create({
-        component: closePurchaseOrderModal,
+        component: ClosePurchaseOrderModal,
         componentProps: {
           createShipment: this.createShipment,
-          isEligibleForCreatingShipment: this.isEligibileForCreatingShipment
+          isEligibileForCreatingShipment: this.isEligibileForCreatingShipment
         }
       })
 

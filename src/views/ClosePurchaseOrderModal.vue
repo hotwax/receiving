@@ -20,7 +20,7 @@
     <ion-list v-for="(item, index) in order.items" :key="index">
       <ion-item>
         <ion-thumbnail slot="start">
-          <ShopifyImg :src="getProduct(item.productId).mainImageUrl" />
+          <ShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
         </ion-thumbnail>
         <ion-label>
             <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
@@ -36,7 +36,7 @@
   </ion-content>
 
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibleToClosePOItems()" @click="saveAndClosePODetails">
+    <ion-fab-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibleToClosePOItems()" @click="confirmSave">
       <ion-icon :icon="saveOutline" />
     </ion-fab-button>
   </ion-fab>
@@ -68,8 +68,9 @@ import { closeOutline, checkmarkCircle, arrowBackOutline, saveOutline } from 'io
 import { mapGetters } from 'vuex'
 import { ShopifyImg } from '@hotwax/dxp-components';
 import { Actions, hasPermission } from '@/authorization'
-import { productHelpers } from '@/utils';
+import { productHelpers, showToast } from '@/utils';
 import { OrderService } from "@/services/OrderService";
+import { translate } from '@/i18n'
 
 export default defineComponent({
   name: "closePurchaseOrder",
@@ -116,7 +117,7 @@ export default defineComponent({
     closeModal() {
       modalController.dismiss({ dismissed: true });
     },
-    async saveAndClosePODetails() {
+    async confirmSave() {
       const alert = await alertController.create({
         header: this.$t('Close purchase order items'),
         message: this.$t('Are you sure you have received the purchase order for the selected items? Once closed, the shipments for the selected items wont be available for receiving later.', { space: '<br /><br />' }),
@@ -128,7 +129,7 @@ export default defineComponent({
           text: this.$t('Proceed'),
           role: 'proceed',
           handler: async () => {
-            if(this.isEligibileForCreatingShipment){
+            if(this.isEligibileForCreatingShipment()){
               await this.createShipment()
             }
             await this.updatePOItemStatus()
@@ -139,23 +140,25 @@ export default defineComponent({
     },
     async updatePOItemStatus() {
       const eligibleItems = this.order.items.filter((item: any) => item.isChecked == true)
-      const isAllSelected = this.isAllItemSelected(eligibleItems)
+      const areAllSelected = this.areAllItemSelected(eligibleItems)
 
       eligibleItems.forEach(async (item:any) => {
-        if(isAllSelected){
+        if(areAllSelected){
           await OrderService.updatePOItemStatus({orderId: item.orderId, orderItemSeqId: item.orderItemSeqId})
           .catch((err)=>{
             console.error(err);
+            showToast(translate("Purchase order update failed. Verify your internet connection and retry."))
           })
         }else {
           await OrderService.updatePOItemStatus({orderId: item.orderId, statusId: "ITEM_COMPLETED", orderItemSeqId: item.orderItemSeqId})
           .catch((err)=>{
             console.error(err);
+            showToast(translate("Purchase order update failed. Verify your internet connection and retry."))
           })
         }
       });
     },
-    isAllItemSelected(eligibleItems:any) {
+    areAllItemSelected(eligibleItems:any) {
       return eligibleItems.length === this.order.items.filter((item:any) => item.orderItemStatusId != "ITEM_COMPLETED" || item.orderItemStatusId != "ITEM_REJECTED").length
     },
     isEligibleToClosePOItems() {
