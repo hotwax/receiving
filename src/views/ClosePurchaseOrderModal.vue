@@ -44,72 +44,72 @@
 
 <script lang="ts">
 import {
+  alertController,
   IonButton,
   IonButtons,
   IonBadge,
-  IonContent,
-  IonHeader,
-  IonIcon,
-  IonTitle,
-  IonToolbar,
-  IonList,
-  IonItem,
-  IonListHeader,
-  IonThumbnail,
-  IonLabel,
   IonCheckbox,
+  IonContent,
   IonFab,
   IonFabButton,
-  alertController,
+  IonHeader,
+  IonIcon,
+  IonItem,
+  IonLabel,
+  IonList,
+  IonListHeader,
+  IonTitle,
+  IonToolbar,
+  IonThumbnail,
   modalController
 } from '@ionic/vue';
-import { defineComponent } from 'vue';
-import { closeOutline, checkmarkCircle, arrowBackOutline, saveOutline } from 'ionicons/icons';
-import { mapGetters } from 'vuex'
-import { ShopifyImg } from '@hotwax/dxp-components';
 import { Actions, hasPermission } from '@/authorization'
-import { productHelpers, showToast } from '@/utils';
+import { closeOutline, checkmarkCircle, arrowBackOutline, saveOutline } from 'ionicons/icons';
+import { defineComponent } from 'vue';
+import { mapGetters } from 'vuex'
 import { OrderService } from "@/services/OrderService";
+import { productHelpers, showToast } from '@/utils';
+import { ShopifyImg } from '@hotwax/dxp-components';
 import { translate } from '@/i18n'
 
 export default defineComponent({
   name: "closePurchaseOrder",
   components: {
-    ShopifyImg,
+    IonBadge,
     IonButton,
     IonButtons,
-    IonBadge,
+    IonCheckbox,
     IonContent,
+    IonFab,
+    IonFabButton,
     IonHeader,
     IonIcon,
-    IonTitle,
-    IonToolbar,
-    IonThumbnail,
-    IonList,
     IonItem,
-    IonListHeader,
     IonLabel,
-    IonCheckbox,
-    IonFab,
-    IonFabButton
+    IonList,
+    IonListHeader,
+    IonTitle,
+    IonThumbnail,
+    IonToolbar,
+    ShopifyImg
   },
   computed: {
     ...mapGetters({
-      order: 'order/getCurrent',
       getProduct: 'product/getProduct',
+      order: 'order/getCurrent',
       productIdentificationPref: 'user/getProductIdentificationPref'
     })
   },
   setup() {
     return {
       arrowBackOutline,
+      Actions,
       closeOutline,
-      saveOutline,
       checkmarkCircle,
       hasPermission,
-      Actions,
+      OrderService,
       productHelpers,
-      OrderService
+      saveOutline
     };
   },
   props: ['createShipment', 'isEligibileForCreatingShipment'],

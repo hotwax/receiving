@@ -106,6 +106,7 @@
 
 <script lang="ts">
 import {
+  alertController,
   IonBackButton,
   IonBadge,
   IonButton,
@@ -124,8 +125,7 @@ import {
   IonThumbnail,
   IonTitle,
   IonToolbar,
-  modalController,
-  alertController,
+  modalController
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { addOutline, cameraOutline, checkmarkDone, saveOutline, timeOutline, copyOutline } from 'ionicons/icons';
