@@ -146,6 +146,7 @@ const actions: ActionTree<UserState, RootState> = {
     commit(types.USER_INFO_UPDATED, userProfile);
     commit(types.USER_CURRENT_ECOM_STORE_UPDATED, preferredStore);
     commit(types.USER_CURRENT_FACILITY_UPDATED, payload.facility);
+    this.dispatch('shipment/clearShipments');
     await dispatch('getFacilityLocations', payload.facility.facilityId)
   },
   

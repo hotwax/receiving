@@ -78,22 +78,8 @@
           </ion-item>
         </ion-card>
 
-        <ion-card>
-          <ion-card-header>
-            <ion-card-title>
-              {{ $t("Facility") }}
-            </ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            {{ $t('Specify which facility you want to operate from. Order, inventory and other configuration data will be specific to the facility you select.') }}
-          </ion-card-content>
-          <ion-item lines="none">
-            <ion-label>{{ $t("Select facility") }}</ion-label>
-            <ion-select interface="popover" :value="currentFacility.facilityId" @ionChange="setFacility($event)">
-              <ion-select-option v-for="facility in (userProfile ? userProfile.facilities : [])" :key="facility.facilityId" :value="facility.facilityId" >{{ facility.name }}</ion-select-option>
-            </ion-select>
-          </ion-item>
-        </ion-card>
+        <FacilitySwitcher />
+        
       </section>
       <hr />
 
@@ -214,17 +200,6 @@ export default defineComponent({
       if(this.userProfile) {
         this.store.dispatch('user/setEComStore', {
           'eComStore': this.userProfile.stores.find((str: any) => str.productStoreId == store['detail'].value)
-        })
-      }
-    },
-    setFacility (facility: any) {
-      // Checking if current facility is not equal to the facility selected to avoid extra api call on logging in again after logout.
-      if(this.currentFacility.facilityId != facility['detail'].value && this.userProfile?.facilities) {
-        this.userProfile?.facilities?.map((fac: any) => {
-          if (fac.facilityId == facility['detail'].value) {
-            this.store.dispatch('shipment/clearShipments');
-            this.store.dispatch('user/setFacility', {'facility': fac});
-          }
         })
       }
     },
