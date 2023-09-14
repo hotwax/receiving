@@ -53,7 +53,7 @@
             <div class="product-info">
               <ion-item lines="none">
                 <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
-                  <ShopifyImg :src="getProduct(item.productId).mainImageUrl" />
+                  <ShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
                   <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
@@ -103,16 +103,16 @@
           <ion-text color="medium" class="ion-margin-end">
             {{ $t("COMPLETED:", { completedItemsCount: getPOItemsCount('completed') > 1 ? `${getPOItemsCount('completed')} ITEMS` : `${getPOItemsCount('completed')} ITEM` }) }}
           </ion-text>
-          <ion-icon v-if="isCompletedItemsVisible" :icon="eyeOutline" @click="isCompletedItemsVisible = !isCompletedItemsVisible" ></ion-icon>
-          <ion-icon v-else-if="!isCompletedItemsVisible" :icon="eyeOffOutline" @click="isCompletedItemsVisible = !isCompletedItemsVisible" ></ion-icon>
+          <ion-icon v-if="getPOItemsCount('completed') && showCompletedItems" :icon="eyeOutline" @click="showCompletedItems = !showCompletedItems" ></ion-icon>
+          <ion-icon v-else-if="getPOItemsCount('completed') && !showCompletedItems " :icon="eyeOffOutline" @click="showCompletedItems = !showCompletedItems" ></ion-icon>
         </ion-item>
         
-        <ion-card v-for="(item, index) in order.items" v-show="isCompletedItemsVisible && item.orderItemStatusId === 'ITEM_COMPLETED'" :key="index">
+        <ion-card v-for="(item, index) in order.items" v-show="showCompletedItems && item.orderItemStatusId === 'ITEM_COMPLETED'" :key="index">
           <div class="product">
             <div class="product-info">
               <ion-item lines="none">
                 <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
-                  <ShopifyImg :src="getProduct(item.productId).mainImageUrl" />
+                  <ShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
                   <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
@@ -129,9 +129,9 @@
             </div>
             
             <div>
-              <ion-item lines="none" class="ion-float-end">
-                <ion-badge color="medium" class="ion-margin-end">{{ item.quantity }} {{ $t("ordered") }}</ion-badge>
-                <ion-badge color="success">{{ getPOItemAccepted(item.productId) }} {{ $t("received") }}</ion-badge>
+              <ion-item lines="none">
+                <ion-badge color="medium" slot="end">{{ item.quantity }} {{ $t("ordered") }}</ion-badge>
+                <ion-badge color="success" class="ion-margin-start" slot="end">{{ getPOItemAccepted(item.productId) }} {{ $t("received") }}</ion-badge>
               </ion-item>
             </div>
           </div>
@@ -214,7 +214,7 @@ export default defineComponent({
   data() {
     return {
       queryString: '',
-      isCompletedItemsVisible: false
+      showCompletedItems: false
     }
   },
   computed: {
@@ -307,7 +307,7 @@ export default defineComponent({
     isEligibileForCreatingShipment() {
       return this.order.items.some((item: any) => item.quantityAccepted > 0)
     },
-    receiveAll(item: any) {      
+    receiveAll(item: any) {
       const qtyAlreadyAccepted = this.getPOItemAccepted(item.productId)
       this.order.items.find((ele: any) => {
         if(ele.productId == item.productId) {
