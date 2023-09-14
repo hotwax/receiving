@@ -24,7 +24,7 @@
               <p>{{ $t("Item count") }}: {{ order.items.length }}</p>
             </ion-label>
           </ion-item>
-          
+
           <div class="doc-meta">
             <ion-chip @click="copyToClipboard(order.orderId, 'Internal ID saved to clipboard')">{{ order.orderId }}<ion-icon :icon="copyOutline"/></ion-chip>
             <ion-badge :color="order.orderStatusId === 'ORDER_CREATED' ? 'medium' : 'primary'">{{ order.orderStatusDesc }}</ion-badge>
@@ -61,7 +61,7 @@
                 </ion-label>
               </ion-item>
             </div>
-            
+
             <div class="location">
               <LocationPopover :item="item" type="order" :facilityId="currentFacility.facilityId" />
             </div>
@@ -321,7 +321,7 @@ export default defineComponent({
   ionViewWillEnter() {
     this.store.dispatch("order/getOrderDetail", { orderId: this.$route.params.slug }).then(() => {
       this.store.dispatch('order/getPOHistory', { orderId: this.order.orderId })
-    })    
+    })
   },
   setup() {
     const store = useStore();
