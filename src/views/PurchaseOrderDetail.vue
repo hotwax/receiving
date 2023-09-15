@@ -101,7 +101,7 @@
 
         <ion-item lines="none">
           <ion-text color="medium" class="ion-margin-end">
-            {{ $t("COMPLETED:", { itemsCount: getPOItemsCount('completed') > 1 ? `${getPOItemsCount('completed')} ${$t("ITEMS")}` : `${getPOItemsCount('completed')} ${$t("ITEMS")}` }) }}
+            {{ $t("COMPLETED:", { itemsCount: getPOItemsCount('completed') > 1 ? `${getPOItemsCount('completed')} ${$t("ITEMS")}` : `${getPOItemsCount('completed')} ${$t("ITEM")}` }) }}
           </ion-text>
           <ion-icon v-if="getPOItemsCount('completed') && showCompletedItems" :icon="eyeOutline" @click="showCompletedItems = !showCompletedItems" />
           <ion-icon v-else-if="getPOItemsCount('completed') && !showCompletedItems " :icon="eyeOffOutline" @click="showCompletedItems = !showCompletedItems" />
