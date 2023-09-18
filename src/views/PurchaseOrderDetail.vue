@@ -106,7 +106,6 @@
 
 <script lang="ts">
 import {
-  alertController,
   IonBackButton,
   IonBadge,
   IonButton,
@@ -125,6 +124,7 @@ import {
   IonThumbnail,
   IonTitle,
   IonToolbar,
+  alertController,
   modalController
 } from '@ionic/vue';
 import { defineComponent } from 'vue';

@@ -23,13 +23,13 @@
           <ShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
         </ion-thumbnail>
         <ion-label>
-            <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
-            <p>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+          <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
+          <p>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
         </ion-label>
         <ion-buttons>
-          <ion-badge v-if="item.orderItemStatusId === 'ITEM_COMPLETED'" slot="end">Completed</ion-badge>
-          <ion-badge v-else-if="item.orderItemStatusId === 'ITEM_REJECTED'" color="danger" slot="end">Rejected</ion-badge>
-          <ion-checkbox v-else slot="end" v-model="item.isChecked"></ion-checkbox>
+          <ion-badge v-if="item.orderItemStatusId === 'ITEM_COMPLETED'" slot="end">{{ $t("Completed") }}</ion-badge>
+          <ion-badge v-else-if="item.orderItemStatusId === 'ITEM_REJECTED'" color="danger" slot="end">{{ $t("Rejected") }}</ion-badge>
+          <ion-checkbox v-else slot="end" v-model="item.isChecked" />
         </ion-buttons>
       </ion-item>
     </ion-list>
@@ -73,7 +73,7 @@ import { ShopifyImg } from '@hotwax/dxp-components';
 import { translate } from '@/i18n'
 
 export default defineComponent({
-  name: "closePurchaseOrder",
+  name: "ClosePurchaseOrder",
   components: {
     IonBadge,
     IonButton,
@@ -100,18 +100,6 @@ export default defineComponent({
       productIdentificationPref: 'user/getProductIdentificationPref'
     })
   },
-  setup() {
-    return {
-      arrowBackOutline,
-      Actions,
-      closeOutline,
-      checkmarkCircle,
-      hasPermission,
-      OrderService,
-      productHelpers,
-      saveOutline
-    };
-  },
   props: ['createShipment', 'isEligibileForCreatingShipment'],
   methods: {
     closeModal() {
@@ -132,7 +120,7 @@ export default defineComponent({
             if(this.isEligibileForCreatingShipment()){
               await this.createShipment()
             }
-            await this.updatePOItemStatus()
+            this.updatePOItemStatus()
           }
         }]
       });
@@ -140,35 +128,48 @@ export default defineComponent({
     },
     async updatePOItemStatus() {
       const eligibleItems = this.order.items.filter((item: any) => item.isChecked == true)
-      const areAllSelected = this.areAllItemSelected(eligibleItems)
-
+      const areAllItemSelected = this.areAllItemSelected(eligibleItems)
+      
       eligibleItems.forEach(async (item:any) => {
-        if(areAllSelected){
-          await OrderService.updatePOItemStatus({orderId: item.orderId, orderItemSeqId: item.orderItemSeqId})
-          .catch((err)=>{
-            console.error(err);
-            showToast(translate("Purchase order update failed. Verify your internet connection and retry."))
-          })
-        }else {
-          await OrderService.updatePOItemStatus({orderId: item.orderId, statusId: "ITEM_COMPLETED", orderItemSeqId: item.orderItemSeqId})
-          .catch((err)=>{
-            console.error(err);
-            showToast(translate("Purchase order update failed. Verify your internet connection and retry."))
-          })
+        const selectedItem = {
+          orderId: item.orderId,
+          orderItemSeqId: item.orderItemSeqId
+        } as any
+
+        if(!areAllItemSelected){
+          selectedItem.statusId = "ITEM_COMPLETED"
         }
+        
+        await OrderService.updatePOItemStatus({orderId: item.orderId, orderItemSeqId: item.orderItemSeqId})
+        .catch((err)=>{
+          console.error(err);
+          showToast(translate("Purchase order update failed. Verify your internet connection and retry."))
+        })
       });
     },
     areAllItemSelected(eligibleItems:any) {
       return eligibleItems.length === this.order.items.filter((item:any) => item.orderItemStatusId != "ITEM_COMPLETED" || item.orderItemStatusId != "ITEM_REJECTED").length
     },
     isEligibleToClosePOItems() {
-      return this.order.items.some((item: any) => item.isChecked > 0)
+      return this.order.items.some((item: any) => item.isChecked)
     },
     selectAllItems() {
       this.order.items.map((item:any) => {
         if ( !(item.orderItemStatusId === "ITEM_COMPLETED") || !(item.orderItemStatusId === "ITEM_REJECTED")) item.isChecked = true;
       })
     }
+  },
+  setup() {
+    return {
+      arrowBackOutline,
+      Actions,
+      closeOutline,
+      checkmarkCircle,
+      hasPermission,
+      OrderService,
+      productHelpers,
+      saveOutline
+    };
   }
 });
 </script>
