@@ -43,12 +43,15 @@
         </div>
 
         <ion-item lines="none">
-          <ion-label color="medium">
-            {{ $t("PENDING:", { itemsCount: getPOItemsCount('pending') > 1 ? `${getPOItemsCount('pending')} ${$t("ITEMS")}` : `${getPOItemsCount('pending')} ${$t("ITEM")}` }) }}
+          <ion-label v-if="getPOItems('pending').length > 1" color="medium" class="ion-margin-end">
+            {{ $t("PENDING: ITEMS", { itemsCount: getPOItems('pending').length }) }}
+          </ion-label>
+          <ion-label v-else color="medium" class="ion-margin-end">
+            {{ $t("PENDING: ITEM", { itemsCount: getPOItems('pending').length }) }}
           </ion-label>
         </ion-item>
 
-        <ion-card v-for="(item, index) in getOrderItems('pending')" v-show="item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED'" :key="index">
+        <ion-card v-for="(item, index) in getPOItems('pending')" v-show="item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED'" :key="index">
           <div  class="product">
             <div class="product-info">
               <ion-item lines="none">
@@ -100,14 +103,16 @@
         </ion-card>
 
         <ion-item lines="none">
-          <ion-text color="medium" class="ion-margin-end">
-            {{ $t("COMPLETED:", { itemsCount: getPOItemsCount('completed') > 1 ? `${getPOItemsCount('completed')} ${$t("ITEMS")}` : `${getPOItemsCount('completed')} ${$t("ITEM")}` }) }}
+          <ion-text v-if="getPOItems('completed').length > 1" color="medium" class="ion-margin-end">
+            {{ $t("COMPLETED: ITEMS", { itemsCount: getPOItems('completed').length }) }}
           </ion-text>
-          <ion-icon v-if="getPOItemsCount('completed') && showCompletedItems" :icon="eyeOutline" @click="showCompletedItems = !showCompletedItems" />
-          <ion-icon v-else-if="getPOItemsCount('completed') && !showCompletedItems " :icon="eyeOffOutline" @click="showCompletedItems = !showCompletedItems" />
+          <ion-text v-else color="medium" class="ion-margin-end">
+            {{ $t("COMPLETED: ITEM", { itemsCount: getPOItems('completed').length }) }}
+          </ion-text>
+          <ion-icon v-if="getPOItems('completed').length" :icon="showCompletedItems ? eyeOutline : eyeOffOutline" @click="showCompletedItems = !showCompletedItems" />
         </ion-item>
         
-        <ion-card v-for="(item, index) in getOrderItems('completed')" v-show="showCompletedItems && item.orderItemStatusId === 'ITEM_COMPLETED'" :key="index">
+        <ion-card v-for="(item, index) in getPOItems('completed')" v-show="showCompletedItems && item.orderItemStatusId === 'ITEM_COMPLETED'" :key="index">
           <div class="product">
             <div class="product-info">
               <ion-item lines="none">
@@ -253,14 +258,7 @@ export default defineComponent({
       if(this.queryString) payload = this.queryString
       this.store.dispatch('order/updateProductCount', payload)
     },
-    getPOItemsCount(orderType: string) {
-      if(orderType === 'completed') {
-        return this.order.items.filter((item: any) => item.orderItemStatusId === 'ITEM_COMPLETED').length
-      } else {
-        return this.order.items.filter((item: any) => item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED').length
-      }
-    },
-    getOrderItems(orderType: string) {
+    getPOItems(orderType: string) {
       if(orderType === 'completed'){
         return this.order.items.filter((item: any) => item.orderItemStatusId === 'ITEM_COMPLETED')
       } else {
