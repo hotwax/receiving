@@ -117,7 +117,7 @@ export default defineComponent({
           text: this.$t('Proceed'),
           role: 'proceed',
           handler: async () => {
-            if(this.isEligibileForCreatingShipment()){
+            if(this.isEligibileForCreatingShipment()) {
               await this.createShipment()
             }
             this.updatePOItemStatus()
@@ -127,8 +127,8 @@ export default defineComponent({
       return alert.present();
     },
     async updatePOItemStatus() {
-      const eligibleItems = this.order.items.filter((item: any) => item.isChecked == true)
-      const areAllItemSelected = this.areAllItemSelected(eligibleItems)
+      const eligibleItems = this.order.items.filter((item: any) => item.isChecked)
+      const areAllItemsSelected = this.areAllItemsSelected(eligibleItems)
       
       eligibleItems.forEach(async (item:any) => {
         const selectedItem = {
@@ -136,7 +136,7 @@ export default defineComponent({
           orderItemSeqId: item.orderItemSeqId
         } as any
 
-        if(!areAllItemSelected){
+        if(!areAllItemsSelected) {
           selectedItem.statusId = "ITEM_COMPLETED"
         }
         
@@ -147,7 +147,7 @@ export default defineComponent({
         })
       });
     },
-    areAllItemSelected(eligibleItems:any) {
+    areAllItemsSelected(eligibleItems: any) {
       return eligibleItems.length === this.order.items.filter((item:any) => item.orderItemStatusId != "ITEM_COMPLETED" || item.orderItemStatusId != "ITEM_REJECTED").length
     },
     isEligibleToClosePOItems() {
@@ -155,7 +155,9 @@ export default defineComponent({
     },
     selectAllItems() {
       this.order.items.map((item:any) => {
-        if ( !(item.orderItemStatusId === "ITEM_COMPLETED") || !(item.orderItemStatusId === "ITEM_REJECTED")) item.isChecked = true;
+        if(!(item.orderItemStatusId === "ITEM_COMPLETED") || !(item.orderItemStatusId === "ITEM_REJECTED")) {
+          item.isChecked = true;
+        } 
       })
     }
   },
