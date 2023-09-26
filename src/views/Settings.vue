@@ -105,31 +105,8 @@
         <p class="overline">{{ "Built: " + getDateTime(appInfo.builtTime) }}</p>
       </div>
       <section>
-        <ion-card>
-          <ion-card-header>
-            <ion-card-title>
-              {{ $t('Product Identifier') }}
-            </ion-card-title>
-          </ion-card-header>
+        <ProductIdentifier />
 
-          <ion-card-content>
-            {{ $t('Choosing a product identifier allows you to view products with your preferred identifiers.') }}
-          </ion-card-content>
-
-          <ion-item>
-            <ion-label>{{ $t("Primary Product Identifier") }}</ion-label>
-            <ion-select interface="popover" :placeholder="$t('primary identifier')" :value="productIdentificationPref.primaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'primaryId')">
-              <ion-select-option v-for="identification in productIdentifications" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
-            </ion-select>
-          </ion-item>
-          <ion-item>
-            <ion-label>{{ $t("Secondary Product Identifier") }}</ion-label>
-            <ion-select interface="popover" :placeholder="$t('secondary identifier')" :value="productIdentificationPref.secondaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'secondaryId')">
-              <ion-select-option v-for="identification in productIdentifications" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
-              <ion-select-option value="">{{ $t("None") }}</ion-select-option>
-            </ion-select>
-          </ion-item>
-        </ion-card>
         <ion-card>
           <ion-card-header>
             <ion-card-title>
@@ -195,9 +172,7 @@ export default defineComponent({
       userProfile: 'user/getUserProfile',
       currentFacility: 'user/getCurrentFacility',
       currentEComStore: 'user/getCurrentEComStore',
-      instanceUrl: 'user/getInstanceUrl',
-      productIdentifications: 'util/getProductIdentifications',
-      productIdentificationPref: 'user/getProductIdentificationPref'
+      instanceUrl: 'user/getInstanceUrl'
     })
   },
   mounted() {
@@ -258,13 +233,6 @@ export default defineComponent({
     },
     goToLaunchpad() {
       window.location.href = `${process.env.VUE_APP_LOGIN_URL}`
-    },
-    setProductIdentificationPref(value: string, id: string) {
-      // Not dispatching an action if the value for id is same as saved in state
-      if(this.productIdentificationPref[id] == value) {
-        return;
-      }
-      this.store.dispatch('user/setProductIdentificationPref', { id, value })
     },
     goToOms(){
       window.open(this.instanceUrl.startsWith('http') ? this.instanceUrl.replace('api/', "") : `https://${this.instanceUrl}.hotwax.io/`, '_blank', 'noopener, noreferrer');
