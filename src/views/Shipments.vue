@@ -104,12 +104,11 @@ export default defineComponent({
         "inputFields": {
           "destinationFacilityId": this.user.facilityId,
           "statusId": "PURCH_SHIP_SHIPPED",
-          "shipmentTypeId_fld0_value": "INCOMING_SHIPMENT",
-          "shipmentTypeId_fld0_op": "equals",
-          "shipmentTypeId_fld0_grp": "1",
-          "parentTypeId_fld0_value": "INCOMING_SHIPMENT",
-          "parentTypeId_fld0_op": "equals",
-          "parentTypeId_fld0_grp": "2",
+          //TODO: Currently performFind service does not support conditions with multiple groups joined with AND operator
+          //and conditions of a single group joined with OR operator. Once support gets added in performFind service, 
+          //update below condition to filter shipments where shipmentTypeId=INCOMING_SHIPMENT OR parentTypeId=INCOMING_SHIPMENT   
+          "shipmentTypeId_value": ["INCOMING_SHIPMENT", "IN_TRANSFER", "PURCHASE_SHIPMENT", "SALES_RETURN"],
+          "shipmentTypeId_op": "in"
         },
         "entityName": "ShipmentAndTypeAndItemCount",
         "fieldList" : [ "shipmentId","primaryShipGroupSeqId","partyIdFrom","partyIdTo","estimatedArrivalDate","destinationFacilityId","statusId", "shipmentItemCount", "externalId", "externalOrderId", "shipmentTypeId" ],
