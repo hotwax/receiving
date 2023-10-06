@@ -104,12 +104,14 @@ export default defineComponent({
         "inputFields": {
           "destinationFacilityId": this.user.facilityId,
           "statusId": "PURCH_SHIP_SHIPPED",
-          "shipmentTypeId_fld0_value": "INCOMING_SHIPMENT",
-          "shipmentTypeId_fld0_op": "equals",
-          "shipmentTypeId_fld0_grp": "1",
-          "parentTypeId_fld0_value": "INCOMING_SHIPMENT",
-          "parentTypeId_fld0_op": "equals",
-          "parentTypeId_fld0_grp": "2",
+          "grp_op": "AND",
+          "shipmentTypeId_value": "INCOMING_SHIPMENT",
+          "shipmentTypeId_op": "equals",
+          "shipmentTypeId_grp": "1",
+          "parentTypeId_value": "INCOMING_SHIPMENT",
+          "parentTypeId_op": "equals",
+          "parentTypeId_grp": "1",
+          "grp_op_1": "OR"
         },
         "entityName": "ShipmentAndTypeAndItemCount",
         "fieldList" : [ "shipmentId","primaryShipGroupSeqId","partyIdFrom","partyIdTo","estimatedArrivalDate","destinationFacilityId","statusId", "shipmentItemCount", "externalId", "externalOrderId", "shipmentTypeId" ],
@@ -121,11 +123,12 @@ export default defineComponent({
           payload.inputFields["shipmentId_value"] = this.queryString
           payload.inputFields["shipmentId_op"] = 'contains'
           payload.inputFields["shipmentId_ic"] = 'Y'
-          payload.inputFields["shipmentId_grp"] = '1'
+          payload.inputFields["shipmentId_grp"] = '2'
           payload.inputFields["externalOrderId_value"] = this.queryString
           payload.inputFields["externalOrderId_op"] = 'contains'
           payload.inputFields["externalOrderId_ic"] = 'Y'
           payload.inputFields["externalOrderId_grp"] = '2'
+          payload.inputFields["grp_op_2"] = 'OR'
       }
       await this.store.dispatch("shipment/findShipment", payload);
       this.fetchingShipments = false;
