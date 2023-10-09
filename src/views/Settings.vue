@@ -177,7 +177,6 @@ export default defineComponent({
       userProfile: 'user/getUserProfile',
       currentFacility: 'user/getCurrentFacility',
       currentEComStore: 'user/getCurrentEComStore',
-      instanceUrl: 'user/getInstanceUrl',
       productIdentifications: 'util/getProductIdentifications',
       productIdentificationPref: 'user/getProductIdentificationPref'
     })
