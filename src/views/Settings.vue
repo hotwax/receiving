@@ -78,7 +78,7 @@
           </ion-item>
         </ion-card>
 
-        <FacilitySwitcher />
+        <DxpFacilitySwitcher />
         
       </section>
       <hr />
