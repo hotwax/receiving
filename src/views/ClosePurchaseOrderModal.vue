@@ -71,6 +71,7 @@ import { OrderService } from "@/services/OrderService";
 import { productHelpers, showToast } from '@/utils';
 import { ShopifyImg } from '@hotwax/dxp-components';
 import { translate } from '@/i18n'
+import emitter from "@/event-bus"
 
 export default defineComponent({
   name: "ClosePurchaseOrder",
@@ -100,7 +101,7 @@ export default defineComponent({
       productIdentificationPref: 'user/getProductIdentificationPref'
     })
   },
-  props: ['createShipment', 'isEligibileForCreatingShipment'],
+  props: ['isEligibileForCreatingShipment'],
   methods: {
     closeModal() {
       modalController.dismiss({ dismissed: true });
@@ -116,11 +117,11 @@ export default defineComponent({
         {
           text: this.$t('Proceed'),
           role: 'proceed',
-          handler: async () => {
-            if(this.isEligibileForCreatingShipment()) {
-              await this.createShipment()
+          handler: async() => {
+            if(this.isEligibileForCreatingShipment) {
+              emitter.emit('create-shipment')
             }
-            this.updatePOItemStatus()
+            await this.updatePOItemStatus()
           }
         }]
       });
@@ -140,11 +141,15 @@ export default defineComponent({
           selectedItem.statusId = "ITEM_COMPLETED"
         }
         
-        await OrderService.updatePOItemStatus({orderId: item.orderId, orderItemSeqId: item.orderItemSeqId})
-        .catch((err)=>{
+        try{
+          await OrderService.updatePOItemStatus({orderId: item.orderId, orderItemSeqId: item.orderItemSeqId})
+          .then(() => {
+            showToast(translate('Purchase order updated successfully.'))
+          })
+        } catch(err) {
           console.error(err);
-          showToast(translate("Purchase order update failed. Verify your internet connection and retry."))
-        })
+          showToast(translate("Purchase order update failed."))
+        }
       });
     },
     areAllItemsSelected(eligibleItems: any) {

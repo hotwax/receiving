@@ -19,7 +19,10 @@
       <main>
         <div class="doc-id">
           <ion-item lines="none">
-            <h1>{{$t("Purchase Order")}}: {{ order.externalOrderId }}</h1>
+            <ion-label>
+              <h1>{{ $t("Purchase Order")}}: {{ order.externalOrderId }}</h1>
+              <p>{{ $t("Item count") }}: {{ order.items.length }}</p>
+            </ion-label>
           </ion-item>
 
           <div class="doc-meta">
@@ -27,7 +30,7 @@
             <ion-badge :color="order.orderStatusId === 'ORDER_CREATED' ? 'medium' : 'primary'">{{ order.orderStatusDesc }}</ion-badge>
           </div>
         </div>
-        
+
         <div class="scanner">
           <ion-item>
             <ion-label position="fixed">{{$t("Scan items")}}</ion-label>
@@ -38,14 +41,22 @@
             {{ $t("Scan") }}
           </ion-button>
         </div>
-        
-        <!-- TODO: need UI for rejected and completed items -->
-        <ion-card v-for="(item, index) in order.items" v-show="item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED'" :key="index">
+
+        <ion-item lines="none">
+          <ion-label v-if="getPOItems('pending').length > 1" color="medium" class="ion-margin-end">
+            {{ $t("PENDING: ITEMS", { itemsCount: getPOItems('pending').length }) }}
+          </ion-label>
+          <ion-label v-else color="medium" class="ion-margin-end">
+            {{ $t("PENDING: ITEM", { itemsCount: getPOItems('pending').length }) }}
+          </ion-label>
+        </ion-item>
+
+        <ion-card v-for="(item, index) in getPOItems('pending')" v-show="item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED'" :key="index">
           <div  class="product">
             <div class="product-info">
               <ion-item lines="none">
                 <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
-                  <ShopifyImg :src="getProduct(item.productId).mainImageUrl" />
+                  <ShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
                   <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
@@ -90,6 +101,46 @@
             </div>         
           </div>
         </ion-card>
+
+        <ion-item lines="none">
+          <ion-text v-if="getPOItems('completed').length > 1" color="medium" class="ion-margin-end">
+            {{ $t("COMPLETED: ITEMS", { itemsCount: getPOItems('completed').length }) }}
+          </ion-text>
+          <ion-text v-else color="medium" class="ion-margin-end">
+            {{ $t("COMPLETED: ITEM", { itemsCount: getPOItems('completed').length }) }}
+          </ion-text>
+          <ion-icon v-if="getPOItems('completed').length" :icon="showCompletedItems ? eyeOutline : eyeOffOutline" @click="showCompletedItems = !showCompletedItems" />
+        </ion-item>
+        
+        <ion-card v-for="(item, index) in getPOItems('completed')" v-show="showCompletedItems && item.orderItemStatusId === 'ITEM_COMPLETED'" :key="index">
+          <div class="product">
+            <div class="product-info">
+              <ion-item lines="none">
+                <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
+                  <ShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
+                </ion-thumbnail>
+                <ion-label class="ion-text-wrap">
+                  <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
+                  <p>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                </ion-label>
+              </ion-item>
+            </div>
+            
+            <div class="location">
+              <ion-chip :disabled="true" outline>
+                <ion-icon :icon="locationOutline"/>
+                <ion-label>{{ item.locationSeqId }}</ion-label>
+              </ion-chip>
+            </div>
+            
+            <div>
+              <ion-item lines="none">
+                <ion-badge color="medium" slot="end">{{ item.quantity }} {{ $t("ordered") }}</ion-badge>
+                <ion-badge color="success" class="ion-margin-start" slot="end">{{ getPOItemAccepted(item.productId) }} {{ $t("received") }}</ion-badge>
+              </ion-item>
+            </div>
+          </div>
+        </ion-card>
       </main>  
     </ion-content>
 
@@ -121,6 +172,7 @@ import {
   IonLabel,
   IonPage,
   IonProgressBar,
+  IonText,
   IonThumbnail,
   IonTitle,
   IonToolbar,
@@ -128,7 +180,7 @@ import {
   modalController
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
-import { addOutline, cameraOutline, checkmarkDone, saveOutline, timeOutline, copyOutline } from 'ionicons/icons';
+import { addOutline, cameraOutline, checkmarkDone, copyOutline, eyeOffOutline, eyeOutline, locationOutline, saveOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import { ShopifyImg } from '@hotwax/dxp-components';
 import { useStore, mapGetters } from 'vuex';
@@ -140,6 +192,7 @@ import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
 import { copyToClipboard, hasError, productHelpers } from '@/utils';
 import { Actions, hasPermission } from '@/authorization'
+import emitter from "@/event-bus"
 
 export default defineComponent({
   name: "PurchaseOrderDetails",
@@ -160,6 +213,7 @@ export default defineComponent({
     IonLabel,
     IonPage,
     IonProgressBar,
+    IonText,
     IonThumbnail,
     IonTitle,
     IonToolbar,
@@ -167,7 +221,8 @@ export default defineComponent({
   },
   data() {
     return {
-      queryString: ''
+      queryString: '',
+      showCompletedItems: false
     }
   },
   computed: {
@@ -205,6 +260,13 @@ export default defineComponent({
     async updateProductCount(payload: any) {
       if(this.queryString) payload = this.queryString
       this.store.dispatch('order/updateProductCount', payload)
+    },
+    getPOItems(orderType: string) {
+      if(orderType === 'completed'){
+        return this.order.items.filter((item: any) => item.orderItemStatusId === 'ITEM_COMPLETED')
+      } else {
+        return this.order.items.filter((item: any) => item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED')
+      }
     },
     async addProduct() {
       const modal = await modalController
@@ -247,10 +309,11 @@ export default defineComponent({
       const modal = await modalController.create({
         component: ClosePurchaseOrderModal,
         componentProps: {
-          createShipment: this.createShipment,
-          isEligibileForCreatingShipment: this.isEligibileForCreatingShipment
+          isEligibileForCreatingShipment: this.isEligibileForCreatingShipment()
         }
       })
+
+      emitter.on('create-shipment', this.createShipment)
 
       return modal.present();
     },
@@ -260,6 +323,7 @@ export default defineComponent({
       if (resp.status === 200 && !hasError(resp)) {
         this.router.push('/purchase-orders')
       }
+      emitter.off('create-shipment', this.createShipment)
     },
     isEligibileForCreatingShipment() {
       return this.order.items.some((item: any) => item.quantityAccepted > 0)
@@ -291,7 +355,10 @@ export default defineComponent({
       checkmarkDone,
       copyOutline,
       copyToClipboard,
+      eyeOffOutline,
+      eyeOutline,
       hasPermission,
+      locationOutline,
       productHelpers,
       router,
       saveOutline,
