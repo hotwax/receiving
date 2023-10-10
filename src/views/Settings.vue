@@ -233,8 +233,8 @@ export default defineComponent({
       });
       await alert.present();
     },
-    logout () {
-    this.store.dispatch('user/logout', { isUserUnauthorised: false }).then((redirectionUrl) => {
+    logout() {
+      this.store.dispatch('user/logout', { isUserUnauthorised: false }).then((redirectionUrl) => {
         this.store.dispatch('shipment/clearShipments');
         this.store.dispatch('return/clearReturns');
         this.store.dispatch("party/resetReceiversDetails");
