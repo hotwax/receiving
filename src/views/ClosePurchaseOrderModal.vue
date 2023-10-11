@@ -72,9 +72,10 @@ import { productHelpers, showToast } from '@/utils';
 import { ShopifyImg } from '@hotwax/dxp-components';
 import { translate } from '@/i18n'
 import emitter from "@/event-bus"
+import { useRouter } from 'vue-router';
 
 export default defineComponent({
-  name: "ClosePurchaseOrder",
+  name: "ClosePurchaseOrderModal",
   components: {
     IonBadge,
     IonButton,
@@ -122,6 +123,8 @@ export default defineComponent({
               emitter.emit('create-shipment')
             }
             await this.updatePOItemStatus()
+            modalController.dismiss()
+            this.router.push('/purchase-orders')
           }
         }]
       });
@@ -129,31 +132,33 @@ export default defineComponent({
     },
     async updatePOItemStatus() {
       const eligibleItems = this.order.items.filter((item: any) => item.isChecked)
-      const areAllItemsSelected = this.areAllItemsSelected(eligibleItems)
-      
-      eligibleItems.forEach(async (item:any) => {
-        const selectedItem = {
-          orderId: item.orderId,
-          orderItemSeqId: item.orderItemSeqId
-        } as any
 
-        if(!areAllItemsSelected) {
-          selectedItem.statusId = "ITEM_COMPLETED"
+      await Promise.allSettled(eligibleItems.map(async (item:any) => {
+        const selectedItemDetails = {
+          orderId: item.orderId,
+          orderItemSeqId: item.orderItemSeqId,
+          statusId: "ITEM_COMPLETED"
         }
-        
-        try{
-          await OrderService.updatePOItemStatus({orderId: item.orderId, orderItemSeqId: item.orderItemSeqId})
-          .then(() => {
-            showToast(translate('Purchase order updated successfully.'))
-          })
+
+        try {
+          await OrderService.updatePOItemStatus(selectedItemDetails)
+          item.statusUpdated = true
         } catch(err) {
+          item.statusUpdated = false
           console.error(err);
-          showToast(translate("Purchase order update failed."))
         }
-      });
-    },
-    areAllItemsSelected(eligibleItems: any) {
-      return eligibleItems.length === this.order.items.filter((item:any) => item.orderItemStatusId != "ITEM_COMPLETED" || item.orderItemStatusId != "ITEM_REJECTED").length
+      }))
+
+      const failedItemsCount = eligibleItems.filter((item: any) => item.statusUpdated === false).length
+
+      if(failedItemsCount === 0){
+        showToast(translate('Purchase order updated successfully.'))
+      } else if(failedItemsCount === eligibleItems.length){
+        showToast(translate("Purchase order update failed."))
+      } else {
+        showToast(translate("Some purchase order items were not successfully updated, Please retry."))
+      }
+
     },
     isEligibleToClosePOItems() {
       return this.order.items.some((item: any) => item.isChecked)
@@ -167,6 +172,7 @@ export default defineComponent({
     }
   },
   setup() {
+    const router = useRouter()
     return {
       arrowBackOutline,
       Actions,
@@ -175,6 +181,7 @@ export default defineComponent({
       hasPermission,
       OrderService,
       productHelpers,
+      router,
       saveOutline
     };
   }

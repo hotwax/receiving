@@ -235,6 +235,9 @@ export default defineComponent({
       productIdentificationPref: 'user/getProductIdentificationPref'
     })
   },
+  mounted() {
+    emitter.on('create-shipment', this.createShipment)
+  },
   methods: {
     getRcvdToOrderedFraction(item: any){
       return (parseInt(item.quantityAccepted) +  this.getPOItemAccepted(item.productId))/(item.quantity)
@@ -313,8 +316,6 @@ export default defineComponent({
         }
       })
 
-      emitter.on('create-shipment', this.createShipment)
-
       return modal.present();
     },
     async createShipment() {
@@ -323,7 +324,6 @@ export default defineComponent({
       if (resp.status === 200 && !hasError(resp)) {
         this.router.push('/purchase-orders')
       }
-      emitter.off('create-shipment', this.createShipment)
     },
     isEligibileForCreatingShipment() {
       return this.order.items.some((item: any) => item.quantityAccepted > 0)
@@ -343,6 +343,9 @@ export default defineComponent({
     this.store.dispatch("order/getOrderDetail", { orderId: this.$route.params.slug }).then(() => {
       this.store.dispatch('order/getPOHistory', { orderId: this.order.orderId })
     })
+  },
+  unmounted() {
+    emitter.off('create-shipment', this.createShipment)
   },
   setup() {
     const store = useStore();

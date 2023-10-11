@@ -110,6 +110,7 @@
   "Something went wrong": "Something went wrong",
   "Something went wrong while login. Please contact administrator": "Something went wrong while login. Please contact administrator.",
   "Sorry, your username or password is incorrect. Please try again.": "Sorry, your username or password is incorrect. Please try again.",
+  "Some purchase order items were not successfully updated, Please retry.": "Some purchase order items were not successfully updated, Please retry.",
   "Specify which facility you want to operate from. Order, inventory and other configuration data will be specific to the facility you select.": "Specify which facility you want to operate from. Order, inventory and other configuration data will be specific to the facility you select.",
   "store name": "store name",
   "Store": "Store",
