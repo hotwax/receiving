@@ -42,8 +42,8 @@
                   <ShopifyImg :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
-                  <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
-                  <p>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                  <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
+                  <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
                 </ion-label>
               </ion-item>
             </div>
@@ -108,16 +108,16 @@ import {
   modalController,
   alertController,
 } from '@ionic/vue';
-import { defineComponent } from 'vue';
+import { computed, defineComponent } from 'vue';
 import { checkmarkDone, barcodeOutline, locationOutline } from 'ionicons/icons';
 import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
-import { ShopifyImg } from '@hotwax/dxp-components';
+import { getProductIdentificationValue, ShopifyImg, useProductIdentificationStore } from '@hotwax/dxp-components';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import ImageModal from '@/components/ImageModal.vue';
 import { hasError } from '@/utils';
-import { showToast, productHelpers } from '@/utils'
+import { showToast } from '@/utils'
 import { translate } from '@/i18n'
 import { Actions, hasPermission } from '@/authorization'
 
@@ -172,8 +172,7 @@ export default defineComponent({
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
       returns: 'return/getReturns',
       validStatusChange: 'return/isReturnReceivable',
-      isReturnReceivable: 'return/isReturnReceivable',
-      productIdentificationPref: 'user/getProductIdentificationPref'
+      isReturnReceivable: 'return/isReturnReceivable'
     }),
   },
   methods: {
@@ -268,15 +267,18 @@ export default defineComponent({
   setup() {
     const store = useStore(); 
     const router = useRouter();
+    const productIdentificationStore = useProductIdentificationStore();
+    let productIdentificationPref = computed(() => productIdentificationStore.getProductIdentificationPref)
 
     return {
       Actions,
       barcodeOutline,
       checkmarkDone,
+      getProductIdentificationValue,
       hasPermission,
       locationOutline,
+      productIdentificationPref,
       store,
-      productHelpers,
       router
     };
   },

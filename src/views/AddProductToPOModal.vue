@@ -19,8 +19,8 @@
         </ion-thumbnail>
         <ion-label>
           <!-- Honouring the identifications set by the user on the settings page -->
-          <h2>{{ product[productIdentificationPref.primaryId] }}</h2>
-          <p>{{ product[productIdentificationPref.secondaryId] }}</p>
+          <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, product) ? getProductIdentificationValue(productIdentificationPref.primaryId, product) : product.productNames }}</h2>
+          <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, product) }}</p>
         </ion-label>
         <ion-icon v-if="isProductAvailableInOrder(product.productId)" color="success" :icon="checkmarkCircle" />
         <ion-button v-else fill="outline" @click="addtoOrder(product)">{{ $t("Add to Purchase Order") }}</ion-button>
@@ -51,11 +51,11 @@ import {
   IonToolbar,
   modalController,
 } from '@ionic/vue';
-import { defineComponent } from 'vue';
+import { computed, defineComponent } from 'vue';
 import { closeOutline, checkmarkCircle } from 'ionicons/icons';
 import { mapGetters } from 'vuex'
 import { useStore } from "@/store";
-import { ShopifyImg } from '@hotwax/dxp-components';
+import { getProductIdentificationValue, ShopifyImg, useProductIdentificationStore } from '@hotwax/dxp-components';
 import { showToast } from '@/utils'
 import { translate } from '@/i18n'
 
@@ -87,8 +87,7 @@ export default defineComponent({
     ...mapGetters({
       products: 'product/getProducts',
       isScrollable: 'product/isScrollable',
-      isProductAvailableInOrder: 'order/isProductAvailableInOrder',
-      productIdentificationPref: 'user/getProductIdentificationPref'
+      isProductAvailableInOrder: 'order/isProductAvailableInOrder'
     })
   },
   methods: {
@@ -129,9 +128,14 @@ export default defineComponent({
   },
   setup() {
     const store = useStore();
+    const productIdentificationStore = useProductIdentificationStore();
+    let productIdentificationPref = computed(() => productIdentificationStore.getProductIdentificationPref)
+
     return {
       closeOutline,
       checkmarkCircle,
+      getProductIdentificationValue,
+      productIdentificationPref,
       store,
     };
   },

@@ -35,9 +35,6 @@ const getters: GetterTree <UserState, RootState> = {
     },
     getFacilityLocationsByFacilityId: (state) => (facilityId: string) => {
         return state.facilityLocationsByFacilityId[facilityId];
-    },
-    getProductIdentificationPref: (state) => {
-        return state.productIdentificationPref;
     }
 }
 export default getters;

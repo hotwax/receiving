@@ -5,6 +5,5 @@ export default interface UserState {
     currentEComStore: object;
     instanceUrl: string;
     facilityLocationsByFacilityId: any;
-    productIdentificationPref: any;
     permissions: any;
 }

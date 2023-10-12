@@ -1,3 +1,3 @@
 export const SN_UTIL = 'util'
 export const UTIL_STATUS_UPDATED = SN_UTIL + '/STATUS_UPDATED'
-export const UTIL_PRODUCT_IDENT_UPDATED = SN_UTIL + '/PRODUCT_IDENT_UPDATED'
+

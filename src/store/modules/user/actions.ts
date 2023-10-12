@@ -13,7 +13,7 @@ import {
   resetPermissions,
   setPermissions
 } from '@/authorization'
-import { useAuthStore } from '@hotwax/dxp-components'
+import { useAuthStore, useProductIdentificationStore } from '@hotwax/dxp-components'
 
 const actions: ActionTree<UserState, RootState> = {
 
@@ -73,6 +73,10 @@ const actions: ActionTree<UserState, RootState> = {
         store && (preferredStore = store)
       }
 
+      // Get product identification from api using dxp-component
+      await useProductIdentificationStore().getIdentificationPref(preferredStoreId)
+        .catch((error) => console.error(error));
+
       setPermissions(appPermissions);
       if (userProfile.userTimeZone) {
         Settings.defaultZone = userProfile.userTimeZone;
@@ -87,9 +91,6 @@ const actions: ActionTree<UserState, RootState> = {
       commit(types.USER_TOKEN_CHANGED, { newToken: token })
       // Get facility location of selected facility
       dispatch('getFacilityLocations', currentFacility.facilityId);
-      // TODO: fetch product identifications from enumeration instead of storing it in env
-      this.dispatch('util/setProductIdentifications', process.env.VUE_APP_PRDT_IDENT ? JSON.parse(process.env.VUE_APP_PRDT_IDENT) : [])
-      dispatch('getProductIdentificationPref', preferredStore.productStoreId);
 
     } catch (err: any) {
       // If any of the API call in try block has status code other than 2xx it will be handled in common catch block.
@@ -114,7 +115,6 @@ const actions: ActionTree<UserState, RootState> = {
 
     // TODO add any other tasks if need
     commit(types.USER_END_SESSION)
-    this.dispatch('util/setProductIdentifications', [])
     this.dispatch('order/clearPurchaseOrders');
     resetPermissions();
     resetConfig();
@@ -132,7 +132,10 @@ const actions: ActionTree<UserState, RootState> = {
       'userPrefTypeId': 'SELECTED_BRAND',
       'userPrefValue': payload.eComStore.productStoreId
     });
-    await dispatch('getProductIdentificationPref', payload.eComStore.productStoreId);
+
+    // Get product identification from api using dxp-component
+    await useProductIdentificationStore().getIdentificationPref(payload.eComStore.productStoreId)
+      .catch((error) => console.error(error));
   },
 
   /**
@@ -215,119 +218,6 @@ const actions: ActionTree<UserState, RootState> = {
       return [];
     }
   },
-     
-  async setProductIdentificationPref({ commit, state }, payload) {
-    let prefValue = JSON.parse(JSON.stringify(state.productIdentificationPref))
-    const eComStoreId = (state.currentEComStore as any).productStoreId
-
-    let fromDate;
-
-    try {
-      const resp = await UserService.getProductIdentificationPref({
-        "inputFields": {
-          "productStoreId": eComStoreId,
-          "settingTypeEnumId": "PRDT_IDEN_PREF"
-        },
-        "filterByDate": 'Y',
-        "entityName": "ProductStoreSetting",
-        "fieldList": ["fromDate"],
-        "viewSize": 1
-      }) as any
-      if(resp.status == 200 && resp.data.count > 0) {
-        fromDate = resp.data.docs[0].fromDate
-      }
-    } catch(err) {
-      console.error(err)
-    }
-
-    // when selecting none as ecom store, not updating the pref as it's not possible to save pref with empty productStoreId
-    if(!(state.currentEComStore as any).productStoreId || !fromDate) {
-      showToast(translate('Unable to update product identifier preference'))
-      commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, prefValue)
-      return;
-    }
-
-    prefValue[payload.id] = payload.value
-
-    const params = {
-      "fromDate": fromDate,
-      "productStoreId": eComStoreId,
-      "settingTypeEnumId": "PRDT_IDEN_PREF",
-      "settingValue": JSON.stringify(prefValue)
-    }
-
-    try {
-      const resp = await UserService.updateProductIdentificationPref(params) as any
-
-      if(resp.status == 200) {
-        showToast(translate('Product identifier preference updated'))
-      } else {
-        showToast(translate('Failed to update product identifier preference'))
-        prefValue = JSON.parse(JSON.stringify(state.productIdentificationPref))
-      }
-    } catch(err) {
-      showToast(translate('Failed to update product identifier preference'))
-      prefValue = JSON.parse(JSON.stringify(state.productIdentificationPref))
-      console.error(err)
-    }
-    commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, prefValue)
-  },
-
-  async createProductIdentificationPref({ commit, state }) {
-    const prefValue = {
-      primaryId: 'productId',
-      secondaryId: ''
-    }
-
-    const params = {
-      "fromDate": Date.now(),
-      "productStoreId": (state.currentEComStore as any).productStoreId,
-      "settingTypeEnumId": "PRDT_IDEN_PREF",
-      "settingValue": JSON.stringify(prefValue)
-    }
-
-    try {
-      await UserService.createProductIdentificationPref(params) as any
-    } catch(err) {
-      console.error(err)
-    }
-
-    // not checking for resp success and fail case as every time we need to update the state with the
-    // default value when creating a pref
-    commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, prefValue)
-  },
-
-  async getProductIdentificationPref({ commit, dispatch }, eComStoreId) {
-
-    // when selecting none as ecom store, not fetching the pref as it returns all the entries with the pref id
-    if(!eComStoreId) {
-      commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, {'primaryId': 'productId', 'secondaryId': ''})
-      return;
-    }
-
-    const payload = {
-      "inputFields": {
-        "productStoreId": eComStoreId,
-        "settingTypeEnumId": "PRDT_IDEN_PREF"
-      },
-      "filterByDate": 'Y',
-      "entityName": "ProductStoreSetting",
-      "fieldList": ["settingValue", "fromDate"],
-      "viewSize": 1
-    }
-
-    try {
-      const resp = await UserService.getProductIdentificationPref(payload) as any
-      if(resp.status == 200 && resp.data.count > 0) {
-        const respValue = JSON.parse(resp.data.docs[0].settingValue)
-        commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, {'primaryId': respValue['primaryId'], 'secondaryId': respValue['secondaryId']})
-      } else if(resp.status == 200 && resp.data.error) {
-        dispatch('createProductIdentificationPref')
-      }
-    } catch(err) {
-      console.error(err)
-    }
-  }
 }
 
 export default actions;
