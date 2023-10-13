@@ -27,7 +27,7 @@
 
           <div class="doc-meta">
             <ion-chip @click="copyToClipboard(order.orderId, 'Internal ID saved to clipboard')">{{ order.orderId }}<ion-icon :icon="copyOutline"/></ion-chip>
-            <ion-badge :color="order.orderStatusId === 'ORDER_CREATED' ? 'medium' : 'primary'">{{ order.orderStatusDesc }}</ion-badge>
+            <ion-badge :color="order.orderStatusId === 'ORDER_CREATED' ? 'medium' : 'primary'">{{ order.orderStatusDesc.toLowerCase }}</ion-badge>
           </div>
         </div>
 
@@ -44,10 +44,10 @@
 
         <ion-item lines="none">
           <ion-label v-if="getPOItems('pending').length > 1" color="medium" class="ion-margin-end">
-            {{ $t("PENDING: ITEMS", { itemsCount: getPOItems('pending').length }) }}
+            {{ $t("Pending: items", { itemsCount: getPOItems('pending').length }) }}
           </ion-label>
           <ion-label v-else color="medium" class="ion-margin-end">
-            {{ $t("PENDING: ITEM", { itemsCount: getPOItems('pending').length }) }}
+            {{ $t("Pending: item", { itemsCount: getPOItems('pending').length }) }}
           </ion-label>
         </ion-item>
 
@@ -104,10 +104,10 @@
 
         <ion-item lines="none">
           <ion-text v-if="getPOItems('completed').length > 1" color="medium" class="ion-margin-end">
-            {{ $t("COMPLETED: ITEMS", { itemsCount: getPOItems('completed').length }) }}
+            {{ $t("Completed: items", { itemsCount: getPOItems('completed').length }) }}
           </ion-text>
           <ion-text v-else color="medium" class="ion-margin-end">
-            {{ $t("COMPLETED: ITEM", { itemsCount: getPOItems('completed').length }) }}
+            {{ $t("Completed: item", { itemsCount: getPOItems('completed').length }) }}
           </ion-text>
           <ion-icon v-if="getPOItems('completed').length" :icon="showCompletedItems ? eyeOutline : eyeOffOutline" @click="showCompletedItems = !showCompletedItems" />
         </ion-item>
