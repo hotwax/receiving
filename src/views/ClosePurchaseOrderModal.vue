@@ -132,21 +132,14 @@ export default defineComponent({
     },
     async updatePOItemStatus() {
       const eligibleItems = this.order.items.filter((item: any) => item.isChecked)
-      let failedItemsCount = 0;
-      await Promise.allSettled(eligibleItems.map(async (item:any) => {
-        const selectedItemDetails = {
+      const responses = await Promise.allSettled(eligibleItems.map(async (item: any) => {
+        await OrderService.updatePOItemStatus({
           orderId: item.orderId,
           orderItemSeqId: item.orderItemSeqId,
           statusId: "ITEM_COMPLETED"
-        }
-
-        try {
-          await OrderService.updatePOItemStatus(selectedItemDetails)
-        } catch(err) {
-          failedItemsCount++;
-          console.error(err);
-        }
+        })
       }))
+      const failedItemsCount = responses.filter((response) => response.status === 'rejected').length
 
       if(failedItemsCount === 0){
         showToast(translate('Purchase order updated successfully.'))
