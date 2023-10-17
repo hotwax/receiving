@@ -17,8 +17,8 @@
     <ion-item lines="none">
       <ion-list-header>{{ $t("To close the purchase order, select all.") }}</ion-list-header>
     </ion-item>
-    <ion-list v-for="(item, index) in order.items" :key="index">
-      <ion-item>
+    <ion-list>
+      <ion-item :button="item.orderItemStatusId === 'ITEM_COMPLETED' || item.orderItemStatusId === 'ITEM_REJECTED' ? false : true" v-for="(item, index) in getPOItems()" :key="index" @click="item.isChecked = !item.isChecked">
         <ion-thumbnail slot="start">
           <ShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
         </ion-thumbnail>
@@ -29,7 +29,7 @@
         <ion-buttons>
           <ion-badge v-if="item.orderItemStatusId === 'ITEM_COMPLETED'" slot="end">{{ $t("Completed") }}</ion-badge>
           <ion-badge v-else-if="item.orderItemStatusId === 'ITEM_REJECTED'" color="danger" slot="end">{{ $t("Rejected") }}</ion-badge>
-          <ion-checkbox v-else slot="end" v-model="item.isChecked" />
+          <ion-checkbox v-else slot="end" :modelValue="item.isChecked" />
         </ion-buttons>
       </ion-item>
     </ion-list>
@@ -158,14 +158,17 @@ export default defineComponent({
 
     },
     isEligibleToClosePOItems() {
-      return this.order.items.some((item: any) => item.isChecked)
+      return this.order.items.some((item: any) => item.isChecked && item.orderItemStatusId !== "ITEM_COMPLETED" && item.orderItemStatusId !== 'ITEM_REJECTED')
     },
     selectAllItems() {
       this.order.items.map((item:any) => {
-        if(!(item.orderItemStatusId === "ITEM_COMPLETED") || !(item.orderItemStatusId === "ITEM_REJECTED")) {
+        if(item.orderId && item.orderItemStatusId !== "ITEM_COMPLETED" && item.orderItemStatusId !== "ITEM_REJECTED") {
           item.isChecked = true;
         } 
       })
+    },
+    getPOItems() {
+      return this.order.items.filter((item: any) => item.orderId)
     }
   },
   setup() {
