@@ -135,8 +135,8 @@ export default defineComponent({
       const eligibleItems = this.order.items.filter((item: any) => item.isChecked && this.isPOItemStatusPending(item))
       const responses = await Promise.allSettled(eligibleItems.map(async (item: any) => {
         await OrderService.updatePOItemStatus({
-          // orderId: item.orderId,
-          // orderItemSeqId: item.orderItemSeqId,
+          orderId: item.orderId,
+          orderItemSeqId: item.orderItemSeqId,
           statusId: "ITEM_COMPLETED"
         })
       }))
