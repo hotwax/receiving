@@ -192,7 +192,6 @@ import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
 import { copyToClipboard, hasError, productHelpers } from '@/utils';
 import { Actions, hasPermission } from '@/authorization'
-import emitter from "@/event-bus"
 
 export default defineComponent({
   name: "PurchaseOrderDetails",

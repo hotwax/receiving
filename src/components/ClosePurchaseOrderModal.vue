@@ -127,9 +127,10 @@ export default defineComponent({
     },
     async updatePOItemStatus() {
       // Shipment can only be created if quantity is specified for atleast one PO item.
+      // In some cases we don't need to create shipment instead directly need to close PO items.
       if(this.isEligibileForCreatingShipment) {
-        const eligibleItemsForCreatingShipment = this.order.items.filter((item: any) => item.quantityAccepted > 0)
-        await this.store.dispatch('order/createPurchaseShipment', { items: eligibleItemsForCreatingShipment, orderId: this.order.orderId })
+        const eligibleItemsForShipment = this.order.items.filter((item: any) => item.quantityAccepted > 0)
+        await this.store.dispatch('order/createPurchaseShipment', { items: eligibleItemsForShipment, orderId: this.order.orderId })
       }
 
       const eligibleItems = this.order.items.filter((item: any) => item.isChecked && this.isPOItemStatusPending(item))
