@@ -187,7 +187,7 @@ import { useStore, mapGetters } from 'vuex';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue"
 import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
-import ClosePurchaseOrderModal from '@/views/ClosePurchaseOrderModal.vue'
+import ClosePurchaseOrderModal from '@/components/ClosePurchaseOrderModal.vue'
 import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
 import { copyToClipboard, hasError, productHelpers } from '@/utils';
@@ -234,9 +234,6 @@ export default defineComponent({
       currentFacility: 'user/getCurrentFacility',
       productIdentificationPref: 'user/getProductIdentificationPref'
     })
-  },
-  mounted() {
-    emitter.on('create-shipment', this.createShipment)
   },
   methods: {
     getRcvdToOrderedFraction(item: any){
@@ -343,9 +340,6 @@ export default defineComponent({
     this.store.dispatch("order/getOrderDetail", { orderId: this.$route.params.slug }).then(() => {
       this.store.dispatch('order/getPOHistory', { orderId: this.order.orderId })
     })
-  },
-  unmounted() {
-    emitter.off('create-shipment', this.createShipment)
   },
   setup() {
     const store = useStore();

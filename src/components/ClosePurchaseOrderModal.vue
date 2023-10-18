@@ -18,7 +18,7 @@
       <ion-list-header>{{ $t("To close the purchase order, select all.") }}</ion-list-header>
     </ion-item>
     <ion-list>
-      <ion-item :button="item.orderItemStatusId === 'ITEM_COMPLETED' || item.orderItemStatusId === 'ITEM_REJECTED' ? false : true" v-for="(item, index) in getPOItems()" :key="index" @click="item.isChecked = !item.isChecked">
+      <ion-item :button="!isPOItemStatusPending(item) ? false : true" v-for="(item, index) in getPOItems()" :key="index" @click="item.isChecked = !item.isChecked">
         <ion-thumbnail slot="start">
           <ShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
         </ion-thumbnail>
@@ -44,10 +44,9 @@
 
 <script lang="ts">
 import {
-  alertController,
+  IonBadge,
   IonButton,
   IonButtons,
-  IonBadge,
   IonCheckbox,
   IonContent,
   IonFab,
@@ -61,17 +60,17 @@ import {
   IonTitle,
   IonToolbar,
   IonThumbnail,
+  alertController,
   modalController
 } from '@ionic/vue';
 import { Actions, hasPermission } from '@/authorization'
 import { closeOutline, checkmarkCircle, arrowBackOutline, saveOutline } from 'ionicons/icons';
 import { defineComponent } from 'vue';
-import { mapGetters } from 'vuex'
+import { mapGetters, useStore } from 'vuex'
 import { OrderService } from "@/services/OrderService";
 import { productHelpers, showToast } from '@/utils';
 import { ShopifyImg } from '@hotwax/dxp-components';
 import { translate } from '@/i18n'
-import emitter from "@/event-bus"
 import { useRouter } from 'vue-router';
 
 export default defineComponent({
@@ -119,9 +118,6 @@ export default defineComponent({
           text: this.$t('Proceed'),
           role: 'proceed',
           handler: async() => {
-            if(this.isEligibileForCreatingShipment) {
-              emitter.emit('create-shipment')
-            }
             await this.updatePOItemStatus()
             modalController.dismiss()
             this.router.push('/purchase-orders')
@@ -131,31 +127,35 @@ export default defineComponent({
       return alert.present();
     },
     async updatePOItemStatus() {
-      const eligibleItems = this.order.items.filter((item: any) => item.isChecked)
+      if(this.isEligibileForCreatingShipment) {
+        const eligibleItemsForCreatingShipment = this.order.items.filter((item: any) => item.quantityAccepted > 0)
+        await this.store.dispatch('order/createPurchaseShipment', { items: eligibleItemsForCreatingShipment, orderId: this.order.orderId })
+      }
+
+      const eligibleItems = this.order.items.filter((item: any) => item.isChecked && this.isPOItemStatusPending(item))
       const responses = await Promise.allSettled(eligibleItems.map(async (item: any) => {
         await OrderService.updatePOItemStatus({
-          orderId: item.orderId,
-          orderItemSeqId: item.orderItemSeqId,
+          // orderId: item.orderId,
+          // orderItemSeqId: item.orderItemSeqId,
           statusId: "ITEM_COMPLETED"
         })
       }))
       const failedItemsCount = responses.filter((response) => response.status === 'rejected').length
-
-      if(failedItemsCount === 0){
-        showToast(translate('Purchase order updated successfully.'))
-      } else if(failedItemsCount === eligibleItems.length){
-        showToast(translate("Purchase order update failed."))
-      } else {
-        showToast(translate("Some purchase order items were not successfully updated, Please retry."))
+      if(failedItemsCount){
+        console.error('Failed to update the status of purchase order items.')
       }
-
     },
     isEligibleToClosePOItems() {
-      return this.order.items.some((item: any) => item.isChecked && item.orderItemStatusId !== "ITEM_COMPLETED" && item.orderItemStatusId !== 'ITEM_REJECTED')
+      return this.order.items.some((item: any) => item.isChecked && this.isPOItemStatusPending(item))
+    },
+    isPOItemStatusPending(item: any) {
+      return item.orderItemStatusId !== "ITEM_COMPLETED" && item.orderItemStatusId !== "ITEM_REJECTED"
     },
     selectAllItems() {
       this.order.items.map((item:any) => {
-        if(item.orderId && item.orderItemStatusId !== "ITEM_COMPLETED" && item.orderItemStatusId !== "ITEM_REJECTED") {
+        // Purchase Order may contains items without orderId, there status can't be updated
+        // Hence not allowing to select those items.
+        if(item.orderId && this.isPOItemStatusPending(item)) {
           item.isChecked = true;
         } 
       })
@@ -166,6 +166,8 @@ export default defineComponent({
   },
   setup() {
     const router = useRouter()
+    const store = useStore()
+
     return {
       arrowBackOutline,
       Actions,
@@ -175,7 +177,8 @@ export default defineComponent({
       OrderService,
       productHelpers,
       router,
-      saveOutline
+      saveOutline,
+      store
     };
   }
 });
