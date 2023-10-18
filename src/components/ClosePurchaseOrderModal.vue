@@ -18,7 +18,7 @@
       <ion-list-header>{{ $t("To close the purchase order, select all.") }}</ion-list-header>
     </ion-item>
     <ion-list>
-      <ion-item :button="!isPOItemStatusPending(item) ? false : true" v-for="(item, index) in getPOItems()" :key="index" @click="item.isChecked = !item.isChecked">
+      <ion-item :button="isPOItemStatusPending(item)" v-for="(item, index) in getPOItems()" :key="index" @click="item.isChecked = !item.isChecked">
         <ion-thumbnail slot="start">
           <ShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
         </ion-thumbnail>
@@ -68,9 +68,8 @@ import { closeOutline, checkmarkCircle, arrowBackOutline, saveOutline } from 'io
 import { defineComponent } from 'vue';
 import { mapGetters, useStore } from 'vuex'
 import { OrderService } from "@/services/OrderService";
-import { productHelpers, showToast } from '@/utils';
+import { productHelpers } from '@/utils';
 import { ShopifyImg } from '@hotwax/dxp-components';
-import { translate } from '@/i18n'
 import { useRouter } from 'vue-router';
 
 export default defineComponent({
@@ -127,6 +126,7 @@ export default defineComponent({
       return alert.present();
     },
     async updatePOItemStatus() {
+      // Shipment can only be created if quantity is specified for atleast one PO item.
       if(this.isEligibileForCreatingShipment) {
         const eligibleItemsForCreatingShipment = this.order.items.filter((item: any) => item.quantityAccepted > 0)
         await this.store.dispatch('order/createPurchaseShipment', { items: eligibleItemsForCreatingShipment, orderId: this.order.orderId })
