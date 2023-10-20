@@ -32,10 +32,18 @@ const fetchPOHistory = async (payload: any): Promise<any> => {
   })
 }
 
+const updatePOItemStatus = async (payload: any): Promise<any> => {
+  return api({
+    url: "service/changeOrderItemStatus",
+    method: "POST",
+    data: payload
+  })
+}
 
 export const OrderService = {
   fetchPurchaseOrders,
   fetchPODetail,
   createPurchaseShipment,
-  fetchPOHistory
+  fetchPOHistory,
+  updatePOItemStatus
 }

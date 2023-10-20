@@ -142,13 +142,16 @@
           </div>
         </ion-card>
       </main>  
-      
-      <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibileForCreatingShipment()" @click="savePODetails">
-          <ion-icon :icon="saveOutline" />
-        </ion-fab-button>
-      </ion-fab>
     </ion-content>
+
+    <ion-footer>
+      <ion-toolbar>
+        <ion-item slot="end">
+          <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE)" fill="outline" class="ion-margin-end" @click="closePO">{{ $t("Receive And Close") }}</ion-button>
+          <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibileForCreatingShipment()" @click="savePODetails">{{ $t("Receive") }}</ion-button>
+        </ion-item>
+      </ion-toolbar>
+    </ion-footer>
   </ion-page>
 </template>
 
@@ -162,8 +165,7 @@ import {
   IonChip,
   IonContent,
   IonHeader,
-  IonFab,
-  IonFabButton,
+  IonFooter,
   IonIcon,
   IonItem,
   IonInput,
@@ -174,8 +176,8 @@ import {
   IonThumbnail,
   IonTitle,
   IonToolbar,
-  modalController,
   alertController,
+  modalController
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { addOutline, cameraOutline, checkmarkDone, copyOutline, eyeOffOutline, eyeOutline, locationOutline, saveOutline, timeOutline } from 'ionicons/icons';
@@ -185,6 +187,7 @@ import { useStore, mapGetters } from 'vuex';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue"
 import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
+import ClosePurchaseOrderModal from '@/components/ClosePurchaseOrderModal.vue'
 import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
 import { copyToClipboard, hasError, productHelpers } from '@/utils';
@@ -202,8 +205,7 @@ export default defineComponent({
     IonChip,
     IonContent,
     IonHeader,
-    IonFab,
-    IonFabButton,
+    IonFooter,
     IonIcon,
     IonItem,
     IonInput,
@@ -301,6 +303,16 @@ export default defineComponent({
         }]
       });
       return alert.present();
+    },
+    async closePO() {
+      const modal = await modalController.create({
+        component: ClosePurchaseOrderModal,
+        componentProps: {
+          isEligibileForCreatingShipment: this.isEligibileForCreatingShipment()
+        }
+      })
+
+      return modal.present();
     },
     async createShipment() {
       const eligibleItems = this.order.items.filter((item: any) => item.quantityAccepted > 0)
