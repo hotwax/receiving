@@ -49,7 +49,7 @@ const actions: ActionTree<UserState, RootState> = {
           const permissionError = 'You do not have permission to access the app.';
           showToast(translate(permissionError));
           console.error("error", permissionError);
-          return Promise.reject(new Error(permissionError));
+          return Promise.reject({ message: permissionError });
         }
       }
 
@@ -97,7 +97,7 @@ const actions: ActionTree<UserState, RootState> = {
       // TODO Check if handling of specific status codes is required.
       showToast(translate('Something went wrong while login. Please contact administrator'));
       console.error("error", err);
-      return Promise.reject(new Error(err))
+      return Promise.reject(err)
     }
   },
 

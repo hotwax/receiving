@@ -35,8 +35,8 @@ const getUserProfile = async (token: any): Promise<any> => {
         'Content-Type': 'application/json'
       }
     });
-    if(hasError(resp)) return Promise.reject("Error getting user profile: " + JSON.stringify(resp.data));
-    if(resp.data.facilities.length === 0) return Promise.reject("User is not associated with any facilities: " + JSON.stringify(resp.data));
+    if (hasError(resp)) return Promise.reject({ message: "Error getting user profile." });
+    if (resp.data.facilities.length === 0) return Promise.reject({ message: "User is not associated with any facilities." });
     return Promise.resolve(resp.data)
   } catch(error: any) {
     return Promise.reject(error)
@@ -91,7 +91,7 @@ const getEComStores = async (token: any, facilityId: any): Promise<any> => {
     });
     // Disallow login if the user is not associated with any product store
     if (hasError(resp) || resp.data.docs.length === 0) {
-      return Promise.reject(resp.data);
+      return Promise.reject({ message: "User is not associated with any product stores." });
     } else {
       return Promise.resolve(resp.data.docs);
     }
@@ -124,7 +124,7 @@ const getPreferredStore = async (token: any): Promise<any> => {
       }
     });
     if (hasError(resp)) {
-      return Promise.reject(resp.data);
+      return Promise.reject({ message: "Error getting preferred product store." });
     }
     return Promise.resolve(resp.data.userPrefValue);
   } catch(error: any) {
@@ -210,11 +210,11 @@ const getUserPermissions = async (payload: any, token: any): Promise<any> => {
                 'Content-Type': 'application/json'
               }
             })
-            if(!hasError(response)){
+            if (!hasError(response)) {
               return Promise.resolve(response);
-              } else {
-              return Promise.reject(response);
-              }
+            } else {
+              return Promise.reject({ message: "Something went wrong while getting complete user permissions." });
+            }
           }))
           const permissionResponses = {
             success: [],
@@ -238,7 +238,7 @@ const getUserPermissions = async (payload: any, token: any): Promise<any> => {
           // Show toast to user intimiting about the failure
           // Allow user to login
           // TODO Implement Retry or improve experience with show in progress icon and allowing login only if all the data related to user profile is fetched.
-          if (permissionResponses.failed.length > 0) Promise.reject("Something went wrong while getting complete user permissions.");
+          if (permissionResponses.failed.length > 0) Promise.reject({ message: "Something went wrong while getting complete user permissions." });
         }
       }
       return serverPermissions;
