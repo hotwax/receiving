@@ -120,3 +120,9 @@ export default defineComponent({
   }
 });
 </script>
+
+<style>
+  ion-split-pane {
+    --side-width: 304px;
+  }
+</style>
