@@ -186,7 +186,7 @@ const actions: ActionTree<UserState, RootState> = {
   /**
    * Update user timeZone
    */
-  async setUserTimeZone( { state, commit }, payload) {
+  async setUserTimeZone({ state, commit }, payload) {
     const current: any = state.current;
     if(current.userTimeZone !== payload.tzId) {
       const resp = await UserService.setUserTimeZone(payload)
