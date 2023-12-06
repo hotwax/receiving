@@ -96,6 +96,7 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       getProduct: 'product/getProduct',
+      getPOItemAccepted: 'order/getPOItemAccepted',
       order: 'order/getCurrent',
       productIdentificationPref: 'user/getProductIdentificationPref'
     })
@@ -163,7 +164,17 @@ export default defineComponent({
     },
     getPOItems() {
       return this.order.items.filter((item: any) => item.orderId)
+    },
+    getAlreadyFulfilledItems() {
+      this.order.items.map((item: any) => {
+        if(this.isPOItemStatusPending(item) && this.getPOItemAccepted(item.productId) >= item.quantity) {
+          item.isChecked = true;
+        }
+      })
     }
+  },
+  mounted() {
+    this.getAlreadyFulfilledItems()
   },
   setup() {
     const router = useRouter()
