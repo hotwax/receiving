@@ -165,7 +165,7 @@ export default defineComponent({
     getPOItems() {
       return this.order.items.filter((item: any) => item.orderId)
     },
-    getAlreadyFulfilledItems() {
+    checkAlreadyFulfilledItems() {
       this.order.items.map((item: any) => {
         if(this.isPOItemStatusPending(item) && this.getPOItemAccepted(item.productId) >= item.quantity) {
           item.isChecked = true;
@@ -174,7 +174,7 @@ export default defineComponent({
     }
   },
   mounted() {
-    this.getAlreadyFulfilledItems()
+    this.checkAlreadyFulfilledItems()
   },
   setup() {
     const router = useRouter()
