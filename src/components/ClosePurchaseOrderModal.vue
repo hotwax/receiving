@@ -42,7 +42,6 @@
 
 <script lang="ts">
 import {
-  IonBadge,
   IonButton,
   IonButtons,
   IonCheckbox,
