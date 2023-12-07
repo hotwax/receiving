@@ -27,9 +27,7 @@
           <p>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
         </ion-label>
         <ion-buttons>
-          <ion-badge v-if="item.orderItemStatusId === 'ITEM_COMPLETED'" slot="end">{{ $t("Completed") }}</ion-badge>
-          <ion-badge v-else-if="item.orderItemStatusId === 'ITEM_REJECTED'" color="danger" slot="end">{{ $t("Rejected") }}</ion-badge>
-          <ion-checkbox v-else slot="end" :modelValue="item.isChecked" />
+          <ion-checkbox slot="end" :modelValue="isPOItemStatusPending(item) ? item.isChecked : true" :disabled="isPOItemStatusPending(item) ? false : true" />
         </ion-buttons>
       </ion-item>
     </ion-list>
@@ -75,7 +73,6 @@ import { useRouter } from 'vue-router';
 export default defineComponent({
   name: "ClosePurchaseOrderModal",
   components: {
-    IonBadge,
     IonButton,
     IonButtons,
     IonCheckbox,
@@ -167,7 +164,7 @@ export default defineComponent({
     },
     checkAlreadyFulfilledItems() {
       this.order.items.map((item: any) => {
-        if(this.isPOItemStatusPending(item) && this.getPOItemAccepted(item.productId) >= item.quantity) {
+        if(this.isPOItemStatusPending(item) && this.getPOItemAccepted(item.productId) > 0) {
           item.isChecked = true;
         }
       })
