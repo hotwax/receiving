@@ -109,7 +109,9 @@
           <ion-text v-else color="medium" class="ion-margin-end">
             {{ $t("COMPLETED: ITEM", { itemsCount: getPOItems('completed').length }) }}
           </ion-text>
-          <ion-icon v-if="getPOItems('completed').length" :icon="showCompletedItems ? eyeOutline : eyeOffOutline" @click="showCompletedItems = !showCompletedItems" class="pointer"/>
+          <ion-button @click="showCompletedItems = !showCompletedItems" fill="clear">
+            <ion-icon v-if="getPOItems('completed').length" :icon="showCompletedItems ? eyeOutline : eyeOffOutline" />
+          </ion-button>
         </ion-item>
         
         <ion-card v-for="(item, index) in getPOItems('completed')" v-show="showCompletedItems && item.orderItemStatusId === 'ITEM_COMPLETED'" :key="index">
@@ -410,9 +412,6 @@ ion-thumbnail {
   .action {
     grid: "receive progressbar history ordered" /  max-content 1fr max-content max-content;
     padding-left: var(--spacer-sm);
-  }
-  .pointer{
-    cursor: pointer;
   }
 }
 </style>
