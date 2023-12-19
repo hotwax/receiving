@@ -35,8 +35,7 @@ const getUserProfile = async (token: any): Promise<any> => {
         'Content-Type': 'application/json'
       }
     });
-    if(hasError(resp)) return Promise.reject("Error getting user profile: " + JSON.stringify(resp.data));
-    if(resp.data.facilities.length === 0) return Promise.reject("User is not associated with any facilities: " + JSON.stringify(resp.data));
+    if(hasError(resp)) return Promise.reject("Error getting user profile");
     return Promise.resolve(resp.data)
   } catch(error: any) {
     return Promise.reject(error)
