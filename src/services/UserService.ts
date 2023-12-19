@@ -88,14 +88,13 @@ const getEComStores = async (token: any, facilityId: any): Promise<any> => {
         'Content-Type': 'application/json'
       }
     });
-    // Disallow login if the user is not associated with any product store
     if (hasError(resp) || resp.data.docs.length === 0) {
-      return Promise.reject(resp.data);
+      throw resp.data;
     } else {
       return Promise.resolve(resp.data.docs);
     }
   } catch(error: any) {
-    return Promise.reject(error)
+    return Promise.resolve([])
   }
 }
 
