@@ -65,6 +65,10 @@ const getFacilityLocations = async (payload: any): Promise<any> => {
 }
   
 const getEComStores = async (token: any, facilityId: any): Promise<any> => {
+  if (!facilityId) {
+    return Promise.resolve({});
+  }
+
   try {
     const params = {
       "inputFields": {
@@ -76,6 +80,7 @@ const getEComStores = async (token: any, facilityId: any): Promise<any> => {
       "distinct": "Y",
       "noConditionFind": "Y",
       "filterByDate": 'Y',
+      "viewSize": 1
     }
     const baseURL = store.getters['user/getBaseUrl'];
     const resp = await client({
@@ -88,13 +93,13 @@ const getEComStores = async (token: any, facilityId: any): Promise<any> => {
         'Content-Type': 'application/json'
       }
     });
-    if (hasError(resp) || resp.data.docs.length === 0) {
+    if (hasError(resp)) {
       throw resp.data;
     } else {
-      return Promise.resolve(resp.data.docs);
+      return Promise.resolve(resp.data.docs?.length ? resp.data.docs[0] : {});
     }
   } catch(error: any) {
-    return Promise.resolve([])
+    return Promise.resolve({})
   }
 }
 
@@ -104,30 +109,6 @@ const setUserPreference = async (payload: any): Promise<any> => {
     method: "post",
     data: payload
   });
-}
-
-const getPreferredStore = async (token: any): Promise<any> => {
-  const baseURL = store.getters['user/getBaseUrl'];
-  try {
-    const resp = await client({
-      url: "service/getUserPreference",
-      method: "post",
-      data: {
-        'userPrefTypeId': 'SELECTED_BRAND'
-      },
-      baseURL,
-      headers: {
-        Authorization:  'Bearer ' + token,
-        'Content-Type': 'application/json'
-      }
-    });
-    if (hasError(resp)) {
-      return Promise.reject(resp.data);
-    }
-    return Promise.resolve(resp.data.userPrefValue);
-  } catch(error: any) {
-    return Promise.reject(error)
-  }
 }
 
 const updateProductIdentificationPref = async (payload: any): Promise<any> => {
@@ -257,6 +238,5 @@ export const UserService = {
     createProductIdentificationPref,
     updateProductIdentificationPref,
     setUserPreference,
-    getPreferredStore,
     checkPermission
 }

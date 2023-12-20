@@ -73,15 +73,7 @@ const actions: ActionTree<UserState, RootState> = {
       }, []);
 
       const currentFacility = userProfile.facilities[0];
-      userProfile.stores = await UserService.getEComStores(token, currentFacility.facilityId);
-      
-      let preferredStore = userProfile.stores?.length ? userProfile.stores[0] : {};
-
-      const preferredStoreId =  await UserService.getPreferredStore(token);
-      if (preferredStoreId) {
-        const store = userProfile.stores.find((store: any) => store.productStoreId === preferredStoreId);
-        store && (preferredStore = store)
-      }
+      const currentEComStore = await UserService.getEComStores(token, currentFacility.facilityId);
 
       setPermissions(appPermissions);
       if (userProfile.userTimeZone) {
@@ -92,14 +84,14 @@ const actions: ActionTree<UserState, RootState> = {
       // TODO user single mutation
       commit(types.USER_INFO_UPDATED, userProfile);
       commit(types.USER_CURRENT_FACILITY_UPDATED, currentFacility);
-      commit(types.USER_CURRENT_ECOM_STORE_UPDATED, preferredStore);
+      commit(types.USER_CURRENT_ECOM_STORE_UPDATED, currentEComStore);
       commit(types.USER_PERMISSIONS_UPDATED, appPermissions);
       commit(types.USER_TOKEN_CHANGED, { newToken: token })
       // Get facility location of selected facility
       dispatch('getFacilityLocations', currentFacility.facilityId);
       // TODO: fetch product identifications from enumeration instead of storing it in env
       this.dispatch('util/setProductIdentifications', process.env.VUE_APP_PRDT_IDENT ? JSON.parse(process.env.VUE_APP_PRDT_IDENT) : [])
-      dispatch('getProductIdentificationPref', preferredStore.productStoreId);
+      dispatch('getProductIdentificationPref', currentEComStore?.productStoreId);
 
     } catch (err: any) {
       // If any of the API call in try block has status code other than 2xx it will be handled in common catch block.
@@ -175,19 +167,10 @@ const actions: ActionTree<UserState, RootState> = {
   /**
    * update current facility information
    */
-  async setFacility ({ commit, dispatch, state }, payload) {
-    const userProfile = JSON.parse(JSON.stringify(state.current));
-    userProfile.stores = await UserService.getEComStores(undefined, payload.facility.facilityId);
+  async setFacility ({ commit, dispatch }, payload) {
+    const eComStore = await UserService.getEComStores(undefined, payload.facility.facilityId);
 
-    let preferredStore = userProfile.stores?.length ? userProfile.stores[0] : {};
-
-    const preferredStoreId = await UserService.getPreferredStore(undefined);
-    if (preferredStoreId) {
-      const store = userProfile.stores.find((store: any) => store.productStoreId === preferredStoreId);
-      store && (preferredStore = store)
-    }
-    commit(types.USER_INFO_UPDATED, userProfile);
-    commit(types.USER_CURRENT_ECOM_STORE_UPDATED, preferredStore);
+    commit(types.USER_CURRENT_ECOM_STORE_UPDATED, eComStore);
     commit(types.USER_CURRENT_FACILITY_UPDATED, payload.facility);
     await dispatch('getFacilityLocations', payload.facility.facilityId)
   },
