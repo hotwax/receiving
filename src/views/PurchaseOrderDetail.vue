@@ -109,8 +109,8 @@
           <ion-text v-else color="medium" class="ion-margin-end">
             {{ $t("COMPLETED: ITEM", { itemsCount: getPOItems('completed').length }) }}
           </ion-text>
-          <ion-button v-if="getPOItems('completed').length" @click="showCompletedItems = !showCompletedItems" fill="clear">
-            <ion-icon :icon="showCompletedItems ? eyeOutline : eyeOffOutline"/>
+          <ion-button v-if="getPOItems('completed').length" @click="showCompletedItems = !showCompletedItems" color="medium" fill="clear">
+            <ion-icon :icon="showCompletedItems ? eyeOutline : eyeOffOutline" slot="icon-only" />
           </ion-button>
         </ion-item>
         
