@@ -6,7 +6,7 @@ import * as types from './mutation-types'
 import { hasError, showToast } from '@/utils'
 import { translate } from '@/i18n'
 import { Settings } from 'luxon';
-import { logout, updateInstanceUrl, updateToken, resetConfig } from '@/adapter'
+import { getUserFacilities, logout, updateInstanceUrl, updateToken, resetConfig } from '@/adapter'
 import {
   getServerPermissionsFromRules,
   prepareAppPermissions,
@@ -15,6 +15,7 @@ import {
 } from '@/authorization'
 import { useAuthStore } from '@hotwax/dxp-components'
 import emitter from '@/event-bus'
+import store from '@/store'
 
 const actions: ActionTree<UserState, RootState> = {
 
@@ -43,9 +44,9 @@ const actions: ActionTree<UserState, RootState> = {
       if (permissionId) {
         // As the token is not yet set in the state passing token headers explicitly
         // TODO Abstract this out, how token is handled should be part of the method not the callee
-        const hasPermission = appPermissions.some((appPermissionId: any) => appPermissionId === permissionId );
+        const hasPermission = appPermissions.some((appPermission: any) => appPermission.action === permissionId );
         // If there are any errors or permission check fails do not allow user to login
-        if (hasPermission) {
+        if (!hasPermission) {
           const permissionError = 'You do not have permission to access the app.';
           showToast(translate(permissionError));
           console.error("error", permissionError);
@@ -55,6 +56,15 @@ const actions: ActionTree<UserState, RootState> = {
 
       const userProfile = await UserService.getUserProfile(token);
 
+      //fetching user facilities
+      const isAdminUser = appPermissions.some((appPermission: any) => appPermission?.action === "APP_RECVG_ADMIN");
+      const baseURL = store.getters['user/getBaseUrl'];
+      const facilities = await getUserFacilities(token, baseURL, userProfile?.partyId, "", isAdminUser);
+
+      if (!facilities.length) throw 'Unable to login. User is not assocaited with any facility'
+
+      userProfile.facilities = facilities
+
       // Getting unique facilities
       userProfile.facilities.reduce((uniqueFacilities: any, facility: any, index: number) => {
         if(uniqueFacilities.includes(facility.facilityId)) userProfile.facilities.splice(index, 1);
@@ -62,17 +72,8 @@ const actions: ActionTree<UserState, RootState> = {
         return uniqueFacilities
       }, []);
 
-      // TODO Use a separate API for getting facilities, this should handle user like admin accessing the app
       const currentFacility = userProfile.facilities[0];
-      userProfile.stores = await UserService.getEComStores(token, currentFacility.facilityId);
-      
-      let preferredStore = userProfile.stores[0];
-
-      const preferredStoreId =  await UserService.getPreferredStore(token);
-      if (preferredStoreId) {
-        const store = userProfile.stores.find((store: any) => store.productStoreId === preferredStoreId);
-        store && (preferredStore = store)
-      }
+      const currentEComStore = await UserService.getEComStores(token, currentFacility.facilityId);
 
       setPermissions(appPermissions);
       if (userProfile.userTimeZone) {
@@ -83,14 +84,14 @@ const actions: ActionTree<UserState, RootState> = {
       // TODO user single mutation
       commit(types.USER_INFO_UPDATED, userProfile);
       commit(types.USER_CURRENT_FACILITY_UPDATED, currentFacility);
-      commit(types.USER_CURRENT_ECOM_STORE_UPDATED, preferredStore);
+      commit(types.USER_CURRENT_ECOM_STORE_UPDATED, currentEComStore);
       commit(types.USER_PERMISSIONS_UPDATED, appPermissions);
       commit(types.USER_TOKEN_CHANGED, { newToken: token })
       // Get facility location of selected facility
       dispatch('getFacilityLocations', currentFacility.facilityId);
       // TODO: fetch product identifications from enumeration instead of storing it in env
       this.dispatch('util/setProductIdentifications', process.env.VUE_APP_PRDT_IDENT ? JSON.parse(process.env.VUE_APP_PRDT_IDENT) : [])
-      dispatch('getProductIdentificationPref', preferredStore.productStoreId);
+      dispatch('getProductIdentificationPref', currentEComStore?.productStoreId);
 
     } catch (err: any) {
       // If any of the API call in try block has status code other than 2xx it will be handled in common catch block.
@@ -166,19 +167,10 @@ const actions: ActionTree<UserState, RootState> = {
   /**
    * update current facility information
    */
-  async setFacility ({ commit, dispatch, state }, payload) {
-    const userProfile = JSON.parse(JSON.stringify(state.current));
-    userProfile.stores = await UserService.getEComStores(undefined, payload.facility.facilityId);
+  async setFacility ({ commit, dispatch }, payload) {
+    const eComStore = await UserService.getEComStores(undefined, payload.facility.facilityId);
 
-    let preferredStore = userProfile.stores[0];
-
-    const preferredStoreId =  await UserService.getPreferredStore(undefined);
-    if (preferredStoreId) {
-      const store = userProfile.stores.find((store: any) => store.productStoreId === preferredStoreId);
-      store && (preferredStore = store)
-    }
-    commit(types.USER_INFO_UPDATED, userProfile);
-    commit(types.USER_CURRENT_ECOM_STORE_UPDATED, preferredStore);
+    commit(types.USER_CURRENT_ECOM_STORE_UPDATED, eComStore);
     commit(types.USER_CURRENT_FACILITY_UPDATED, payload.facility);
     await dispatch('getFacilityLocations', payload.facility.facilityId)
   },

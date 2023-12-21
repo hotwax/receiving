@@ -40,28 +40,6 @@
 
         <ion-card>
           <ion-card-header>
-            <ion-card-subtitle>
-              {{ $t("Product Store") }}
-            </ion-card-subtitle>
-            <ion-card-title>
-              {{ $t("Store") }}
-            </ion-card-title>
-          </ion-card-header>
-
-          <ion-card-content>
-            {{ $t('A store represents a company or a unique catalog of products. If your OMS is connected to multiple eCommerce stores selling different collections of products, you may have multiple Product Stores set up in HotWax Commerce.') }}
-          </ion-card-content>
-
-          <ion-item lines="none">
-            <ion-label> {{ $t("Select store") }} </ion-label>
-            <ion-select interface="popover" :placeholder="$t('store name')" :value="currentEComStore.productStoreId" @ionChange="setEComStore($event)">
-              <ion-select-option v-for="store in (userProfile ? userProfile.stores : [])" :key="store.productStoreId" :value="store.productStoreId" >{{ store.storeName }}</ion-select-option>
-            </ion-select>
-          </ion-item>
-        </ion-card>
-
-        <ion-card>
-          <ion-card-header>
             <ion-card-title>
               {{ $t("Facility") }}
             </ion-card-title>
@@ -72,7 +50,7 @@
           <ion-item lines="none">
             <ion-label>{{ $t("Select facility") }}</ion-label>
             <ion-select interface="popover" :value="currentFacility.facilityId" @ionChange="setFacility($event)">
-              <ion-select-option v-for="facility in (userProfile ? userProfile.facilities : [])" :key="facility.facilityId" :value="facility.facilityId" >{{ facility.name }}</ion-select-option>
+              <ion-select-option v-for="facility in (userProfile ? userProfile.facilities : [])" :key="facility.facilityId" :value="facility.facilityId" >{{ facility.facilityName }}</ion-select-option>
             </ion-select>
           </ion-item>
         </ion-card>
@@ -100,13 +78,13 @@
 
           <ion-item>
             <ion-label>{{ $t("Primary Product Identifier") }}</ion-label>
-            <ion-select interface="popover" :placeholder="$t('primary identifier')" :value="productIdentificationPref.primaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'primaryId')">
+            <ion-select :disabled="!hasPermission(Actions.APP_PRODUCT_IDENTIFIER_UPDATE) || !currentEComStore?.productStoreId" interface="popover" :placeholder="$t('primary identifier')" :value="productIdentificationPref.primaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'primaryId')">
               <ion-select-option v-for="identification in productIdentifications" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
             </ion-select>
           </ion-item>
           <ion-item>
             <ion-label>{{ $t("Secondary Product Identifier") }}</ion-label>
-            <ion-select interface="popover" :placeholder="$t('secondary identifier')" :value="productIdentificationPref.secondaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'secondaryId')">
+            <ion-select :disabled="!hasPermission(Actions.APP_PRODUCT_IDENTIFIER_UPDATE) || !currentEComStore?.productStoreId" interface="popover" :placeholder="$t('secondary identifier')" :value="productIdentificationPref.secondaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'secondaryId')">
               <ion-select-option v-for="identification in productIdentifications" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
               <ion-select-option value="">{{ $t("None") }}</ion-select-option>
             </ion-select>
@@ -140,6 +118,7 @@ import { useRouter } from 'vue-router';
 import Image from '@/components/Image.vue'
 import { DateTime } from 'luxon';
 import TimeZoneModal from '@/views/TimezoneModal.vue';
+import { Actions, hasPermission } from '@/authorization';
 
 export default defineComponent({
   name: 'Settings',
@@ -190,13 +169,6 @@ export default defineComponent({
         component: TimeZoneModal,
       });
       return timeZoneModal.present();
-    },
-    setEComStore(store: any) {
-      if(this.userProfile) {
-        this.store.dispatch('user/setEComStore', {
-          'eComStore': this.userProfile.stores.find((str: any) => str.productStoreId == store['detail'].value)
-        })
-      }
     },
     setFacility (facility: any) {
       // Checking if current facility is not equal to the facility selected to avoid extra api call on logging in again after logout.
@@ -265,9 +237,11 @@ export default defineComponent({
     const router = useRouter();
 
     return {
+      Actions,
       codeWorkingOutline,
       ellipsisVertical,
       globeOutline,
+      hasPermission,
       personCircleOutline,
       openOutline,
       saveOutline,
