@@ -148,10 +148,12 @@
 
     <ion-footer>
       <ion-toolbar>
-        <div slot="end">
+        <ion-item slot="end">
+        <ion-label>
           <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE)" fill="outline" class="ion-margin-end" @click="closePO">{{ $t("Receive And Close") }}</ion-button>
           <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibileForCreatingShipment()" @click="savePODetails">{{ $t("Receive") }}</ion-button>
-        </div>
+        </ion-label>
+        </ion-item>
       </ion-toolbar>
     </ion-footer>
   </ion-page>
