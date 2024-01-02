@@ -18,12 +18,10 @@
     <ion-content>
       <main>
         <div class="doc-id">
-          <ion-item lines="none">
-            <ion-label>
-              <h1>{{ $t("Purchase Order")}}: {{ order.externalOrderId }}</h1>
-              <p>{{ $t("Item count") }}: {{ order.items.length }}</p>
-            </ion-label>
-          </ion-item>
+          <ion-label class="ion-padding">
+            <h1>{{ $t("Purchase Order")}}: {{ order.externalOrderId }}</h1>
+            <p>{{ $t("Item count") }}: {{ order.items.length }}</p>
+          </ion-label>
 
           <div class="doc-meta">
             <ion-chip @click="copyToClipboard(order.orderId, 'Internal ID saved to clipboard')">{{ order.orderId }}<ion-icon :icon="copyOutline"/></ion-chip>
