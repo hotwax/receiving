@@ -55,9 +55,8 @@ import { defineComponent } from 'vue';
 import { closeOutline, checkmarkCircle } from 'ionicons/icons';
 import { mapGetters } from 'vuex'
 import { useStore } from "@/store";
-import { ShopifyImg } from '@hotwax/dxp-components';
+import { ShopifyImg, translate } from '@hotwax/dxp-components';
 import { showToast } from '@/utils'
-import { translate } from '@/i18n'
 
 export default defineComponent({
   name: "Modal",

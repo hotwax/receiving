@@ -112,13 +112,12 @@ import { defineComponent } from 'vue';
 import { checkmarkDone, barcodeOutline, locationOutline } from 'ionicons/icons';
 import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
-import { ShopifyImg } from '@hotwax/dxp-components';
+import { ShopifyImg, translate } from '@hotwax/dxp-components';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import ImageModal from '@/components/ImageModal.vue';
 import { hasError } from '@/utils';
 import { showToast, productHelpers } from '@/utils'
-import { translate } from '@/i18n'
 import { Actions, hasPermission } from '@/authorization'
 
 export default defineComponent({
