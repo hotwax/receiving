@@ -9,7 +9,7 @@
             <Logo />
             <ion-item>
               <ion-input
-                :label="$t('Shop')"
+                :label="translate('Shop')"
                 label-placement="floating"
                 v-model="shopOrigin"
                 name="shopOrigin"
@@ -21,7 +21,7 @@
           </ion-list>
           <div class="ion-padding">
             <ion-button type="submit" expand="block">
-              {{ $t("Install")  }}
+              {{ translate("Install")  }}
             </ion-button>
           </div>
         </form>
@@ -49,6 +49,8 @@ import { ShopifyService } from "@/services/ShopifyService"
 import { getSessionToken } from "@shopify/app-bridge-utils";
 import { useStore } from 'vuex'
 import Logo from '@/components/Logo.vue'
+import { translate } from "@hotwax/dxp-components"
+
 export default defineComponent({
   name: "Shopify",
   components: {
@@ -144,6 +146,7 @@ export default defineComponent({
       router,
       store,
       showToast,
+      translate
     };
   },
 });

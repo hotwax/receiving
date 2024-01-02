@@ -3,7 +3,7 @@
     <ion-header :translucent="true">
       <ion-toolbar>
         <ion-back-button default-href="/purchase-orders" slot="start" />
-        <ion-title> {{$t("Purchase Order Details")}} </ion-title>
+        <ion-title> {{ translate("Purchase Order Details") }} </ion-title>
         <ion-buttons slot="end">
           <ion-button @click="receivingHistory()">
             <ion-icon slot="icon-only" :icon="timeOutline"/>
@@ -19,8 +19,8 @@
       <main>
         <div class="doc-id">
           <ion-label class="ion-padding">
-            <h1>{{ $t("Purchase Order")}}: {{ order.externalOrderId }}</h1>
-            <p>{{ $t("Item count") }}: {{ order.items.length }}</p>
+            <h1>{{ translate("Purchase Order")}}: {{ order.externalOrderId }}</h1>
+            <p>{{ translate("Item count") }}: {{ order.items.length }}</p>
           </ion-label>
 
           <div class="doc-meta">
@@ -31,20 +31,20 @@
 
         <div class="scanner">
           <ion-item>
-            <ion-input :label="$t('Scan items')" label-placement="fixed" autofocus :placeholder="$t('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()" />
+            <ion-input :label="translate('Scan items')" label-placement="fixed" autofocus :placeholder="translate('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()" />
           </ion-item>
           <ion-button expand="block" fill="outline" @click="scan">
             <ion-icon slot="start" :icon="cameraOutline" />
-            {{ $t("Scan") }}
+            {{ translate("Scan") }}
           </ion-button>
         </div>
 
         <ion-item lines="none">
           <ion-label v-if="getPOItems('pending').length > 1" color="medium" class="ion-margin-end">
-            {{ $t("PENDING: ITEMS", { itemsCount: getPOItems('pending').length }) }}
+            {{ translate("PENDING: ITEMS", { itemsCount: getPOItems('pending').length }) }}
           </ion-label>
           <ion-label v-else color="medium" class="ion-margin-end">
-            {{ $t("PENDING: ITEM", { itemsCount: getPOItems('pending').length }) }}
+            {{ translate("PENDING: ITEM", { itemsCount: getPOItems('pending').length }) }}
           </ion-label>
         </ion-item>
 
@@ -68,7 +68,7 @@
 
             <div class="product-count">
               <ion-item>
-                <ion-input :label="$t('Qty')" label-placement="floating" type="number" value="0" min="0" v-model="item.quantityAccepted" />
+                <ion-input :label="translate('Qty')" label-placement="floating" type="number" value="0" min="0" v-model="item.quantityAccepted" />
               </ion-item>
             </div>
           </div>
@@ -76,7 +76,7 @@
           <div class="action border-top" v-if="item.quantity > 0">
             <div class="receive-all-qty">
               <ion-button @click="receiveAll(item)" slot="start" size="small" fill="outline">
-                {{ $t("Receive All") }}
+                {{ translate("Receive All") }}
               </ion-button>
             </div>
 
@@ -88,22 +88,22 @@
             <div class="po-item-history">
               <ion-chip outline @click="receivingHistory(item.productId)">
                 <ion-icon :icon="checkmarkDone"/>
-                <ion-label> {{ getPOItemAccepted(item.productId) }} {{ $t("received") }} </ion-label>
+                <ion-label> {{ getPOItemAccepted(item.productId) }} {{ translate("received") }} </ion-label>
               </ion-chip>
             </div>
 
             <div class="qty-ordered">
-              <ion-label>{{ item.quantity }} {{ $t("ordered") }}</ion-label>   
+              <ion-label>{{ item.quantity }} {{ translate("ordered") }}</ion-label>   
             </div>         
           </div>
         </ion-card>
 
         <ion-item lines="none">
           <ion-text v-if="getPOItems('completed').length > 1" color="medium" class="ion-margin-end">
-            {{ $t("COMPLETED: ITEMS", { itemsCount: getPOItems('completed').length }) }}
+            {{ translate("COMPLETED: ITEMS", { itemsCount: getPOItems('completed').length }) }}
           </ion-text>
           <ion-text v-else color="medium" class="ion-margin-end">
-            {{ $t("COMPLETED: ITEM", { itemsCount: getPOItems('completed').length }) }}
+            {{ translate("COMPLETED: ITEM", { itemsCount: getPOItems('completed').length }) }}
           </ion-text>
           <ion-button v-if="getPOItems('completed').length" @click="showCompletedItems = !showCompletedItems" fill="clear">
             <ion-icon :icon="showCompletedItems ? eyeOutline : eyeOffOutline"/>
@@ -133,8 +133,8 @@
             
             <div>
               <ion-item lines="none">
-                <ion-badge color="medium" slot="end">{{ item.quantity }} {{ $t("ordered") }}</ion-badge>
-                <ion-badge color="success" class="ion-margin-start" slot="end">{{ getPOItemAccepted(item.productId) }} {{ $t("received") }}</ion-badge>
+                <ion-badge color="medium" slot="end">{{ item.quantity }} {{ translate("ordered") }}</ion-badge>
+                <ion-badge color="success" class="ion-margin-start" slot="end">{{ getPOItemAccepted(item.productId) }} {{ translate("received") }}</ion-badge>
               </ion-item>
             </div>
           </div>
@@ -145,8 +145,8 @@
     <ion-footer>
       <ion-toolbar>
         <ion-item slot="end">
-          <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE)" fill="outline" class="ion-margin-end" @click="closePO">{{ $t("Receive And Close") }}</ion-button>
-          <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibileForCreatingShipment()" @click="savePODetails">{{ $t("Receive") }}</ion-button>
+          <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE)" fill="outline" class="ion-margin-end" @click="closePO">{{ translate("Receive And Close") }}</ion-button>
+          <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibileForCreatingShipment()" @click="savePODetails">{{ translate("Receive") }}</ion-button>
         </ion-item>
       </ion-toolbar>
     </ion-footer>
@@ -180,7 +180,7 @@ import {
 import { defineComponent } from 'vue';
 import { addOutline, cameraOutline, checkmarkDone, copyOutline, eyeOffOutline, eyeOutline, locationOutline, saveOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
-import { ShopifyImg } from '@hotwax/dxp-components';
+import { ShopifyImg, translate } from '@hotwax/dxp-components';
 import { useStore, mapGetters } from 'vuex';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue"
@@ -286,14 +286,14 @@ export default defineComponent({
     },
     async savePODetails() {
       const alert = await alertController.create({
-        header: this.$t('Receive inventory'),
-        message: this.$t('Inventory can be received for purchase orders in multiple shipments. Proceeding will receive a new shipment for this purchase order but it will still be available for receiving later', { space: '<br /><br />' }),
+        header: translate('Receive inventory'),
+        message: translate('Inventory can be received for purchase orders in multiple shipments. Proceeding will receive a new shipment for this purchase order but it will still be available for receiving later', { space: '<br /><br />' }),
         buttons: [{
-          text: this.$t('Cancel'),
+          text: translate('Cancel'),
           role: 'cancel'
         },
         {
-          text: this.$t('Proceed'),
+          text: translate('Proceed'),
           role: 'proceed',
           handler: () => {
             this.createShipment();
@@ -357,7 +357,8 @@ export default defineComponent({
       router,
       saveOutline,
       store,
-      timeOutline
+      timeOutline,
+      translate
     };
   },
 });

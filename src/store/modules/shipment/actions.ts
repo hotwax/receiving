@@ -4,7 +4,7 @@ import RootState from '@/store/RootState'
 import ShipmentState from './ShipmentState'
 import * as types from './mutation-types'
 import { hasError, showToast } from '@/utils'
-import { translate } from '@/i18n'
+import { translate } from '@hotwax/dxp-components'
 import emitter from '@/event-bus'
 
 const actions: ActionTree<ShipmentState, RootState> = {
