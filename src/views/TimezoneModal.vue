@@ -152,7 +152,8 @@ export default defineComponent({
     return {
       close,
       save,
-      store
+      store,
+      translate
     };
   }
 });
