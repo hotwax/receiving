@@ -48,8 +48,7 @@
             {{ $t('Specify which facility you want to operate from. Order, inventory and other configuration data will be specific to the facility you select.') }}
           </ion-card-content>
           <ion-item lines="none">
-            <ion-label>{{ $t("Select facility") }}</ion-label>
-            <ion-select interface="popover" :value="currentFacility.facilityId" @ionChange="setFacility($event)">
+            <ion-select :label="$t('Select facility')" interface="popover" :value="currentFacility.facilityId" @ionChange="setFacility($event)">
               <ion-select-option v-for="facility in (userProfile ? userProfile.facilities : [])" :key="facility.facilityId" :value="facility.facilityId" >{{ facility.facilityName }}</ion-select-option>
             </ion-select>
           </ion-item>
@@ -77,14 +76,12 @@
           </ion-card-content>
 
           <ion-item>
-            <ion-label>{{ $t("Primary Product Identifier") }}</ion-label>
-            <ion-select :disabled="!hasPermission(Actions.APP_PRODUCT_IDENTIFIER_UPDATE) || !currentEComStore?.productStoreId" interface="popover" :placeholder="$t('primary identifier')" :value="productIdentificationPref.primaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'primaryId')">
+            <ion-select :label="$t('Primary Product Identifier')" :disabled="!hasPermission(Actions.APP_PRODUCT_IDENTIFIER_UPDATE) || !currentEComStore?.productStoreId" interface="popover" :placeholder="$t('primary identifier')" :value="productIdentificationPref.primaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'primaryId')">
               <ion-select-option v-for="identification in productIdentifications" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
             </ion-select>
           </ion-item>
           <ion-item>
-            <ion-label>{{ $t("Secondary Product Identifier") }}</ion-label>
-            <ion-select :disabled="!hasPermission(Actions.APP_PRODUCT_IDENTIFIER_UPDATE) || !currentEComStore?.productStoreId" interface="popover" :placeholder="$t('secondary identifier')" :value="productIdentificationPref.secondaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'secondaryId')">
+            <ion-select :label="$t('Secondary Product Identifier')" :disabled="!hasPermission(Actions.APP_PRODUCT_IDENTIFIER_UPDATE) || !currentEComStore?.productStoreId" interface="popover" :placeholder="$t('secondary identifier')" :value="productIdentificationPref.secondaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'secondaryId')">
               <ion-select-option v-for="identification in productIdentifications" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
               <ion-select-option value="">{{ $t("None") }}</ion-select-option>
             </ion-select>
