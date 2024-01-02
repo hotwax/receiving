@@ -6,16 +6,16 @@
           <ion-icon slot="icon-only" :icon="arrowBackOutline" />
         </ion-button>
       </ion-buttons>
-      <ion-title>{{ $t("Close purchase order items") }}</ion-title>
+      <ion-title>{{ translate("Close purchase order items") }}</ion-title>
       <ion-buttons slot="end" @click="selectAllItems">
-        <ion-button color="primary">{{ $t("Select all") }}</ion-button>
+        <ion-button color="primary">{{ translate("Select all") }}</ion-button>
       </ion-buttons>
     </ion-toolbar>
   </ion-header>
 
   <ion-content>
     <ion-item lines="none">
-      <ion-list-header>{{ $t("To close the purchase order, select all.") }}</ion-list-header>
+      <ion-list-header>{{ translate("To close the purchase order, select all.") }}</ion-list-header>
     </ion-item>
     <ion-list>
       <ion-item :button="isPOItemStatusPending(item)" v-for="(item, index) in getPOItems()" :key="index" @click="item.isChecked = !item.isChecked">
@@ -66,7 +66,7 @@ import { defineComponent } from 'vue';
 import { mapGetters, useStore } from 'vuex'
 import { OrderService } from "@/services/OrderService";
 import { productHelpers } from '@/utils';
-import { ShopifyImg } from '@hotwax/dxp-components';
+import { ShopifyImg, translate } from '@hotwax/dxp-components';
 import { useRouter } from 'vue-router';
 
 export default defineComponent({
@@ -104,14 +104,14 @@ export default defineComponent({
     },
     async confirmSave() {
       const alert = await alertController.create({
-        header: this.$t('Close purchase order items'),
-        message: this.$t('Are you sure you have received the purchase order for the selected items? Once closed, the shipments for the selected items wont be available for receiving later.', { space: '<br /><br />' }),
+        header: translate('Close purchase order items'),
+        message: translate('Are you sure you have received the purchase order for the selected items? Once closed, the shipments for the selected items wont be available for receiving later.', { space: '<br /><br />' }),
         buttons: [{
-          text: this.$t('Cancel'),
+          text: translate('Cancel'),
           role: 'cancel'
         },
         {
-          text: this.$t('Proceed'),
+          text: translate('Proceed'),
           role: 'proceed',
           handler: async() => {
             await this.updatePOItemStatus()
@@ -186,7 +186,8 @@ export default defineComponent({
       productHelpers,
       router,
       saveOutline,
-      store
+      store,
+      translate
     };
   }
 });

@@ -27,7 +27,6 @@ import '@ionic/vue/css/display.css';
 /* Theme variables */
 import './theme/variables.css';
 
-import i18n from './i18n'
 import store from './store'
 import permissionPlugin from '@/authorization';
 import permissionRules from '@/authorization/Rules';
@@ -35,13 +34,13 @@ import permissionActions from '@/authorization/Actions';
 import { dxpComponents } from '@hotwax/dxp-components'
 import { login, logout, loader } from './user-utils';
 import { getConfig, initialise } from '@/adapter'
+import localeMessages from './locales';
 
 const app = createApp(App)
   .use(IonicVue, {
     mode: 'md'
   })
   .use(router)
-  .use(i18n)
   .use(store)
   .use(permissionPlugin, {
     rules: permissionRules,
@@ -54,7 +53,8 @@ const app = createApp(App)
     loader,
     appLoginUrl: process.env.VUE_APP_LOGIN_URL as string,
     getConfig,
-    initialise
+    initialise,
+    localeMessages
   });
 
 // Filters are removed in Vue 3 and global filter introduced https://v3.vuejs.org/guide/migration/filters.html#global-filters

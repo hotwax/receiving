@@ -5,7 +5,7 @@ import ProductState from './ProductState'
 import * as types from './mutation-types'
 import { hasError, showToast } from '@/utils'
 import emitter from '@/event-bus'
-import { translate } from '@/i18n'
+import { translate } from '@hotwax/dxp-components'
 
 const actions: ActionTree<ProductState, RootState> = {
   async fetchProducts ({commit, state}, { productIds }) {

@@ -1,5 +1,5 @@
 import { toastController } from '@ionic/vue';
-import { translate } from '@/i18n'
+import { translate } from '@hotwax/dxp-components'
 import { Plugins } from '@capacitor/core';
 import productHelpers from './product'
 import { DateTime } from "luxon";

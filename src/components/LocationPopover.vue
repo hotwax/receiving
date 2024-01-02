@@ -1,7 +1,7 @@
 <template>
   <ion-chip outline>
     <ion-icon :icon="locationOutline"/>
-    <ion-select interface="popover" :placeholder="$t('facility location')" :value="item.locationSeqId" @ionChange="setFacilityLocation($event)">
+    <ion-select interface="popover" :placeholder="translate('facility location')" :value="item.locationSeqId" @ionChange="setFacilityLocation($event)">
       <ion-select-option v-for="facilityLocation in (getFacilityLocationsByFacilityId(facilityId) ? getFacilityLocationsByFacilityId(facilityId) : [])" :key="facilityLocation.locationSeqId" :value="facilityLocation.locationSeqId" >{{ facilityLocation.locationPath ? facilityLocation.locationPath : facilityLocation.locationSeqId }}</ion-select-option>
     </ion-select>
   </ion-chip>
@@ -17,6 +17,7 @@ import {
 import { defineComponent } from 'vue';
 import { mapGetters, useStore } from 'vuex';
 import { locationOutline } from 'ionicons/icons'
+import { translate } from '@hotwax/dxp-components';
 
 export default defineComponent({
   name: 'LocationPopover',
@@ -47,7 +48,8 @@ export default defineComponent({
     const store = useStore();
     return {
       locationOutline,
-      store
+      store,
+      translate
     }
   }
 });

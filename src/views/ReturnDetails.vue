@@ -3,7 +3,7 @@
     <ion-header :translucent="true">
       <ion-toolbar>
         <ion-back-button default-href="/returns" slot="start"></ion-back-button>
-        <ion-title>{{ $t("Return Details") }}</ion-title>
+        <ion-title>{{ translate("Return Details") }}</ion-title>
       </ion-toolbar>
     </ion-header>
 
@@ -13,7 +13,7 @@
           <ion-item lines="none">
             <h1>{{ current.shopifyOrderName ? current.shopifyOrderName : current.hcOrderId }}</h1>
             <!-- TODO: Fetch Customer name -->
-            <!-- <p>{{ $t("Customer: <customer name>")}}</p> -->
+            <!-- <p>{{ translate("Customer: <customer name>")}}</p> -->
           </ion-item>
 
           <div class="doc-meta">
@@ -25,12 +25,12 @@
   
         <div class="scanner">
           <ion-item>
-            <ion-label>{{ $t("Scan items") }}</ion-label>
-            <ion-input autofocus :placeholder="$t('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()" />
+            <ion-label>{{ translate("Scan items") }}</ion-label>
+            <ion-input autofocus :placeholder="translate('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()" />
           </ion-item>
 
           <ion-button expand="block" fill="outline" @click="scanCode()">
-            <ion-icon slot="start" :icon="barcodeOutline" />{{ $t("Scan") }}
+            <ion-icon slot="start" :icon="barcodeOutline" />{{ translate("Scan") }}
           </ion-button>
         </div>
 
@@ -57,21 +57,21 @@
 
             <div class="product-count">
               <ion-item v-if="isReturnReceivable(current.statusId)">
-                <ion-label position="floating">{{ $t("Qty") }}</ion-label>
+                <ion-label position="floating">{{ translate("Qty") }}</ion-label>
                 <ion-input type="number" min="0" v-model="item.quantityAccepted" />
               </ion-item>
               <ion-item v-if="!isReturnReceivable(current.statusId)" lines="none">
-                <ion-label>{{ item.quantityAccepted }} {{ $t("received") }}</ion-label>
+                <ion-label>{{ item.quantityAccepted }} {{ translate("received") }}</ion-label>
               </ion-item>
             </div>
           </div>
   
           <ion-item lines="none" class="border-top" v-if="item.quantityOrdered > 0">
             <ion-button v-if="isReturnReceivable(current.statusId)" @click="receiveAll(item)" slot="start" fill="outline">
-              {{ $t("Receive All") }}
+              {{ translate("Receive All") }}
             </ion-button>
             <ion-progress-bar :color="getRcvdToOrdrdFraction(item) > 1 ? 'danger' : 'primary'" :value="getRcvdToOrdrdFraction(item)" />
-            <p slot="end">{{ item.quantityOrdered }} {{ $t("returned") }}</p>
+            <p slot="end">{{ item.quantityOrdered }} {{ translate("returned") }}</p>
           </ion-item>
         </ion-card>
       </main>
@@ -112,13 +112,12 @@ import { defineComponent } from 'vue';
 import { checkmarkDone, barcodeOutline, locationOutline } from 'ionicons/icons';
 import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
-import { ShopifyImg } from '@hotwax/dxp-components';
+import { ShopifyImg, translate } from '@hotwax/dxp-components';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import ImageModal from '@/components/ImageModal.vue';
 import { hasError } from '@/utils';
 import { showToast, productHelpers } from '@/utils'
-import { translate } from '@/i18n'
 import { Actions, hasPermission } from '@/authorization'
 
 export default defineComponent({
@@ -210,15 +209,15 @@ export default defineComponent({
     
     async completeShipment() {
       const alert = await alertController.create({
-        header: this.$t("Receive Shipment"),
-        message: this.$t("Make sure you have entered all the inventory you received. You cannot edit this information after proceeding.", {space: '<br /><br />'}),
+        header: translate("Receive Shipment"),
+        message: translate("Make sure you have entered all the inventory you received. You cannot edit this information after proceeding.", {space: '<br /><br />'}),
         buttons: [
           {
-            text: this.$t("Cancel"),
+            text: translate("Cancel"),
             role: 'cancel',
           }, 
           {
-            text:this.$t('Proceed'),
+            text:translate('Proceed'),
             handler: () => {
               this.receiveReturn();
             },
@@ -277,7 +276,8 @@ export default defineComponent({
       locationOutline,
       store,
       productHelpers,
-      router
+      router,
+      translate
     };
   },
 });
