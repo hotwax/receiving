@@ -3,7 +3,7 @@
     <ion-header :translucent="true">
       <ion-toolbar>
         <ion-back-button default-href="/" slot="start"></ion-back-button>
-        <ion-title>{{ $t("Shipment Details") }}</ion-title>
+        <ion-title>{{ translate("Shipment Details") }}</ion-title>
         <ion-buttons slot="end">
           <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_ADMIN)" @click="addProduct"><ion-icon :icon="add"/></ion-button>
         </ion-buttons>
@@ -15,20 +15,20 @@
         <ion-item lines="none">
           <ion-label>
             <p class="overline" v-show="current.externalOrderId">{{ current.externalOrderId }}</p>
-            <h1 v-if="current.externalId">{{ $t("External ID") }}: {{ current.externalId }}</h1>
-            <h1 v-else>{{ $t("Shipment ID") }}: {{ current.shipmentId }}</h1>
+            <h1 v-if="current.externalId">{{ translate("External ID") }}: {{ current.externalId }}</h1>
+            <h1 v-else>{{ translate("Shipment ID") }}: {{ current.shipmentId }}</h1>
           </ion-label>
           <ion-chip v-show="current.trackingIdNumber">{{current.trackingIdNumber}}</ion-chip>
         </ion-item>
 
         <div class="scanner">
           <ion-item>
-            <ion-label>{{ $t("Scan items") }}</ion-label>
-            <ion-input autofocus :placeholder="$t('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()"></ion-input>
+            <ion-label>{{ translate("Scan items") }}</ion-label>
+            <ion-input autofocus :placeholder="translate('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()"></ion-input>
           </ion-item>
 
           <ion-button expand="block" fill="outline" @click="scanCode()">
-            <ion-icon slot="start" :icon="barcodeOutline" />{{ $t("Scan") }}
+            <ion-icon slot="start" :icon="barcodeOutline" />{{ translate("Scan") }}
           </ion-button>
         </div>
 
@@ -52,7 +52,7 @@
 
             <div class="product-count">
               <ion-item>
-                <ion-label position="floating">{{ $t("Qty") }}</ion-label>
+                <ion-label position="floating">{{ translate("Qty") }}</ion-label>
                 <ion-input type="number" min="0" v-model="item.quantityAccepted" />
               </ion-item>
             </div>
@@ -60,7 +60,7 @@
 
           <ion-item lines="none" class="border-top" v-if="item.quantityOrdered > 0">
             <ion-button @click="receiveAll(item)" slot="start" fill="outline">
-              {{ $t("Receive All") }}
+              {{ translate("Receive All") }}
             </ion-button>
 
             <ion-progress-bar :color="getRcvdToOrdrdFraction(item) > 1 ? 'danger' : 'primary'" :value="getRcvdToOrdrdFraction(item)" />
@@ -106,7 +106,7 @@ import { defineComponent } from 'vue';
 import { add, checkmarkDone, barcodeOutline } from 'ionicons/icons';
 import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
-import { ShopifyImg } from '@hotwax/dxp-components';
+import { ShopifyImg, translate } from '@hotwax/dxp-components';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import LocationPopover from '@/components/LocationPopover.vue'
@@ -190,15 +190,15 @@ export default defineComponent({
     },
     async completeShipment() {
       const alert = await alertController.create({
-        header: this.$t("Receive Shipment"),
-        message: this.$t("Make sure you have entered all the inventory you received. You cannot edit this information after proceeding.", {space: '<br /><br />'}),
+        header: translate("Receive Shipment"),
+        message: translate("Make sure you have entered all the inventory you received. You cannot edit this information after proceeding.", {space: '<br /><br />'}),
         buttons: [
           {
-            text: this.$t("Cancel"),
+            text: translate("Cancel"),
             role: 'cancel',
           }, 
           {
-            text:this.$t('Proceed'),
+            text:translate('Proceed'),
             handler: () => {
               this.receiveShipment();
             },
@@ -255,7 +255,8 @@ export default defineComponent({
       hasPermission,
       store,
       productHelpers,
-      router
+      router,
+      translate
     };
   },
 });

@@ -3,7 +3,7 @@
     <ion-header :translucent="true">
       <ion-toolbar>
         <ion-menu-button slot="start" />
-        <ion-title>{{ $t("Settings") }}</ion-title>
+        <ion-title>{{ translate("Settings") }}</ion-title>
       </ion-toolbar>
     </ion-header>
     
@@ -22,18 +22,18 @@
               <ion-card-title>{{ userProfile.partyName }}</ion-card-title>
             </ion-card-header>
           </ion-item>
-          <ion-button color="danger" @click="logout()">{{ $t("Logout") }}</ion-button>
+          <ion-button color="danger" @click="logout()">{{ translate("Logout") }}</ion-button>
           <ion-button fill="outline" @click="goToLaunchpad()">
-            {{ $t("Go to Launchpad") }}
+            {{ translate("Go to Launchpad") }}
             <ion-icon slot="end" :icon="openOutline" />
           </ion-button>
           <!-- Commenting this code as we currently do not have reset password functionality -->
-          <!-- <ion-button fill="outline" color="medium">{{ $t("Reset password") }}</ion-button> -->
+          <!-- <ion-button fill="outline" color="medium">{{ translate("Reset password") }}</ion-button> -->
         </ion-card>
       </div>
 
       <div class="section-header">
-        <h1>{{ $t('OMS') }}</h1>
+        <h1>{{ translate('OMS') }}</h1>
       </div>
       <section>
         <OmsInstanceNavigator />
@@ -41,14 +41,14 @@
         <ion-card>
           <ion-card-header>
             <ion-card-title>
-              {{ $t("Facility") }}
+              {{ translate("Facility") }}
             </ion-card-title>
           </ion-card-header>
           <ion-card-content>
-            {{ $t('Specify which facility you want to operate from. Order, inventory and other configuration data will be specific to the facility you select.') }}
+            {{ translate('Specify which facility you want to operate from. Order, inventory and other configuration data will be specific to the facility you select.') }}
           </ion-card-content>
           <ion-item lines="none">
-            <ion-label>{{ $t("Select facility") }}</ion-label>
+            <ion-label>{{ translate("Select facility") }}</ion-label>
             <ion-select interface="popover" :value="currentFacility.facilityId" @ionChange="setFacility($event)">
               <ion-select-option v-for="facility in (userProfile ? userProfile.facilities : [])" :key="facility.facilityId" :value="facility.facilityId" >{{ facility.facilityName }}</ion-select-option>
             </ion-select>
@@ -59,7 +59,7 @@
 
       <div class="section-header">
         <h1>
-          {{ $t('App') }}
+          {{ translate('App') }}
           <p class="overline" >{{ "Version: " + appVersion }}</p>
         </h1>
         <p class="overline">{{ "Built: " + getDateTime(appInfo.builtTime) }}</p>
@@ -68,40 +68,40 @@
         <ion-card>
           <ion-card-header>
             <ion-card-title>
-              {{ $t('Product Identifier') }}
+              {{ translate('Product Identifier') }}
             </ion-card-title>
           </ion-card-header>
 
           <ion-card-content>
-            {{ $t('Choosing a product identifier allows you to view products with your preferred identifiers.') }}
+            {{ translate('Choosing a product identifier allows you to view products with your preferred identifiers.') }}
           </ion-card-content>
 
           <ion-item>
-            <ion-label>{{ $t("Primary Product Identifier") }}</ion-label>
-            <ion-select :disabled="!hasPermission(Actions.APP_PRODUCT_IDENTIFIER_UPDATE) || !currentEComStore?.productStoreId" interface="popover" :placeholder="$t('primary identifier')" :value="productIdentificationPref.primaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'primaryId')">
+            <ion-label>{{ translate("Primary Product Identifier") }}</ion-label>
+            <ion-select :disabled="!hasPermission(Actions.APP_PRODUCT_IDENTIFIER_UPDATE) || !currentEComStore?.productStoreId" interface="popover" :placeholder="translate('primary identifier')" :value="productIdentificationPref.primaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'primaryId')">
               <ion-select-option v-for="identification in productIdentifications" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
             </ion-select>
           </ion-item>
           <ion-item>
-            <ion-label>{{ $t("Secondary Product Identifier") }}</ion-label>
-            <ion-select :disabled="!hasPermission(Actions.APP_PRODUCT_IDENTIFIER_UPDATE) || !currentEComStore?.productStoreId" interface="popover" :placeholder="$t('secondary identifier')" :value="productIdentificationPref.secondaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'secondaryId')">
+            <ion-label>{{ translate("Secondary Product Identifier") }}</ion-label>
+            <ion-select :disabled="!hasPermission(Actions.APP_PRODUCT_IDENTIFIER_UPDATE) || !currentEComStore?.productStoreId" interface="popover" :placeholder="translate('secondary identifier')" :value="productIdentificationPref.secondaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'secondaryId')">
               <ion-select-option v-for="identification in productIdentifications" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
-              <ion-select-option value="">{{ $t("None") }}</ion-select-option>
+              <ion-select-option value="">{{ translate("None") }}</ion-select-option>
             </ion-select>
           </ion-item>
         </ion-card>
         <ion-card>
           <ion-card-header>
             <ion-card-title>
-              {{ $t('Timezone') }}
+              {{ translate('Timezone') }}
             </ion-card-title>
           </ion-card-header>
           <ion-card-content>
-            {{ $t('The timezone you select is used to ensure automations you schedule are always accurate to the time you select.') }}
+            {{ translate('The timezone you select is used to ensure automations you schedule are always accurate to the time you select.') }}
           </ion-card-content>
           <ion-item lines="none">
             <ion-label> {{ userProfile && userProfile.userTimeZone ? userProfile.userTimeZone : '-' }} </ion-label>
-            <ion-button @click="changeTimeZone()" slot="end" fill="outline" color="dark">{{ $t("Change") }}</ion-button>
+            <ion-button @click="changeTimeZone()" slot="end" fill="outline" color="dark">{{ translate("Change") }}</ion-button>
           </ion-item>
         </ion-card>
       </section>
@@ -119,6 +119,7 @@ import Image from '@/components/Image.vue'
 import { DateTime } from 'luxon';
 import TimeZoneModal from '@/views/TimezoneModal.vue';
 import { Actions, hasPermission } from '@/authorization';
+import { translate } from "@hotwax/dxp-components"
 
 export default defineComponent({
   name: 'Settings',
@@ -183,13 +184,13 @@ export default defineComponent({
     },
     async presentAlert () {
       const alert = await alertController.create({
-        header: this.$t('Logout'),
-        message: this.$t('The products in the upload list will be removed.'),
+        header: translate('Logout'),
+        message: translate('The products in the upload list will be removed.'),
         buttons: [{
-          text: this.$t('Cancel')
+          text: translate('Cancel')
         },
         {
-          text: this.$t('Ok'),
+          text: translate('Ok'),
           handler: () => {
             this.store.dispatch('user/logout', { isUserUnauthorised: false }).then((redirectionUrl) => {
               this.store.dispatch('product/clearUploadProducts');
@@ -247,7 +248,8 @@ export default defineComponent({
       saveOutline,
       storefrontOutline,
       store,
-      router
+      router,
+      translate
     }
   }
 });

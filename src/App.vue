@@ -17,6 +17,7 @@ import { mapGetters, useStore } from "vuex";
 import { Settings } from 'luxon';
 import { initialise, resetConfig } from '@/adapter'
 import { useRouter } from 'vue-router';
+import { translate } from "@hotwax/dxp-components"
 
 export default defineComponent({
   name: 'App',
@@ -49,7 +50,7 @@ export default defineComponent({
       if (!this.loader) {
         this.loader = await loadingController
           .create({
-            message: options.message ? this.$t(options.message) : this.$t("Click the backdrop to dismiss."),
+            message: options.message ? translate(options.message) : translate("Click the backdrop to dismiss."),
             translucent: true,
             backdropDismiss: options.backdropDismiss
           });

@@ -6,11 +6,11 @@
           <ion-icon slot="icon-only" :icon="closeOutline" />
         </ion-button>
       </ion-buttons>
-      <ion-title>{{ $t("Add a product") }}</ion-title>
+      <ion-title>{{ translate("Add a product") }}</ion-title>
     </ion-toolbar>
   </ion-header>
   <ion-content>
-    <ion-searchbar @ionFocus="selectSearchBarText($event)" v-model="queryString" :placeholder="$t('Search SKU or product name')" v-on:keyup.enter="queryString = $event.target.value; getProducts()" />
+    <ion-searchbar @ionFocus="selectSearchBarText($event)" v-model="queryString" :placeholder="translate('Search SKU or product name')" v-on:keyup.enter="queryString = $event.target.value; getProducts()" />
     
     <ion-list v-for="product in products" :key="product.productId">
       <ion-item lines="none">
@@ -23,12 +23,12 @@
           <p>{{ product[productIdentificationPref.secondaryId] }}</p>
         </ion-label>
         <ion-icon v-if="isProductAvailableInShipment(product.productId)" color="success" :icon="checkmarkCircle" />
-        <ion-button v-else fill="outline" @click="addtoShipment(product)">{{ $t("Add to Shipment") }}</ion-button>
+        <ion-button v-else fill="outline" @click="addtoShipment(product)">{{ translate("Add to Shipment") }}</ion-button>
       </ion-item>
     </ion-list>
 
     <ion-infinite-scroll @ionInfinite="loadMoreProducts($event)" threshold="100px" :disabled="!isScrollable">
-      <ion-infinite-scroll-content loading-spinner="crescent" :loading-text="$t('Loading')" />
+      <ion-infinite-scroll-content loading-spinner="crescent" :loading-text="translate('Loading')" />
     </ion-infinite-scroll>
   </ion-content>
 </template>
@@ -132,6 +132,7 @@ export default defineComponent({
       closeOutline,
       checkmarkCircle,
       store,
+      translate
     };
   },
 });

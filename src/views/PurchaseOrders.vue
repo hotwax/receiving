@@ -3,30 +3,30 @@
     <ion-header :translucent="true">
       <ion-toolbar>
         <ion-menu-button slot="start" />
-        <ion-title>{{ $t("Purchase Orders") }}</ion-title>
+        <ion-title>{{ translate("Purchase Orders") }}</ion-title>
       </ion-toolbar>
     </ion-header>
     <ion-content>
       <main>
-        <ion-searchbar :placeholder="$t('Search purchase orders')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getPurchaseOrders()" />
+        <ion-searchbar :placeholder="translate('Search purchase orders')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getPurchaseOrders()" />
 
         <PurchaseOrderItem v-for="(order, index) in orders" :key="index" :purchaseOrder="order.doclist.docs[0]" />
         
         <div v-if="orders.length" class="load-more-action ion-text-center">
           <ion-button fill="outline" color="dark" @click="loadMoreOrders()">
             <ion-icon :icon="cloudDownloadOutline" slot="start" />
-            {{ $t("Load more purchase order") }}
+            {{ translate("Load more purchase order") }}
           </ion-button>
         </div>
 
         <!-- Empty state -->
         <div class="empty-state" v-if="!orders.length && !fetchingOrders">
-          <p v-if="showErrorMessage">{{ $t("No results found")}}</p>
+          <p v-if="showErrorMessage">{{ translate("No results found")}}</p>
           <img src="../assets/images/empty-state.png" alt="empty state">
-          <p>{{ $t("There are no purchase orders to receive")}}</p>
+          <p>{{ translate("There are no purchase orders to receive")}}</p>
           <ion-button fill="outline" color="dark" @click="refreshPurchaseOrders()">
             <ion-icon :icon="reload" slot="start" />
-            {{ $t("Refresh") }}
+            {{ translate("Refresh") }}
           </ion-button>
         </div>
 
@@ -56,6 +56,7 @@ import { cloudDownloadOutline, reload } from 'ionicons/icons'
 import { defineComponent } from 'vue';
 import { mapGetters, useStore } from 'vuex';
 import PurchaseOrderItem from '@/components/PurchaseOrderItem.vue'
+import { translate } from "@hotwax/dxp-components"
 
 export default defineComponent({
   name: 'PurchaseOrders',
@@ -138,7 +139,8 @@ export default defineComponent({
     return {
       cloudDownloadOutline,
       reload,
-      store
+      store,
+      translate
     }
   }
 });
