@@ -12,10 +12,9 @@ import ReturnDetails from '@/views/ReturnDetails.vue'
 
 import { hasPermission } from '@/authorization';
 import { showToast } from '@/utils'
-import { translate } from '@hotwax/dxp-components'
 
 import 'vue-router'
-import { DxpLogin, useAuthStore } from '@hotwax/dxp-components';
+import { DxpLogin, translate, useAuthStore } from '@hotwax/dxp-components';
 import { loader } from '@/user-utils';
 
 // Defining types for the meta values
