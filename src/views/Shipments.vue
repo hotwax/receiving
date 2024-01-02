@@ -3,30 +3,30 @@
     <ion-header :translucent="true">
       <ion-toolbar>
         <ion-menu-button slot="start" />
-        <ion-title>{{ traslate("Shipments") }}</ion-title>
+        <ion-title>{{ translate("Shipments") }}</ion-title>
       </ion-toolbar>
     </ion-header>
     <ion-content>
       <main>
-        <ion-searchbar :placeholder="traslate('Scan ASN to start receiving')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getShipments();" />
+        <ion-searchbar :placeholder="translate('Scan ASN to start receiving')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getShipments();" />
 
         <ShipmentListItem v-for="shipment in shipments" :key="shipment.shipmentId" :shipment="shipment"/>
 
         <div v-if="shipments.length" class="load-more-action ion-text-center">
           <ion-button fill="outline" color="dark" @click="loadMoreShipments()">
             <ion-icon :icon="cloudDownloadOutline" slot="start" />
-            {{ traslate("Load more shipments") }}
+            {{ translate("Load more shipments") }}
           </ion-button>
         </div>
 
         <!-- Empty state -->
         <div class="empty-state" v-if="!shipments.length && !fetchingShipments">
-          <p v-if="showErrorMessage">{{ traslate("No results found")}}</p>
+          <p v-if="showErrorMessage">{{ translate("No results found")}}</p>
           <img src="../assets/images/empty-state.png" alt="empty state">
-          <p>{{ traslate("There are no incoming shipments")}}</p>
+          <p>{{ translate("There are no incoming shipments")}}</p>
           <ion-button fill="outline" color="dark" @click="refreshShipments()">
             <ion-icon :icon="reload" slot="start" />
-            {{ traslate("Refresh") }}
+            {{ translate("Refresh") }}
           </ion-button>
         </div>
 

@@ -149,7 +149,8 @@ export default defineComponent({
     return {
       cloudDownloadOutline,
       reload,
-      store
+      store,
+      translate
     }
   }
 })
