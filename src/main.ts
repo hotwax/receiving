@@ -39,7 +39,7 @@ import localeMessages from './locales';
 const app = createApp(App)
   .use(IonicVue, {
     mode: 'md',
-    innerHTMLTemplatesEnabled: true
+    innerHTMLTemplatesEnabled: true // added this entry to enable html support inside alert, and toast
   })
   .use(router)
   .use(store)
