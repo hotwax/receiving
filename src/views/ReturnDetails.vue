@@ -25,8 +25,7 @@
   
         <div class="scanner">
           <ion-item>
-            <ion-label>{{ $t("Scan items") }}</ion-label>
-            <ion-input autofocus :placeholder="$t('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()" />
+            <ion-input :label="$t('Scan items')" autofocus :placeholder="$t('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()" />
           </ion-item>
 
           <ion-button expand="block" fill="outline" @click="scanCode()">
@@ -57,8 +56,7 @@
 
             <div class="product-count">
               <ion-item v-if="isReturnReceivable(current.statusId)">
-                <ion-label position="floating">{{ $t("Qty") }}</ion-label>
-                <ion-input type="number" min="0" v-model="item.quantityAccepted" />
+                <ion-input :label="$t('Qty')" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" />
               </ion-item>
               <ion-item v-if="!isReturnReceivable(current.statusId)" lines="none">
                 <ion-label>{{ item.quantityAccepted }} {{ $t("received") }}</ion-label>

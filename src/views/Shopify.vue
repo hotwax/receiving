@@ -8,8 +8,9 @@
           <ion-list>
             <Logo />
             <ion-item>
-              <ion-label position="floating"> {{ $t("Shop") }}</ion-label>
               <ion-input
+                :label="$t('Shop')"
+                label-placement="floating"
                 v-model="shopOrigin"
                 name="shopOrigin"
                 type="text"
@@ -35,7 +36,6 @@ import {
   IonContent,
   IonInput,
   IonItem,
-  IonLabel,
   IonList,
   IonPage,
 } from "@ionic/vue";
@@ -56,7 +56,6 @@ export default defineComponent({
     IonContent,
     IonInput,
     IonItem,
-    IonLabel,
     IonList,
     IonPage,
     Logo
