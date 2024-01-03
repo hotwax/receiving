@@ -12,6 +12,11 @@
   <ion-content>
     <ion-searchbar @ionFocus="selectSearchBarText($event)" v-model="queryString" :placeholder="translate('Search SKU or product name')" v-on:keyup.enter="queryString = $event.target.value; getProducts()" />
     
+    <div v-if="!products.length" class="empty-state">
+      <img src="../assets/images/addProduct.png"/>
+      <p>{{ translate("Enter a SKU, or product name to search a product") }}</p>
+    </div>
+    <div v-else>
     <ion-list v-for="product in products" :key="product.productId">
       <ion-item lines="none">
         <ion-thumbnail slot="start">
@@ -26,6 +31,7 @@
         <ion-button v-else fill="outline" @click="addtoOrder(product)">{{ translate("Add to Purchase Order") }}</ion-button>
       </ion-item>
     </ion-list>
+  </div>
 
     <ion-infinite-scroll @ionInfinite="loadMoreProducts($event)" threshold="100px" :disabled="!isScrollable">
       <ion-infinite-scroll-content loading-spinner="crescent" :loading-text="translate('Loading')" />
