@@ -192,7 +192,7 @@ import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
 import ClosePurchaseOrderModal from '@/components/ClosePurchaseOrderModal.vue'
 import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
-import { copyToClipboard, hasError, productHelpers } from '@/utils';
+import { copyToClipboard, hasError, productHelpers, showToast } from '@/utils';
 import { Actions, hasPermission } from '@/authorization'
 
 export default defineComponent({
@@ -255,6 +255,7 @@ export default defineComponent({
       modal.onDidDismiss()
       .then((result) => {
         this.updateProductCount(result.role);
+        showToast(translate("Scanned successfully"))
       })
       return modal.present();
     },

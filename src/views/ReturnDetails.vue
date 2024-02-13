@@ -260,6 +260,7 @@ export default defineComponent({
         modal.onDidDismiss()
         .then((result) => {
           this.updateProductCount(result.role);
+          showToast(translate("Scanned successfully"))
       });
       return modal.present();
     },

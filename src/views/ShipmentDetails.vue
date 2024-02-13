@@ -111,7 +111,7 @@ import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
-import { hasError, productHelpers } from '@/utils'
+import { hasError, productHelpers, showToast } from '@/utils'
 import { Actions, hasPermission } from '@/authorization'
 
 export default defineComponent({
@@ -239,6 +239,7 @@ export default defineComponent({
         modal.onDidDismiss()
         .then((result) => {
           this.updateProductCount(result.role);
+          showToast(translate("Scanned successfully"))
       });
       return modal.present();
     },
