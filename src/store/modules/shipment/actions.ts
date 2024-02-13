@@ -6,6 +6,7 @@ import * as types from './mutation-types'
 import { hasError, showToast } from '@/utils'
 import { translate } from '@hotwax/dxp-components'
 import emitter from '@/event-bus'
+import { Item } from "@ionic/core/dist/types/components/item/item";
 
 const actions: ActionTree<ShipmentState, RootState> = {
   async findShipment ({ commit, state }, payload) {
@@ -34,13 +35,9 @@ const actions: ActionTree<ShipmentState, RootState> = {
   },
 
   async updateShipmentProductCount ({ commit, state }, payload) {
-    const findItem = state.current.items.find((item:any) => item.sku === payload);
-
-    if (findItem ) {
-      if (findItem.quantityAccepted === "") {
-        findItem.quantityAccepted = 0;
-      }
-      findItem.quantityAccepted = parseInt(findItem.quantityAccepted) + 1;
+    const item = state.current.items.find((item: any)=> item.sku === payload);
+    if (item) {
+      item.quantityAccepted = item.quantityAccepted ? parseInt(item.quantityAccepted) + 1 : parseInt("0") + 1;
     } else {
       showToast(translate("Product not found"));
     }
