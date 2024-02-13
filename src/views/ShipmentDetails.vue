@@ -28,7 +28,7 @@
           </ion-item>
 
           <ion-button expand="block" fill="outline" @click="scanCode()">
-            <ion-icon slot="start" :icon="barcodeOutline" />{{ translate("Scan") }}
+            <ion-icon slot="start" :icon="cameraOutline" />{{ translate("Scan") }}
           </ion-button>
         </div>
 
@@ -103,7 +103,7 @@ import {
   alertController,
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
-import { add, checkmarkDone, barcodeOutline } from 'ionicons/icons';
+import { add, checkmarkDone, cameraOutline } from 'ionicons/icons';
 import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
 import { ShopifyImg, translate } from '@hotwax/dxp-components';
@@ -250,7 +250,7 @@ export default defineComponent({
     return {
       Actions,
       add,
-      barcodeOutline,
+      cameraOutline,
       checkmarkDone,
       hasPermission,
       store,
