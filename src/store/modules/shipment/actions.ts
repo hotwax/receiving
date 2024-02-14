@@ -6,7 +6,6 @@ import * as types from './mutation-types'
 import { hasError, showToast } from '@/utils'
 import { translate } from '@hotwax/dxp-components'
 import emitter from '@/event-bus'
-import { Item } from "@ionic/core/dist/types/components/item/item";
 
 const actions: ActionTree<ShipmentState, RootState> = {
   async findShipment ({ commit, state }, payload) {

@@ -41,11 +41,13 @@ const actions: ActionTree<OrderState, RootState> = {
     return resp;
   },
   async updateProductCount({ commit, state }, payload ) {
-    state.current.items.find((item: any) => {
-      if (item.internalName === payload) {
-        item.quantityAccepted = item.quantityAccepted + 1;
-      }
-    });
+    const item = state.current.items.find((item: any)=> item.internalName === payload);
+    if (item) {
+      item.quantityAccepted = item.quantityAccepted ? parseInt(item.quantityAccepted) + 1 : parseInt("0") + 1;
+    } else {
+      showToast(translate("Product not found"));
+    }
+    
     commit(types.ORDER_CURRENT_UPDATED, state.current )
   },
   async addOrderItem ({ commit }, payload) {
