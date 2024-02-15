@@ -1,4 +1,4 @@
-import { api } from '@/adapter';
+import { api, hasError } from '@/adapter';
 
 const fetchShipments = async (query: any): Promise <any>  => {
   return api({
@@ -41,9 +41,83 @@ const addShipmentItem = async (query: any): Promise <any> =>{
   })
 }
 
+const fetchTrackingCodes = async (shipmentIds: Array<string>): Promise<any> => {
+  let shipmentTrackingCodes = {};
+  const params = {
+    "entityName": "ShipmentRouteSegment",
+    "inputFields": {
+      "shipmentId": shipmentIds,
+      "shipmentId_op": "in",
+    },
+    "fieldList": ["shipmentId", "trackingIdNumber"],
+    "viewSize": 250,  // maximum records we could have
+    "distinct": "Y"
+  }
+
+  try {
+    const resp = await api({
+      url: "performFind",
+      method: "get",
+      params
+    })
+
+    if (!hasError(resp)) {
+      shipmentTrackingCodes = resp?.data.docs.reduce((codes:any, item:any) => (codes[item.shipmentId] = item.trackingIdNumber, codes), {});
+
+    } else if (!resp?.data.error || (resp.data.error && resp.data.error !== "No record found")) {
+      return Promise.reject(resp?.data.error);
+    }
+  } catch (err) {
+    console.error('Failed to fetch tracking codes for shipments', err)
+  }
+
+  return shipmentTrackingCodes;
+}
+
+const fetchShipmentAttributes = async (shipmentIds: Array<string>): Promise<any> => {
+  const shipmentAttributes = {} as any;
+  const params = {
+    "entityName": "ShipmentAttribute",
+    "inputFields": {
+      "shipmentId": shipmentIds,
+      "shipmentId_op": "in",
+    },
+    "fieldList": ["shipmentId", "attrName", "attrValue"],
+    "viewSize": 250,  // maximum records we could have
+    "distinct": "Y"
+  }
+
+  try {
+    const resp = await api({
+      url: "performFind",
+      method: "get",
+      params
+    })
+
+    if (!hasError(resp)) {
+      resp?.data.docs.forEach((attribute:any) => {
+        const { shipmentId, attrName, attrValue } = attribute;
+        if (!shipmentAttributes[shipmentId]) {
+          shipmentAttributes[shipmentId] = {};
+        }
+        shipmentAttributes[shipmentId][attrName] = attrValue;
+      });
+
+    } else if (!resp?.data.error || (resp.data.error && resp.data.error !== "No record found")) {
+      return Promise.reject(resp?.data.error);
+    }
+  } catch (err) {
+    console.error('Failed to fetch shipment attributes', err)
+  }
+
+  return shipmentAttributes;
+}
+
 
 export const ShipmentService = {
   fetchShipments,
+  fetchShipmentAttributes,
+  fetchTrackingCodes,
   getShipmentDetail,
   receiveShipmentItem,
   receiveShipment,

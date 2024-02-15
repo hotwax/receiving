@@ -14,7 +14,7 @@
       <main>
         <ion-item lines="none">
           <ion-label>
-            <p class="overline" v-show="current.externalOrderId">{{ current.externalOrderId }}</p>
+            <p class="overline" v-show="current.externalOrderId || current.externalOrderName">{{ current.externalOrderName ? current.externalOrderName : current.externalOrderId }}</p>
             <h1 v-if="current.externalId">{{ translate("External ID") }}: {{ current.externalId }}</h1>
             <h1 v-else>{{ translate("Shipment ID") }}: {{ current.shipmentId }}</h1>
           </ion-label>
