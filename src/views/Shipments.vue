@@ -91,11 +91,6 @@ export default defineComponent({
     this.getShipments();
   },
   methods: {
-    selectSearchBarText(event: any) {
-      event.target.getInputElement().then((element: any) => {
-        element.select();
-      })
-    },
     async getShipments(vSize?: any, vIndex?: any) {
       this.queryString ? this.showErrorMessage = true : this.showErrorMessage = false;
       this.fetchingShipments = true;

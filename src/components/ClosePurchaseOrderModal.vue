@@ -61,7 +61,7 @@ import {
   modalController
 } from '@ionic/vue';
 import { Actions, hasPermission } from '@/authorization'
-import { closeOutline, checkmarkCircle, arrowBackOutline, saveOutline } from 'ionicons/icons';
+import { arrowBackOutline, saveOutline } from 'ionicons/icons';
 import { defineComponent } from 'vue';
 import { mapGetters, useStore } from 'vuex'
 import { OrderService } from "@/services/OrderService";
@@ -179,8 +179,6 @@ export default defineComponent({
     return {
       arrowBackOutline,
       Actions,
-      closeOutline,
-      checkmarkCircle,
       hasPermission,
       OrderService,
       productHelpers,
