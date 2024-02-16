@@ -6,8 +6,8 @@
       <p v-if="shipment.shipmentItemCount">{{ shipment.shipmentItemCount }} {{ (shipment.shipmentItemCount > 1 ? 'Items' : 'Item') }}</p>
     </ion-label>
     <ion-label class="ion-text-end" slot="end">
-      <p class="overline"> {{ shipment.trackingIdNumber }}</p>
       <p>{{ shipment.estimatedArrivalDate ? ($filters.formatDate(shipment.estimatedArrivalDate)) : shipment.statusDesc }}</p>
+      <p class="overline"> {{ shipment.trackingIdNumber }}</p>
     </ion-label>
   </ion-item>
 </template>
