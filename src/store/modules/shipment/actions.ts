@@ -136,7 +136,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
       ...item,
       quantityAccepted: 0,
       quantityOrdered: 0,
-      locationSeqId: store.state.user.facilityLocationsByFacilityId[store.state.user.currentFacility.facilityId]?.[0] ? store.state.user.facilityLocationsByFacilityId[store.state.user.currentFacility.facilityId][0].locationSeqId : ''
+      locationSeqId: item.locationSeqId ? item.locationSeqId : store.state.user.facilityLocationsByFacilityId[store.state.user.currentFacility.facilityId]?.[0] ? store.state.user.facilityLocationsByFacilityId[store.state.user.currentFacility.facilityId][0].locationSeqId : ''
     }
     const params = {
       orderId: payload.orderId,
