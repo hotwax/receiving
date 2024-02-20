@@ -6,7 +6,6 @@ import * as types from './mutation-types'
 import { hasError, showToast } from '@/utils'
 import { translate } from '@hotwax/dxp-components'
 import emitter from '@/event-bus'
-import store from "@/store";
 
 const actions: ActionTree<ShipmentState, RootState> = {
   async findShipment ({ commit, state }, payload) {
@@ -135,7 +134,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
     const product = {
       ...item,
       quantityAccepted: 0,
-      quantityOrdered: 0,
+      quantityOrdered: 0
     }
     const params = {
       orderId: payload.orderId,
