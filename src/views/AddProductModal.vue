@@ -87,7 +87,9 @@ export default defineComponent({
       products: 'product/getProducts',
       isScrollable: 'product/isScrollable',
       isProductAvailableInShipment: 'product/isProductAvailableInShipment',
-      productIdentificationPref: 'user/getProductIdentificationPref'
+      productIdentificationPref: 'user/getProductIdentificationPref',
+      currentFacility: 'user/getCurrentFacility',
+      facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId'
     })
   },
   methods: {
@@ -115,6 +117,7 @@ export default defineComponent({
       })
     },
     async addtoShipment (product: any) {
+      product.locationSeqId = this.facilityLocationsByFacilityId(this.currentFacility.facilityId) ? this.facilityLocationsByFacilityId(this.currentFacility.facilityId)[0]?.locationSeqId : ''
       this.store.dispatch('shipment/addShipmentItem', product)
     },
     closeModal() {
