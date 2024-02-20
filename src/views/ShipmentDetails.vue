@@ -216,7 +216,7 @@ export default defineComponent({
       }
     },
     isEligibleForReceivingShipment() {
-      return this.current.items.some((item: any) => item.quantityAccepted > 0)
+      return this.current.items.some((item: any) => item.quantityAccepted > 0) && this.current.statusId !== "PURCH_SHIP_RECEIVED"
     },
     receiveAll(item: any) {
       this.current.items.find((ele: any) => {
