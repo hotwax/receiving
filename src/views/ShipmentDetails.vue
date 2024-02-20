@@ -4,7 +4,7 @@
       <ion-toolbar>
         <ion-back-button default-href="/" slot="start"></ion-back-button>
         <ion-title>{{ translate("Shipment Details") }}</ion-title>
-        <ion-buttons slot="end">
+        <ion-buttons slot="end" v-if="!isShipmentReceived">
           <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_ADMIN)" @click="addProduct"><ion-icon :icon="add"/></ion-button>
         </ion-buttons>
       </ion-toolbar>
@@ -21,7 +21,7 @@
           <ion-chip v-show="current.trackingIdNumber">{{current.trackingIdNumber}}</ion-chip>
         </ion-item>
 
-        <div class="scanner">
+        <div class="scanner" v-if="!isShipmentReceived">
           <ion-item>
             <ion-label>{{ translate("Scan items") }}</ion-label>
             <ion-input autofocus :placeholder="translate('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()"></ion-input>
@@ -47,18 +47,28 @@
             </div>
 
             <div class="location">
-              <LocationPopover :item="item" type="shipment" :facilityId="currentFacility.facilityId" />
+              <LocationPopover v-if="!isShipmentReceived" :item="item" type="shipment" :facilityId="currentFacility.facilityId" />
+              <ion-chip :disabled="true" outline v-else>
+                <ion-icon :icon="locationOutline"/>
+                <ion-label>{{ item.locationSeqId }}</ion-label>
+              </ion-chip>
             </div>
 
             <div class="product-count">
-              <ion-item>
+              <ion-item v-if="!isShipmentReceived">
                 <ion-label position="floating">{{ translate("Qty") }}</ion-label>
                 <ion-input type="number" min="0" v-model="item.quantityAccepted" />
               </ion-item>
+              <div v-else>
+                <ion-item lines="none">
+                  <ion-badge color="medium" slot="end">{{ item.quantityOrdered }} {{ translate("ordered") }}</ion-badge>
+                  <ion-badge color="success" class="ion-margin-start" slot="end">{{ item.quantityAccepted }} {{ translate("received") }}</ion-badge>
+                </ion-item>
+              </div>
             </div>
           </div>
 
-          <ion-item lines="none" class="border-top" v-if="item.quantityOrdered > 0">
+          <ion-item lines="none" class="border-top" v-if="item.quantityOrdered > 0 && !isShipmentReceived">
             <ion-button @click="receiveAll(item)" slot="start" fill="outline">
               {{ translate("Receive All") }}
             </ion-button>
@@ -70,7 +80,8 @@
         </ion-card>
       </main>
 
-      <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+      <!-- Removing fab when the shipment is already received, this case can occur when directly hitting the shipment detail page for an already received shipment -->
+      <ion-fab vertical="bottom" horizontal="end" slot="fixed" v-if="!isShipmentReceived">
         <ion-fab-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibleForReceivingShipment()" @click="completeShipment">
           <ion-icon :icon="checkmarkDone" />
         </ion-fab-button>
@@ -82,6 +93,7 @@
 <script lang="ts">
 import {
   IonBackButton,
+  IonBadge,
   IonButton,
   IonButtons,
   IonCard,
@@ -103,7 +115,7 @@ import {
   alertController,
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
-import { add, checkmarkDone, cameraOutline } from 'ionicons/icons';
+import { add, checkmarkDone, cameraOutline, locationOutline } from 'ionicons/icons';
 import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
 import { ShopifyImg, translate } from '@hotwax/dxp-components';
@@ -118,6 +130,7 @@ export default defineComponent({
   name: "ShipmentDetails",
   components: {
     IonBackButton,
+    IonBadge,
     IonButton,
     IonButtons,
     IonCard,
@@ -160,6 +173,9 @@ export default defineComponent({
   methods: {
     getRcvdToOrdrdFraction(item: any){
       return item.quantityAccepted / item.quantityOrdered;
+    },
+    isShipmentReceived() {
+      return this.current?.statusId === 'PURCH_SHIP_RECEIVED'
     },
     async openImage(imageUrl: string, productName: string) {
       const imageModal = await modalController.create({
@@ -216,7 +232,7 @@ export default defineComponent({
       }
     },
     isEligibleForReceivingShipment() {
-      return this.current.items.some((item: any) => item.quantityAccepted > 0) && this.current.statusId !== "PURCH_SHIP_RECEIVED"
+      return this.current.items.some((item: any) => item.quantityAccepted > 0)
     },
     receiveAll(item: any) {
       this.current.items.find((ele: any) => {
@@ -253,6 +269,7 @@ export default defineComponent({
       cameraOutline,
       checkmarkDone,
       hasPermission,
+      locationOutline,
       store,
       productHelpers,
       router,
