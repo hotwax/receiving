@@ -111,7 +111,7 @@ import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
-import { hasError, productHelpers } from '@/utils'
+import { hasError, productHelpers, showToast } from '@/utils'
 import { Actions, hasPermission } from '@/authorization'
 
 export default defineComponent({
@@ -213,6 +213,8 @@ export default defineComponent({
       const resp = await this.store.dispatch('shipment/receiveShipment', { items: eligibleItems, shipmentId })
       if (resp.status === 200 && !hasError(resp)) {
         this.router.push('/shipments');
+      } else {
+        showToast(translate("Failed to receive shipment"))
       }
     },
     isEligibleForReceivingShipment() {

@@ -93,6 +93,10 @@ const actions: ActionTree<ShipmentState, RootState> = {
   },
   receiveShipmentItem ({ commit }, payload) {
     return Promise.all(payload.items.map(async (item: any) => {
+      if(!item.locationSeqId) {
+        return Promise.reject("Missing locationSeqId on item")
+      }
+
       const params = {
         shipmentId: payload.shipmentId,
         facilityId: this.state.user.currentFacility.facilityId,
@@ -125,6 +129,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
       emitter.emit("dismissLoader");
       return resp;
     }).catch(err => {
+      emitter.emit("dismissLoader");
       console.error(err)
       return err;
     });

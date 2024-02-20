@@ -23,6 +23,7 @@
   "External ID": "External ID",
   "Facility": "Facility",
   "Location": "Location",
+  "Failed to receive shipment": "Failed to receive shipment",
   "Failed to receive some of the items": "Failed to receive some of the items",
   "Failed to update product identifier preference": "Failed to update product identifier preference",
   "facility location": "facility location",
