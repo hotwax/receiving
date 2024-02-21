@@ -8,7 +8,7 @@
     </ion-header>
     <ion-content>
       <main>
-        <ion-searchbar :placeholder="translate('Scan ASN to start receiving')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getReturns()" />
+        <ion-searchbar :placeholder="translate('Search returns')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getReturns()" />
   
         <ReturnListItem v-for="returnShipment in returns" :key="returnShipment.shipmentId" :returnShipment="returnShipment" />
 
