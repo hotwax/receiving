@@ -43,11 +43,13 @@ const actions: ActionTree<ShipmentState, RootState> = {
   },
 
   async updateShipmentProductCount ({ commit, state }, payload) {
-    await state.current.items.find((item: any) => {
-      if(item.sku === payload){
-        item.quantityAccepted = parseInt(item.quantityAccepted) + 1;
-      }
-    });
+    const item = state.current.items.find((item: any) => item.sku === payload);
+    if (item) {
+      item.quantityAccepted = item.quantityAccepted ? parseInt(item.quantityAccepted) + 1 : 1;
+    } else {
+      showToast(translate("Product not found"));
+    }
+
     commit(types.SHIPMENT_CURRENT_UPDATED, state);
   },
   async setCurrent ({ commit }, payload) {
