@@ -33,10 +33,10 @@ const actions: ActionTree<ReturnState, RootState> = {
     return resp;
   },
   async updateReturnProductCount ({ commit, state }, payload) {
-    const item = await state.current.items.find((item: any) => item.sku === payload)
+    const item = state.current.items.find((item: any) => item.sku === payload);
 
-    if(item) {
-      item.quantityAccepted = parseInt(item.quantityAccepted) + 1;
+    if (item) {
+      item.quantityAccepted = item.quantityAccepted ? parseInt(item.quantityAccepted) + 1 : 1;
       commit(types.RETURN_CURRENT_UPDATED, state);
       showToast(translate("Scanned successfully.", { itemName: payload }))
     } else {
