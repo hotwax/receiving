@@ -110,25 +110,6 @@ export default defineComponent({
     closeModal() {
       modalController.dismiss({ dismissed: true });
     },
-    async saveAlert() {
-      const message = translate("Are you sure you want to change the time zone to?", { timeZoneId: this.timeZoneId });
-      const alert = await alertController.create({
-        header: translate("Update time zone"),
-        message,
-        buttons: [
-          {
-            text: translate("Cancel"),
-          },
-          {
-            text: translate("Confirm"),
-            handler: () => {
-              this.setUserTimeZone();
-            }
-          }
-        ],
-      });
-      return alert.present();
-    },
     preventSpecialCharacters($event: any) {
       // Searching special characters fails the API, hence, they must be omitted
       if(/[`!@#$%^&*()_+\-=\\|,.<>?~]/.test($event.key)) $event.preventDefault();
