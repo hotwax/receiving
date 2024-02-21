@@ -44,10 +44,10 @@
 
         <ion-item lines="none">
           <ion-label v-if="getPOItems('pending').length > 1" color="medium" class="ion-margin-end">
-            {{ translate("PENDING: ITEMS", { itemsCount: getPOItems('pending').length }) }}
+            {{ translate("Pending: items", { itemsCount: getPOItems('pending').length }) }}
           </ion-label>
           <ion-label v-else color="medium" class="ion-margin-end">
-            {{ translate("PENDING: ITEM", { itemsCount: getPOItems('pending').length }) }}
+            {{ translate("Pending: item", { itemsCount: getPOItems('pending').length }) }}
           </ion-label>
         </ion-item>
 
@@ -104,10 +104,10 @@
 
         <ion-item lines="none">
           <ion-text v-if="getPOItems('completed').length > 1" color="medium" class="ion-margin-end">
-            {{ translate("COMPLETED: ITEMS", { itemsCount: getPOItems('completed').length }) }}
+            {{ translate("Completed: items", { itemsCount: getPOItems('completed').length }) }}
           </ion-text>
           <ion-text v-else color="medium" class="ion-margin-end">
-            {{ translate("COMPLETED: ITEM", { itemsCount: getPOItems('completed').length }) }}
+            {{ translate("Completed: item", { itemsCount: getPOItems('completed').length }) }}
           </ion-text>
           <ion-button v-if="getPOItems('completed').length" @click="showCompletedItems = !showCompletedItems" fill="clear">
             <ion-icon :icon="showCompletedItems ? eyeOutline : eyeOffOutline"/>
