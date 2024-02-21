@@ -42,13 +42,14 @@ const actions: ActionTree<OrderState, RootState> = {
   },
   async updateProductCount({ commit, state }, payload ) {
     const item = state.current.items.find((item: any) => item.internalName === payload);
+
     if (item) {
       item.quantityAccepted = item.quantityAccepted ? parseInt(item.quantityAccepted) + 1 : 1;
+      commit(types.ORDER_CURRENT_UPDATED, state.current )
+      showToast(translate("Scanned successfully.", { itemName: payload }))
     } else {
-      showToast(translate("Product not found"));
+      showToast(translate("Failed to scan:", { itemName: payload }))
     }
-    
-    commit(types.ORDER_CURRENT_UPDATED, state.current )
   },
   async addOrderItem ({ commit }, payload) {
     const product = { 
