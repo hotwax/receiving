@@ -75,7 +75,7 @@
 
             <ion-progress-bar :color="getRcvdToOrdrdFraction(item) > 1 ? 'danger' : 'primary'" :value="getRcvdToOrdrdFraction(item)" />
             
-            <p slot="end">{{ item.quantityOrdered }}</p>
+            <p slot="end">{{ item.quantityOrdered }} {{ translate("shipped") }}</p>
           </ion-item>
         </ion-card>
       </main>
