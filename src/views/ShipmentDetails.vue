@@ -4,7 +4,7 @@
       <ion-toolbar>
         <ion-back-button default-href="/" slot="start"></ion-back-button>
         <ion-title>{{ translate("Shipment Details") }}</ion-title>
-        <ion-buttons slot="end" v-if="!isShipmentReceived">
+        <ion-buttons slot="end" v-if="!isShipmentReceived()">
           <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_ADMIN)" @click="addProduct"><ion-icon :icon="add"/></ion-button>
         </ion-buttons>
       </ion-toolbar>
@@ -21,7 +21,7 @@
           <ion-chip v-show="current.trackingIdNumber">{{current.trackingIdNumber}}</ion-chip>
         </ion-item>
 
-        <div class="scanner" v-if="!isShipmentReceived">
+        <div class="scanner" v-if="!isShipmentReceived()">
           <ion-item>
             <ion-label>{{ translate("Scan items") }}</ion-label>
             <ion-input autofocus :placeholder="translate('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()"></ion-input>
@@ -47,7 +47,7 @@
             </div>
 
             <div class="location">
-              <LocationPopover v-if="!isShipmentReceived" :item="item" type="shipment" :facilityId="currentFacility.facilityId" />
+              <LocationPopover v-if="!isShipmentReceived()" :item="item" type="shipment" :facilityId="currentFacility.facilityId" />
               <ion-chip :disabled="true" outline v-else>
                 <ion-icon :icon="locationOutline"/>
                 <ion-label>{{ item.locationSeqId }}</ion-label>
@@ -55,7 +55,7 @@
             </div>
 
             <div class="product-count">
-              <ion-item v-if="!isShipmentReceived">
+              <ion-item v-if="!isShipmentReceived()">
                 <ion-label position="floating">{{ translate("Qty") }}</ion-label>
                 <ion-input type="number" min="0" v-model="item.quantityAccepted" />
               </ion-item>
@@ -68,7 +68,7 @@
             </div>
           </div>
 
-          <ion-item lines="none" class="border-top" v-if="item.quantityOrdered > 0 && !isShipmentReceived">
+          <ion-item lines="none" class="border-top" v-if="item.quantityOrdered > 0 && !isShipmentReceived()">
             <ion-button @click="receiveAll(item)" slot="start" fill="outline">
               {{ translate("Receive All") }}
             </ion-button>
@@ -81,7 +81,7 @@
       </main>
 
       <!-- Removing fab when the shipment is already received, this case can occur when directly hitting the shipment detail page for an already received shipment -->
-      <ion-fab vertical="bottom" horizontal="end" slot="fixed" v-if="!isShipmentReceived">
+      <ion-fab vertical="bottom" horizontal="end" slot="fixed" v-if="!isShipmentReceived()">
         <ion-fab-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibleForReceivingShipment()" @click="completeShipment">
           <ion-icon :icon="checkmarkDone" />
         </ion-fab-button>
