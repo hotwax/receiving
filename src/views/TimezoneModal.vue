@@ -66,7 +66,6 @@ import {
   IonSpinner,
   IonTitle,
   IonToolbar,
-  alertController,
   modalController
 } from "@ionic/vue";
 import { defineComponent } from "vue";
