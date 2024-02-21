@@ -6,30 +6,35 @@
           <ion-icon slot="icon-only" :icon="closeOutline" />
         </ion-button>
       </ion-buttons>
-      <ion-title>{{ $t("Add a product") }}</ion-title>
+      <ion-title>{{ translate("Add a product") }}</ion-title>
     </ion-toolbar>
   </ion-header>
   <ion-content>
-    <ion-searchbar @ionFocus="selectSearchBarText($event)" v-model="queryString" :placeholder="$t('Search SKU or product name')" v-on:keyup.enter="queryString = $event.target.value; getProducts()" />
-    
-    <ion-list v-for="product in products" :key="product.productId">
-      <ion-item lines="none">
-        <ion-thumbnail slot="start">
-          <ShopifyImg :src="product.mainImageUrl" />
-        </ion-thumbnail>
-        <ion-label>
-          <!-- Honouring the identifications set by the user on the settings page -->
-          <h2>{{ product[productIdentificationPref.primaryId] }}</h2>
-          <p>{{ product[productIdentificationPref.secondaryId] }}</p>
-        </ion-label>
-        <ion-icon v-if="isProductAvailableInOrder(product.productId)" color="success" :icon="checkmarkCircle" />
-        <ion-button v-else fill="outline" @click="addtoOrder(product)">{{ $t("Add to Purchase Order") }}</ion-button>
-      </ion-item>
-    </ion-list>
+    <ion-searchbar @ionFocus="selectSearchBarText($event)" v-model="queryString" :placeholder="translate('Search SKU or product name')" v-on:keyup.enter="queryString = $event.target.value; getProducts()" />
+    <template v-if="products.length">
+      <ion-list v-for="product in products" :key="product.productId">
+        <ion-item lines="none">
+          <ion-thumbnail slot="start">
+            <ShopifyImg :src="product.mainImageUrl" />
+          </ion-thumbnail>
+          <ion-label>
+            <!-- Honouring the identifications set by the user on the settings page -->
+            <h2>{{ product[productIdentificationPref.primaryId] }}</h2>
+            <p>{{ product[productIdentificationPref.secondaryId] }}</p>
+          </ion-label>
+          <ion-icon v-if="isProductAvailableInOrder(product.productId)" color="success" :icon="checkmarkCircle" />
+          <ion-button v-else fill="outline" @click="addtoOrder(product)">{{ translate("Add to Purchase Order") }}</ion-button>
+        </ion-item>
+      </ion-list>
 
-    <ion-infinite-scroll @ionInfinite="loadMoreProducts($event)" threshold="100px" :disabled="!isScrollable">
-      <ion-infinite-scroll-content loading-spinner="crescent" :loading-text="$t('Loading')" />
-    </ion-infinite-scroll>
+      <ion-infinite-scroll @ionInfinite="loadMoreProducts($event)" threshold="100px" :disabled="!isScrollable">
+        <ion-infinite-scroll-content loading-spinner="crescent" :loading-text="translate('Loading')" />
+      </ion-infinite-scroll>
+    </template>
+    <div v-else class="empty-state">
+      <img src="../assets/images/empty-state-add-product-modal.png" alt="empty-state" />
+      <p>{{ translate("Enter a SKU, or product name to search a product") }}</p>
+    </div>
   </ion-content>
 </template>
 
@@ -55,9 +60,8 @@ import { defineComponent } from 'vue';
 import { closeOutline, checkmarkCircle } from 'ionicons/icons';
 import { mapGetters } from 'vuex'
 import { useStore } from "@/store";
-import { ShopifyImg } from '@hotwax/dxp-components';
+import { ShopifyImg, translate } from '@hotwax/dxp-components';
 import { showToast } from '@/utils'
-import { translate } from '@/i18n'
 
 export default defineComponent({
   name: "Modal",
@@ -88,7 +92,9 @@ export default defineComponent({
       products: 'product/getProducts',
       isScrollable: 'product/isScrollable',
       isProductAvailableInOrder: 'order/isProductAvailableInOrder',
-      productIdentificationPref: 'user/getProductIdentificationPref'
+      productIdentificationPref: 'user/getProductIdentificationPref',
+      currentFacility: 'user/getCurrentFacility',
+      facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId'
     })
   },
   methods: {
@@ -116,6 +122,7 @@ export default defineComponent({
       })
     },
     async addtoOrder (product: any) {
+      product.locationSeqId = this.facilityLocationsByFacilityId(this.currentFacility.facilityId) ? this.facilityLocationsByFacilityId(this.currentFacility.facilityId)[0]?.locationSeqId : ''
       this.store.dispatch('order/addOrderItem', product)
     },
     closeModal() {
@@ -133,6 +140,7 @@ export default defineComponent({
       closeOutline,
       checkmarkCircle,
       store,
+      translate
     };
   },
 });

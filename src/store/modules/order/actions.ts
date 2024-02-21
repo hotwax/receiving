@@ -4,7 +4,7 @@ import RootState from '@/store/RootState'
 import OrderState from './OrderState'
 import * as types from './mutation-types'
 import { hasError, showToast } from '@/utils'
-import { translate } from '@/i18n'
+import { translate } from '@hotwax/dxp-components'
 import emitter from "@/event-bus";
 
 
@@ -41,12 +41,15 @@ const actions: ActionTree<OrderState, RootState> = {
     return resp;
   },
   async updateProductCount({ commit, state }, payload ) {
-    state.current.items.find((item: any) => {
-      if (item.internalName === payload) {
-        item.quantityAccepted = item.quantityAccepted + 1;
-      }
-    });
-    commit(types.ORDER_CURRENT_UPDATED, state.current )
+    const item = state.current.items.find((item: any) => item.internalName === payload);
+
+    if (item) {
+      item.quantityAccepted = item.quantityAccepted ? parseInt(item.quantityAccepted) + 1 : 1;
+      commit(types.ORDER_CURRENT_UPDATED, state.current )
+      showToast(translate("Scanned successfully.", { itemName: payload }))
+    } else {
+      showToast(translate("Failed to scan:", { itemName: payload }))
+    }
   },
   async addOrderItem ({ commit }, payload) {
     const product = { 
@@ -195,7 +198,6 @@ const actions: ActionTree<OrderState, RootState> = {
     } catch(error){
       console.error(error)
       current.poHistory.items = [];
-      showToast(translate("Something went wrong"));
     }
     commit(types.ORDER_CURRENT_UPDATED, current);
     return resp;

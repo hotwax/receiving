@@ -6,23 +6,24 @@
           <ion-icon :icon="close" />
         </ion-button>
       </ion-buttons>
-      <ion-title>{{ $t("Select time zone") }}</ion-title>
+      <ion-title>{{ translate("Select time zone") }}</ion-title>
     </ion-toolbar>
     <ion-toolbar>
-      <ion-searchbar @ionFocus="selectSearchBarText($event)" :placeholder="$t('Search time zones')" v-model="queryString" @ionChange="findTimeZone()" @keydown="preventSpecialCharacters($event)" />
+      <ion-searchbar @ionFocus="selectSearchBarText($event)" :placeholder="translate('Search time zones')"  v-model="queryString" @ionChange="findTimeZone()" @keydown="preventSpecialCharacters($event)" />
     </ion-toolbar>
   </ion-header>
 
   <ion-content class="ion-padding">
     <form @keyup.enter="setUserTimeZone">
-      <div class="empty-state" v-if="isLoading">
-        <ion-spinner name="crescent" />
-        <p>{{ $t("Fetching TimeZones") }}</p>
-      </div>
-
       <!-- Empty state -->
+      <div class="empty-state" v-if="isLoading">
+        <ion-item lines="none">
+          <ion-spinner color="secondary" name="crescent" slot="start" />
+            {{ translate("Fetching time zones") }}
+        </ion-item>
+      </div>
       <div class="empty-state" v-else-if="filteredTimeZones.length === 0">
-        <p>{{ $t("No time zone found") }}</p>
+        <p>{{ translate("No time zone found") }}</p>
       </div>
 
       <!-- Timezones -->
@@ -65,6 +66,7 @@ import {
   IonSpinner,
   IonTitle,
   IonToolbar,
+  alertController,
   modalController
 } from "@ionic/vue";
 import { defineComponent } from "vue";
@@ -73,6 +75,7 @@ import { useStore } from "@/store";
 import { UserService } from "@/services/UserService";
 import { hasError } from '@/utils'
 import { DateTime } from 'luxon';
+import { translate } from "@hotwax/dxp-components";
 
 export default defineComponent({
   name: "TimeZoneModal",
@@ -106,6 +109,25 @@ export default defineComponent({
   methods: {
     closeModal() {
       modalController.dismiss({ dismissed: true });
+    },
+    async saveAlert() {
+      const message = translate("Are you sure you want to change the time zone to?", { timeZoneId: this.timeZoneId });
+      const alert = await alertController.create({
+        header: translate("Update time zone"),
+        message,
+        buttons: [
+          {
+            text: translate("Cancel"),
+          },
+          {
+            text: translate("Confirm"),
+            handler: () => {
+              this.setUserTimeZone();
+            }
+          }
+        ],
+      });
+      return alert.present();
     },
     preventSpecialCharacters($event: any) {
       // Searching special characters fails the API, hence, they must be omitted
@@ -152,7 +174,8 @@ export default defineComponent({
     return {
       close,
       save,
-      store
+      store,
+      translate
     };
   }
 });

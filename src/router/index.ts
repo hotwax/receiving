@@ -12,10 +12,9 @@ import ReturnDetails from '@/views/ReturnDetails.vue'
 
 import { hasPermission } from '@/authorization';
 import { showToast } from '@/utils'
-import { translate } from '@/i18n'
 
 import 'vue-router'
-import { Login, useAuthStore } from '@hotwax/dxp-components';
+import { DxpLogin, translate, useAuthStore } from '@hotwax/dxp-components';
 import { loader } from '@/user-utils';
 
 // Defining types for the meta values
@@ -70,8 +69,8 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: '/login',
-    name: 'Login',
-    component: Login,
+    name: 'DxpLogin',
+    component: DxpLogin,
     beforeEnter: loginGuard
   },
   {

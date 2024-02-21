@@ -17,6 +17,7 @@ import { mapGetters, useStore } from "vuex";
 import { Settings } from 'luxon';
 import { initialise, resetConfig } from '@/adapter'
 import { useRouter } from 'vue-router';
+import { translate } from "@hotwax/dxp-components"
 
 export default defineComponent({
   name: 'App',
@@ -49,7 +50,7 @@ export default defineComponent({
       if (!this.loader) {
         this.loader = await loadingController
           .create({
-            message: options.message ? this.$t(options.message) : this.$t("Click the backdrop to dismiss."),
+            message: options.message ? translate(options.message) : translate("Click the backdrop to dismiss."),
             translucent: true,
             backdropDismiss: options.backdropDismiss
           });
@@ -60,6 +61,16 @@ export default defineComponent({
       if (this.loader) {
         this.loader.dismiss();
         this.loader = null as any;
+      } else {
+        // Added this else case as there are some scenarios in which the loader is not created and before that the dismissLoader gets called, resulting in the loader not getting dismissed
+        // So checking that when the loader is not found then try dismissing the loader again after 3 secs.
+        // The above case appears when directly hitting the shipment detail page and then the receive shipment api throws error
+        // TODO: need to find a more better approach to dismiss the loader in such case
+        setTimeout(() => {
+          if (this.loader) {
+            this.dismissLoader();
+          }
+        }, 3000)
       }
     },
     async unauthorized() {

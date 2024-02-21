@@ -3,30 +3,30 @@
     <ion-header :translucent="true">
       <ion-toolbar>
         <ion-menu-button slot="start" />
-        <ion-title>{{ $t("Returns") }}</ion-title>
+        <ion-title>{{ translate("Returns") }}</ion-title>
       </ion-toolbar>
     </ion-header>
     <ion-content>
       <main>
-        <ion-searchbar :placeholder="$t('Scan ASN to start receiving')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getReturns()" />
+        <ion-searchbar :placeholder="translate('Search returns')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getReturns()" />
   
         <ReturnListItem v-for="returnShipment in returns" :key="returnShipment.shipmentId" :returnShipment="returnShipment" />
 
         <div v-if="returns.length" class="load-more-action ion-text-center">
           <ion-button fill="outline" color="dark" @click="loadMoreReturns()">
             <ion-icon :icon="cloudDownloadOutline" slot="start" />
-            {{ $t("Load more returns") }}
+            {{ translate("Load more returns") }}
           </ion-button>
         </div>
 
         <!-- Empty state -->
         <div class="empty-state" v-if="!returns.length && !fetchingReturns">
-          <p v-if="showErrorMessage">{{ $t("No results found")}}</p>
+          <p v-if="showErrorMessage">{{ translate("No results found")}}</p>
           <img src="../assets/images/empty-state.png" alt="empty state">
-          <p>{{ $t("There are no returns to receive")}}</p>
+          <p>{{ translate("There are no returns to receive")}}</p>
           <ion-button fill="outline" color="dark" @click="refreshReturns()">
             <ion-icon :icon="reload" slot="start" />
-            {{ $t("Refresh") }}
+            {{ translate("Refresh") }}
           </ion-button>
         </div>
 
@@ -56,6 +56,7 @@ import { cloudDownloadOutline, reload } from 'ionicons/icons'
 import { defineComponent } from 'vue'
 import { mapGetters, useStore } from 'vuex'
 import ReturnListItem from '@/components/ReturnListItem.vue'
+import { translate } from "@hotwax/dxp-components"
 
 export default defineComponent({
   name: "Returns",
@@ -148,7 +149,8 @@ export default defineComponent({
     return {
       cloudDownloadOutline,
       reload,
-      store
+      store,
+      translate
     }
   }
 })

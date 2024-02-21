@@ -6,7 +6,7 @@
           <ion-icon slot="icon-only" :icon="closeOutline" />
         </ion-button>
       </ion-buttons>
-      <ion-title>{{ $t("History") }}</ion-title>
+      <ion-title>{{ translate("History") }}</ion-title>
     </ion-toolbar>
   </ion-header>
   <ion-content>
@@ -17,10 +17,10 @@
         </ion-thumbnail>
         <ion-label>
           {{ item.receiversFullName }}
-          <p>{{ $t("Shipment ID") }}: {{ item.shipmentId }}</p>
+          <p>{{ translate("Shipment ID") }}: {{ item.shipmentId }}</p>
         </ion-label>
         <ion-label>
-          <ion-note>{{ item.quantityAccepted }} {{ $t("received") }} | {{ item.quantityRejected }} {{ $t("rejected") }}</ion-note>
+          <ion-note>{{ item.quantityAccepted }} {{ translate("received") }} | {{ item.quantityRejected }} {{ translate("rejected") }}</ion-note>
           <ion-note>{{ item.datetimeReceived ? getTime(item.datetimeReceived) : "-" }}</ion-note>
         </ion-label>
       </ion-item>
@@ -52,7 +52,7 @@ import {
 } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { closeOutline } from 'ionicons/icons';
-import { ShopifyImg } from '@hotwax/dxp-components';
+import { ShopifyImg, translate } from '@hotwax/dxp-components';
 import { mapGetters, useStore } from "vuex";
 import { DateTime } from 'luxon';
 
@@ -76,7 +76,7 @@ export default defineComponent({
   data() {
     return {
       items: [],
-      emptyStateMessage: this.$t("No shipments have been received against this purchase order yet", {lineBreak: '<br />'})
+      emptyStateMessage: translate("No shipments have been received against this purchase order yet", {lineBreak: '<br />'})
     }
   },
   props: ["productId"],
@@ -102,7 +102,8 @@ export default defineComponent({
 
     return {
       closeOutline,
-      store
+      store,
+      translate
     };
   },
 });
