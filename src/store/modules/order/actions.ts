@@ -198,7 +198,6 @@ const actions: ActionTree<OrderState, RootState> = {
     } catch(error){
       console.error(error)
       current.poHistory.items = [];
-      showToast(translate("Something went wrong"));
     }
     commit(types.ORDER_CURRENT_UPDATED, current);
     return resp;
