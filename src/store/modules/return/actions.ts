@@ -33,14 +33,16 @@ const actions: ActionTree<ReturnState, RootState> = {
     return resp;
   },
   async updateReturnProductCount ({ commit, state }, payload) {
-    const item = state.current.items.find((item: any) => item.sku === payload);
+    if (payload) {
+      const item = state.current.items.find((item: any) => item.sku === payload);
 
-    if (item) {
-      item.quantityAccepted = item.quantityAccepted ? parseInt(item.quantityAccepted) + 1 : 1;
-      commit(types.RETURN_CURRENT_UPDATED, state);
-      showToast(translate("Scanned successfully.", { itemName: payload }))
-    } else {
-      showToast(translate("Failed to scan:", { itemName: payload }))
+      if (item) {
+        item.quantityAccepted = item.quantityAccepted ? parseInt(item.quantityAccepted) + 1 : 1;
+        commit(types.RETURN_CURRENT_UPDATED, state);
+        showToast(translate("Scanned successfully.", { itemName: payload }))
+      } else {
+        showToast(translate("Failed to scan:", { itemName: payload }))
+      }
     }
   },
   async setCurrent ({ commit, state }, payload) {
