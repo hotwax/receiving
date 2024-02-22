@@ -254,7 +254,10 @@ export default defineComponent({
       });
       modal.onDidDismiss()
       .then((result) => {
-        this.updateProductCount(result.role);
+        console.log(result);
+        if (result.role) {
+          this.updateProductCount(result.role);
+        }
       })
       return modal.present();
     },
