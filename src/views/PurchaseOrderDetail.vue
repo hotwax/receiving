@@ -254,7 +254,6 @@ export default defineComponent({
       });
       modal.onDidDismiss()
       .then((result) => {
-        console.log(result);
         if (result.role) {
           this.updateProductCount(result.role);
         }
