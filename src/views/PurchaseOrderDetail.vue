@@ -79,7 +79,7 @@
 
           <div class="action border-top" v-if="item.quantity > 0">
             <div class="receive-all-qty">
-              <ion-button @click="receiveAll(item)" slot="start" size="small" fill="outline">
+              <ion-button :disabled="isItemReceivedInFull(item)" @click="receiveAll(item)" slot="start" size="small" fill="outline">
                 {{ translate("Receive All") }}
               </ion-button>
             </div>
@@ -237,8 +237,12 @@ export default defineComponent({
     })
   },
   methods: {
-    getRcvdToOrderedFraction(item: any){
-      return (parseInt(item.quantityAccepted) +  this.getPOItemAccepted(item.productId))/(item.quantity)
+    isItemReceivedInFull(item: any) {
+      const qtyAlreadyAccepted = this.getPOItemAccepted(item.productId)
+      return this.order.items.some((ele: any) => ele.productId == item.productId && qtyAlreadyAccepted >= ele.quantity)
+    },
+    getRcvdToOrderedFraction(item: any) {
+      return (parseInt(item.quantityAccepted || 0) + this.getPOItemAccepted(item.productId))/(item.quantity)
     },
     async openImage(imageUrl: string, productName: string) {
       const imageModal = await modalController.create({
