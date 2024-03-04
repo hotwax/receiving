@@ -77,6 +77,7 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       returns: 'return/getReturns',
+      currentFacility: 'user/getCurrentFacility'
     })
   },
   data () {
@@ -100,7 +101,9 @@ export default defineComponent({
       const viewIndex = vIndex ? vIndex : 0;
       const payload = {
         "entityName": "SalesReturnShipmentView",
-        "inputFields": {},
+        "inputFields": {
+          "destinationFacilityId": this.currentFacility.facilityId
+        },
         "fieldList" : [ "shipmentId","externalId","statusId","shopifyOrderName","hcOrderId","trackingCode", "destinationFacilityId" ],
         "noConditionFind": "Y",
         "viewSize": viewSize,
