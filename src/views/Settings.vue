@@ -36,7 +36,7 @@
         <h1>{{ translate('OMS') }}</h1>
       </div>
       <section>
-        <OmsInstanceNavigator />
+        <DxpOmsInstanceNavigator />
 
         <ion-card>
           <ion-card-header>
@@ -57,13 +57,8 @@
       </section>
       <hr />
 
-      <div class="section-header">
-        <h1>
-          {{ translate('App') }}
-          <p class="overline" >{{ "Version: " + appVersion }}</p>
-        </h1>
-        <p class="overline">{{ "Built: " + getDateTime(appInfo.builtTime) }}</p>
-      </div>
+      <DxpAppVersionInfo />
+
       <section>
         <ion-card>
           <ion-card-header>
@@ -120,6 +115,7 @@ import { DateTime } from 'luxon';
 import TimeZoneModal from '@/views/TimezoneModal.vue';
 import { Actions, hasPermission } from '@/authorization';
 import { translate } from "@hotwax/dxp-components"
+import { DxpAppVersionInfo } from '@hotwax/dxp-components/lib/components';
 
 export default defineComponent({
   name: 'Settings',

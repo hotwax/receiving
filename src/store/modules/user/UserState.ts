@@ -7,4 +7,5 @@ export default interface UserState {
     facilityLocationsByFacilityId: any;
     productIdentificationPref: any;
     permissions: any;
+    pwaState: any;
 }

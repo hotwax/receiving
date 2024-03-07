@@ -56,7 +56,7 @@
             <div class="product-info">
               <ion-item lines="none">
                 <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
-                  <ShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
+                  <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
                   <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
@@ -119,7 +119,7 @@
             <div class="product-info">
               <ion-item lines="none">
                 <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
-                  <ShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
+                  <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
                   <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
@@ -184,7 +184,7 @@ import {
 import { defineComponent } from 'vue';
 import { addOutline, cameraOutline, checkmarkDone, copyOutline, eyeOffOutline, eyeOutline, locationOutline, saveOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
-import { ShopifyImg, translate } from '@hotwax/dxp-components';
+import { DxpShopifyImg, translate } from '@hotwax/dxp-components';
 import { useStore, mapGetters } from 'vuex';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue"
@@ -198,7 +198,7 @@ import { Actions, hasPermission } from '@/authorization'
 export default defineComponent({
   name: "PurchaseOrderDetails",
   components: {
-    ShopifyImg,
+    DxpShopifyImg,
     IonBackButton,
     IonBadge,
     IonButton,
