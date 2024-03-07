@@ -73,7 +73,7 @@
               {{ translate("Receive All") }}
             </ion-button>
 
-            <ion-progress-bar :color="getRcvdToOrdrdFraction(item) > 1 ? 'danger' : 'primary'" :value="getRcvdToOrdrdFraction(item)" />
+            <ion-progress-bar :color="getRcvdToOrdrdFraction(item) === 1 ? 'success' : getRcvdToOrdrdFraction(item) > 1 ? 'danger' : 'primary'" :value="getRcvdToOrdrdFraction(item)" />
             
             <p slot="end">{{ item.quantityOrdered }} {{ translate("shipped") }}</p>
           </ion-item>

@@ -86,7 +86,7 @@
 
             <div class="qty-progress">
               <!-- TODO: improve the handling of quantityAccepted -->
-              <ion-progress-bar :color="getRcvdToOrderedFraction(item) > 1 ? 'danger' : 'primary'" :value="getRcvdToOrderedFraction(item)" />
+              <ion-progress-bar :color="getRcvdToOrderedFraction(item) === 1 ? 'success' : getRcvdToOrderedFraction(item) > 1 ? 'danger' : 'primary'" :value="getRcvdToOrderedFraction(item)" />
             </div>
 
             <div class="po-item-history">
