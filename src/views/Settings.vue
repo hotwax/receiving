@@ -115,7 +115,6 @@ import { DateTime } from 'luxon';
 import TimeZoneModal from '@/views/TimezoneModal.vue';
 import { Actions, hasPermission } from '@/authorization';
 import { translate } from "@hotwax/dxp-components"
-import { DxpAppVersionInfo } from '@hotwax/dxp-components/lib/components';
 
 export default defineComponent({
   name: 'Settings',
