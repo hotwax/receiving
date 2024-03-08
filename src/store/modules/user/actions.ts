@@ -348,6 +348,10 @@ const actions: ActionTree<UserState, RootState> = {
     } catch(err) {
       console.error(err)
     }
+  },
+
+  updatePwaState({ commit }, payload) {
+    commit(types.USER_PWA_STATE_UPDATED, payload);
   }
 }
 

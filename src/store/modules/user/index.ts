@@ -18,6 +18,10 @@ const userModule: Module<UserState, RootState> = {
       productIdentificationPref: {
         primaryId: 'productId',
         secondaryId: ''
+      },
+      pwaState: {
+        updateExists: false,
+        registration: null,
       }
     },
     getters,
