@@ -100,6 +100,10 @@ const actions: ActionTree<ShipmentState, RootState> = {
         return Promise.reject("Missing locationSeqId on item")
       }
 
+      if(!item.itemSeqId) {
+        return Promise.reject("Missing shipmentItemSeqId on item")
+      }
+
       const params = {
         shipmentId: payload.shipmentId,
         facilityId: this.state.user.currentFacility.facilityId,
@@ -155,7 +159,14 @@ const actions: ActionTree<ShipmentState, RootState> = {
     const resp = await ShipmentService.addShipmentItem(params);
     if(resp.status == 200 && !hasError(resp)){
       dispatch('updateProductCount', { shipmentId: resp.data.shipmentId })
-      if (!payload.shipmentId) commit(types.SHIPMENT_CURRENT_PRODUCT_ADDED, product)
+      if (!payload.shipmentId) {
+        // When adding item to a shipment from details page, then adding the shipmentItemSeqId to item level, as we do not generate shipmentItemSeqId app side,
+        // when adding an item to shipment
+        commit(types.SHIPMENT_CURRENT_PRODUCT_ADDED, {
+          ...product,
+          itemSeqId: resp.data.shipmentItemSeqId
+        })
+      }
       return resp;
     } else {
       showToast(translate('Something went wrong'));
