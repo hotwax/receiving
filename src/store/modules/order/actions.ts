@@ -209,7 +209,7 @@ const actions: ActionTree<OrderState, RootState> = {
     }
     commit(types.ORDER_CURRENT_UPDATED, state.current)
   },
-  updateCurrentOrder({ state, commit }, payload) {
+  updateCurrentOrder({ commit }, payload) {
     commit(types.ORDER_CURRENT_UPDATED, payload)
   },
   clearPurchaseOrders({commit}){
