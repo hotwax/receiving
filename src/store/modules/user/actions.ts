@@ -33,7 +33,7 @@ const actions: ActionTree<UserState, RootState> = {
       if (permissionId) serverPermissionsFromRules.push(permissionId);
 
       const serverPermissions = await UserService.getUserPermissions({
-        permissionIds: serverPermissionsFromRules
+        permissionIds: [...new Set(serverPermissionsFromRules)]
       }, token);
       const appPermissions = prepareAppPermissions(serverPermissions);
 
@@ -97,7 +97,7 @@ const actions: ActionTree<UserState, RootState> = {
       // TODO Check if handling of specific status codes is required.
       showToast(translate('Something went wrong while login. Please contact administrator'));
       console.error("error", err);
-      return Promise.reject(new Error(err))
+      return Promise.reject(err instanceof Object ? err : new Error(err))
     }
   },
 
@@ -108,11 +108,11 @@ const actions: ActionTree<UserState, RootState> = {
     // store the url on which we need to redirect the user after logout api completes in case of SSO enabled
     let redirectionUrl = ''
 
-    emitter.emit('presentLoader', { message: 'Logging out', backdropDismiss: false })
-
     // Calling the logout api to flag the user as logged out, only when user is authorised
     // if the user is already unauthorised then not calling the logout api as it returns 401 again that results in a loop, thus there is no need to call logout api if the user is unauthorised
     if(!payload?.isUserUnauthorised) {
+      emitter.emit('presentLoader', { message: 'Logging out', backdropDismiss: false })
+
       let resp;
 
       // wrapping the parsing logic in try catch as in some case the logout api makes redirection, and then we are unable to parse the resp and thus the logout process halts
@@ -177,14 +177,16 @@ const actions: ActionTree<UserState, RootState> = {
   /**
    * Update user timeZone
    */
-  async setUserTimeZone ( { state, commit }, payload) {
-    const resp = await UserService.setUserTimeZone(payload)
-    if (resp.status === 200 && !hasError(resp)) {
-      const current: any = state.current;
-      current.userTimeZone = payload.timeZoneId;
-      commit(types.USER_INFO_UPDATED, current);
-      Settings.defaultZone = current.userTimeZone;
-      showToast(translate("Time zone updated successfully"));
+  async setUserTimeZone({ state, commit }, payload) {
+    const current: any = state.current;
+    if(current.userTimeZone !== payload.tzId) {
+      const resp = await UserService.setUserTimeZone(payload)
+      if(resp.status === 200 && !hasError(resp)) {
+        current.userTimeZone = payload.tzId;
+        commit(types.USER_INFO_UPDATED, current);
+        Settings.defaultZone = current.userTimeZone;
+        showToast(translate("Time zone updated successfully"));
+      }
     }
   },
 
@@ -346,6 +348,10 @@ const actions: ActionTree<UserState, RootState> = {
     } catch(err) {
       console.error(err)
     }
+  },
+
+  updatePwaState({ commit }, payload) {
+    commit(types.USER_PWA_STATE_UPDATED, payload);
   }
 }
 

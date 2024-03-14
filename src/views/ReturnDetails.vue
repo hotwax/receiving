@@ -38,7 +38,7 @@
             <div class="product-info">
               <ion-item lines="none">
                 <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
-                  <ShopifyImg :src="getProduct(item.productId).mainImageUrl" />
+                  <DxpShopifyImg :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
                   <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
@@ -68,7 +68,7 @@
             <ion-button v-if="isReturnReceivable(current.statusId)" @click="receiveAll(item)" slot="start" fill="outline">
               {{ translate("Receive All") }}
             </ion-button>
-            <ion-progress-bar :color="getRcvdToOrdrdFraction(item) > 1 ? 'danger' : 'primary'" :value="getRcvdToOrdrdFraction(item)" />
+            <ion-progress-bar :color="getRcvdToOrdrdFraction(item) === 1 ? 'success' : getRcvdToOrdrdFraction(item) > 1 ? 'danger' : 'primary'" :value="getRcvdToOrdrdFraction(item)" />
             <p slot="end">{{ item.quantityOrdered }} {{ translate("returned") }}</p>
           </ion-item>
         </ion-card>
@@ -110,7 +110,7 @@ import { defineComponent } from 'vue';
 import { checkmarkDone, barcodeOutline, locationOutline } from 'ionicons/icons';
 import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
-import { ShopifyImg, translate } from '@hotwax/dxp-components';
+import { DxpShopifyImg, translate } from '@hotwax/dxp-components';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import ImageModal from '@/components/ImageModal.vue';
@@ -139,7 +139,7 @@ export default defineComponent({
     IonThumbnail,
     IonTitle,
     IonToolbar,
-    ShopifyImg,
+    DxpShopifyImg,
   },
   props: ["shipment"],
   data() {
@@ -257,7 +257,9 @@ export default defineComponent({
         });
         modal.onDidDismiss()
         .then((result) => {
-          this.updateProductCount(result.role);
+          if(result.role) {
+            this.updateProductCount(result.role);
+          }
       });
       return modal.present();
     },

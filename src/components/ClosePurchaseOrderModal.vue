@@ -20,7 +20,7 @@
     <ion-list>
       <ion-item :button="isPOItemStatusPending(item)" v-for="(item, index) in getPOItems()" :key="index" @click="item.isChecked = !item.isChecked">
         <ion-thumbnail slot="start">
-          <ShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
+          <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
         </ion-thumbnail>
         <ion-label>
           <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
@@ -66,7 +66,7 @@ import { defineComponent } from 'vue';
 import { mapGetters, useStore } from 'vuex'
 import { OrderService } from "@/services/OrderService";
 import { productHelpers } from '@/utils';
-import { ShopifyImg, translate } from '@hotwax/dxp-components';
+import { DxpShopifyImg, translate } from '@hotwax/dxp-components';
 import { useRouter } from 'vue-router';
 
 export default defineComponent({
@@ -87,7 +87,7 @@ export default defineComponent({
     IonTitle,
     IonThumbnail,
     IonToolbar,
-    ShopifyImg
+    DxpShopifyImg
   },
   computed: {
     ...mapGetters({

@@ -41,10 +41,10 @@
 
         <ion-item lines="none">
           <ion-label v-if="getPOItems('pending').length > 1" color="medium" class="ion-margin-end">
-            {{ translate("PENDING: ITEMS", { itemsCount: getPOItems('pending').length }) }}
+            {{ translate("Pending: items", { itemsCount: getPOItems('pending').length }) }}
           </ion-label>
           <ion-label v-else color="medium" class="ion-margin-end">
-            {{ translate("PENDING: ITEM", { itemsCount: getPOItems('pending').length }) }}
+            {{ translate("Pending: item", { itemsCount: getPOItems('pending').length }) }}
           </ion-label>
         </ion-item>
 
@@ -53,7 +53,7 @@
             <div class="product-info">
               <ion-item lines="none">
                 <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
-                  <ShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
+                  <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
                   <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
@@ -82,7 +82,7 @@
 
             <div class="qty-progress">
               <!-- TODO: improve the handling of quantityAccepted -->
-              <ion-progress-bar :color="getRcvdToOrderedFraction(item) > 1 ? 'danger' : 'primary'" :value="getRcvdToOrderedFraction(item)" />
+              <ion-progress-bar :color="getRcvdToOrderedFraction(item) === 1 ? 'success' : getRcvdToOrderedFraction(item) > 1 ? 'danger' : 'primary'" :value="getRcvdToOrderedFraction(item)" />
             </div>
 
             <div class="po-item-history">
@@ -100,13 +100,13 @@
 
         <ion-item lines="none">
           <ion-text v-if="getPOItems('completed').length > 1" color="medium" class="ion-margin-end">
-            {{ translate("COMPLETED: ITEMS", { itemsCount: getPOItems('completed').length }) }}
+            {{ translate("Completed: items", { itemsCount: getPOItems('completed').length }) }}
           </ion-text>
           <ion-text v-else color="medium" class="ion-margin-end">
-            {{ translate("COMPLETED: ITEM", { itemsCount: getPOItems('completed').length }) }}
+            {{ translate("Completed: item", { itemsCount: getPOItems('completed').length }) }}
           </ion-text>
-          <ion-button v-if="getPOItems('completed').length" @click="showCompletedItems = !showCompletedItems" fill="clear">
-            <ion-icon :icon="showCompletedItems ? eyeOutline : eyeOffOutline"/>
+          <ion-button v-if="getPOItems('completed').length" @click="showCompletedItems = !showCompletedItems" color="medium" fill="clear">
+            <ion-icon :icon="showCompletedItems ? eyeOutline : eyeOffOutline" slot="icon-only" />
           </ion-button>
         </ion-item>
         
@@ -115,7 +115,7 @@
             <div class="product-info">
               <ion-item lines="none">
                 <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
-                  <ShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
+                  <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
                   <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
@@ -144,10 +144,10 @@
 
     <ion-footer>
       <ion-toolbar>
-        <ion-item slot="end">
-          <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE)" fill="outline" class="ion-margin-end" @click="closePO">{{ translate("Receive And Close") }}</ion-button>
-          <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibileForCreatingShipment()" @click="savePODetails">{{ translate("Receive") }}</ion-button>
-        </ion-item>
+        <ion-buttons slot="end">
+          <ion-button fill="outline" size="small" color="primary" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE)" class="ion-margin-end" @click="closePO">{{ translate("Receive And Close") }}</ion-button>
+          <ion-button fill="solid" size="small" color="primary" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibileForCreatingShipment()" @click="savePODetails">{{ translate("Receive") }}</ion-button>
+        </ion-buttons>
       </ion-toolbar>
     </ion-footer>
   </ion-page>
@@ -180,7 +180,7 @@ import {
 import { defineComponent } from 'vue';
 import { addOutline, cameraOutline, checkmarkDone, copyOutline, eyeOffOutline, eyeOutline, locationOutline, saveOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
-import { ShopifyImg, translate } from '@hotwax/dxp-components';
+import { DxpShopifyImg, translate } from '@hotwax/dxp-components';
 import { useStore, mapGetters } from 'vuex';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue"
@@ -194,7 +194,7 @@ import { Actions, hasPermission } from '@/authorization'
 export default defineComponent({
   name: "PurchaseOrderDetails",
   components: {
-    ShopifyImg,
+    DxpShopifyImg,
     IonBackButton,
     IonBadge,
     IonButton,
@@ -250,7 +250,9 @@ export default defineComponent({
       });
       modal.onDidDismiss()
       .then((result) => {
-        this.updateProductCount(result.role);
+        if (result.role) {
+          this.updateProductCount(result.role);
+        }
       })
       return modal.present();
     },

@@ -41,12 +41,15 @@ const actions: ActionTree<OrderState, RootState> = {
     return resp;
   },
   async updateProductCount({ commit, state }, payload ) {
-    state.current.items.find((item: any) => {
-      if (item.internalName === payload) {
-        item.quantityAccepted = item.quantityAccepted + 1;
-      }
-    });
-    commit(types.ORDER_CURRENT_UPDATED, state.current )
+    const item = state.current.items.find((item: any) => item.internalName === payload);
+
+    if (item) {
+      item.quantityAccepted = item.quantityAccepted ? parseInt(item.quantityAccepted) + 1 : 1;
+      commit(types.ORDER_CURRENT_UPDATED, state.current )
+      showToast(translate("Scanned successfully.", { itemName: payload }))
+    } else {
+      showToast(translate("Failed to scan:", { itemName: payload }))
+    }
   },
   async addOrderItem ({ commit }, payload) {
     const product = { 
@@ -68,7 +71,7 @@ const actions: ActionTree<OrderState, RootState> = {
       return orders.some((order: any) => {
         if (order.doclist.docs[0]?.orderId === orderId) {
           this.dispatch('product/fetchProductInformation',  { order: order.doclist.docs });
-          commit(types.ORDER_CURRENT_UPDATED, { ...state.current, orderId: order.doclist.docs[0]?.orderId, externalOrderId: order.doclist.docs[0]?.externalOrderId, orderStatusId: order.doclist.docs[0]?.orderStatusId, orderStatusDesc: order.doclist.docs[0]?.orderStatusDesc, items: order.doclist.docs })
+          commit(types.ORDER_CURRENT_UPDATED, { ...state.current, orderId: order.doclist.docs[0]?.orderId, externalOrderId: order.doclist.docs[0]?.externalOrderId, orderStatusId: order.doclist.docs[0]?.orderStatusId, orderStatusDesc: order.doclist.docs[0]?.orderStatusDesc, items: JSON.parse(JSON.stringify(order.doclist.docs)) })
           return current;
         }
       })
@@ -195,7 +198,6 @@ const actions: ActionTree<OrderState, RootState> = {
     } catch(error){
       console.error(error)
       current.poHistory.items = [];
-      showToast(translate("Something went wrong"));
     }
     commit(types.ORDER_CURRENT_UPDATED, current);
     return resp;

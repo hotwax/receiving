@@ -38,6 +38,9 @@ const getters: GetterTree <UserState, RootState> = {
     },
     getProductIdentificationPref: (state) => {
         return state.productIdentificationPref;
+    },
+    getPwaState(state) {
+        return state.pwaState;
     }
 }
 export default getters;

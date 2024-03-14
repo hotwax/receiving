@@ -8,7 +8,7 @@
     </ion-header>
     <ion-content>
       <main>
-        <ion-searchbar :placeholder="translate('Scan ASN to start receiving')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getReturns()" />
+        <ion-searchbar :placeholder="translate('Search returns')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getReturns()" />
   
         <ReturnListItem v-for="returnShipment in returns" :key="returnShipment.shipmentId" :returnShipment="returnShipment" />
 
@@ -77,6 +77,7 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       returns: 'return/getReturns',
+      currentFacility: 'user/getCurrentFacility'
     })
   },
   data () {
@@ -100,7 +101,9 @@ export default defineComponent({
       const viewIndex = vIndex ? vIndex : 0;
       const payload = {
         "entityName": "SalesReturnShipmentView",
-        "inputFields": {},
+        "inputFields": {
+          "destinationFacilityId": this.currentFacility.facilityId
+        },
         "fieldList" : [ "shipmentId","externalId","statusId","shopifyOrderName","hcOrderId","trackingCode", "destinationFacilityId" ],
         "noConditionFind": "Y",
         "viewSize": viewSize,
