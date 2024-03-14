@@ -27,7 +27,7 @@
           <p>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
         </ion-label>
         <ion-buttons>
-          <ion-checkbox slot="end" :modelValue="isPOItemStatusPending(item) ? item.isChecked : true" :disabled="isPOItemStatusPending(item) ? false : true" />
+          <ion-checkbox aria-label="itemStatus" slot="end" :modelValue="isPOItemStatusPending(item) ? item.isChecked : true" :disabled="isPOItemStatusPending(item) ? false : true" />
         </ion-buttons>
       </ion-item>
     </ion-list>

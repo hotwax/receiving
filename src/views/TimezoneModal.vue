@@ -31,14 +31,13 @@
         <ion-list>
           <ion-radio-group value="rd" v-model="timeZoneId">
             <ion-item :key="timeZone.id" v-for="timeZone in filteredTimeZones">
-              <ion-label>{{ timeZone.label }} ({{ timeZone.id }})</ion-label>
-              <ion-radio :value="timeZone.id" slot="start" />
+              <ion-radio :value="timeZone.id" label-placement="end" justify="start">{{ timeZone.label }} ({{ timeZone.id }})</ion-radio>
             </ion-item>
           </ion-radio-group>
         </ion-list>
       </div>
     </form>
-
+    
     <!-- Defined ion-fab outside of form element as the fab button losoe its styling when wrapped inside form -->
     <ion-fab vertical="bottom" horizontal="end" slot="fixed">
       <ion-fab-button :disabled="!timeZoneId" @click="setUserTimeZone">
@@ -58,7 +57,6 @@ import {
   IonHeader,
   IonItem,
   IonIcon,
-  IonLabel,
   IonList,
   IonRadioGroup,
   IonRadio,
@@ -87,7 +85,6 @@ export default defineComponent({
     IonHeader,
     IonIcon,
     IonItem,
-    IonLabel,
     IonList,
     IonRadioGroup,
     IonRadio,
