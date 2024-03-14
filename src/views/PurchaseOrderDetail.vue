@@ -18,12 +18,10 @@
     <ion-content>
       <main>
         <div class="doc-id">
-          <ion-item lines="none">
-            <ion-label>
-              <h1>{{ translate("Purchase Order")}}: {{ order.externalOrderId }}</h1>
-              <p>{{ translate("Item count") }}: {{ order.items.length }}</p>
-            </ion-label>
-          </ion-item>
+          <ion-label class="ion-padding">
+            <h1>{{ translate("Purchase Order")}}: {{ order.externalOrderId }}</h1>
+            <p>{{ translate("Item count") }}: {{ order.items.length }}</p>
+          </ion-label>
 
           <div class="doc-meta">
             <ion-chip @click="copyToClipboard(order.orderId, 'Internal ID saved to clipboard')">{{ order.orderId }}<ion-icon :icon="copyOutline"/></ion-chip>
@@ -33,8 +31,7 @@
 
         <div class="scanner">
           <ion-item>
-            <ion-label position="fixed">{{translate("Scan items")}}</ion-label>
-            <ion-input autofocus :placeholder="translate('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()" />
+            <ion-input :label="translate('Scan items')" label-placement="fixed" autofocus :placeholder="translate('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()" />
           </ion-item>
           <ion-button expand="block" fill="outline" @click="scan">
             <ion-icon slot="start" :icon="cameraOutline" />
@@ -71,8 +68,7 @@
 
             <div class="product-count">
               <ion-item>
-                <ion-label position="floating">{{ translate("Qty") }}</ion-label>       
-                <ion-input type="number" value="0" min="0" v-model="item.quantityAccepted" />
+                <ion-input :label="translate('Qty')" label-placement="floating" type="number" value="0" min="0" v-model="item.quantityAccepted" />
               </ion-item>
             </div>
           </div>

@@ -153,9 +153,16 @@ const actions: ActionTree<ShipmentState, RootState> = {
       locationSeqId: product.locationSeqId
     }
     const resp = await ShipmentService.addShipmentItem(params);
-    if(resp.status == 200 && !hasError(resp)){
+    if(resp.status == 200 && !hasError(resp) && resp.data.shipmentId && resp.data.shipmentItemSeqId) {
       dispatch('updateProductCount', { shipmentId: resp.data.shipmentId })
-      if (!payload.shipmentId) commit(types.SHIPMENT_CURRENT_PRODUCT_ADDED, product)
+      if (!payload.shipmentId) {
+        // When adding item to a shipment from details page, then adding the shipmentItemSeqId to item level, as we do not generate shipmentItemSeqId app side,
+        // when adding an item to shipment
+        commit(types.SHIPMENT_CURRENT_PRODUCT_ADDED, {
+          ...product,
+          itemSeqId: resp.data.shipmentItemSeqId
+        })
+      }
       return resp;
     } else {
       showToast(translate('Something went wrong'));
