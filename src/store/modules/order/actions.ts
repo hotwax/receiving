@@ -209,10 +209,19 @@ const actions: ActionTree<OrderState, RootState> = {
     }
     commit(types.ORDER_CURRENT_UPDATED, state.current)
   },
+  updateCurrentOrder({ state, commit }, payload) {
+    commit(types.ORDER_CURRENT_UPDATED, payload)
+  },
   clearPurchaseOrders({commit}){
     commit(types.ORDER_PRCHS_ORDRS_UPDATED, {
       list: [],
       total: 0
+    })
+  },
+  updatePurchaseOrders({commit, state}, payload){
+    commit(types.ORDER_PRCHS_ORDRS_UPDATED, {
+      list: payload.purchaseOrders,
+      total: payload.total ? payload.total : state.purchaseOrders.total
     })
   }
 }

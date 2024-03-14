@@ -94,7 +94,8 @@ export default defineComponent({
       getProduct: 'product/getProduct',
       getPOItemAccepted: 'order/getPOItemAccepted',
       order: 'order/getCurrent',
-      productIdentificationPref: 'user/getProductIdentificationPref'
+      productIdentificationPref: 'user/getProductIdentificationPref',
+      purchaseOrders: 'order/getPurchaseOrders'
     })
   },
   props: ['isEligibileForCreatingShipment'],
@@ -125,6 +126,7 @@ export default defineComponent({
     async updatePOItemStatus() {
       // Shipment can only be created if quantity is specified for atleast one PO item.
       // In some cases we don't need to create shipment instead directly need to close PO items.
+
       if(this.isEligibileForCreatingShipment) {
         const eligibleItemsForShipment = this.order.items.filter((item: any) => item.quantityAccepted > 0)
         await this.store.dispatch('order/createPurchaseShipment', { items: eligibleItemsForShipment, orderId: this.order.orderId })
@@ -137,10 +139,41 @@ export default defineComponent({
           orderItemSeqId: item.orderItemSeqId,
           statusId: "ITEM_COMPLETED"
         })
+        return item.orderItemSeqId
       }))
       const failedItemsCount = responses.filter((response) => response.status === 'rejected').length
       if(failedItemsCount){
         console.error('Failed to update the status of purchase order items.')
+      }
+
+      const completedItems = responses.filter((response) => response.status === 'fulfilled')?.map((response: any) => response.value)
+
+      if(!completedItems.length) return;
+
+      this.order.items.map((item: any) => {
+        if(completedItems.includes(item.orderItemSeqId)) {
+          item.orderItemStatusId = "ITEM_COMPLETED"
+        }
+      })
+      this.store.dispatch("order/updateCurrentOrder", this.order)
+
+      if(this.purchaseOrders.length) {
+        let purchaseOrders = JSON.parse(JSON.stringify(this.purchaseOrders))
+        const currentOrder = purchaseOrders.find((purchaseOrder: any) => purchaseOrder.groupValue === this.order.orderId)
+        let isPOCompleted = true;
+
+        currentOrder.doclist.docs.map((item: any) => {
+          if(completedItems.includes(item.orderItemSeqId)) {
+            item.orderItemStatusId = "ITEM_COMPLETED"
+          } else if(item.orderItemStatusId !== "ITEM_COMPLETED" || item.orderItemStatusId !== "ITEM_REJECTED") {
+            isPOCompleted = false
+          }
+        })
+
+        if(isPOCompleted) {
+          purchaseOrders = purchaseOrders.filter((purchaseOrder: any) => purchaseOrder.groupValue !== currentOrder.groupValue)
+        }
+        this.store.dispatch("order/updatePurchaseOrders", { purchaseOrders })
       }
     },
     isEligibleToClosePOItems() {
