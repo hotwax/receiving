@@ -164,7 +164,7 @@ export default defineComponent({
         currentOrder.doclist.docs.map((item: any) => {
           if(completedItems.includes(item.orderItemSeqId)) {
             item.orderItemStatusId = "ITEM_COMPLETED"
-          } else if(item.orderItemStatusId !== "ITEM_COMPLETED" || item.orderItemStatusId !== "ITEM_REJECTED") {
+          } else if(item.orderItemStatusId !== "ITEM_COMPLETED" && item.orderItemStatusId !== "ITEM_REJECTED") {
             isPOCompleted = false
           }
         })
