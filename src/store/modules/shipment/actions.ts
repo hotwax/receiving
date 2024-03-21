@@ -50,7 +50,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
       commit(types.SHIPMENT_CURRENT_UPDATED, state);
       showToast(translate("Scanned successfully.", { itemName: payload }))
     } else {
-      showToast(translate("Failed to scan:", { itemName: payload }))
+      showToast(translate("Scanned item is not present within the shipment:", { itemName: payload }))
     }
   },
   async setCurrent ({ commit }, payload) {
