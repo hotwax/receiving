@@ -48,7 +48,7 @@ const actions: ActionTree<OrderState, RootState> = {
       commit(types.ORDER_CURRENT_UPDATED, state.current )
       showToast(translate("Scanned successfully.", { itemName: payload }))
     } else {
-      showToast(translate("Failed to scan:", { itemName: payload }))
+      showToast(translate("Scanned item is not present within the shipment:", { itemName: payload }))
     }
   },
   async addOrderItem ({ commit }, payload) {
