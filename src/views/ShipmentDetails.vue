@@ -243,9 +243,37 @@ export default defineComponent({
         }
       })
     },
-    updateProductCount(payload: any){
+    async updateProductCount(payload: any){
       if(this.queryString) payload = this.queryString
-      this.store.dispatch('shipment/updateShipmentProductCount', payload)
+
+      if(!payload) {
+        showToast(translate("Please provide a valid SKU."))
+        return;
+      }
+      const result = await this.store.dispatch('shipment/updateShipmentProductCount', payload)
+
+      if (result.isProductFound) {
+        showToast(translate("Scanned successfully.", { itemName: payload }))
+      } else {
+        showToast(translate("Scanned item is not present within the shipment:", { itemName: payload }), {
+          buttons: [{
+            text: translate('Add'),
+            handler: async () => {
+              const modal = await modalController.create({
+                component: AddProductModal,
+                componentProps: { selectedSKU: payload }
+              })
+
+              modal.onDidDismiss().then(() => {
+                this.store.dispatch('product/clearSearchedProducts')
+              })
+
+              return modal.present();
+            }
+          }],
+          duration: 5000
+        })
+      }
     },
     async scanCode () {
       const modal = await modalController

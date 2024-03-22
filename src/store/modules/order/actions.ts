@@ -46,10 +46,10 @@ const actions: ActionTree<OrderState, RootState> = {
     if (item) {
       item.quantityAccepted = item.quantityAccepted ? parseInt(item.quantityAccepted) + 1 : 1;
       commit(types.ORDER_CURRENT_UPDATED, state.current )
-      showToast(translate("Scanned successfully.", { itemName: payload }))
-    } else {
-      showToast(translate("Scanned item is not present within the shipment:", { itemName: payload }))
+      return { isProductFound: true }
     }
+
+    return { isProductFound: false }
   },
   async addOrderItem ({ commit }, payload) {
     const product = { 

@@ -11,14 +11,28 @@ const hasError = (response: any) => {
   return typeof response.data != "object" || !!response.data._ERROR_MESSAGE_ || !!response.data._ERROR_MESSAGE_LIST_ || !!response.data.error;
 }
 
-const showToast = async (message: string) => {
-  const toast = await toastController
-    .create({
-      message,
-      duration: 3000,
-      position: 'bottom',
-    })
-  return toast.present();
+const showToast = async (message: string, options?: any) => {
+  const config = {
+    message,
+    ...options
+  } as any;
+
+  if(!options?.position) config.position = 'bottom';
+
+  if(options?.canDismiss) {
+    config.buttons = [
+      {
+        text: translate('Dismiss'),
+        role: 'cancel',
+      },
+    ]
+  }
+
+  if(!options?.manualDismiss && !options?.duration) config.duration = 3000;
+
+  const toast = await toastController.create(config)
+  // present toast if manual dismiss is not needed
+  return !options?.manualDismiss ? toast.present() : toast
 }
 
 const copyToClipboard = async (value: string, text?: string) => {
