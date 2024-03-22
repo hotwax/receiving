@@ -60,6 +60,7 @@
   "Password": "Password",
   "Pending: item": "Pending: {itemsCount} item",
   "Pending: items": "Pending: {itemsCount} items",
+  "Please provide a valid SKU.": "Please provide a valid SKU.",
   "primary identifier": "primary identifier",
   "Primary Product Identifier": "Primary Product Identifier",
   "Proceed": "Proceed",

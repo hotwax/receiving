@@ -258,6 +258,11 @@ export default defineComponent({
       return modal.present();
     },
     async updateProductCount(payload: any) {
+      if(!payload) {
+        showToast(translate("Please provide a valid SKU."))
+        return;
+      }
+
       if(this.queryString) payload = this.queryString
       const result = await this.store.dispatch('order/updateProductCount', payload)
 

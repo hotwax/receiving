@@ -244,6 +244,11 @@ export default defineComponent({
       })
     },
     async updateProductCount(payload: any){
+      if(!payload) {
+        showToast(translate("Please provide a valid SKU."))
+        return;
+      }
+
       if(this.queryString) payload = this.queryString
       const result = await this.store.dispatch('shipment/updateShipmentProductCount', payload)
 
