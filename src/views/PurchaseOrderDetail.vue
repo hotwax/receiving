@@ -190,6 +190,7 @@ import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
 import { copyToClipboard, hasError, productHelpers } from '@/utils';
 import { Actions, hasPermission } from '@/authorization'
+import { showToast } from '@/utils';
 
 export default defineComponent({
   name: "PurchaseOrderDetails",
@@ -258,7 +259,30 @@ export default defineComponent({
     },
     async updateProductCount(payload: any) {
       if(this.queryString) payload = this.queryString
-      this.store.dispatch('order/updateProductCount', payload)
+      const result = await this.store.dispatch('order/updateProductCount', payload)
+
+      if(result.isUpdated) {
+        showToast(translate("Scanned successfully.", { itemName: result.itemName }))
+      } else {
+        showToast(translate("Scanned item is not present within the shipment:", { itemName: result.itemName }), {
+          buttons: [{
+            text: translate('Add'),
+            handler: async() => {
+              const modal = await modalController.create({
+                component: AddProductToPOModal,
+                componentProps: { selectedSKU: result.itemName }
+              })
+
+              modal.onDidDismiss().then(() => {
+                this.store.dispatch('product/clearSearchedProducts');
+              })
+
+              return modal.present();
+            }
+          }],
+          duration: 5000
+        })
+      }
     },
     getPOItems(orderType: string) {
       if(orderType === 'completed'){

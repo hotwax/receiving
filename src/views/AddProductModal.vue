@@ -85,9 +85,10 @@ export default defineComponent({
   },
   data() {
     return {
-      queryString: ''
+      queryString: this.selectedSKU
     }
   },
+  props: ["selectedSKU"],
   computed: {
     ...mapGetters({
       products: 'product/getProducts',
@@ -97,6 +98,9 @@ export default defineComponent({
       currentFacility: 'user/getCurrentFacility',
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId'
     })
+  },
+  mounted() {
+    if(this.selectedSKU) this.getProducts()
   },
   methods: {
     async getProducts( vSize?: any, vIndex?: any) {
