@@ -188,9 +188,8 @@ import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
 import ClosePurchaseOrderModal from '@/components/ClosePurchaseOrderModal.vue'
 import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
-import { copyToClipboard, hasError, productHelpers } from '@/utils';
+import { copyToClipboard, hasError, productHelpers, showToast } from '@/utils';
 import { Actions, hasPermission } from '@/authorization'
-import { showToast } from '@/utils';
 
 export default defineComponent({
   name: "PurchaseOrderDetails",
