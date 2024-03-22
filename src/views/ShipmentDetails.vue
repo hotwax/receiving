@@ -244,24 +244,24 @@ export default defineComponent({
       })
     },
     async updateProductCount(payload: any){
+      if(this.queryString) payload = this.queryString
+
       if(!payload) {
         showToast(translate("Please provide a valid SKU."))
         return;
       }
-
-      if(this.queryString) payload = this.queryString
       const result = await this.store.dispatch('shipment/updateShipmentProductCount', payload)
 
       if(result.isUpdated) {
-        showToast(translate("Scanned successfully.", { itemName: result.itemName }))
+        showToast(translate("Scanned successfully.", { itemName: payload }))
       } else {
-        showToast(translate("Scanned item is not present within the shipment:", { itemName: result.itemName }), {
+        showToast(translate("Scanned item is not present within the shipment:", { itemName: payload }), {
           buttons: [{
             text: translate('Add'),
             handler: async () => {
               const modal = await modalController.create({
                 component: AddProductModal,
-                componentProps: { selectedSKU: result.itemName }
+                componentProps: { selectedSKU: payload }
               })
 
               modal.onDidDismiss().then(() => {
