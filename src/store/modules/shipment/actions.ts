@@ -48,10 +48,10 @@ const actions: ActionTree<ShipmentState, RootState> = {
     if (item) {
       item.quantityAccepted = item.quantityAccepted ? parseInt(item.quantityAccepted) + 1 : 1;
       commit(types.SHIPMENT_CURRENT_UPDATED, state);
-      return { isUpdated: true }
+      return { isProductFound: true }
     }
 
-    return { isUpdated: false }
+    return { isProductFound: false }
   },
   async setCurrent ({ commit }, payload) {
     let resp;

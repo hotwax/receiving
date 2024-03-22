@@ -265,7 +265,7 @@ export default defineComponent({
       }
       const result = await this.store.dispatch('order/updateProductCount', payload)
 
-      if(result.isUpdated) {
+      if (result.isProductFound) {
         showToast(translate("Scanned successfully.", { itemName: payload }))
       } else {
         showToast(translate("Scanned item is not present within the shipment:", { itemName: payload }), {

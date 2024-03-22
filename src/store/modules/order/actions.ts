@@ -46,10 +46,10 @@ const actions: ActionTree<OrderState, RootState> = {
     if (item) {
       item.quantityAccepted = item.quantityAccepted ? parseInt(item.quantityAccepted) + 1 : 1;
       commit(types.ORDER_CURRENT_UPDATED, state.current )
-      return { isUpdated: true }
+      return { isProductFound: true }
     }
 
-    return { isUpdated: false }
+    return { isProductFound: false }
   },
   async addOrderItem ({ commit }, payload) {
     const product = { 
