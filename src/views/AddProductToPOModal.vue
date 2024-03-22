@@ -84,7 +84,7 @@ export default defineComponent({
   },
   data() {
     return {
-      queryString: this.selectedSKU
+      queryString: this.selectedSKU ? this.selectedSKU : ''
     }
   },
   props: ["selectedSKU"],
