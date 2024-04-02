@@ -154,7 +154,7 @@ export default defineComponent({
       } as any
     }
   },
-  async mounted() {
+  async ionViewWillEnter() {
     const current = await this.store.dispatch('return/setCurrent', { shipmentId: this.$route.params.id })
 
     if(!this.isReturnReceivable(current.statusId)) {
