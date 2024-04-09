@@ -48,7 +48,7 @@
           </ion-label>
         </ion-item>
 
-        <ion-card v-for="(item, index) in getPOItems('pending')" v-show="item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED'" :key="index" :class="getProduct(item.productId).sku === lastScannedId ? 'scanned-item' : '' " :id="getProduct(item.productId).sku">
+        <ion-card v-for="(item, index) in getPOItems('pending')" v-show="item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED'" :key="index" :class="item.internalName === lastScannedId ? 'scanned-item' : '' " :id="item.internalName">
           <div  class="product">
             <div class="product-info">
               <ion-item lines="none">
