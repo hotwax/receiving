@@ -40,20 +40,6 @@ const getUserProfile = async (token: any): Promise<any> => {
     return Promise.reject(error)
   }
 }
-const getAvailableTimeZones = async (): Promise <any>  => {
-  return api({
-    url: "getAvailableTimeZones",
-    method: "get",
-    cache: true
-  });
-}
-const setUserTimeZone = async (payload: any): Promise <any>  => {
-  return api({
-    url: "setUserTimeZone",
-    method: "post",
-    data: payload
-  });
-}
 
 const getFacilityLocations = async (payload: any): Promise<any> => {
   return api({
@@ -227,10 +213,8 @@ const getUserPermissions = async (payload: any, token: any): Promise<any> => {
 
 export const UserService = {
     login,
-    getAvailableTimeZones,
     getUserProfile,
     getUserPermissions,
-    setUserTimeZone,
     getFacilityLocations,
     getEComStores,
     getProductIdentificationPref,
