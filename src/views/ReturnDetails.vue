@@ -25,7 +25,7 @@
   
         <div class="scanner">
           <ion-item>
-            <ion-input :label="translate('Scan items')" autofocus :placeholder="translate('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount($event)" />
+            <ion-input :label="translate('Scan items')" autofocus :placeholder="translate('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()" />
           </ion-item>
 
           <ion-button expand="block" fill="outline" @click="scanCode()">
@@ -245,11 +245,7 @@ export default defineComponent({
         }
       })
     },
-    async updateProductCount(event: any, payload?: any){
-      if(event && event.target.value) {
-        payload = event.target.value
-      }
-
+    async updateProductCount(payload?: any){
       if(this.queryString) payload = this.queryString
       // if not a valid status, skip updating the qunatity
       if(!this.isReturnReceivable(this.current.statusId)) return;
@@ -279,7 +275,7 @@ export default defineComponent({
         modal.onDidDismiss()
         .then((result) => {
           if(result.role) {
-            this.updateProductCount(null, result.role);
+            this.updateProductCount(result.role);
           }
       });
       return modal.present();
