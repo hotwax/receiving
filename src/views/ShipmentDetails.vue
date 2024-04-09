@@ -31,7 +31,7 @@
           </ion-button>
         </div>
 
-        <ion-card v-for="item in current.items" :key="item.id">
+        <ion-card v-for="item in current.items" :key="item.id" :class="item.sku === lastScannedId ? 'scanned-item' : ''" :id="item.sku">
           <div class="product">
             <div class="product-info">
               <ion-item lines="none">
@@ -152,7 +152,8 @@ export default defineComponent({
   props: ["shipment"],
   data() {
     return {
-      queryString: ''
+      queryString: '',
+      lastScannedId: ''
     }
   },
   mounted() {
@@ -258,6 +259,14 @@ export default defineComponent({
 
       if (result.isProductFound) {
         showToast(translate("Scanned successfully.", { itemName: payload }))
+        this.lastScannedId = result.item.sku
+        const scannedElement = document.getElementById(result.item.sku);
+        scannedElement && (scannedElement.scrollIntoView());
+
+        // Scanned product should get un-highlighted after 3s for better experience hence adding setTimeOut
+        setTimeout(() => {
+          this.lastScannedId = ''
+        }, 3000)
       } else {
         showToast(translate("Scanned item is not present within the shipment:", { itemName: payload }), {
           buttons: [{
@@ -327,5 +336,9 @@ ion-thumbnail {
 
 .border-top {
   border-top: 1px solid #ccc;
+}
+
+.scanned-item {
+  outline: 2px solid var( --ion-color-medium-tint);
 }
 </style>
