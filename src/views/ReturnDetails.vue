@@ -33,7 +33,7 @@
           </ion-button>
         </div>
 
-        <ion-card v-for="item in current.items" :key="item.id">
+        <ion-card v-for="item in current.items" :key="item.id" :class="item.sku === lastScannedId ? 'scanned-item' : ''" :id="item.sku">
           <div class="product">
             <div class="product-info">
               <ion-item lines="none">
@@ -151,7 +151,8 @@ export default defineComponent({
         'Cancelled': 'danger',
         'Shipped': 'medium',
         'Created': 'medium'
-      } as any
+      } as any,
+      lastScannedId: ''
     }
   },
   async ionViewWillEnter() {
@@ -244,11 +245,26 @@ export default defineComponent({
         }
       })
     },
-    updateProductCount(payload?: any){
+    async updateProductCount(payload?: any){
       if(this.queryString) payload = this.queryString
       // if not a valid status, skip updating the qunatity
       if(!this.isReturnReceivable(this.current.statusId)) return;
-      this.store.dispatch('return/updateReturnProductCount', payload)
+
+      const result = await this.store.dispatch('return/updateReturnProductCount', payload)
+
+      if(result.isProductFound) {
+        showToast(translate("Scanned successfully.", { itemName: payload }))
+        this.lastScannedId = payload
+        const scannedElement = document.getElementById(payload);
+        scannedElement && (scannedElement.scrollIntoView());
+
+        // Scanned product should get un-highlighted after 3s for better experience hence adding setTimeOut
+        setTimeout(() => {
+          this.lastScannedId = ''
+        }, 3000)
+      } else {
+        showToast(translate("Scanned item is not present within the shipment:", { itemName: payload }))
+      }
     },
     async scanCode () {
       const modal = await modalController
@@ -286,6 +302,10 @@ export default defineComponent({
 <style scoped>
   ion-thumbnail {
     cursor: pointer;
+  }
+
+  .scanned-item {
+    outline: 2px solid var( --ion-color-medium-tint);
   }
 </style>
   
