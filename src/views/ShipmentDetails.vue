@@ -31,7 +31,7 @@
           </ion-button>
         </div>
 
-        <ion-card v-for="item in current.items" :key="item.id">
+        <ion-card v-for="item in current.items" :key="item.id" :class="item.sku === lastScannedId ? 'scanned-item' : ''" :id="item.sku">
           <div class="product">
             <div class="product-info">
               <ion-item lines="none">
@@ -152,7 +152,8 @@ export default defineComponent({
   props: ["shipment"],
   data() {
     return {
-      queryString: ''
+      queryString: '',
+      lastScannedId: ''
     }
   },
   mounted() {
@@ -252,8 +253,16 @@ export default defineComponent({
       }
       const result = await this.store.dispatch('shipment/updateShipmentProductCount', payload)
 
-      if (result.isProductFound) {
+      if(result.isProductFound) {
         showToast(translate("Scanned successfully.", { itemName: payload }))
+        this.lastScannedId = payload
+        const scannedElement = document.getElementById(payload);
+        scannedElement && (scannedElement.scrollIntoView());
+
+        // Scanned product should get un-highlighted after 3s for better experience hence adding setTimeOut
+        setTimeout(() => {
+          this.lastScannedId = ''
+        }, 3000)
       } else {
         showToast(translate("Scanned item is not present within the shipment:", { itemName: payload }), {
           buttons: [{
@@ -274,6 +283,7 @@ export default defineComponent({
           duration: 5000
         })
       }
+      this.queryString = ''
     },
     async scanCode () {
       const modal = await modalController
@@ -322,5 +332,13 @@ ion-thumbnail {
 
 .border-top {
   border-top: 1px solid #ccc;
+}
+
+.scanned-item {
+  /*
+    Todo: used outline for highliting items for now, need to use border
+    Done this because currently ion-item inside ion-card is not inheriting highlighted background property.
+  */
+  outline: 2px solid var( --ion-color-medium-tint);
 }
 </style>

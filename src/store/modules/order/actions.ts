@@ -44,6 +44,8 @@ const actions: ActionTree<OrderState, RootState> = {
     const item = state.current.items.find((item: any) => item.internalName === payload);
 
     if (item) {
+      if(item.orderItemStatusId === 'ITEM_COMPLETED') return { isCompleted: true }
+
       item.quantityAccepted = item.quantityAccepted ? parseInt(item.quantityAccepted) + 1 : 1;
       commit(types.ORDER_CURRENT_UPDATED, state.current )
       return { isProductFound: true }

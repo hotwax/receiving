@@ -38,10 +38,10 @@ const actions: ActionTree<ReturnState, RootState> = {
     if (item) {
       item.quantityAccepted = item.quantityAccepted ? parseInt(item.quantityAccepted) + 1 : 1;
       commit(types.RETURN_CURRENT_UPDATED, state);
-      showToast(translate("Scanned successfully.", { itemName: payload }))
-    } else {
-      showToast(translate("Scanned item is not present within the shipment:", { itemName: payload }))
+      return { isProductFound: true }
     }
+
+    return { isProductFound: false }
   },
   async setCurrent ({ commit, state }, payload) {
     let resp;
