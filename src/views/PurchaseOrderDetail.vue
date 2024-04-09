@@ -31,7 +31,7 @@
 
         <div class="scanner">
           <ion-item>
-            <ion-input :label="translate('Scan items')" label-placement="fixed" autofocus :placeholder="translate('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()" />
+            <ion-input :label="translate('Scan items')" label-placement="fixed" autofocus :placeholder="translate('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount($event)" />
           </ion-item>
           <ion-button expand="block" fill="outline" @click="scan">
             <ion-icon slot="start" :icon="cameraOutline" />
@@ -252,12 +252,16 @@ export default defineComponent({
       modal.onDidDismiss()
       .then((result) => {
         if (result.role) {
-          this.updateProductCount(result.role);
+          this.updateProductCount(null, result.role);
         }
       })
       return modal.present();
     },
-    async updateProductCount(payload: any) {
+    async updateProductCount(event: any, payload: any) {
+      if(event && event.target.value) {
+        payload = event.target.value
+      }
+
       if(this.queryString) payload = this.queryString
 
       if(!payload) {
@@ -299,6 +303,7 @@ export default defineComponent({
           duration: 5000
         })
       }
+      this.queryString = ''
     },
     getPOItems(orderType: string) {
       if(orderType === 'completed'){
