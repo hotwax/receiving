@@ -443,6 +443,10 @@ ion-thumbnail {
 } 
 
 .scanned-item {
+  /*
+    Todo: used outline for highliting items for now, need to use border
+    Done this because currently ion-item inside ion-card is not inheriting highlighted background property.
+  */
   outline: 2px solid var( --ion-color-medium-tint);
 }
 
