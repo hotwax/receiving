@@ -48,7 +48,7 @@
           </ion-label>
         </ion-item>
 
-        <ion-card v-for="(item, index) in getPOItems('pending')" v-show="item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED'" :key="index">
+        <ion-card v-for="(item, index) in getPOItems('pending')" v-show="item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED'" :key="index" :class="getProduct(item.productId).sku === lastScannedId ? 'scanned-item' : '' " :id="getProduct(item.productId).sku">
           <div  class="product">
             <div class="product-info">
               <ion-item lines="none">
@@ -219,7 +219,8 @@ export default defineComponent({
   data() {
     return {
       queryString: '',
-      showCompletedItems: false
+      showCompletedItems: false,
+      lastScannedId: ''
     }
   },
   computed: {
@@ -265,8 +266,19 @@ export default defineComponent({
       }
       const result = await this.store.dispatch('order/updateProductCount', payload)
 
-      if (result.isProductFound) {
+      if(result.isCompleted) {
+        showToast(translate("Scanned item is already completed."))
+      } else if(result.isProductFound) {
         showToast(translate("Scanned successfully.", { itemName: payload }))
+        this.lastScannedId = payload
+        // Highlight specific element
+        const scannedElement = document.getElementById(payload);
+        scannedElement && (scannedElement.scrollIntoView());
+
+        // Scanned product should get un-highlighted after 3s for better experience hence adding setTimeOut
+        setTimeout(() => {
+          this.lastScannedId = ''
+        }, 3000)
       } else {
         showToast(translate("Scanned item is not present within the shipment:", { itemName: payload }), {
           buttons: [{
@@ -428,6 +440,10 @@ export default defineComponent({
 ion-thumbnail {
   cursor: pointer;
 } 
+
+.scanned-item {
+  outline: 2px solid var( --ion-color-medium-tint);
+}
 
 @media (min-width: 720px) {
   .doc-id {

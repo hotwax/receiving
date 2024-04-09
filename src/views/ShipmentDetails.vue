@@ -257,10 +257,10 @@ export default defineComponent({
       }
       const result = await this.store.dispatch('shipment/updateShipmentProductCount', payload)
 
-      if (result.isProductFound) {
+      if(result.isProductFound) {
         showToast(translate("Scanned successfully.", { itemName: payload }))
-        this.lastScannedId = result.item.sku
-        const scannedElement = document.getElementById(result.item.sku);
+        this.lastScannedId = payload
+        const scannedElement = document.getElementById(payload);
         scannedElement && (scannedElement.scrollIntoView());
 
         // Scanned product should get un-highlighted after 3s for better experience hence adding setTimeOut
