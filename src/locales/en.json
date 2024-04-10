@@ -68,6 +68,7 @@
   "Proceed": "Proceed",
   "Product Identifier": "Product Identifier",
   "Product identifier preference updated": "Product identifier preference updated",
+  "Product is already received:": "Product is already received: {itemName}",
   "Purchase Order": "Purchase Order",
   "Purchase Order Details": "Purchase Order Details",
   "Purchase Orders": "Purchase Orders",
