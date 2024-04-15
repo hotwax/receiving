@@ -1,6 +1,0 @@
----
-title: 'Fixed: the issue of ion-input field by using the exact version 6.0.1 of ionic'
-ticket_id: "#220mkyq"
-merge_request: 50
-author: Yash Maheshwari
-type: fixed
