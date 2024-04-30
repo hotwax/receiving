@@ -20,8 +20,8 @@
           </ion-thumbnail>
           <ion-label>
             <!-- Honouring the identifications set by the user on the settings page -->
-            <h2>{{ product[productIdentificationPref.primaryId] }}</h2>
-            <p>{{ product[productIdentificationPref.secondaryId] }}</p>
+            <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(product.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(product.productId)) : getProduct(product.productId).productName }}</h2>
+            <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(product.productId)) }}</p>
           </ion-label>
           <ion-icon v-if="isProductAvailableInShipment(product.productId)" color="success" :icon="checkmarkCircle" />
           <ion-button v-else fill="outline" @click="addtoShipment(product)">{{ translate("Add to Shipment") }}</ion-button>
@@ -69,7 +69,7 @@ import { defineComponent } from 'vue';
 import { closeOutline, checkmarkCircle } from 'ionicons/icons';
 import { mapGetters } from 'vuex'
 import { useStore } from "@/store";
-import { DxpShopifyImg, translate } from '@hotwax/dxp-components';
+import { DxpShopifyImg, translate, getProductIdentificationValue } from '@hotwax/dxp-components';
 import { showToast } from '@/utils'
 
 export default defineComponent({
@@ -101,6 +101,7 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       products: 'product/getProducts',
+      getProduct: 'product/getProduct',
       isScrollable: 'product/isScrollable',
       isProductAvailableInShipment: 'product/isProductAvailableInShipment',
       productIdentificationPref: 'user/getProductIdentificationPref',
@@ -172,7 +173,8 @@ export default defineComponent({
       closeOutline,
       checkmarkCircle,
       store,
-      translate
+      translate,
+      getProductIdentificationValue
     };
   },
 });
