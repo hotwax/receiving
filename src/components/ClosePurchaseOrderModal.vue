@@ -23,8 +23,8 @@
           <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
         </ion-thumbnail>
         <ion-label>
-          <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
-          <p>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+          <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
+          <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
         </ion-label>
         <ion-buttons>
           <ion-checkbox aria-label="itemStatus" slot="end" :modelValue="isPOItemStatusPending(item) ? item.isChecked : true" :disabled="isPOItemStatusPending(item) ? false : true" />
@@ -65,8 +65,7 @@ import { closeOutline, checkmarkCircle, arrowBackOutline, saveOutline } from 'io
 import { defineComponent } from 'vue';
 import { mapGetters, useStore } from 'vuex'
 import { OrderService } from "@/services/OrderService";
-import { productHelpers } from '@/utils';
-import { DxpShopifyImg, translate } from '@hotwax/dxp-components';
+import { DxpShopifyImg, translate, getProductIdentificationValue } from '@hotwax/dxp-components';
 import { useRouter } from 'vue-router';
 
 export default defineComponent({
@@ -215,11 +214,11 @@ export default defineComponent({
       checkmarkCircle,
       hasPermission,
       OrderService,
-      productHelpers,
       router,
       saveOutline,
       store,
-      translate
+      translate,
+      getProductIdentificationValue
     };
   }
 });

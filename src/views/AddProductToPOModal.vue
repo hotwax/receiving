@@ -19,8 +19,8 @@
           </ion-thumbnail>
           <ion-label>
             <!-- Honouring the identifications set by the user on the settings page -->
-            <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(product.productId)) }}</h2>
-            <p>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(product.productId)) }}</p>
+            <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(product.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(product.productId)) : getProduct(product.productId).productName }}</h2>
+            <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(product.productId)) }}</p>
           </ion-label>
           <ion-icon v-if="isProductAvailableInOrder(product.productId)" color="success" :icon="checkmarkCircle" />
           <ion-button v-else fill="outline" @click="addtoOrder(product)">{{ translate("Add to Purchase Order") }}</ion-button>
@@ -60,8 +60,8 @@ import { defineComponent } from 'vue';
 import { closeOutline, checkmarkCircle } from 'ionicons/icons';
 import { mapGetters } from 'vuex'
 import { useStore } from "@/store";
-import { DxpShopifyImg, translate } from '@hotwax/dxp-components';
-import { showToast, productHelpers } from '@/utils'
+import { DxpShopifyImg, translate, getProductIdentificationValue } from '@hotwax/dxp-components';
+import { showToast } from '@/utils'
 
 export default defineComponent({
   name: "Modal",
@@ -165,7 +165,7 @@ export default defineComponent({
       checkmarkCircle,
       store,
       translate,
-      productHelpers
+      getProductIdentificationValue,
     };
   },
 });
