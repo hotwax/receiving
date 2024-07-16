@@ -68,14 +68,14 @@
 
             <div class="product-count">
               <ion-item>
-                <ion-input :label="translate('Qty')" label-placement="floating" type="number" value="0" min="0" v-model="item.quantityAccepted" />
+                <ion-input :label="translate('Qty')" label-placement="floating" type="number" value="0" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" />
               </ion-item>
             </div>
           </div>
 
           <div class="action border-top" v-if="item.quantity > 0">
             <div class="receive-all-qty">
-              <ion-button @click="receiveAll(item)" slot="start" size="small" fill="outline">
+              <ion-button @click="receiveAll(item)" :disabled="isForceScanEnabled" slot="start" size="small" fill="outline">
                 {{ translate("Receive All") }}
               </ion-button>
             </div>
@@ -230,7 +230,8 @@ export default defineComponent({
       getPOItemAccepted: 'order/getPOItemAccepted',
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
       currentFacility: 'user/getCurrentFacility',
-      productIdentificationPref: 'user/getProductIdentificationPref'
+      productIdentificationPref: 'user/getProductIdentificationPref',
+      isForceScanEnabled: 'util/isForceScanEnabled',
     })
   },
   methods: {

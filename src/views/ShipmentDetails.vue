@@ -55,7 +55,7 @@
 
             <div class="product-count">
               <ion-item v-if="!isShipmentReceived()">
-                <ion-input :label="translate('Qty')" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" />
+                <ion-input :label="translate('Qty')" :disabled="isForceScanEnabled" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" />
               </ion-item>
               <div v-else>
                 <ion-item lines="none">
@@ -67,7 +67,7 @@
           </div>
 
           <ion-item lines="none" class="border-top" v-if="item.quantityOrdered > 0 && !isShipmentReceived()">
-            <ion-button @click="receiveAll(item)" slot="start" fill="outline">
+            <ion-button @click="receiveAll(item)" :disabled="isForceScanEnabled" slot="start" fill="outline">
               {{ translate("Receive All") }}
             </ion-button>
 
@@ -166,7 +166,8 @@ export default defineComponent({
       getProduct: 'product/getProduct',
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
       currentFacility: 'user/getCurrentFacility',
-      productIdentificationPref: 'user/getProductIdentificationPref'
+      productIdentificationPref: 'user/getProductIdentificationPref',
+      isForceScanEnabled: 'util/isForceScanEnabled',
     }),
   },
   methods: {

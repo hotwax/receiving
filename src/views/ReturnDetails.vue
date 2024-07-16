@@ -56,7 +56,7 @@
 
             <div class="product-count">
               <ion-item v-if="isReturnReceivable(current.statusId)">
-                <ion-input :label="translate('Qty')" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" />
+                <ion-input :label="translate('Qty')" :disabled="isForceScanEnabled" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" />
               </ion-item>
               <ion-item v-if="!isReturnReceivable(current.statusId)" lines="none">
                 <ion-label>{{ item.quantityAccepted }} {{ translate("received") }}</ion-label>
@@ -65,7 +65,7 @@
           </div>
   
           <ion-item lines="none" class="border-top" v-if="item.quantityOrdered > 0">
-            <ion-button v-if="isReturnReceivable(current.statusId)" @click="receiveAll(item)" slot="start" fill="outline">
+            <ion-button v-if="isReturnReceivable(current.statusId)" :disabled="isForceScanEnabled" @click="receiveAll(item)" slot="start" fill="outline">
               {{ translate("Receive All") }}
             </ion-button>
             <ion-progress-bar :color="getRcvdToOrdrdFraction(item) === 1 ? 'success' : getRcvdToOrdrdFraction(item) > 1 ? 'danger' : 'primary'" :value="getRcvdToOrdrdFraction(item)" />
@@ -171,7 +171,8 @@ export default defineComponent({
       returns: 'return/getReturns',
       validStatusChange: 'return/isReturnReceivable',
       isReturnReceivable: 'return/isReturnReceivable',
-      productIdentificationPref: 'user/getProductIdentificationPref'
+      productIdentificationPref: 'user/getProductIdentificationPref',
+      isForceScanEnabled: 'util/isForceScanEnabled',
     }),
   },
   methods: {
