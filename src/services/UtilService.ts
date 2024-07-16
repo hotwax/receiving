@@ -1,6 +1,5 @@
 import { api, hasError } from '@/adapter';
 
-
 const fetchStatus = async (payload: any): Promise<any> => {
   return api({
     url: "/performFind",
