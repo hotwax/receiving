@@ -97,7 +97,7 @@
             <ion-toggle label-placement="start" :checked="isForceScanEnabled" @click.prevent="updateForceScanStatus($event)">{{ translate("Require scanning") }}</ion-toggle>
           </ion-item>
           <ion-item lines="none">
-            <ion-select :label="translate('Barcode Identifier')" interface="popover" :placeholder="translate('Primary identifier')" :value="barcodeIdentificationPref" @ionChange="setBarcodeIdentificationPref($event.detail.value)">
+            <ion-select :label="translate('Barcode Identifier')" interface="popover" :placeholder="translate('Select')" :value="barcodeIdentificationPref" @ionChange="setBarcodeIdentificationPref($event.detail.value)">
               <ion-select-option v-for="identification in productIdentifications" :key="identification">{{ identification }}</ion-select-option>
             </ion-select>
           </ion-item>

@@ -248,7 +248,7 @@ const actions: ActionTree<UtilState, RootState> = {
 
     // when selecting none as ecom store, not updating the pref as it's not possible to save pref with empty productStoreId
     if(!eComStoreId) {
-      showToast(translate("Unable to update force scan preference."))
+      showToast(translate("Unable to update barcode identification preference."))
       commit(types.UTIL_BARCODE_IDENTIFICATION_PREF_UPDATED, prefValue)
       return;
     }
@@ -268,13 +268,13 @@ const actions: ActionTree<UtilState, RootState> = {
       const resp = await UtilService.updateBarcodeIdentificationPref(params) as any
 
       if((!hasError(resp))) {
-        showToast(translate("Force scan preference updated successfully."))
+        showToast(translate("Barcode identification preference updated successfully."))
         prefValue = value
       } else {
         throw resp.data;
       }
     } catch(err) {
-      showToast(translate("Failed to update force scan preference."))
+      showToast(translate("Failed to update barcode identification preference."))
       console.error(err)
     }
     commit(types.UTIL_BARCODE_IDENTIFICATION_PREF_UPDATED, prefValue)
