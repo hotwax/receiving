@@ -8,6 +8,9 @@ const getters: GetterTree <UtilState, RootState> = {
   },
   getProductIdentifications: (state) => {
     return state.productIdentifications
+  },
+  isForceScanEnabled(state) {
+    return state.isForceScanEnabled
   }
 }
 export default getters;

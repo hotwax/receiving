@@ -83,13 +83,27 @@
           </ion-item>
         </ion-card>
         <DxpTimeZoneSwitcher @timeZoneUpdated="timeZoneUpdated" />
+
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>
+              {{ translate("Force scan") }}
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            {{ translate("Only allow received quantity to be incremented by scanning the barcode of products.") }}
+          </ion-card-content>
+          <ion-item lines="none" >
+            <ion-toggle label-placement="start" :checked="isForceScanEnabled" @click.prevent="updateForceScanStatus($event)">{{ translate("Require scanning") }}</ion-toggle>
+          </ion-item>
+        </ion-card>
       </section>
     </ion-content>
   </ion-page>
 </template>
 
 <script lang="ts">
-import { alertController, IonAvatar, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader,IonIcon, IonItem, IonMenuButton, IonPage, IonSelect, IonSelectOption, IonTitle, IonToolbar } from '@ionic/vue';
+import { alertController, IonAvatar, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader,IonIcon, IonItem, IonMenuButton, IonPage, IonSelect, IonSelectOption, IonTitle, IonToggle, IonToolbar } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { codeWorkingOutline, ellipsisVertical, openOutline, saveOutline, globeOutline, personCircleOutline, storefrontOutline} from 'ionicons/icons'
 import { mapGetters, useStore } from 'vuex';
@@ -118,6 +132,7 @@ export default defineComponent({
     IonSelect, 
     IonSelectOption,
     IonTitle, 
+    IonToggle,
     IonToolbar,
     Image
   },
@@ -135,7 +150,8 @@ export default defineComponent({
       currentFacility: 'user/getCurrentFacility',
       currentEComStore: 'user/getCurrentEComStore',
       productIdentifications: 'util/getProductIdentifications',
-      productIdentificationPref: 'user/getProductIdentificationPref'
+      productIdentificationPref: 'user/getProductIdentificationPref',
+      isForceScanEnabled: 'util/isForceScanEnabled'
     })
   },
   mounted() {
@@ -205,7 +221,11 @@ export default defineComponent({
     },
     getDateTime(time: any) {
       return DateTime.fromMillis(time).toLocaleString(DateTime.DATETIME_MED);
-    }
+    },
+    async updateForceScanStatus(event: any) {
+      event.stopImmediatePropagation();
+      this.store.dispatch("util/setForceScanSetting", !this.isForceScanEnabled)
+    },
   },
   setup(){
     const store = useStore();

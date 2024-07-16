@@ -91,7 +91,7 @@ const actions: ActionTree<UserState, RootState> = {
       // TODO: fetch product identifications from enumeration instead of storing it in env
       this.dispatch('util/setProductIdentifications', process.env.VUE_APP_PRDT_IDENT ? JSON.parse(process.env.VUE_APP_PRDT_IDENT) : [])
       dispatch('getProductIdentificationPref', currentEComStore?.productStoreId);
-
+      this.dispatch('util/getForceScanSetting', currentEComStore?.productStoreId);
     } catch (err: any) {
       // If any of the API call in try block has status code other than 2xx it will be handled in common catch block.
       // TODO Check if handling of specific status codes is required.
@@ -136,6 +136,7 @@ const actions: ActionTree<UserState, RootState> = {
     commit(types.USER_END_SESSION)
     this.dispatch('util/setProductIdentifications', [])
     this.dispatch('order/clearPurchaseOrders');
+    this.dispatch('util/updateForceScanStatus', false)
     resetPermissions();
     resetConfig();
 
@@ -161,6 +162,7 @@ const actions: ActionTree<UserState, RootState> = {
       'userPrefValue': payload.eComStore.productStoreId
     });
     await dispatch('getProductIdentificationPref', payload.eComStore.productStoreId);
+    this.dispatch('util/getForceScanSetting', payload.ecomStore.productStoreId)
   },
 
   /**

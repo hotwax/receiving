@@ -9,7 +9,8 @@ const utilModule: Module<UtilState, RootState> = {
     namespaced: true,
     state: {
       status: {},
-      productIdentifications: []
+      productIdentifications: [],
+      isForceScanEnabled: false
     },
     getters,
     actions,
