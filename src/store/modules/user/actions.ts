@@ -92,6 +92,7 @@ const actions: ActionTree<UserState, RootState> = {
       this.dispatch('util/setProductIdentifications', process.env.VUE_APP_PRDT_IDENT ? JSON.parse(process.env.VUE_APP_PRDT_IDENT) : [])
       dispatch('getProductIdentificationPref', currentEComStore?.productStoreId);
       this.dispatch('util/getForceScanSetting', currentEComStore?.productStoreId);
+      this.dispatch('util/getBarcodeIdentificationPref', currentEComStore?.productStoreId);
     } catch (err: any) {
       // If any of the API call in try block has status code other than 2xx it will be handled in common catch block.
       // TODO Check if handling of specific status codes is required.
@@ -137,6 +138,7 @@ const actions: ActionTree<UserState, RootState> = {
     this.dispatch('util/setProductIdentifications', [])
     this.dispatch('order/clearPurchaseOrders');
     this.dispatch('util/updateForceScanStatus', false)
+    this.dispatch('util/updateBarcodeIdentificationPref', "")
     resetPermissions();
     resetConfig();
 
@@ -163,6 +165,7 @@ const actions: ActionTree<UserState, RootState> = {
     });
     await dispatch('getProductIdentificationPref', payload.eComStore.productStoreId);
     this.dispatch('util/getForceScanSetting', payload.ecomStore.productStoreId)
+    this.dispatch('util/getBarcodeIdentificationPref', payload.ecomStore.productStoreId)
   },
 
   /**

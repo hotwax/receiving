@@ -93,8 +93,13 @@
           <ion-card-content>
             {{ translate("Only allow received quantity to be incremented by scanning the barcode of products.") }}
           </ion-card-content>
-          <ion-item lines="none" >
+          <ion-item>
             <ion-toggle label-placement="start" :checked="isForceScanEnabled" @click.prevent="updateForceScanStatus($event)">{{ translate("Require scanning") }}</ion-toggle>
+          </ion-item>
+          <ion-item lines="none">
+            <ion-select :label="translate('Barcode Identifier')" interface="popover" :placeholder="translate('Primary identifier')" :value="barcodeIdentificationPref" @ionChange="setBarcodeIdentificationPref($event.detail.value)">
+              <ion-select-option v-for="identification in productIdentifications" :key="identification">{{ identification }}</ion-select-option>
+            </ion-select>
           </ion-item>
         </ion-card>
       </section>
@@ -151,7 +156,8 @@ export default defineComponent({
       currentEComStore: 'user/getCurrentEComStore',
       productIdentifications: 'util/getProductIdentifications',
       productIdentificationPref: 'user/getProductIdentificationPref',
-      isForceScanEnabled: 'util/isForceScanEnabled'
+      isForceScanEnabled: 'util/isForceScanEnabled',
+      barcodeIdentificationPref: 'util/getBarcodeIdentificationPref'
     })
   },
   mounted() {
@@ -218,6 +224,13 @@ export default defineComponent({
         return;
       }
       this.store.dispatch('user/setProductIdentificationPref', { id, value })
+    },
+    setBarcodeIdentificationPref(value: string) {
+      // Not dispatching an action if the value for id is same as saved in state
+      if(this.barcodeIdentificationPref == value) {
+        return;
+      }
+      this.store.dispatch('util/setBarcodeIdentificationPref', value)
     },
     getDateTime(time: any) {
       return DateTime.fromMillis(time).toLocaleString(DateTime.DATETIME_MED);

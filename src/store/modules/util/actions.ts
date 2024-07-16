@@ -158,7 +158,133 @@ const actions: ActionTree<UtilState, RootState> = {
     commit(types.UTIL_FORCE_SCAN_STATUS_UPDATED, prefValue)
   },
 
+  async getBarcodeIdentificationPref({ commit, dispatch }, eComStoreId) {
+    const payload = {
+      "inputFields": {
+        "productStoreId": eComStoreId,
+        "settingTypeEnumId": "BARCODE_IDEN_PREF"
+      },
+      "filterByDate": 'Y',
+      "entityName": "ProductStoreSetting",
+      "fieldList": ["settingValue", "fromDate"],
+      "viewSize": 1
+    }
+
+    try {
+      const resp = await UtilService.getProductStoreSetting(payload) as any
+      if(!hasError(resp)) {
+        const respValue = resp.data.docs[0].settingValue
+        commit(types.UTIL_BARCODE_IDENTIFICATION_PREF_UPDATED, respValue)
+      } else {
+        dispatch("cretaBarcodeIdentificationPref");
+      }
+    } catch(err) {
+      console.error(err)
+    }
+  },
+
+  async cretaBarcodeIdentificationPref({ commit }) {
+    const ecomStore = store.getters['user/getCurrentEComStore'];
+    const fromDate = Date.now()
+
+    try {
+      if(!await UtilService.isEnumExists("BARCODE_IDEN_PREF")) {
+        const resp = await UtilService.createEnumeration({
+          "enumId": "BARCODE_IDEN_PREF",
+          "enumTypeId": "PROD_STR_STNG",
+          "description": "Identification preference to be used for scanning items.",
+          "enumName": "Barcode Identification Preference",
+          "enumCode": "BARCODE_IDEN_PREF"
+        })
+
+        if(hasError(resp)) {
+          throw resp.data;
+        }
+      }
+
+      const params = {
+        fromDate,
+        "productStoreId": ecomStore.productStoreId,
+        "settingTypeEnumId": "BARCODE_IDEN_PREF",
+        "settingValue": "productId"
+      }  
+
+      await UtilService.createBarcodeIdentificationPref(params) as any
+    } catch(err) {
+      console.error(err)
+    }
+
+    // not checking for resp success and fail case as every time we need to update the state with the
+    // default value when creating a scan setting
+    commit(types.UTIL_BARCODE_IDENTIFICATION_PREF_UPDATED, "productId")
+    return fromDate;
+  },
+
+  async setBarcodeIdentificationPref({ commit, dispatch, state }, value) {
+    let prefValue = state.barcodeIdentificationPref
+    const eComStoreId = store.getters['user/getCurrentEComStore'].productStoreId;
+
+    let fromDate;
+
+    try {
+      const resp = await UtilService.getProductStoreSetting({
+        "inputFields": {
+          "productStoreId": eComStoreId,
+          "settingTypeEnumId": "BARCODE_IDEN_PREF"
+        },
+        "filterByDate": 'Y',
+        "entityName": "ProductStoreSetting",
+        "fieldList": ["fromDate"],
+        "viewSize": 1
+      }) as any
+      if(!hasError(resp)) {
+        fromDate = resp.data.docs[0]?.fromDate
+        console.log(fromDate);
+        
+      }
+    } catch(err) {
+      console.error(err)
+    }
+
+    // when selecting none as ecom store, not updating the pref as it's not possible to save pref with empty productStoreId
+    if(!eComStoreId) {
+      showToast(translate("Unable to update force scan preference."))
+      commit(types.UTIL_BARCODE_IDENTIFICATION_PREF_UPDATED, prefValue)
+      return;
+    }
+
+    if(!fromDate) {
+      fromDate = await dispatch("createBarcodeIdentificationPref");
+    }
+
+    const params = {
+      "fromDate": fromDate,
+      "productStoreId": eComStoreId,
+      "settingTypeEnumId": "BARCODE_IDEN_PREF",
+      "settingValue": value
+    }
+
+    try {
+      const resp = await UtilService.updateBarcodeIdentificationPref(params) as any
+
+      if((!hasError(resp))) {
+        showToast(translate("Force scan preference updated successfully."))
+        prefValue = value
+      } else {
+        throw resp.data;
+      }
+    } catch(err) {
+      showToast(translate("Failed to update force scan preference."))
+      console.error(err)
+    }
+    commit(types.UTIL_BARCODE_IDENTIFICATION_PREF_UPDATED, prefValue)
+  },
+
   async updateForceScanStatus({ commit }, payload) { 
+    commit(types.UTIL_FORCE_SCAN_STATUS_UPDATED, payload)
+  },
+
+  async updateBarcodeIdentificationPref({ commit }, payload) { 
     commit(types.UTIL_FORCE_SCAN_STATUS_UPDATED, payload)
   }
 }
