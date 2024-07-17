@@ -98,7 +98,8 @@
           </ion-item>
           <ion-item lines="none">
             <ion-select :label="translate('Barcode Identifier')" interface="popover" :placeholder="translate('Select')" :value="barcodeIdentificationPref" @ionChange="setBarcodeIdentificationPref($event.detail.value)">
-              <ion-select-option v-for="identification in productIdentifications" :key="identification">{{ identification }}</ion-select-option>
+              <ion-select-option value="primaryId">{{ translate("Primary identifier") }}</ion-select-option>
+              <ion-select-option value="secondaryId">{{ translate("Secondary identifier") }}</ion-select-option>
             </ion-select>
           </ion-item>
         </ion-card>

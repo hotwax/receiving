@@ -206,7 +206,7 @@ const actions: ActionTree<UtilState, RootState> = {
         fromDate,
         "productStoreId": ecomStore.productStoreId,
         "settingTypeEnumId": "BARCODE_IDEN_PREF",
-        "settingValue": "productId"
+        "settingValue": "primaryId"
       }  
 
       await UtilService.createBarcodeIdentificationPref(params) as any
@@ -216,7 +216,7 @@ const actions: ActionTree<UtilState, RootState> = {
 
     // not checking for resp success and fail case as every time we need to update the state with the
     // default value when creating a scan setting
-    commit(types.UTIL_BARCODE_IDENTIFICATION_PREF_UPDATED, "productId")
+    commit(types.UTIL_BARCODE_IDENTIFICATION_PREF_UPDATED, "primaryId")
     return fromDate;
   },
 

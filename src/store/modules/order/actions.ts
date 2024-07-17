@@ -4,8 +4,9 @@ import RootState from '@/store/RootState'
 import OrderState from './OrderState'
 import * as types from './mutation-types'
 import { hasError, showToast } from '@/utils'
-import { translate } from '@hotwax/dxp-components'
+import { getProductIdentificationValue, translate } from '@hotwax/dxp-components'
 import emitter from "@/event-bus";
+import store from "@/store";
 
 
 const actions: ActionTree<OrderState, RootState> = {
@@ -41,7 +42,13 @@ const actions: ActionTree<OrderState, RootState> = {
     return resp;
   },
   async updateProductCount({ commit, state }, payload ) {
-    const item = state.current.items.find((item: any) => item.internalName === payload);
+    const barcodeIdentifier = store.getters['util/getBarcodeIdentificationValue'];
+    const getProduct = store.getters['product/getProduct'];
+
+    const item = state.current.items.find((item: any) => {
+      const itemVal = barcodeIdentifier ? getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) : item.internalName;
+      return itemVal === payload;
+    });
 
     if (item) {
       if(item.orderItemStatusId === 'ITEM_COMPLETED') return { isCompleted: true }

@@ -1,5 +1,5 @@
 import { GetterTree } from 'vuex'
-import RootState from '@/store/RootState'
+import RootState from '../../RootState'
 import UtilState from './UtilState';
 
 const getters: GetterTree <UtilState, RootState> = {
@@ -14,6 +14,9 @@ const getters: GetterTree <UtilState, RootState> = {
   },
   getBarcodeIdentificationPref(state) {
     return state.barcodeIdentificationPref
+  },
+  getBarcodeIdentificationValue(state, getters, rootState, rootGetters) {
+    return rootGetters['user/getProductIdentificationPref'][state.barcodeIdentificationPref]
   }
 }
 export default getters;
