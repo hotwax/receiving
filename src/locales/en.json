@@ -63,7 +63,7 @@
   "No shipments have been received against this purchase order yet": "No shipments have been received against {lineBreak} this purchase order yet",
   "OMS": "OMS",
   "OMS instance": "OMS instance",
-  "Only allow received quantity to be incremented by scanning the barcode of products.": "Only allow received quantity to be incremented by scanning the barcode of products.",
+  "Only allow received quantity to be incremented by scanning the barcode of products. If the identifier is not found, the scan will default to using the internal name.": "Only allow received quantity to be incremented by scanning the barcode of products. {space} If the identifier is not found, the scan will default to using the internal name.",
   "ordered": "ordered",
   "Orders not found": "Orders not found",
   "Password": "Password",

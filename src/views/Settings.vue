@@ -90,9 +90,7 @@
               {{ translate("Force scan") }}
             </ion-card-title>
           </ion-card-header>
-          <ion-card-content>
-            {{ translate("Only allow received quantity to be incremented by scanning the barcode of products.") }}
-          </ion-card-content>
+          <ion-card-content v-html="barcodeContentMessage"></ion-card-content>
           <ion-item>
             <ion-toggle label-placement="start" :checked="isForceScanEnabled" @click.prevent="updateForceScanStatus($event)">{{ translate("Require scanning") }}</ion-toggle>
           </ion-item>
@@ -147,7 +145,8 @@ export default defineComponent({
       baseURL: process.env.VUE_APP_BASE_URL,
       currentStore: '',
       appInfo: (process.env.VUE_APP_VERSION_INFO ? JSON.parse(process.env.VUE_APP_VERSION_INFO) : {}) as any,
-      appVersion: ""
+      appVersion: "",
+      barcodeContentMessage: translate("Only allow received quantity to be incremented by scanning the barcode of products. If the identifier is not found, the scan will default to using the internal name.", { space: '<br /><br />' })
     };
   },
   computed: {

@@ -239,8 +239,6 @@ const actions: ActionTree<UtilState, RootState> = {
       }) as any
       if(!hasError(resp)) {
         fromDate = resp.data.docs[0]?.fromDate
-        console.log(fromDate);
-        
       }
     } catch(err) {
       console.error(err)
