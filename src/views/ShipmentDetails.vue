@@ -23,8 +23,7 @@
 
         <div class="scanner" v-if="!isShipmentReceived()">
           <ion-item>
-            <ion-label>{{ translate("Scan items") }}</ion-label>
-            <ion-input autofocus :placeholder="translate('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()"></ion-input>
+            <ion-input :label="translate('Scan items')" autofocus :placeholder="translate('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()"></ion-input>
           </ion-item>
 
           <ion-button expand="block" fill="outline" @click="scanCode()">
@@ -32,16 +31,16 @@
           </ion-button>
         </div>
 
-        <ion-card v-for="item in current.items" :key="item.id">
+        <ion-card v-for="item in current.items" :key="item.id" :class="item.sku === lastScannedId ? 'scanned-item' : ''" :id="item.sku">
           <div class="product">
             <div class="product-info">
               <ion-item lines="none">
                 <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
-                  <ShopifyImg :src="getProduct(item.productId).mainImageUrl" />
+                  <DxpShopifyImg :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
-                  <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
-                  <p>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                  <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
+                  <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
                 </ion-label>
               </ion-item>
             </div>
@@ -56,8 +55,7 @@
 
             <div class="product-count">
               <ion-item v-if="!isShipmentReceived()">
-                <ion-label position="floating">{{ translate("Qty") }}</ion-label>
-                <ion-input type="number" min="0" v-model="item.quantityAccepted" />
+                <ion-input :label="translate('Qty')" :disabled="isForceScanEnabled" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" />
               </ion-item>
               <div v-else>
                 <ion-item lines="none">
@@ -69,11 +67,11 @@
           </div>
 
           <ion-item lines="none" class="border-top" v-if="item.quantityOrdered > 0 && !isShipmentReceived()">
-            <ion-button @click="receiveAll(item)" slot="start" fill="outline">
+            <ion-button @click="receiveAll(item)" :disabled="isForceScanEnabled" slot="start" fill="outline">
               {{ translate("Receive All") }}
             </ion-button>
 
-            <ion-progress-bar :color="getRcvdToOrdrdFraction(item) > 1 ? 'danger' : 'primary'" :value="getRcvdToOrdrdFraction(item)" />
+            <ion-progress-bar :color="getRcvdToOrdrdFraction(item) === 1 ? 'success' : getRcvdToOrdrdFraction(item) > 1 ? 'danger' : 'primary'" :value="getRcvdToOrdrdFraction(item)" />
             
             <p slot="end">{{ item.quantityOrdered }} {{ translate("shipped") }}</p>
           </ion-item>
@@ -118,12 +116,12 @@ import { defineComponent } from 'vue';
 import { add, checkmarkDone, cameraOutline, locationOutline } from 'ionicons/icons';
 import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
-import { ShopifyImg, translate } from '@hotwax/dxp-components';
+import { DxpShopifyImg, translate, getProductIdentificationValue } from '@hotwax/dxp-components';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
-import { hasError, productHelpers, showToast } from '@/utils'
+import { hasError, showToast } from '@/utils'
 import { Actions, hasPermission } from '@/authorization'
 
 export default defineComponent({
@@ -147,14 +145,15 @@ export default defineComponent({
     IonThumbnail,
     IonTitle,
     IonToolbar,
-    ShopifyImg,
+    DxpShopifyImg,
     IonChip,
     LocationPopover
   },
   props: ["shipment"],
   data() {
     return {
-      queryString: ''
+      queryString: '',
+      lastScannedId: ''
     }
   },
   mounted() {
@@ -167,7 +166,8 @@ export default defineComponent({
       getProduct: 'product/getProduct',
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
       currentFacility: 'user/getCurrentFacility',
-      productIdentificationPref: 'user/getProductIdentificationPref'
+      productIdentificationPref: 'user/getProductIdentificationPref',
+      isForceScanEnabled: 'util/isForceScanEnabled',
     }),
   },
   methods: {
@@ -245,9 +245,46 @@ export default defineComponent({
         }
       })
     },
-    updateProductCount(payload: any){
+    async updateProductCount(payload: any){
       if(this.queryString) payload = this.queryString
-      this.store.dispatch('shipment/updateShipmentProductCount', payload)
+
+      if(!payload) {
+        showToast(translate("Please provide a valid valid barcode identifier."))
+        return;
+      }
+      const result = await this.store.dispatch('shipment/updateShipmentProductCount', payload)
+
+      if(result.isProductFound) {
+        showToast(translate("Scanned successfully.", { itemName: payload }))
+        this.lastScannedId = payload
+        const scannedElement = document.getElementById(payload);
+        scannedElement && (scannedElement.scrollIntoView());
+
+        // Scanned product should get un-highlighted after 3s for better experience hence adding setTimeOut
+        setTimeout(() => {
+          this.lastScannedId = ''
+        }, 3000)
+      } else {
+        showToast(translate("Scanned item is not present within the shipment:", { itemName: payload }), {
+          buttons: [{
+            text: translate('Add'),
+            handler: async () => {
+              const modal = await modalController.create({
+                component: AddProductModal,
+                componentProps: { selectedSKU: payload }
+              })
+
+              modal.onDidDismiss().then(() => {
+                this.store.dispatch('product/clearSearchedProducts')
+              })
+
+              return modal.present();
+            }
+          }],
+          duration: 5000
+        })
+      }
+      this.queryString = ''
     },
     async scanCode () {
       const modal = await modalController
@@ -275,9 +312,9 @@ export default defineComponent({
       hasPermission,
       locationOutline,
       store,
-      productHelpers,
       router,
-      translate
+      translate,
+      getProductIdentificationValue
     };
   },
 });
@@ -296,5 +333,13 @@ ion-thumbnail {
 
 .border-top {
   border-top: 1px solid #ccc;
+}
+
+.scanned-item {
+  /*
+    Todo: used outline for highliting items for now, need to use border
+    Done this because currently ion-item inside ion-card is not inheriting highlighted background property.
+  */
+  outline: 2px solid var( --ion-color-medium-tint);
 }
 </style>

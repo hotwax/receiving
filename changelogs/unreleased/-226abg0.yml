@@ -1,6 +1,0 @@
----
-title: 'Improved: solr-query to pass the facilityId for getting POs'
-ticket_id: "#226abg0"
-merge_request: 63
-author: Yash Maheshwari
-type: fixed

@@ -24,7 +24,7 @@ const state: any = {
 }
 
 const persistState = createPersistedState({
-    paths: ['user', 'return.validStatusChange', 'util.productIdentifications'],
+    paths: ['user', 'return.validStatusChange', 'util.productIdentifications', 'util.isForceScanEnabled', 'util.barcodeIdentificationPref'],
     fetchBeforeUse: true
 })
 

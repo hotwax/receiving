@@ -4,8 +4,9 @@ import RootState from '@/store/RootState'
 import ShipmentState from './ShipmentState'
 import * as types from './mutation-types'
 import { hasError, showToast } from '@/utils'
-import { translate } from '@hotwax/dxp-components'
+import { getProductIdentificationValue, translate } from '@hotwax/dxp-components'
 import emitter from '@/event-bus'
+import store from "@/store";
 
 const actions: ActionTree<ShipmentState, RootState> = {
   async findShipment ({ commit, state }, payload) {
@@ -43,15 +44,21 @@ const actions: ActionTree<ShipmentState, RootState> = {
   },
 
   async updateShipmentProductCount ({ commit, state }, payload) {
-    const item = state.current.items.find((item: any) => item.sku === payload);
+    const barcodeIdentifier = store.getters['util/getBarcodeIdentificationValue'];
+    const getProduct = store.getters['product/getProduct'];
+
+    const item = state.current.items.find((item: any) => {
+      const itemVal = barcodeIdentifier ? getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) : item.internalName;
+      return itemVal === payload;
+    });
 
     if (item) {
       item.quantityAccepted = item.quantityAccepted ? parseInt(item.quantityAccepted) + 1 : 1;
       commit(types.SHIPMENT_CURRENT_UPDATED, state);
-      showToast(translate("Scanned successfully.", { itemName: payload }))
-    } else {
-      showToast(translate("Failed to scan:", { itemName: payload }))
+      return { isProductFound: true }
     }
+
+    return { isProductFound: false }
   },
   async setCurrent ({ commit }, payload) {
     let resp;
@@ -153,9 +160,16 @@ const actions: ActionTree<ShipmentState, RootState> = {
       locationSeqId: product.locationSeqId
     }
     const resp = await ShipmentService.addShipmentItem(params);
-    if(resp.status == 200 && !hasError(resp)){
+    if(resp.status == 200 && !hasError(resp) && resp.data.shipmentId && resp.data.shipmentItemSeqId) {
       dispatch('updateProductCount', { shipmentId: resp.data.shipmentId })
-      if (!payload.shipmentId) commit(types.SHIPMENT_CURRENT_PRODUCT_ADDED, product)
+      if (!payload.shipmentId) {
+        // When adding item to a shipment from details page, then adding the shipmentItemSeqId to item level, as we do not generate shipmentItemSeqId app side,
+        // when adding an item to shipment
+        commit(types.SHIPMENT_CURRENT_PRODUCT_ADDED, {
+          ...product,
+          itemSeqId: resp.data.shipmentItemSeqId
+        })
+      }
       return resp;
     } else {
       showToast(translate('Something went wrong'));

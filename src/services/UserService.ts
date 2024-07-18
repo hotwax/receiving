@@ -13,8 +13,7 @@ const login = async (username: string, password: string): Promise <any> => {
 }
 
 const checkPermission = async (payload: any): Promise <any>  => {
-  let baseURL = store.getters['user/getInstanceUrl'];
-  baseURL = baseURL && baseURL.startsWith('http') ? baseURL : `https://${baseURL}.hotwax.io/api/`;
+  const baseURL = store.getters['user/getBaseUrl'];
   return client({
     url: "checkPermission",
     method: "post",
@@ -40,20 +39,6 @@ const getUserProfile = async (token: any): Promise<any> => {
   } catch(error: any) {
     return Promise.reject(error)
   }
-}
-const getAvailableTimeZones = async (): Promise <any>  => {
-  return api({
-    url: "getAvailableTimeZones",
-    method: "get",
-    cache: true
-  });
-}
-const setUserTimeZone = async (payload: any): Promise <any>  => {
-  return api({
-    url: "setUserTimeZone",
-    method: "post",
-    data: payload
-  });
 }
 
 const getFacilityLocations = async (payload: any): Promise<any> => {
@@ -228,10 +213,8 @@ const getUserPermissions = async (payload: any, token: any): Promise<any> => {
 
 export const UserService = {
     login,
-    getAvailableTimeZones,
     getUserProfile,
     getUserPermissions,
-    setUserTimeZone,
     getFacilityLocations,
     getEComStores,
     getProductIdentificationPref,

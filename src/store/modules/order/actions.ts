@@ -4,8 +4,9 @@ import RootState from '@/store/RootState'
 import OrderState from './OrderState'
 import * as types from './mutation-types'
 import { hasError, showToast } from '@/utils'
-import { translate } from '@hotwax/dxp-components'
+import { getProductIdentificationValue, translate } from '@hotwax/dxp-components'
 import emitter from "@/event-bus";
+import store from "@/store";
 
 
 const actions: ActionTree<OrderState, RootState> = {
@@ -41,15 +42,23 @@ const actions: ActionTree<OrderState, RootState> = {
     return resp;
   },
   async updateProductCount({ commit, state }, payload ) {
-    const item = state.current.items.find((item: any) => item.internalName === payload);
+    const barcodeIdentifier = store.getters['util/getBarcodeIdentificationValue'];
+    const getProduct = store.getters['product/getProduct'];
+
+    const item = state.current.items.find((item: any) => {
+      const itemVal = barcodeIdentifier ? getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) : item.internalName;
+      return itemVal === payload;
+    });
 
     if (item) {
+      if(item.orderItemStatusId === 'ITEM_COMPLETED') return { isCompleted: true }
+
       item.quantityAccepted = item.quantityAccepted ? parseInt(item.quantityAccepted) + 1 : 1;
       commit(types.ORDER_CURRENT_UPDATED, state.current )
-      showToast(translate("Scanned successfully.", { itemName: payload }))
-    } else {
-      showToast(translate("Failed to scan:", { itemName: payload }))
+      return { isProductFound: true }
     }
+
+    return { isProductFound: false }
   },
   async addOrderItem ({ commit }, payload) {
     const product = { 
@@ -71,7 +80,7 @@ const actions: ActionTree<OrderState, RootState> = {
       return orders.some((order: any) => {
         if (order.doclist.docs[0]?.orderId === orderId) {
           this.dispatch('product/fetchProductInformation',  { order: order.doclist.docs });
-          commit(types.ORDER_CURRENT_UPDATED, { ...state.current, orderId: order.doclist.docs[0]?.orderId, externalOrderId: order.doclist.docs[0]?.externalOrderId, orderStatusId: order.doclist.docs[0]?.orderStatusId, orderStatusDesc: order.doclist.docs[0]?.orderStatusDesc, items: order.doclist.docs })
+          commit(types.ORDER_CURRENT_UPDATED, { ...state.current, orderId: order.doclist.docs[0]?.orderId, externalOrderId: order.doclist.docs[0]?.externalOrderId, orderStatusId: order.doclist.docs[0]?.orderStatusId, orderStatusDesc: order.doclist.docs[0]?.orderStatusDesc, items: JSON.parse(JSON.stringify(order.doclist.docs)) })
           return current;
         }
       })
@@ -209,10 +218,19 @@ const actions: ActionTree<OrderState, RootState> = {
     }
     commit(types.ORDER_CURRENT_UPDATED, state.current)
   },
+  updateCurrentOrder({ commit }, payload) {
+    commit(types.ORDER_CURRENT_UPDATED, payload)
+  },
   clearPurchaseOrders({commit}){
     commit(types.ORDER_PRCHS_ORDRS_UPDATED, {
       list: [],
       total: 0
+    })
+  },
+  updatePurchaseOrders({commit, state}, payload){
+    commit(types.ORDER_PRCHS_ORDRS_UPDATED, {
+      list: payload.purchaseOrders,
+      total: payload.total ? payload.total : state.purchaseOrders.total
     })
   }
 }

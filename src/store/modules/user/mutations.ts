@@ -33,6 +33,10 @@ const mutations: MutationTree <UserState> = {
     },
     [types.USER_PERMISSIONS_UPDATED] (state, payload) {
         state.permissions = payload
+    },
+    [types.USER_PWA_STATE_UPDATED](state, payload) {
+        state.pwaState.registration = payload.registration;
+        state.pwaState.updateExists = payload.updateExists;
     }
 }
 export default mutations;

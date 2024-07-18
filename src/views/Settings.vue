@@ -36,7 +36,7 @@
         <h1>{{ translate('OMS') }}</h1>
       </div>
       <section>
-        <OmsInstanceNavigator />
+        <DxpOmsInstanceNavigator />
 
         <ion-card>
           <ion-card-header>
@@ -48,8 +48,7 @@
             {{ translate('Specify which facility you want to operate from. Order, inventory and other configuration data will be specific to the facility you select.') }}
           </ion-card-content>
           <ion-item lines="none">
-            <ion-label>{{ translate("Select facility") }}</ion-label>
-            <ion-select interface="popover" :value="currentFacility.facilityId" @ionChange="setFacility($event)">
+            <ion-select :label="translate('Select facility')" interface="popover" :value="currentFacility.facilityId" @ionChange="setFacility($event)">
               <ion-select-option v-for="facility in (userProfile ? userProfile.facilities : [])" :key="facility.facilityId" :value="facility.facilityId" >{{ facility.facilityName }}</ion-select-option>
             </ion-select>
           </ion-item>
@@ -57,13 +56,8 @@
       </section>
       <hr />
 
-      <div class="section-header">
-        <h1>
-          {{ translate('App') }}
-          <p class="overline" >{{ "Version: " + appVersion }}</p>
-        </h1>
-        <p class="overline">{{ "Built: " + getDateTime(appInfo.builtTime) }}</p>
-      </div>
+      <DxpAppVersionInfo />
+
       <section>
         <ion-card>
           <ion-card-header>
@@ -77,31 +71,34 @@
           </ion-card-content>
 
           <ion-item>
-            <ion-label>{{ translate("Primary Product Identifier") }}</ion-label>
-            <ion-select :disabled="!hasPermission(Actions.APP_PRODUCT_IDENTIFIER_UPDATE) || !currentEComStore?.productStoreId" interface="popover" :placeholder="translate('primary identifier')" :value="productIdentificationPref.primaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'primaryId')">
+            <ion-select :label="translate('Primary Product Identifier')" :disabled="!hasPermission(Actions.APP_PRODUCT_IDENTIFIER_UPDATE) || !currentEComStore?.productStoreId" interface="popover" :placeholder="translate('primary identifier')" :value="productIdentificationPref.primaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'primaryId')">
               <ion-select-option v-for="identification in productIdentifications" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
             </ion-select>
           </ion-item>
           <ion-item>
-            <ion-label>{{ translate("Secondary Product Identifier") }}</ion-label>
-            <ion-select :disabled="!hasPermission(Actions.APP_PRODUCT_IDENTIFIER_UPDATE) || !currentEComStore?.productStoreId" interface="popover" :placeholder="translate('secondary identifier')" :value="productIdentificationPref.secondaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'secondaryId')">
+            <ion-select :label="translate('Secondary Product Identifier')" :disabled="!hasPermission(Actions.APP_PRODUCT_IDENTIFIER_UPDATE) || !currentEComStore?.productStoreId" interface="popover" :placeholder="translate('secondary identifier')" :value="productIdentificationPref.secondaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'secondaryId')">
               <ion-select-option v-for="identification in productIdentifications" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
               <ion-select-option value="">{{ translate("None") }}</ion-select-option>
             </ion-select>
           </ion-item>
         </ion-card>
+        <DxpTimeZoneSwitcher @timeZoneUpdated="timeZoneUpdated" />
+
         <ion-card>
           <ion-card-header>
             <ion-card-title>
-              {{ translate('Timezone') }}
+              {{ translate("Force scan") }}
             </ion-card-title>
           </ion-card-header>
-          <ion-card-content>
-            {{ translate('The timezone you select is used to ensure automations you schedule are always accurate to the time you select.') }}
-          </ion-card-content>
+          <ion-card-content v-html="barcodeContentMessage"></ion-card-content>
+          <ion-item>
+            <ion-toggle label-placement="start" :checked="isForceScanEnabled" @click.prevent="updateForceScanStatus($event)">{{ translate("Require scanning") }}</ion-toggle>
+          </ion-item>
           <ion-item lines="none">
-            <ion-label> {{ userProfile && userProfile.userTimeZone ? userProfile.userTimeZone : '-' }} </ion-label>
-            <ion-button @click="changeTimeZone()" slot="end" fill="outline" color="dark">{{ translate("Change") }}</ion-button>
+            <ion-select :label="translate('Barcode Identifier')" interface="popover" :placeholder="translate('Select')" :value="barcodeIdentificationPref" @ionChange="setBarcodeIdentificationPref($event.detail.value)">
+              <ion-select-option value="primaryId">{{ translate("Primary identifier") }}</ion-select-option>
+              <ion-select-option value="secondaryId">{{ translate("Secondary identifier") }}</ion-select-option>
+            </ion-select>
           </ion-item>
         </ion-card>
       </section>
@@ -110,14 +107,13 @@
 </template>
 
 <script lang="ts">
-import { alertController, IonAvatar, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader,IonIcon, IonItem, IonLabel, IonMenuButton, IonPage, IonSelect, IonSelectOption, IonTitle, IonToolbar, modalController } from '@ionic/vue';
+import { alertController, IonAvatar, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader,IonIcon, IonItem, IonMenuButton, IonPage, IonSelect, IonSelectOption, IonTitle, IonToggle, IonToolbar } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { codeWorkingOutline, ellipsisVertical, openOutline, saveOutline, globeOutline, personCircleOutline, storefrontOutline} from 'ionicons/icons'
 import { mapGetters, useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import Image from '@/components/Image.vue'
 import { DateTime } from 'luxon';
-import TimeZoneModal from '@/views/TimezoneModal.vue';
 import { Actions, hasPermission } from '@/authorization';
 import { translate } from "@hotwax/dxp-components"
 
@@ -135,12 +131,12 @@ export default defineComponent({
     IonHeader, 
     IonIcon,
     IonItem, 
-    IonLabel,
     IonMenuButton,
     IonPage, 
     IonSelect, 
     IonSelectOption,
     IonTitle, 
+    IonToggle,
     IonToolbar,
     Image
   },
@@ -149,7 +145,8 @@ export default defineComponent({
       baseURL: process.env.VUE_APP_BASE_URL,
       currentStore: '',
       appInfo: (process.env.VUE_APP_VERSION_INFO ? JSON.parse(process.env.VUE_APP_VERSION_INFO) : {}) as any,
-      appVersion: ""
+      appVersion: "",
+      barcodeContentMessage: translate("Only allow received quantity to be incremented by scanning the barcode of products. If the identifier is not found, the scan will default to using the internal name.", { space: '<br /><br />' })
     };
   },
   computed: {
@@ -158,18 +155,17 @@ export default defineComponent({
       currentFacility: 'user/getCurrentFacility',
       currentEComStore: 'user/getCurrentEComStore',
       productIdentifications: 'util/getProductIdentifications',
-      productIdentificationPref: 'user/getProductIdentificationPref'
+      productIdentificationPref: 'user/getProductIdentificationPref',
+      isForceScanEnabled: 'util/isForceScanEnabled',
+      barcodeIdentificationPref: 'util/getBarcodeIdentificationPref'
     })
   },
   mounted() {
     this.appVersion = this.appInfo.branch ? (this.appInfo.branch + "-" + this.appInfo.revision) : this.appInfo.tag;
   },
   methods: {
-    async changeTimeZone() {
-      const timeZoneModal = await modalController.create({
-        component: TimeZoneModal,
-      });
-      return timeZoneModal.present();
+    async timeZoneUpdated(tzId: string) {
+      await this.store.dispatch("user/setUserTimeZone", tzId)
     },
     setFacility (facility: any) {
       // Checking if current facility is not equal to the facility selected to avoid extra api call on logging in again after logout.
@@ -229,9 +225,16 @@ export default defineComponent({
       }
       this.store.dispatch('user/setProductIdentificationPref', { id, value })
     },
+    setBarcodeIdentificationPref(value: string) {
+      this.store.dispatch('util/setBarcodeIdentificationPref', value)
+    },
     getDateTime(time: any) {
       return DateTime.fromMillis(time).toLocaleString(DateTime.DATETIME_MED);
-    }
+    },
+    async updateForceScanStatus(event: any) {
+      event.stopImmediatePropagation();
+      this.store.dispatch("util/setForceScanSetting", !this.isForceScanEnabled)
+    },
   },
   setup(){
     const store = useStore();

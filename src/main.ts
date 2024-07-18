@@ -32,12 +32,13 @@ import permissionRules from '@/authorization/Rules';
 import permissionActions from '@/authorization/Actions';
 import { dxpComponents } from '@hotwax/dxp-components'
 import { login, logout, loader } from './user-utils';
-import { getConfig, initialise } from '@/adapter'
+import { getConfig, initialise, setUserTimeZone, getAvailableTimeZones } from '@/adapter'
 import localeMessages from './locales';
 
 const app = createApp(App)
   .use(IonicVue, {
-    mode: 'md'
+    mode: 'md',
+    innerHTMLTemplatesEnabled: true // added this entry to enable html support inside alert, and toast
   })
   .use(router)
   .use(store)
@@ -53,7 +54,9 @@ const app = createApp(App)
     appLoginUrl: process.env.VUE_APP_LOGIN_URL as string,
     getConfig,
     initialise,
-    localeMessages
+    localeMessages,
+    setUserTimeZone,
+    getAvailableTimeZones
   });
 
 // Filters are removed in Vue 3 and global filter introduced https://v3.vuejs.org/guide/migration/filters.html#global-filters
@@ -68,7 +71,7 @@ app.config.globalProperties.$filters = {
     // TODO Use Loxon instead
     // TODO Make default format configurable and from environment variables
     const userProfile = store.getters['user/getUserProfile'];
-    // TODO Fix this setDefault should set the default timezone instead of getting it everytiem and setting the tz
+    // TODO Fix this setDefault should set the default timezone instead of getting it everytime and setting the tz
     return DateTime.fromISO(value, { zone: "utc" }).setZone(userProfile.userTimeZone).toFormat(outFormat ? outFormat : 'MM-dd-yyyy')
   },
   getFeature(featureHierarchy: any, featureKey: string) {

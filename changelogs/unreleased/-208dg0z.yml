@@ -1,7 +1,0 @@
----
-title: Improved code by replacing h6 with ion-note for displaying date in PO list
-  item
-ticket_id: "#208dg0z"
-merge_request: 57
-author: Azkya Khan
-type: changed

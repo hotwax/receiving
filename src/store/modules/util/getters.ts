@@ -8,6 +8,15 @@ const getters: GetterTree <UtilState, RootState> = {
   },
   getProductIdentifications: (state) => {
     return state.productIdentifications
+  },
+  isForceScanEnabled(state) {
+    return state.isForceScanEnabled
+  },
+  getBarcodeIdentificationPref(state) {
+    return state.barcodeIdentificationPref
+  },
+  getBarcodeIdentificationValue(state, getters, rootState, rootGetters) {
+    return rootGetters['user/getProductIdentificationPref'][state.barcodeIdentificationPref]
   }
 }
 export default getters;

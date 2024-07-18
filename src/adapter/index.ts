@@ -1,4 +1,5 @@
-import { api, client, getConfig, getUserFacilities, hasError, initialise, logout, resetConfig, updateInstanceUrl, updateToken } from '@hotwax/oms-api'
+import { api, client, getConfig, getUserFacilities, hasError, initialise, logout, resetConfig, updateInstanceUrl, updateToken, setUserTimeZone,
+  getAvailableTimeZones } from '@hotwax/oms-api'
 
 export {
   api,
@@ -10,5 +11,7 @@ export {
   logout,
   resetConfig,
   updateInstanceUrl,
-  updateToken
+  updateToken,
+  setUserTimeZone,
+  getAvailableTimeZones
 }
