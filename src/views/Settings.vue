@@ -226,10 +226,6 @@ export default defineComponent({
       this.store.dispatch('user/setProductIdentificationPref', { id, value })
     },
     setBarcodeIdentificationPref(value: string) {
-      // Not dispatching an action if the value for id is same as saved in state
-      if(this.barcodeIdentificationPref == value) {
-        return;
-      }
       this.store.dispatch('util/setBarcodeIdentificationPref', value)
     },
     getDateTime(time: any) {

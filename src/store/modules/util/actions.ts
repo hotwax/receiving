@@ -1,11 +1,10 @@
 import { ActionTree } from 'vuex'
 import RootState from '@/store/RootState'
 import * as types from './mutation-types'
-import { hasError } from '@/utils'
+import { hasError, showToast } from '@/utils'
 import UtilState from './UtilState'
 import { UtilService } from '@/services/UtilService'
 import store from '@/store';
-import { showToast } from '@/utils'
 import { translate } from '@hotwax/dxp-components'
 
 const actions: ActionTree<UtilState, RootState> = {
@@ -283,7 +282,7 @@ const actions: ActionTree<UtilState, RootState> = {
   },
 
   async updateBarcodeIdentificationPref({ commit }, payload) { 
-    commit(types.UTIL_FORCE_SCAN_STATUS_UPDATED, payload)
+    commit(types.UTIL_BARCODE_IDENTIFICATION_PREF_UPDATED, payload)
   }
 }
 
