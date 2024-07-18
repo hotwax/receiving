@@ -297,8 +297,7 @@ export default defineComponent({
       router,
       translate,
       getProductIdentificationValue,
-      productIdentificationPref,
-
+      productIdentificationPref
     };
   },
 });

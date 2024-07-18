@@ -113,8 +113,7 @@ export default defineComponent({
       currentFacility: 'user/getCurrentFacility',
       currentEComStore: 'user/getCurrentEComStore',
       productIdentifications: 'util/getProductIdentifications',
-      productIdentificationPref: 'user/getProductIdentificationPref',
-      instanceUrl: 'user/getInstanceUrl'
+      productIdentificationPref: 'user/getProductIdentificationPref'
     })
   },
   mounted() {
@@ -174,6 +173,13 @@ export default defineComponent({
     },
     goToLaunchpad() {
       window.location.href = `${process.env.VUE_APP_LOGIN_URL}`
+    },
+    setProductIdentificationPref(value: string, id: string) {
+      // Not dispatching an action if the value for id is same as saved in state
+      if(this.productIdentificationPref[id] == value) {
+        return;
+      }
+      this.store.dispatch('user/setProductIdentificationPref', { id, value })
     },
     getDateTime(time: any) {
       return DateTime.fromMillis(time).toLocaleString(DateTime.DATETIME_MED);
