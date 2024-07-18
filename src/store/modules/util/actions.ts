@@ -55,7 +55,7 @@ const actions: ActionTree<UtilState, RootState> = {
     const payload = {
       "inputFields": {
         "productStoreId": eComStoreId,
-        "settingTypeEnumId": "FULFILL_FORCE_SCAN"
+        "settingTypeEnumId": "RECEIVE_FORCE_SCAN"
       },
       "filterByDate": 'Y',
       "entityName": "ProductStoreSetting",
@@ -80,14 +80,28 @@ const actions: ActionTree<UtilState, RootState> = {
     const ecomStore = store.getters['user/getCurrentEComStore'];
     const fromDate = Date.now()
 
-    const params = {
-      fromDate,
-      "productStoreId": ecomStore.productStoreId,
-      "settingTypeEnumId": "FULFILL_FORCE_SCAN",
-      "settingValue": "false"
-    }
-
     try {
+      if(!await UtilService.isEnumExists("RECEIVE_FORCE_SCAN")) {
+        const resp = await UtilService.createEnumeration({
+          "enumId": "RECEIVE_FORCE_SCAN",
+          "enumTypeId": "PROD_STR_STNG",
+          "description": "	Impose force scanning of items while packing from receiving app",
+          "enumName": "Receiving Force Scan",
+          "enumCode": "RECEIVE_FORCE_SCAN"
+        })
+
+        if(hasError(resp)) {
+          throw resp.data;
+        }
+      }
+
+      const params = {
+        fromDate,
+        "productStoreId": ecomStore.productStoreId,
+        "settingTypeEnumId": "RECEIVE_FORCE_SCAN",
+        "settingValue": "false"
+      }
+
       await UtilService.createForceScanSetting(params) as any
     } catch(err) {
       console.error(err)
@@ -109,7 +123,7 @@ const actions: ActionTree<UtilState, RootState> = {
       const resp = await UtilService.getProductStoreSetting({
         "inputFields": {
           "productStoreId": eComStoreId,
-          "settingTypeEnumId": "FULFILL_FORCE_SCAN"
+          "settingTypeEnumId": "RECEIVE_FORCE_SCAN"
         },
         "filterByDate": 'Y',
         "entityName": "ProductStoreSetting",
@@ -137,7 +151,7 @@ const actions: ActionTree<UtilState, RootState> = {
     const params = {
       "fromDate": fromDate,
       "productStoreId": eComStoreId,
-      "settingTypeEnumId": "FULFILL_FORCE_SCAN",
+      "settingTypeEnumId": "RECEIVE_FORCE_SCAN",
       "settingValue": `${value}`
     }
 
