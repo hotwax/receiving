@@ -8,6 +8,12 @@ const mutations: MutationTree <UtilState> = {
   },
   [types.UTIL_PRODUCT_IDENT_UPDATED](state, payload) {
     state.productIdentifications = payload
+  },
+  [types.UTIL_FORCE_SCAN_STATUS_UPDATED](state, payload) {
+    state.isForceScanEnabled = payload
+  },
+  [types.UTIL_BARCODE_IDENTIFICATION_PREF_UPDATED](state, payload) {
+    state.barcodeIdentificationPref = payload
   }
 }
 export default mutations;

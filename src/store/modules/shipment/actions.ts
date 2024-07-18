@@ -4,8 +4,9 @@ import RootState from '@/store/RootState'
 import ShipmentState from './ShipmentState'
 import * as types from './mutation-types'
 import { hasError, showToast } from '@/utils'
-import { translate } from '@hotwax/dxp-components'
+import { getProductIdentificationValue, translate } from '@hotwax/dxp-components'
 import emitter from '@/event-bus'
+import store from "@/store";
 
 const actions: ActionTree<ShipmentState, RootState> = {
   async findShipment ({ commit, state }, payload) {
@@ -43,7 +44,13 @@ const actions: ActionTree<ShipmentState, RootState> = {
   },
 
   async updateShipmentProductCount ({ commit, state }, payload) {
-    const item = state.current.items.find((item: any) => item.sku === payload);
+    const barcodeIdentifier = store.getters['util/getBarcodeIdentificationValue'];
+    const getProduct = store.getters['product/getProduct'];
+
+    const item = state.current.items.find((item: any) => {
+      const itemVal = barcodeIdentifier ? getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) : item.internalName;
+      return itemVal === payload;
+    });
 
     if (item) {
       item.quantityAccepted = item.quantityAccepted ? parseInt(item.quantityAccepted) + 1 : 1;

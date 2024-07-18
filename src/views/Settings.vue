@@ -83,13 +83,31 @@
           </ion-item>
         </ion-card>
         <DxpTimeZoneSwitcher @timeZoneUpdated="timeZoneUpdated" />
+
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>
+              {{ translate("Force scan") }}
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content v-html="barcodeContentMessage"></ion-card-content>
+          <ion-item>
+            <ion-toggle label-placement="start" :checked="isForceScanEnabled" @click.prevent="updateForceScanStatus($event)">{{ translate("Require scanning") }}</ion-toggle>
+          </ion-item>
+          <ion-item lines="none">
+            <ion-select :label="translate('Barcode Identifier')" interface="popover" :placeholder="translate('Select')" :value="barcodeIdentificationPref" @ionChange="setBarcodeIdentificationPref($event.detail.value)">
+              <ion-select-option value="primaryId">{{ translate("Primary identifier") }}</ion-select-option>
+              <ion-select-option value="secondaryId">{{ translate("Secondary identifier") }}</ion-select-option>
+            </ion-select>
+          </ion-item>
+        </ion-card>
       </section>
     </ion-content>
   </ion-page>
 </template>
 
 <script lang="ts">
-import { alertController, IonAvatar, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader,IonIcon, IonItem, IonMenuButton, IonPage, IonSelect, IonSelectOption, IonTitle, IonToolbar } from '@ionic/vue';
+import { alertController, IonAvatar, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader,IonIcon, IonItem, IonMenuButton, IonPage, IonSelect, IonSelectOption, IonTitle, IonToggle, IonToolbar } from '@ionic/vue';
 import { defineComponent } from 'vue';
 import { codeWorkingOutline, ellipsisVertical, openOutline, saveOutline, globeOutline, personCircleOutline, storefrontOutline} from 'ionicons/icons'
 import { mapGetters, useStore } from 'vuex';
@@ -118,6 +136,7 @@ export default defineComponent({
     IonSelect, 
     IonSelectOption,
     IonTitle, 
+    IonToggle,
     IonToolbar,
     Image
   },
@@ -126,7 +145,8 @@ export default defineComponent({
       baseURL: process.env.VUE_APP_BASE_URL,
       currentStore: '',
       appInfo: (process.env.VUE_APP_VERSION_INFO ? JSON.parse(process.env.VUE_APP_VERSION_INFO) : {}) as any,
-      appVersion: ""
+      appVersion: "",
+      barcodeContentMessage: translate("Only allow received quantity to be incremented by scanning the barcode of products. If the identifier is not found, the scan will default to using the internal name.", { space: '<br /><br />' })
     };
   },
   computed: {
@@ -135,7 +155,9 @@ export default defineComponent({
       currentFacility: 'user/getCurrentFacility',
       currentEComStore: 'user/getCurrentEComStore',
       productIdentifications: 'util/getProductIdentifications',
-      productIdentificationPref: 'user/getProductIdentificationPref'
+      productIdentificationPref: 'user/getProductIdentificationPref',
+      isForceScanEnabled: 'util/isForceScanEnabled',
+      barcodeIdentificationPref: 'util/getBarcodeIdentificationPref'
     })
   },
   mounted() {
@@ -203,9 +225,16 @@ export default defineComponent({
       }
       this.store.dispatch('user/setProductIdentificationPref', { id, value })
     },
+    setBarcodeIdentificationPref(value: string) {
+      this.store.dispatch('util/setBarcodeIdentificationPref', value)
+    },
     getDateTime(time: any) {
       return DateTime.fromMillis(time).toLocaleString(DateTime.DATETIME_MED);
-    }
+    },
+    async updateForceScanStatus(event: any) {
+      event.stopImmediatePropagation();
+      this.store.dispatch("util/setForceScanSetting", !this.isForceScanEnabled)
+    },
   },
   setup(){
     const store = useStore();
