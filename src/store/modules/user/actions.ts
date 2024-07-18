@@ -124,6 +124,8 @@ const actions: ActionTree<UserState, RootState> = {
     // Get product identification from api using dxp-component
     await useProductIdentificationStore().getIdentificationPref(payload.eComStore.productStoreId)
       .catch((error) => console.error(error));
+    this.dispatch('util/getForceScanSetting', payload.ecomStore.productStoreId)
+    this.dispatch('util/getBarcodeIdentificationPref', payload.ecomStore.productStoreId)
   },
   /**
    * update current facility information
