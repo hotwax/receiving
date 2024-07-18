@@ -73,6 +73,7 @@ const actions: ActionTree<UtilState, RootState> = {
       }
     } catch(err) {
       console.error(err)
+      commit(types.UTIL_FORCE_SCAN_STATUS_UPDATED, "false")
     }
   },
 
@@ -117,6 +118,13 @@ const actions: ActionTree<UtilState, RootState> = {
     let prefValue = state.isForceScanEnabled
     const eComStoreId = store.getters['user/getCurrentEComStore'].productStoreId;
 
+    // when selecting none as ecom store, not updating the pref as it's not possible to save pref with empty productStoreId
+    if(!eComStoreId) {
+      showToast(translate("Unable to update force scan preference."))
+      commit(types.UTIL_FORCE_SCAN_STATUS_UPDATED, prefValue)
+      return;
+    }
+
     let fromDate;
 
     try {
@@ -135,13 +143,6 @@ const actions: ActionTree<UtilState, RootState> = {
       }
     } catch(err) {
       console.error(err)
-    }
-
-    // when selecting none as ecom store, not updating the pref as it's not possible to save pref with empty productStoreId
-    if(!eComStoreId) {
-      showToast(translate("Unable to update force scan preference."))
-      commit(types.UTIL_FORCE_SCAN_STATUS_UPDATED, prefValue)
-      return;
     }
 
     if(!fromDate) {
@@ -193,6 +194,7 @@ const actions: ActionTree<UtilState, RootState> = {
       }
     } catch(err) {
       console.error(err)
+      commit(types.UTIL_BARCODE_IDENTIFICATION_PREF_UPDATED, "primaryId")
     }
   },
 
@@ -237,6 +239,13 @@ const actions: ActionTree<UtilState, RootState> = {
     let prefValue = state.barcodeIdentificationPref
     const eComStoreId = store.getters['user/getCurrentEComStore'].productStoreId;
 
+    // when selecting none as ecom store, not updating the pref as it's not possible to save pref with empty productStoreId
+    if(!eComStoreId) {
+      showToast(translate("Unable to update barcode identification preference."))
+      commit(types.UTIL_BARCODE_IDENTIFICATION_PREF_UPDATED, prefValue)
+      return;
+    }
+
     let fromDate;
 
     try {
@@ -255,13 +264,6 @@ const actions: ActionTree<UtilState, RootState> = {
       }
     } catch(err) {
       console.error(err)
-    }
-
-    // when selecting none as ecom store, not updating the pref as it's not possible to save pref with empty productStoreId
-    if(!eComStoreId) {
-      showToast(translate("Unable to update barcode identification preference."))
-      commit(types.UTIL_BARCODE_IDENTIFICATION_PREF_UPDATED, prefValue)
-      return;
     }
 
     if(!fromDate) {
