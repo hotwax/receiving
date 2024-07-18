@@ -15,10 +15,6 @@ const userModule: Module<UserState, RootState> = {
       permissions: [],
       instanceUrl: '',
       facilityLocationsByFacilityId: {},
-      productIdentificationPref: {
-        primaryId: 'productId',
-        secondaryId: ''
-      },
       pwaState: {
         updateExists: false,
         registration: null,

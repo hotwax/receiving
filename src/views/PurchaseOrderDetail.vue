@@ -48,12 +48,12 @@
           </ion-label>
         </ion-item>
 
-        <ion-card v-for="(item, index) in getPOItems('pending')" v-show="item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED'" :key="index" :class="item.internalName === lastScannedId ? 'scanned-item' : '' " :id="item.internalName">
+        <ion-card v-for="(item, index) in order.items" v-show="item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED'" :key="index">
           <div  class="product">
             <div class="product-info">
               <ion-item lines="none">
                 <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
-                  <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
+                  <ShopifyImg :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
                   <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
@@ -61,43 +61,37 @@
                 </ion-label>
               </ion-item>
             </div>
-
             <div class="location">
               <LocationPopover :item="item" type="order" :facilityId="currentFacility.facilityId" />
             </div>
-
             <div class="product-count">
               <ion-item>
-                <ion-input :label="translate('Qty')" label-placement="floating" type="number" value="0" min="0" v-model="item.quantityAccepted" />
+                <ion-label position="floating">{{ $t("Qty") }}</ion-label>       
+                <ion-input type="number" value="0" min="0" v-model="item.quantityAccepted" />
               </ion-item>
             </div>
           </div>
-
           <div class="action border-top" v-if="item.quantity > 0">
             <div class="receive-all-qty">
               <ion-button @click="receiveAll(item)" slot="start" size="small" fill="outline">
-                {{ translate("Receive All") }}
+                {{ $t("Receive All") }}
               </ion-button>
             </div>
-
             <div class="qty-progress">
               <!-- TODO: improve the handling of quantityAccepted -->
-              <ion-progress-bar :color="getRcvdToOrderedFraction(item) === 1 ? 'success' : getRcvdToOrderedFraction(item) > 1 ? 'danger' : 'primary'" :value="getRcvdToOrderedFraction(item)" />
+              <ion-progress-bar :color="getRcvdToOrderedFraction(item) > 1 ? 'danger' : 'primary'" :value="getRcvdToOrderedFraction(item)" />
             </div>
-
             <div class="po-item-history">
               <ion-chip outline @click="receivingHistory(item.productId)">
                 <ion-icon :icon="checkmarkDone"/>
-                <ion-label> {{ getPOItemAccepted(item.productId) }} {{ translate("received") }} </ion-label>
+                <ion-label> {{ getPOItemAccepted(item.productId) }} {{ $t("received") }} </ion-label>
               </ion-chip>
             </div>
-
             <div class="qty-ordered">
-              <ion-label>{{ item.quantity }} {{ translate("ordered") }}</ion-label>   
+              <ion-label>{{ item.quantity }} {{ $t("ordered") }}</ion-label>   
             </div>         
           </div>
         </ion-card>
-
         <ion-item lines="none">
           <ion-text v-if="getPOItems('completed').length > 1" color="medium" class="ion-margin-end">
             {{ translate("Completed: items", { itemsCount: getPOItems('completed').length }) }}
@@ -177,10 +171,10 @@ import {
   alertController,
   modalController
 } from '@ionic/vue';
-import { defineComponent } from 'vue';
+import { computed , defineComponent } from 'vue';
 import { addOutline, cameraOutline, checkmarkDone, copyOutline, eyeOffOutline, eyeOutline, locationOutline, saveOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
-import { DxpShopifyImg, translate, getProductIdentificationValue } from '@hotwax/dxp-components';
+import { DxpShopifyImg, translate, getProductIdentificationValue , useProductIdentificationStore  } from '@hotwax/dxp-components';
 import { useStore, mapGetters } from 'vuex';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue"
@@ -384,6 +378,8 @@ export default defineComponent({
   setup() {
     const store = useStore();
     const router = useRouter();
+    const productIdentificationStore = useProductIdentificationStore();
+    let productIdentificationPref = computed(() => productIdentificationStore.getProductIdentificationPref)
 
     return {
       Actions,
@@ -401,7 +397,8 @@ export default defineComponent({
       store,
       timeOutline,
       translate,
-      getProductIdentificationValue
+      getProductIdentificationValue,
+      productIdentificationPref
     };
   },
 });

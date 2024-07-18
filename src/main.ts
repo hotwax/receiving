@@ -32,7 +32,7 @@ import permissionRules from '@/authorization/Rules';
 import permissionActions from '@/authorization/Actions';
 import { dxpComponents } from '@hotwax/dxp-components'
 import { login, logout, loader } from './user-utils';
-import { getConfig, initialise, setUserTimeZone, getAvailableTimeZones } from '@/adapter'
+import { getConfig, initialise, setUserTimeZone, getAvailableTimeZones , getProductIdentificationPref , setProductIdentificationPref } from '@/adapter'
 import localeMessages from './locales';
 
 const app = createApp(App)
@@ -56,7 +56,9 @@ const app = createApp(App)
     initialise,
     localeMessages,
     setUserTimeZone,
-    getAvailableTimeZones
+    getAvailableTimeZones,
+    getProductIdentificationPref,
+    setProductIdentificationPref,
   });
 
 // Filters are removed in Vue 3 and global filter introduced https://v3.vuejs.org/guide/migration/filters.html#global-filters

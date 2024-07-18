@@ -11,9 +11,9 @@ const login = async (username: string, password: string): Promise <any> => {
     }
   });
 }
-
 const checkPermission = async (payload: any): Promise <any>  => {
-  const baseURL = store.getters['user/getBaseUrl'];
+  let baseURL = store.getters['user/getInstanceUrl'];
+  baseURL = baseURL && baseURL.startsWith('http') ? baseURL : `https://${baseURL}.hotwax.io/api/`;
   return client({
     url: "checkPermission",
     method: "post",
@@ -21,7 +21,6 @@ const checkPermission = async (payload: any): Promise <any>  => {
     ...payload
   });
 }
-
 const getUserProfile = async (token: any): Promise<any> => {
   const baseURL = store.getters['user/getBaseUrl'];
   try {
@@ -34,13 +33,27 @@ const getUserProfile = async (token: any): Promise<any> => {
         'Content-Type': 'application/json'
       }
     });
-    if(hasError(resp)) return Promise.reject("Error getting user profile");
+    if(hasError(resp)) return Promise.reject("Error getting user profile: " + JSON.stringify(resp.data));
+    if(resp.data.facilities.length === 0) return Promise.reject("User is not associated with any facilities: " + JSON.stringify(resp.data));
     return Promise.resolve(resp.data)
   } catch(error: any) {
     return Promise.reject(error)
   }
 }
-
+const getAvailableTimeZones = async (): Promise <any>  => {
+  return api({
+    url: "getAvailableTimeZones",
+    method: "get",
+    cache: true
+  });
+}
+const setUserTimeZone = async (payload: any): Promise <any>  => {
+  return api({
+    url: "setUserTimeZone",
+    method: "post",
+    data: payload
+  });
+}
 const getFacilityLocations = async (payload: any): Promise<any> => {
   return api({
     url: "/performFind",
@@ -50,10 +63,6 @@ const getFacilityLocations = async (payload: any): Promise<any> => {
 }
   
 const getEComStores = async (token: any, facilityId: any): Promise<any> => {
-  if (!facilityId) {
-    return Promise.resolve({});
-  }
-
   try {
     const params = {
       "inputFields": {
@@ -65,7 +74,6 @@ const getEComStores = async (token: any, facilityId: any): Promise<any> => {
       "distinct": "Y",
       "noConditionFind": "Y",
       "filterByDate": 'Y',
-      "viewSize": 1
     }
     const baseURL = store.getters['user/getBaseUrl'];
     const resp = await client({
@@ -78,16 +86,16 @@ const getEComStores = async (token: any, facilityId: any): Promise<any> => {
         'Content-Type': 'application/json'
       }
     });
-    if (hasError(resp)) {
-      throw resp.data;
+    // Disallow login if the user is not associated with any product store
+    if (hasError(resp) || resp.data.docs.length === 0) {
+      return Promise.reject(resp.data);
     } else {
-      return Promise.resolve(resp.data.docs?.length ? resp.data.docs[0] : {});
+      return Promise.resolve(resp.data.docs);
     }
   } catch(error: any) {
-    return Promise.resolve({})
+    return Promise.reject(error)
   }
 }
-
 const setUserPreference = async (payload: any): Promise<any> => {
   return api({
     url: "service/setUserPreference",
@@ -95,37 +103,33 @@ const setUserPreference = async (payload: any): Promise<any> => {
     data: payload
   });
 }
-
-const updateProductIdentificationPref = async (payload: any): Promise<any> => {
-  return api({
-    url: "service/updateProductStoreSetting",
-    method: "post",
-    data: payload
-  });
-}
-
-const createProductIdentificationPref = async (payload: any): Promise<any> => {
-  return api({
-    url: "service/createProductStoreSetting",
-    method: "post",
-    data: payload
-  });
-}
-
-const getProductIdentificationPref = async (payload: any): Promise<any> => {
-  return api({
-    url: "performFind",
-    //TODO Due to security reasons service model OMS 1.0 does not support sending parameters in get request that's why we use post here
-    method: "post",
-    data: payload,
-    cache: true
-  });
+const getPreferredStore = async (token: any): Promise<any> => {
+  const baseURL = store.getters['user/getBaseUrl'];
+  try {
+    const resp = await client({
+      url: "service/getUserPreference",
+      method: "post",
+      data: {
+        'userPrefTypeId': 'SELECTED_BRAND'
+      },
+      baseURL,
+      headers: {
+        Authorization:  'Bearer ' + token,
+        'Content-Type': 'application/json'
+      }
+    });
+    if (hasError(resp)) {
+      return Promise.reject(resp.data);
+    }
+    return Promise.resolve(resp.data.userPrefValue);
+  } catch(error: any) {
+    return Promise.reject(error)
+  }
 }
 
 const getUserPermissions = async (payload: any, token: any): Promise<any> => {
   const baseURL = store.getters['user/getBaseUrl'];
   let serverPermissions = [] as any;
-
   // If the server specific permission list doesn't exist, getting server permissions will be of no use
   // It means there are no rules yet depending upon the server permissions.
   if (payload.permissionIds && payload.permissionIds.length == 0) return serverPermissions;
@@ -135,7 +139,6 @@ const getUserPermissions = async (payload: any, token: any): Promise<any> => {
     // Though this might not be an server specific configuration, 
     // we will be adding it to environment variable for easy configuration at app level
     const viewSize = 200;
-
     try {
       const params = {
         "viewIndex": 0,
@@ -192,12 +195,10 @@ const getUserPermissions = async (payload: any, token: any): Promise<any> => {
             }
             return permissionResponses;
           }, permissionResponses)
-
           serverPermissions = permissionResponses.success.reduce((serverPermissions: any, response: any) => {
             serverPermissions.push(...response.data.docs.map((permission: any) => permission.permissionId));
             return serverPermissions;
           }, serverPermissions)
-
           // If partial permissions are received and we still allow user to login, some of the functionality might not work related to the permissions missed.
           // Show toast to user intimiting about the failure
           // Allow user to login
@@ -210,16 +211,15 @@ const getUserPermissions = async (payload: any, token: any): Promise<any> => {
       return Promise.reject(error);
     }
 }
-
 export const UserService = {
     login,
+    getAvailableTimeZones,
     getUserProfile,
     getUserPermissions,
+    setUserTimeZone,
     getFacilityLocations,
     getEComStores,
-    getProductIdentificationPref,
-    createProductIdentificationPref,
-    updateProductIdentificationPref,
     setUserPreference,
+    getPreferredStore,
     checkPermission
 }
