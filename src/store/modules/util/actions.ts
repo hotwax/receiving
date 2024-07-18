@@ -85,7 +85,7 @@ const actions: ActionTree<UtilState, RootState> = {
         const resp = await UtilService.createEnumeration({
           "enumId": "RECEIVE_FORCE_SCAN",
           "enumTypeId": "PROD_STR_STNG",
-          "description": "	Impose force scanning of items while packing from receiving app",
+          "description": "Impose force scanning of items while packing from receiving app",
           "enumName": "Receiving Force Scan",
           "enumCode": "RECEIVE_FORCE_SCAN"
         })
