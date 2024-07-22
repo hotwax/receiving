@@ -23,8 +23,8 @@
           <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
         </ion-thumbnail>
         <ion-label>
-          <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
-          <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+          <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productName) }}</h2>
+          <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, item) }}</p>
         </ion-label>
         <ion-buttons>
           <ion-checkbox aria-label="itemStatus" slot="end" :modelValue="isPOItemStatusPending(item) ? item.isChecked : true" :disabled="isPOItemStatusPending(item) ? false : true" />
@@ -62,10 +62,10 @@ import {
 } from '@ionic/vue';
 import { Actions, hasPermission } from '@/authorization'
 import { closeOutline, checkmarkCircle, arrowBackOutline, saveOutline } from 'ionicons/icons';
-import { defineComponent } from 'vue';
+import { defineComponent, computed } from 'vue';
 import { mapGetters, useStore } from 'vuex'
 import { OrderService } from "@/services/OrderService";
-import { DxpShopifyImg, translate, getProductIdentificationValue } from '@hotwax/dxp-components';
+import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore } from '@hotwax/dxp-components';
 import { useRouter } from 'vue-router';
 
 export default defineComponent({
@@ -206,6 +206,8 @@ export default defineComponent({
   setup() {
     const router = useRouter()
     const store = useStore()
+    const productIdentificationStore = useProductIdentificationStore();
+    let productIdentificationPref = computed(() => productIdentificationStore.getProductIdentificationPref)
 
     return {
       arrowBackOutline,
@@ -218,7 +220,8 @@ export default defineComponent({
       saveOutline,
       store,
       translate,
-      getProductIdentificationValue
+      getProductIdentificationValue,
+      productIdentificationPref
     };
   }
 });

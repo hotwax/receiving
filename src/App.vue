@@ -17,7 +17,7 @@ import { mapGetters, useStore } from "vuex";
 import { Settings } from 'luxon';
 import { initialise, resetConfig } from '@/adapter'
 import { useRouter } from 'vue-router';
-import { translate } from "@hotwax/dxp-components"
+import { translate , useProductIdentificationStore } from "@hotwax/dxp-components"
 
 export default defineComponent({
   name: 'App',
@@ -114,6 +114,9 @@ export default defineComponent({
     if (this.userProfile && this.userProfile.userTimeZone) {
       Settings.defaultZone = this.userProfile.userTimeZone;
     }
+
+    await useProductIdentificationStore().getIdentificationPref(this.currentEComStore?.productStoreId)
+      .catch((error) => console.log(error))
   },
   unmounted() {
     emitter.off('presentLoader', this.presentLoader);
