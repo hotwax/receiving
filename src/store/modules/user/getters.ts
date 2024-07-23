@@ -36,9 +36,6 @@ const getters: GetterTree <UserState, RootState> = {
     getFacilityLocationsByFacilityId: (state) => (facilityId: string) => {
         return state.facilityLocationsByFacilityId[facilityId];
     },
-    getProductIdentificationPref: (state) => {
-        return state.productIdentificationPref;
-    },
     getPwaState(state) {
         return state.pwaState;
     }
