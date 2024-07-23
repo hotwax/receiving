@@ -9,7 +9,6 @@ const utilModule: Module<UtilState, RootState> = {
     namespaced: true,
     state: {
       status: {},
-      productIdentifications: [],
       isForceScanEnabled: false,
       barcodeIdentificationPref: ""
     },

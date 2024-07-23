@@ -6,9 +6,6 @@ const getters: GetterTree <UtilState, RootState> = {
   getStatusDesc: (state) => (statusId: string) => {
     return state.status[statusId]
   },
-  getProductIdentifications: (state) => {
-    return state.productIdentifications
-  },
   isForceScanEnabled(state) {
     return state.isForceScanEnabled
   },

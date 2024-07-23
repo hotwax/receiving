@@ -132,7 +132,6 @@ export default defineComponent({
       userProfile: 'user/getUserProfile',
       currentFacility: 'user/getCurrentFacility',
       currentEComStore: 'user/getCurrentEComStore',
-      productIdentifications: 'util/getProductIdentifications',
       productIdentificationPref: 'user/getProductIdentificationPref',
       isForceScanEnabled: 'util/isForceScanEnabled',
       barcodeIdentificationPref: 'util/getBarcodeIdentificationPref'

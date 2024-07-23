@@ -36,7 +36,6 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       currentEComStore: 'user/getCurrentEComStore',
-      productIdentifications: 'util/getProductIdentifications',
       userProfile: 'user/getUserProfile',
       userToken: 'user/getUserToken',
       instanceUrl: 'user/getInstanceUrl'
@@ -99,24 +98,6 @@ export default defineComponent({
   beforeMount() {
     emitter.on('presentLoader', this.presentLoader);
     emitter.on('dismissLoader', this.dismissLoader);
-  },
-  async mounted() {
-    if(this.productIdentifications.length <= 0) {
-      // TODO: fetch product identifications from enumeration instead of storing it in env
-      this.store.dispatch('util/setProductIdentifications', process.env.VUE_APP_PRDT_IDENT ? JSON.parse(process.env.VUE_APP_PRDT_IDENT) : [])
-    }
-
-    if(this.userProfile) {
-      this.store.dispatch('user/getProductIdentificationPref', this.currentEComStore.productStoreId);
-    }
-    // Handles case when user resumes or reloads the app
-    // Luxon timezzone should be set with the user's selected timezone
-    if (this.userProfile && this.userProfile.userTimeZone) {
-      Settings.defaultZone = this.userProfile.userTimeZone;
-    }
-
-    await useProductIdentificationStore().getIdentificationPref(this.currentEComStore?.productStoreId)
-      .catch((error) => console.log(error))
   },
   unmounted() {
     emitter.off('presentLoader', this.presentLoader);
