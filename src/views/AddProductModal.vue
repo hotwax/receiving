@@ -20,8 +20,8 @@
           </ion-thumbnail>
           <ion-label>
             <!-- Honouring the identifications set by the user on the settings page -->
-            <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, product) ? getProductIdentificationValue(productIdentificationPref.primaryId, product) : product.productName }}</h2>
-            <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, product) }}</p>
+            <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(product.productId)) || getProduct(product.productId).productName }}</h2>
+            <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(product.productId))}}</p>
           </ion-label>
           <ion-icon v-if="isProductAvailableInShipment(product.productId)" color="success" :icon="checkmarkCircle" />
           <ion-button v-else fill="outline" @click="addtoShipment(product)">{{ translate("Add to Shipment") }}</ion-button>
