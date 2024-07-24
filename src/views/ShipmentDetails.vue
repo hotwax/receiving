@@ -166,7 +166,6 @@ export default defineComponent({
       getProduct: 'product/getProduct',
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
       currentFacility: 'user/getCurrentFacility',
-      productIdentificationPref: 'user/getProductIdentificationPref',
       isForceScanEnabled: 'util/isForceScanEnabled',
     }),
   },

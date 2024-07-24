@@ -104,7 +104,6 @@ export default defineComponent({
       getProduct: 'product/getProduct',
       isScrollable: 'product/isScrollable',
       isProductAvailableInShipment: 'product/isProductAvailableInShipment',
-      productIdentificationPref: 'user/getProductIdentificationPref',
       currentFacility: 'user/getCurrentFacility',
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId'
     })

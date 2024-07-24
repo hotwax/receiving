@@ -93,7 +93,6 @@ export default defineComponent({
       getProduct: 'product/getProduct',
       getPOItemAccepted: 'order/getPOItemAccepted',
       order: 'order/getCurrent',
-      productIdentificationPref: 'user/getProductIdentificationPref',
       purchaseOrders: 'order/getPurchaseOrders'
     })
   },

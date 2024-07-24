@@ -230,7 +230,6 @@ export default defineComponent({
       getPOItemAccepted: 'order/getPOItemAccepted',
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
       currentFacility: 'user/getCurrentFacility',
-      productIdentificationPref: 'user/getProductIdentificationPref',
       isForceScanEnabled: 'util/isForceScanEnabled',
     })
   },

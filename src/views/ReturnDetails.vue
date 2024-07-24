@@ -171,7 +171,6 @@ export default defineComponent({
       returns: 'return/getReturns',
       validStatusChange: 'return/isReturnReceivable',
       isReturnReceivable: 'return/isReturnReceivable',
-      productIdentificationPref: 'user/getProductIdentificationPref',
       isForceScanEnabled: 'util/isForceScanEnabled',
     }),
   },

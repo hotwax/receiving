@@ -99,6 +99,19 @@ export default defineComponent({
     emitter.on('presentLoader', this.presentLoader);
     emitter.on('dismissLoader', this.dismissLoader);
   },
+  async mounted(){
+    if(this.userToken) {
+      // Get product identification from api using dxp-component
+      await useProductIdentificationStore().getIdentificationPref(this.currentEComStore?.productStoreId)
+        .catch((error) => console.error(error));
+    }
+
+    // Handles case when user resumes or reloads the app
+    // Luxon timezzone should be set with the user's selected timezone
+    if (this.userProfile && this.userProfile.userTimeZone) {
+      Settings.defaultZone = this.userProfile.userTimeZone;
+    }
+  },
   unmounted() {
     emitter.off('presentLoader', this.presentLoader);
     emitter.off('dismissLoader', this.dismissLoader);
