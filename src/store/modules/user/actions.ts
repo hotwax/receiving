@@ -94,7 +94,6 @@ const actions: ActionTree<UserState, RootState> = {
       // Get facility location of selected facility
       dispatch('getFacilityLocations', currentFacility.facilityId);
       // TODO: fetch product identifications from enumeration instead of storing it in env
-      this.dispatch('util/setProductIdentifications', process.env.VUE_APP_PRDT_IDENT ? JSON.parse(process.env.VUE_APP_PRDT_IDENT) : [])
       this.dispatch('util/getForceScanSetting', currentEComStore?.productStoreId);
       this.dispatch('util/getBarcodeIdentificationPref', currentEComStore?.productStoreId);
     } catch (err: any) {
