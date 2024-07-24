@@ -96,22 +96,6 @@ const setUserPreference = async (payload: any): Promise<any> => {
   });
 }
 
-const updateProductIdentificationPref = async (payload: any): Promise<any> => {
-  return api({
-    url: "service/updateProductStoreSetting",
-    method: "post",
-    data: payload
-  });
-}
-
-const createProductIdentificationPref = async (payload: any): Promise<any> => {
-  return api({
-    url: "service/createProductStoreSetting",
-    method: "post",
-    data: payload
-  });
-}
-
 
 const getUserPermissions = async (payload: any, token: any): Promise<any> => {
   const baseURL = store.getters['user/getBaseUrl'];
@@ -208,8 +192,6 @@ export const UserService = {
     getUserPermissions,
     getFacilityLocations,
     getEComStores,
-    createProductIdentificationPref,
-    updateProductIdentificationPref,
     setUserPreference,
     checkPermission
 }
