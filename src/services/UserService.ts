@@ -112,15 +112,6 @@ const createProductIdentificationPref = async (payload: any): Promise<any> => {
   });
 }
 
-const getProductIdentificationPref = async (payload: any): Promise<any> => {
-  return api({
-    url: "performFind",
-    //TODO Due to security reasons service model OMS 1.0 does not support sending parameters in get request that's why we use post here
-    method: "post",
-    data: payload,
-    cache: true
-  });
-}
 
 const getUserPermissions = async (payload: any, token: any): Promise<any> => {
   const baseURL = store.getters['user/getBaseUrl'];
@@ -217,7 +208,6 @@ export const UserService = {
     getUserPermissions,
     getFacilityLocations,
     getEComStores,
-    getProductIdentificationPref,
     createProductIdentificationPref,
     updateProductIdentificationPref,
     setUserPreference,

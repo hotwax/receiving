@@ -138,7 +138,6 @@ const actions: ActionTree<UserState, RootState> = {
 
     // TODO add any other tasks if need
     commit(types.USER_END_SESSION)
-    this.dispatch('util/setProductIdentifications', [])
     this.dispatch('order/clearPurchaseOrders');
     this.dispatch('util/updateForceScanStatus', false)
     this.dispatch('util/updateBarcodeIdentificationPref', "")
