@@ -1,13 +1,15 @@
 import { GetterTree } from 'vuex'
 import RootState from '@/store/RootState'
 import UtilState from './UtilState';
+import { computed } from 'vue';
+import { useProductIdentificationStore } from '@hotwax/dxp-components';
+
+
+
 
 const getters: GetterTree <UtilState, RootState> = {
   getStatusDesc: (state) => (statusId: string) => {
     return state.status[statusId]
-  },
-  getProductIdentifications: (state) => {
-    return state.productIdentifications
   },
   isForceScanEnabled(state) {
     return state.isForceScanEnabled
@@ -16,7 +18,9 @@ const getters: GetterTree <UtilState, RootState> = {
     return state.barcodeIdentificationPref
   },
   getBarcodeIdentificationValue(state, getters, rootState, rootGetters) {
-    return rootGetters['user/getProductIdentificationPref'][state.barcodeIdentificationPref]
+    const productIdentificationStore = useProductIdentificationStore();
+    const productIdentificationPref = computed(() => productIdentificationStore.getProductIdentificationPref) as any;
+    return productIdentificationPref.value[state.barcodeIdentificationPref]
   }
 }
 export default getters;

@@ -65,11 +65,11 @@ import {
   IonToolbar,
   modalController,
 } from '@ionic/vue';
-import { defineComponent } from 'vue';
+import { defineComponent, computed } from 'vue';
 import { closeOutline, checkmarkCircle } from 'ionicons/icons';
 import { mapGetters } from 'vuex'
 import { useStore } from "@/store";
-import { DxpShopifyImg, translate, getProductIdentificationValue } from '@hotwax/dxp-components';
+import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore } from '@hotwax/dxp-components';
 import { showToast } from '@/utils'
 
 export default defineComponent({
@@ -104,7 +104,6 @@ export default defineComponent({
       getProduct: 'product/getProduct',
       isScrollable: 'product/isScrollable',
       isProductAvailableInShipment: 'product/isProductAvailableInShipment',
-      productIdentificationPref: 'user/getProductIdentificationPref',
       currentFacility: 'user/getCurrentFacility',
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId'
     })
@@ -169,12 +168,16 @@ export default defineComponent({
   },
   setup() {
     const store = useStore();
+    const productIdentificationStore = useProductIdentificationStore();
+    let productIdentificationPref = computed(() => productIdentificationStore.getProductIdentificationPref)
+
     return {
       closeOutline,
       checkmarkCircle,
       store,
       translate,
-      getProductIdentificationValue
+      getProductIdentificationValue,
+      productIdentificationPref
     };
   },
 });

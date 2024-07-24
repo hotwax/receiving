@@ -59,29 +59,7 @@
       <DxpAppVersionInfo />
 
       <section>
-        <ion-card>
-          <ion-card-header>
-            <ion-card-title>
-              {{ translate('Product Identifier') }}
-            </ion-card-title>
-          </ion-card-header>
-
-          <ion-card-content>
-            {{ translate('Choosing a product identifier allows you to view products with your preferred identifiers.') }}
-          </ion-card-content>
-
-          <ion-item>
-            <ion-select :label="translate('Primary Product Identifier')" :disabled="!hasPermission(Actions.APP_PRODUCT_IDENTIFIER_UPDATE) || !currentEComStore?.productStoreId" interface="popover" :placeholder="translate('primary identifier')" :value="productIdentificationPref.primaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'primaryId')">
-              <ion-select-option v-for="identification in productIdentifications" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
-            </ion-select>
-          </ion-item>
-          <ion-item>
-            <ion-select :label="translate('Secondary Product Identifier')" :disabled="!hasPermission(Actions.APP_PRODUCT_IDENTIFIER_UPDATE) || !currentEComStore?.productStoreId" interface="popover" :placeholder="translate('secondary identifier')" :value="productIdentificationPref.secondaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'secondaryId')">
-              <ion-select-option v-for="identification in productIdentifications" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
-              <ion-select-option value="">{{ translate("None") }}</ion-select-option>
-            </ion-select>
-          </ion-item>
-        </ion-card>
+        <DxpProductIdentifier />
         <DxpTimeZoneSwitcher @timeZoneUpdated="timeZoneUpdated" />
 
         <ion-card>
@@ -115,7 +93,7 @@ import { useRouter } from 'vue-router';
 import Image from '@/components/Image.vue'
 import { DateTime } from 'luxon';
 import { Actions, hasPermission } from '@/authorization';
-import { translate } from "@hotwax/dxp-components"
+import { DxpProductIdentifier, translate } from "@hotwax/dxp-components"
 
 export default defineComponent({
   name: 'Settings',
@@ -154,8 +132,6 @@ export default defineComponent({
       userProfile: 'user/getUserProfile',
       currentFacility: 'user/getCurrentFacility',
       currentEComStore: 'user/getCurrentEComStore',
-      productIdentifications: 'util/getProductIdentifications',
-      productIdentificationPref: 'user/getProductIdentificationPref',
       isForceScanEnabled: 'util/isForceScanEnabled',
       barcodeIdentificationPref: 'util/getBarcodeIdentificationPref'
     })
@@ -217,13 +193,6 @@ export default defineComponent({
     },
     goToLaunchpad() {
       window.location.href = `${process.env.VUE_APP_LOGIN_URL}`
-    },
-    setProductIdentificationPref(value: string, id: string) {
-      // Not dispatching an action if the value for id is same as saved in state
-      if(this.productIdentificationPref[id] == value) {
-        return;
-      }
-      this.store.dispatch('user/setProductIdentificationPref', { id, value })
     },
     setBarcodeIdentificationPref(value: string) {
       this.store.dispatch('util/setBarcodeIdentificationPref', value)

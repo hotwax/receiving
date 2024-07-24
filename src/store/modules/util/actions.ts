@@ -47,9 +47,6 @@ const actions: ActionTree<UtilState, RootState> = {
     }
     return cachedStatus;
   },
-  async setProductIdentifications({ commit }, payload) {
-    commit(types.UTIL_PRODUCT_IDENT_UPDATED, payload)
-  },
 
   async getForceScanSetting({ commit, dispatch }, eComStoreId) {
     const payload = {
