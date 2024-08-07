@@ -265,7 +265,7 @@ export default defineComponent({
       if(this.queryString) payload = this.queryString
 
       if(!payload) {
-        showToast(translate("Please provide a valid valid barcode identifier."))
+        showToast(translate("Please provide a valid barcode identifier."))
         return;
       }
       const result = await this.store.dispatch('order/updateProductCount', payload)
