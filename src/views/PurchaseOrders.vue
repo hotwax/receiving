@@ -8,7 +8,7 @@
       <div>
         <ion-searchbar :placeholder="translate('Search purchase orders')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getPurchaseOrders()" />
 
-        <ion-segment v-model="selectedSegment" @ionChange="segmentChanged($event)">
+        <ion-segment v-model="selectedSegment" @ionChange="segmentChanged()">
           <ion-segment-button value="open">
             <ion-label>{{ translate("Open") }}</ion-label>
           </ion-segment-button>

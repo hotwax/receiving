@@ -139,7 +139,6 @@
   "There are no purchase orders to receive": "There are no purchase orders to receive",
   "There are no returns to receive": "There are no returns to receive",
   "This is the name of the OMS you are connected to right now. Make sure that you are connected to the right instance before proceeding.": "This is the name of the OMS you are connected to right now. Make sure that you are connected to the right instance before proceeding.",
-  "This return has been and cannot be edited.": "This return has been {status} and cannot be edited.",
   "Timezone": "Timezone",
   "Time zone updated successfully": "Time zone updated successfully",
   "To close the purchase order, select all.": "To close the purchase order, select all.",

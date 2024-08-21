@@ -9,7 +9,7 @@
       <div>
         <ion-searchbar :placeholder="translate('Search')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getShipments();" />
 
-        <ion-segment v-model="selectedSegment" @ionChange="segmentChanged($event)">
+        <ion-segment v-model="selectedSegment" @ionChange="segmentChanged()">
           <ion-segment-button value="open">
             <ion-label>{{ translate("Open") }}</ion-label>
           </ion-segment-button>
@@ -161,7 +161,7 @@ export default defineComponent({
         if (event) event.target.complete();
       })
     },
-    segmentChanged(event: any) {
+    segmentChanged() {
       this.getShipments()
     }
   },
