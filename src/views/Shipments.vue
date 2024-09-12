@@ -53,10 +53,10 @@ import {
   IonToolbar
 } from '@ionic/vue';
 import { cloudDownloadOutline, reload } from 'ionicons/icons'
-import { defineComponent } from 'vue'
+import { defineComponent, computed } from 'vue'
 import { mapGetters, useStore } from 'vuex'
 import ShipmentListItem from '@/components/ShipmentListItem.vue'
-import { translate } from "@hotwax/dxp-components"
+import { translate, useUserStore } from "@hotwax/dxp-components"
 
 export default defineComponent({
   name: "Shipments",
@@ -77,7 +77,6 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       shipments: 'shipment/getShipments',
-      user: 'user/getCurrentFacility'
     })
   },
   data() {
@@ -103,7 +102,7 @@ export default defineComponent({
       const viewIndex = vIndex ? vIndex : 0;
       const payload = {
         "inputFields": {
-          "destinationFacilityId": this.user.facilityId,
+          "destinationFacilityId": this.currentFacility.facilityId,
           "statusId": "PURCH_SHIP_SHIPPED",
           "grp_op": "AND",
           "shipmentTypeId_value": "INCOMING_SHIPMENT",
@@ -146,8 +145,12 @@ export default defineComponent({
   },
   setup() {
     const store = useStore();
+    const userStore = useUserStore()
+    let currentFacility: any = computed(() => userStore.getCurrentFacility) 
+
     return {
       cloudDownloadOutline,
+      currentFacility,
       reload,
       store,
       translate

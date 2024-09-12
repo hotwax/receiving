@@ -53,10 +53,10 @@ import {
   IonToolbar
 } from '@ionic/vue';
 import { cloudDownloadOutline, reload } from 'ionicons/icons'
-import { defineComponent } from 'vue';
+import { defineComponent, computed } from 'vue';
 import { mapGetters, useStore } from 'vuex';
 import PurchaseOrderItem from '@/components/PurchaseOrderItem.vue'
-import { translate } from "@hotwax/dxp-components"
+import { translate, useUserStore } from "@hotwax/dxp-components"
 
 export default defineComponent({
   name: 'PurchaseOrders',
@@ -85,7 +85,6 @@ export default defineComponent({
     ...mapGetters({
       orders: 'order/getPurchaseOrders',
       isScrollable: 'order/isScrollable',
-      currentFacility: 'user/getCurrentFacility'
     })
   },
   methods: {
@@ -105,7 +104,7 @@ export default defineComponent({
             "group.ngroups": true,
           } as any,
           "query": "*:*",
-          "filter": `docType: ORDER AND orderTypeId: PURCHASE_ORDER AND orderStatusId: (ORDER_APPROVED OR ORDER_CREATED) AND facilityId: ${this.currentFacility.facilityId}`
+          "filter": `docType: ORDER AND orderTypeId: PURCHASE_ORDER AND orderStatusId: (ORDER_APPROVED OR ORDER_CREATED) AND facilityId: ${this.currentFacility?.facilityId}`
         }
       }
       if(this.queryString) {
@@ -135,9 +134,12 @@ export default defineComponent({
   },
   setup () {
     const store = useStore();
+    const userStore = useUserStore()
+    let currentFacility: any = computed(() => userStore.getCurrentFacility) 
 
     return {
       cloudDownloadOutline,
+      currentFacility,
       reload,
       store,
       translate
