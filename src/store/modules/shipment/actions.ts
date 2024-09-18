@@ -20,13 +20,10 @@ const actions: ActionTree<ShipmentState, RootState> = {
         const statuses = await this.dispatch('util/fetchStatus', statusIds);
 
         const shipmentIds = shipments.map((shipment: any) => shipment.shipmentId);
-        const shipmentAttributes = await ShipmentService.fetchShipmentAttributes(shipmentIds)
         const trackingCodes = await ShipmentService.fetchTrackingCodes(shipmentIds)
         
         shipments.map(async (shipment: any) => {
           shipment.statusDesc = statuses[shipment.statusId]
-          shipment.externalOrderId = shipmentAttributes[shipment.shipmentId]?.['EXTERNAL_ORDER_ID']
-          shipment.externalOrderName = shipmentAttributes[shipment.shipmentId]?.['EXTERNAL_ORDER_NAME']
           shipment.trackingIdNumber = trackingCodes?.[shipment.shipmentId];
         });
 
