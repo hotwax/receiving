@@ -130,7 +130,7 @@ export default defineComponent({
       })
     },
   },
-  mounted () {
+  ionViewWillEnter () {
     this.getPurchaseOrders();
   },
   setup () {
