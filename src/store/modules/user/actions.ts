@@ -5,16 +5,15 @@ import UserState from './UserState'
 import * as types from './mutation-types'
 import { hasError, showToast } from '@/utils'
 import { Settings } from 'luxon';
-import { getUserFacilities, logout, updateInstanceUrl, updateToken, resetConfig } from '@/adapter'
+import { logout, updateInstanceUrl, updateToken, resetConfig } from '@/adapter'
 import {
   getServerPermissionsFromRules,
   prepareAppPermissions,
   resetPermissions,
   setPermissions
 } from '@/authorization'
-import { translate, useAuthStore, useProductIdentificationStore } from '@hotwax/dxp-components'
+import { translate, useAuthStore, useProductIdentificationStore, useUserStore } from '@hotwax/dxp-components'
 import emitter from '@/event-bus'
-import store from '@/store'
 
 const actions: ActionTree<UserState, RootState> = {
 
@@ -57,8 +56,8 @@ const actions: ActionTree<UserState, RootState> = {
 
       //fetching user facilities
       const isAdminUser = appPermissions.some((appPermission: any) => appPermission?.action === "APP_RECVG_ADMIN");
-      const baseURL = store.getters['user/getBaseUrl'];
-      const facilities = await getUserFacilities(token, baseURL, userProfile?.partyId, "", isAdminUser);
+      const facilities = await useUserStore().getUserFacilities(userProfile?.partyId, "", isAdminUser)
+      await useUserStore().getPreferredFacility('SELECTED_FACILITY')
 
       if (!facilities.length) throw 'Unable to login. User is not assocaited with any facility'
 
@@ -71,9 +70,8 @@ const actions: ActionTree<UserState, RootState> = {
         return uniqueFacilities
       }, []);
 
-      const currentFacility = userProfile.facilities[0];
-      const currentEComStore = await UserService.getEComStores(token, currentFacility.facilityId);
-
+      const currentFacility: any = useUserStore().getCurrentFacility
+      const currentEComStore = await UserService.getEComStores(token, currentFacility?.facilityId);
       const productStoreId = currentEComStore?.productStoreId;
 
       await useProductIdentificationStore().getIdentificationPref(productStoreId)
@@ -87,7 +85,6 @@ const actions: ActionTree<UserState, RootState> = {
 
       // TODO user single mutation
       commit(types.USER_INFO_UPDATED, userProfile);
-      commit(types.USER_CURRENT_FACILITY_UPDATED, currentFacility);
       commit(types.USER_CURRENT_ECOM_STORE_UPDATED, currentEComStore);
       commit(types.USER_PERMISSIONS_UPDATED, appPermissions);
       commit(types.USER_TOKEN_CHANGED, { newToken: token })
@@ -173,12 +170,10 @@ const actions: ActionTree<UserState, RootState> = {
   /**
    * update current facility information
    */
-  async setFacility ({ commit, dispatch }, payload) {
-    const eComStore = await UserService.getEComStores(undefined, payload.facility.facilityId);
-
+  async setFacilityUpdates ({ commit, dispatch, state }, payload) {
+    const eComStore = await UserService.getEComStores(state.token, payload);
     commit(types.USER_CURRENT_ECOM_STORE_UPDATED, eComStore);
-    commit(types.USER_CURRENT_FACILITY_UPDATED, payload.facility);
-    await dispatch('getFacilityLocations', payload.facility.facilityId)
+    await dispatch('getFacilityLocations', payload)
   },
   
   /**

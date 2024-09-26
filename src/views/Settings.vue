@@ -37,22 +37,7 @@
       </div>
       <section>
         <DxpOmsInstanceNavigator />
-
-        <ion-card>
-          <ion-card-header>
-            <ion-card-title>
-              {{ translate("Facility") }}
-            </ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            {{ translate('Specify which facility you want to operate from. Order, inventory and other configuration data will be specific to the facility you select.') }}
-          </ion-card-content>
-          <ion-item lines="none">
-            <ion-select :label="translate('Select facility')" interface="popover" :value="currentFacility.facilityId" @ionChange="setFacility($event)">
-              <ion-select-option v-for="facility in (userProfile ? userProfile.facilities : [])" :key="facility.facilityId" :value="facility.facilityId" >{{ facility.facilityName }}</ion-select-option>
-            </ion-select>
-          </ion-item>
-        </ion-card>
+        <DxpFacilitySwitcher @updateFacility="handleFacilityUpdate($event)"/>
       </section>
       <hr />
 
@@ -130,7 +115,6 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       userProfile: 'user/getUserProfile',
-      currentFacility: 'user/getCurrentFacility',
       currentEComStore: 'user/getCurrentEComStore',
       isForceScanEnabled: 'util/isForceScanEnabled',
       barcodeIdentificationPref: 'util/getBarcodeIdentificationPref'
@@ -143,16 +127,9 @@ export default defineComponent({
     async timeZoneUpdated(tzId: string) {
       await this.store.dispatch("user/setUserTimeZone", tzId)
     },
-    setFacility (facility: any) {
-      // Checking if current facility is not equal to the facility selected to avoid extra api call on logging in again after logout.
-      if(this.currentFacility.facilityId != facility['detail'].value && this.userProfile?.facilities) {
-        this.userProfile?.facilities?.map((fac: any) => {
-          if (fac.facilityId == facility['detail'].value) {
-            this.store.dispatch('shipment/clearShipments');
-            this.store.dispatch('user/setFacility', {'facility': fac});
-          }
-        })
-      }
+    async handleFacilityUpdate(selectedFacilityId: any) {
+      this.store.dispatch('shipment/clearShipments');
+      await this.store.dispatch('user/setFacilityUpdates', selectedFacilityId);
     },
     async presentAlert () {
       const alert = await alertController.create({

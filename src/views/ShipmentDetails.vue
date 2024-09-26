@@ -46,7 +46,7 @@
             </div>
 
             <div class="location">
-              <LocationPopover v-if="!isShipmentReceived()" :item="item" type="shipment" :facilityId="currentFacility.facilityId" />
+              <LocationPopover v-if="!isShipmentReceived()" :item="item" type="shipment" :facilityId="currentFacility?.facilityId" />
               <ion-chip :disabled="true" outline v-else>
                 <ion-icon :icon="locationOutline"/>
                 <ion-label>{{ item.locationSeqId }}</ion-label>
@@ -116,7 +116,7 @@ import { defineComponent, computed } from 'vue';
 import { add, checkmarkDone, cameraOutline, locationOutline } from 'ionicons/icons';
 import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
-import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore } from '@hotwax/dxp-components';
+import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore, useUserStore } from '@hotwax/dxp-components';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import LocationPopover from '@/components/LocationPopover.vue'
@@ -165,7 +165,6 @@ export default defineComponent({
       user: 'user/getCurrentFacility',
       getProduct: 'product/getProduct',
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
-      currentFacility: 'user/getCurrentFacility',
       isForceScanEnabled: 'util/isForceScanEnabled',
     }),
   },
@@ -302,14 +301,17 @@ export default defineComponent({
   setup() {
     const store = useStore(); 
     const router = useRouter();
+    const userStore = useUserStore()
     const productIdentificationStore = useProductIdentificationStore();
     let productIdentificationPref = computed(() => productIdentificationStore.getProductIdentificationPref)
+    let currentFacility: any = computed(() => userStore.getCurrentFacility) 
 
     return {
       Actions,
       add,
       cameraOutline,
       checkmarkDone,
+      currentFacility,
       hasPermission,
       locationOutline,
       store,
