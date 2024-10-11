@@ -49,7 +49,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
 
     const item = state.current.items.find((item: any) => {
       const itemVal = barcodeIdentifier ? getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) : item.internalName;
-      return itemVal === payload;
+      return itemVal === payload && item.quantityReceived === 0;
     });
 
     if (item) {
@@ -75,6 +75,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
           const locationSeqId = facilityLocations[0].locationSeqId
           resp.data.items.map((item: any) => {
             item.locationSeqId = locationSeqId;
+            item.quantityReceived = item.quantityAccepted ? Number(item.quantityAccepted) : 0
           });
         } else {
           showToast(translate("Facility locations were not found corresponding to destination facility of return shipment. Please add facility locations to avoid receive return shipment failure."))
@@ -101,48 +102,65 @@ const actions: ActionTree<ShipmentState, RootState> = {
       return Promise.reject(new Error(err))
     }
   },
-  receiveShipmentItem ({ commit }, payload) {
-    return Promise.all(payload.items.map(async (item: any) => {
-      if(!item.locationSeqId) {
-        return Promise.reject("Missing locationSeqId on item")
-      }
+  async receiveShipmentItem ({ commit }, payload) {
+    let areAllSuccess = true;
 
-      const params = {
-        shipmentId: payload.shipmentId,
-        facilityId: this.state.user.currentFacility.facilityId,
-        shipmentItemSeqId: item.itemSeqId,
-        productId: item.productId,
-        quantityAccepted: item.quantityAccepted,
-        orderId: item.orderId,
-        orderItemSeqId: item.orderItemSeqId,
-        unitCost: 0.00,
-        locationSeqId: item.locationSeqId
+    for (const item of payload.items) {
+      if(item.quantityReceived === 0) {
+        if (!item.locationSeqId) {
+          console.error("Missing locationSeqId on item");
+          areAllSuccess = false;
+          continue;
+        }
+
+        const params = {
+          shipmentId: payload.shipmentId,
+          facilityId: this.state.user.currentFacility.facilityId,
+          shipmentItemSeqId: item.itemSeqId,
+          productId: item.productId,
+          quantityAccepted: item.quantityAccepted,
+          orderId: item.orderId,
+          orderItemSeqId: item.orderItemSeqId,
+          unitCost: 0.00,
+          locationSeqId: item.locationSeqId
+        }
+
+        try {
+          const resp = await ShipmentService.receiveShipmentItem(params)
+          if(hasError(resp)){
+            throw resp.data;
+          }
+        } catch(error: any) {
+          areAllSuccess = false
+        }
       }
-      const resp = await ShipmentService.receiveShipmentItem(params)
-      if(resp.status === 200 && !hasError(resp)){
-        return Promise.resolve(resp);
-       } else {
-        return Promise.reject(resp);
-       }
-    }))
+    }
+
+    return areAllSuccess;
   },
   async receiveShipment ({ dispatch }, payload) {
-    emitter.emit("presentLoader");
-    return await dispatch("receiveShipmentItem", payload).then(async () => {
-      const resp = await ShipmentService.receiveShipment({
-        "shipmentId": payload.shipmentId,
-        "statusId": "PURCH_SHIP_RECEIVED"
-      })
-      if (resp.status == 200 && !hasError(resp)) {
-        showToast(translate("Shipment received successfully", { shipmentId: payload.shipmentId }))
+    emitter.emit("presentLoader", {message: 'Receiving in-progress.', backdropDismiss: false});
+    const areAllSuccess = await dispatch("receiveShipmentItem", payload);
+    if(areAllSuccess) {
+      try {
+        const resp = await ShipmentService.receiveShipment({
+          "shipmentId": payload.shipmentId,
+          "statusId": "PURCH_SHIP_RECEIVED"
+        })
+
+        if (resp.status == 200 && !hasError(resp)) {
+          showToast(translate("Shipment received successfully", { shipmentId: payload.shipmentId }))
+          emitter.emit("dismissLoader");
+          return true;
+        } else {
+          throw resp.data;
+        }
+      } catch(error: any) {
+        console.error(error);
       }
-      emitter.emit("dismissLoader");
-      return resp;
-    }).catch(err => {
-      emitter.emit("dismissLoader");
-      console.error(err)
-      return err;
-    });
+    }
+    emitter.emit("dismissLoader");
+    return false;
   },
   async addShipmentItem ({ state, commit, dispatch }, payload) {
     const item = payload.shipmentId ? { ...(payload.item) } : { ...payload }
