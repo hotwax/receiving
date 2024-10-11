@@ -225,7 +225,7 @@ export default defineComponent({
     async receiveShipment() {
       const eligibleItems = this.current.items.filter((item: any) => item.quantityAccepted > 0)
       const shipmentId = this.current.shipment ? this.current.shipment.shipmentId : this.current.shipmentId 
-      const resp = await this.store.dispatch('shipment/receiveShipment', { items: eligibleItems, shipmentId })
+      const resp = await this.store.dispatch('shipment/receiveShipmentJson', { items: eligibleItems, shipmentId })
       if (resp.status === 200 && !hasError(resp)) {
         this.router.push('/shipments');
       } else {
