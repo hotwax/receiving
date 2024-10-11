@@ -141,7 +141,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
     return responses;
   },
   async receiveShipment ({ dispatch }, payload) {
-    emitter.emit("presentLoader");
+    emitter.emit("presentLoader", {message: 'Receiving inprogress.', backdropDismiss: false});
     const receiveResponses = await dispatch("receiveShipmentItem", payload);
     if(!receiveResponses.includes(false)) {
       try {
