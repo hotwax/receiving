@@ -103,13 +103,13 @@ const actions: ActionTree<ShipmentState, RootState> = {
     }
   },
   async receiveShipmentItem ({ commit }, payload) {
-    const responses = [];
+    let areAllSuccess = true;
 
     for (const item of payload.items) {
       if(item.quantityReceived === 0) {
         if (!item.locationSeqId) {
           console.error("Missing locationSeqId on item");
-          responses.push(false);
+          areAllSuccess = false;
           continue;
         }
 
@@ -127,18 +127,16 @@ const actions: ActionTree<ShipmentState, RootState> = {
 
         try {
           const resp = await ShipmentService.receiveShipmentItem(params)
-          if(resp.status === 200 && !hasError(resp)){
-            responses.push(true)
-          } else {
+          if(hasError(resp)){
             throw resp.data;
-          }        
+          }
         } catch(error: any) {
-          responses.push(false)
+          areAllSuccess = false
         }
       }
     }
 
-    return responses;
+    return areAllSuccess;
   },
   async receiveShipment ({ dispatch }, payload) {
     emitter.emit("presentLoader", {message: 'Receiving inprogress.', backdropDismiss: false});
