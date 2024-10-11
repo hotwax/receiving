@@ -171,31 +171,6 @@ const actions: ActionTree<ShipmentState, RootState> = {
       showToast(translate("Something went wrong, please try again"));
     }
     emitter.emit("dismissLoader");
-    
-
-
-   /* UploadService.uploadJsonFile(UploadService.prepareUploadJsonPayload({
-      uploadData,
-      fileName,
-      params
-    })).then(async (resp: any) => {
-      if (!hasError(resp)) {
-        resp = await ShipmentService.receiveShipment({
-          "shipmentId": payload.shipmentId,
-          "statusId": "PURCH_SHIP_RECEIVED"
-        })
-        console.log("=======resp==", resp);
-        if (resp.status == 200 && !hasError(resp)) {
-          showToast(translate("Shipment received successfully", { shipmentId: payload.shipmentId }))
-        }
-        emitter.emit("dismissLoader");
-        return resp;
-      } else {
-        throw resp.data;
-      }
-    }).catch(() => {
-      showToast(translate("Something went wrong, please try again"));
-    })*/
   },
 
   async receiveShipment ({ dispatch }, payload) {
