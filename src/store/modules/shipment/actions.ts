@@ -139,9 +139,9 @@ const actions: ActionTree<ShipmentState, RootState> = {
     return areAllSuccess;
   },
   async receiveShipment ({ dispatch }, payload) {
-    emitter.emit("presentLoader", {message: 'Receiving inprogress.', backdropDismiss: false});
-    const receiveResponses = await dispatch("receiveShipmentItem", payload);
-    if(!receiveResponses.includes(false)) {
+    emitter.emit("presentLoader", {message: 'Receiving in-progress.', backdropDismiss: false});
+    const areAllSuccess = await dispatch("receiveShipmentItem", payload);
+    if(areAllSuccess) {
       try {
         const resp = await ShipmentService.receiveShipment({
           "shipmentId": payload.shipmentId,
