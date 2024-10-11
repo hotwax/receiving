@@ -46,7 +46,7 @@
             </div>
 
             <div class="location">
-              <LocationPopover v-if="!isShipmentReceived()" :item="item" type="shipment" :facilityId="currentFacility.facilityId" />
+              <LocationPopover v-if="!isShipmentReceived() && item.quantityReceived === 0" :item="item" type="shipment" :facilityId="currentFacility.facilityId" />
               <ion-chip :disabled="true" outline v-else>
                 <ion-icon :icon="locationOutline"/>
                 <ion-label>{{ item.locationSeqId }}</ion-label>
