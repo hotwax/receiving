@@ -106,7 +106,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
     let areAllSuccess = true;
 
     for (const item of payload.items) {
-      if(item.quantityReceived === 0) {
+      if(payload.isMultiReceivingEnabled || item.quantityReceived === 0) {
         if (!item.locationSeqId) {
           console.error("Missing locationSeqId on item");
           areAllSuccess = false;

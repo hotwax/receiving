@@ -149,7 +149,8 @@ const actions: ActionTree<OrderState, RootState> = {
 
           const poShipment = {
             shipmentId,
-            items: payload.items
+            items: payload.items,
+            isMultiReceivingEnabled: true
           }
           await this.dispatch('shipment/receiveShipment', poShipment).catch((err) => console.error(err))
         })
