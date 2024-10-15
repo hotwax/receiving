@@ -46,7 +46,7 @@
             </div>
 
             <div class="location">
-              <LocationPopover v-if="!isShipmentReceived()" :item="item" type="shipment" :facilityId="currentFacility.facilityId" />
+              <LocationPopover v-if="!isShipmentReceived() && item.quantityReceived === 0" :item="item" type="shipment" :facilityId="currentFacility.facilityId" />
               <ion-chip :disabled="true" outline v-else>
                 <ion-icon :icon="locationOutline"/>
                 <ion-label>{{ item.locationSeqId }}</ion-label>
@@ -54,7 +54,7 @@
             </div>
 
             <div class="product-count">
-              <ion-item v-if="!isShipmentReceived()">
+              <ion-item v-if="!isShipmentReceived() && item.quantityReceived === 0">
                 <ion-input :label="translate('Qty')" :disabled="isForceScanEnabled" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" />
               </ion-item>
               <div v-else>
@@ -66,7 +66,7 @@
             </div>
           </div>
 
-          <ion-item lines="none" class="border-top" v-if="item.quantityOrdered > 0 && !isShipmentReceived()">
+          <ion-item lines="none" class="border-top" v-if="item.quantityOrdered > 0 && !isShipmentReceived() && item.quantityReceived === 0">
             <ion-button @click="receiveAll(item)" :disabled="isForceScanEnabled" slot="start" fill="outline">
               {{ translate("Receive All") }}
             </ion-button>
@@ -225,11 +225,12 @@ export default defineComponent({
     async receiveShipment() {
       const eligibleItems = this.current.items.filter((item: any) => item.quantityAccepted > 0)
       const shipmentId = this.current.shipment ? this.current.shipment.shipmentId : this.current.shipmentId 
-      const resp = await this.store.dispatch('shipment/receiveShipmentJson', { items: eligibleItems, shipmentId })
-      if (resp.status === 200 && !hasError(resp)) {
+      const isShipmentReceived = await this.store.dispatch('shipment/receiveShipmentJson', { items: eligibleItems, shipmentId })
+      if (isShipmentReceived) {
         this.router.push('/shipments');
       } else {
         showToast(translate("Failed to receive shipment"))
+        this.store.dispatch('shipment/setCurrent', { shipmentId: this.$route.params.id })
       }
     },
     isEligibleForReceivingShipment() {

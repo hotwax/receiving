@@ -115,7 +115,7 @@ export default defineComponent({
           "grp_op_1": "OR"
         },
         "entityName": "ShipmentAndTypeAndItemCount",
-        "fieldList" : [ "shipmentId","primaryShipGroupSeqId","partyIdFrom","partyIdTo","estimatedArrivalDate","destinationFacilityId","statusId", "shipmentItemCount", "externalId", "externalOrderId", "externalOrderName", "shipmentTypeId" ],
+        "fieldList" : [ "shipmentId","primaryShipGroupSeqId","partyIdFrom","partyIdTo","estimatedArrivalDate","destinationFacilityId","statusId", "shipmentItemCount", "externalId", "externalOrderId", "shipmentTypeId" ],
         "noConditionFind": "Y",
         "viewSize": viewSize,
         "viewIndex": viewIndex,

@@ -27,7 +27,16 @@ const prepareUploadJsonPayload = (request: UploadRequest) => {
   }
 }
 
+const fetchDataManagerLog = async (payload: any): Promise<any> => {
+  return api({
+    url: "/performFind",
+    method: "POST",
+    data: payload
+  })
+}
+
 export const UploadService = {
+  fetchDataManagerLog,
   prepareUploadJsonPayload,
   uploadJsonFile
 }
