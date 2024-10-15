@@ -167,7 +167,8 @@ const actions: ActionTree<ShipmentState, RootState> = {
     const product = {
       ...item,
       quantityAccepted: 0,
-      quantityOrdered: 0
+      quantityOrdered: 0,
+      quantityReceived: 0
     }
     const params = {
       orderId: payload.orderId,
