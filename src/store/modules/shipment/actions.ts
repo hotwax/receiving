@@ -147,6 +147,9 @@ const actions: ActionTree<ShipmentState, RootState> = {
     const params = {
       "configId": "RECEIVE_SHIP_ITEMS"
     }
+    if(!payload.isMultiReceivingEnabled) {
+      payload.items = payload.items.filter((item: any) => item.quantityReceived === 0)
+    }
     const uploadData = payload.items.map((item: any) => {
       return {
         shipmentId: payload.shipmentId,
@@ -171,7 +174,6 @@ const actions: ActionTree<ShipmentState, RootState> = {
       if (resp.status == 200 && !hasError(resp)) {
         const uploadFileContentId = resp.data.uploadFileContentId;
         if (uploadFileContentId) {
-          console.log("=========uploadFileContentId==", uploadFileContentId)
           resp = await UploadService.fetchDataManagerLog({
             "inputFields": {
               "configId": "RECEIVE_SHIP_ITEMS",
@@ -183,7 +185,6 @@ const actions: ActionTree<ShipmentState, RootState> = {
             "entityName": "DataManagerLog",
             "viewSize": 1
           });
-          console.log("=========resp==", resp)
           if (!hasError(resp) && resp.data.docs.length) {
             //If there is no error and file is processed then mark the shipment as received
             resp = await ShipmentService.receiveShipment({
