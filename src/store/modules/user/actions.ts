@@ -57,7 +57,7 @@ const actions: ActionTree<UserState, RootState> = {
       //fetching user facilities
       const isAdminUser = appPermissions.some((appPermission: any) => appPermission?.action === "APP_RECVG_ADMIN");
       const facilities = await useUserStore().getUserFacilities(userProfile?.partyId, "", isAdminUser)
-      await useUserStore().getPreferredFacility('SELECTED_FACILITY')
+      await useUserStore().getFacilityPreference('SELECTED_FACILITY')
 
       if (!facilities.length) throw 'Unable to login. User is not assocaited with any facility'
 

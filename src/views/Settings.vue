@@ -127,9 +127,9 @@ export default defineComponent({
     async timeZoneUpdated(tzId: string) {
       await this.store.dispatch("user/setUserTimeZone", tzId)
     },
-    async handleFacilityUpdate(selectedFacilityId: any) {
+    async handleFacilityUpdate(selectedFacility: any) {
       this.store.dispatch('shipment/clearShipments');
-      await this.store.dispatch('user/setFacilityUpdates', selectedFacilityId);
+      await this.store.dispatch('user/setFacilityUpdates', selectedFacility?.facilityId);
     },
     async presentAlert () {
       const alert = await alertController.create({
