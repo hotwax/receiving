@@ -10,7 +10,7 @@
     </ion-toolbar>
   </ion-header>
   <ion-content ref="contentRef" :scroll-events="true" @ionScroll="enableScrolling()">
-    <ion-searchbar @ionFocus="selectSearchBarText($event)" v-model="queryString" :placeholder="translate('Search SKU or product name')" v-on:keyup.enter="queryString = $event.target.value; getProducts()" />
+    <ion-searchbar @ionFocus="selectSearchBarText($event)" v-model="queryString" :placeholder="translate('Search SKU or product name')" v-on:keyup.enter="searchProducts" />
     <template v-if="products.length">
       <ion-list v-for="product in products" :key="product.productId">
         <ion-item lines="none">
@@ -31,10 +31,17 @@
         <ion-infinite-scroll-content loading-spinner="crescent" :loading-text="translate('Loading')" />
       </ion-infinite-scroll>
     </template>
-    <div v-else class="empty-state">
-      <img src="../assets/images/empty-state-add-product-modal.png" alt="empty-state" />
-      <p>{{ translate("Enter a SKU, or product name to search a product") }}</p>
-    </div>
+    <template v-else-if="hasSearched">
+      <div class="empty-state">
+        <p>{{ translate("No products found.") }}</p>
+      </div>
+    </template>
+    <template v-else>
+      <div class="empty-state">
+        <img src="../assets/images/empty-state-add-product-modal.png" alt="empty-state" />
+        <p>{{ translate("Enter a SKU, or product name to search a product") }}</p>
+      </div>
+    </template>
   </ion-content>
 </template>
 
@@ -85,6 +92,8 @@ export default defineComponent({
   data() {
     return {
       queryString: this.selectedSKU ? this.selectedSKU : '',
+      products: [], 
+      hasSearched: false, 
       isScrollingEnabled: false
     }
   },
@@ -119,6 +128,30 @@ export default defineComponent({
       }
       else {
         showToast(translate("Enter product sku to search"))
+      }
+    },
+    async searchProducts() {
+      this.hasSearched = true;
+      this.products = []; // Clear the products array before each search
+
+      if (this.queryString) {
+        const viewSize = process.env.VUE_APP_VIEW_SIZE;
+        const payload = {
+          viewSize,
+          viewIndex: 0,
+          queryString: this.queryString,
+        };
+
+        try {
+          const response = await this.store.dispatch("product/findProduct", payload);
+          if (response && response.data && response.data.response && response.data.response.docs) {
+            this.products = response.data.response.docs;
+          } else {
+            console.error("Unexpected response structure:", response);
+          }
+        } catch (error) {
+          console.error("Error fetching products:", error);
+        }
       }
     },
     enableScrolling() {
