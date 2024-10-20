@@ -11,7 +11,7 @@
       <main>
         <div class="doc-id">
           <ion-item lines="none">
-            <h1> {{ current.shopifyOrderName ? current.shopifyOrderName : current.hcOrderId ? current.hcOrderId : current.externalId ? current.externalId : 'Return' }}</h1>
+            <h1> {{ current.shopifyOrderName ? current.shopifyOrderName : current.hcOrderId ? current.hcOrderId : current.externalId ? current.externalId : translate("Return Details") }}</h1>
             <!-- TODO: Fetch Customer name -->
             <!-- <p>{{ translate("Customer: <customer name>")}}</p> -->
           </ion-item>
