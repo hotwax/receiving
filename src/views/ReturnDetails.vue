@@ -117,6 +117,7 @@ import ImageModal from '@/components/ImageModal.vue';
 import { hasError } from '@/utils';
 import { showToast } from '@/utils'
 import { Actions, hasPermission } from '@/authorization'
+import { hasCameraAccess } from '@/utils';
 
 export default defineComponent({
   name: "ReturnDetails",
@@ -268,6 +269,10 @@ export default defineComponent({
       this.queryString = ''
     },
     async scanCode () {
+      if (!hasCameraAccess()) {
+        showToast(translate("Camera access is required to scan items."));
+        return;
+      }
       const modal = await modalController
         .create({
           component: Scanner,
