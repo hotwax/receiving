@@ -147,6 +147,10 @@ export default defineComponent({
           payload.inputFields["externalOrderId_op"] = 'contains'
           payload.inputFields["externalOrderId_ic"] = 'Y'
           payload.inputFields["externalOrderId_grp"] = '2'
+          payload.inputFields["externalOrderName_value"] = this.queryString
+          payload.inputFields["externalOrderName_op"] = 'contains'
+          payload.inputFields["externalOrderName_ic"] = 'Y'
+          payload.inputFields["externalOrderName_grp"] = '2'
           payload.inputFields["grp_op_2"] = 'OR'
       }
       await this.store.dispatch("shipment/findShipment", payload);
