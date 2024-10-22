@@ -192,7 +192,6 @@ const actions: ActionTree<ShipmentState, RootState> = {
               "statusId": "PURCH_SHIP_RECEIVED"
             })
             if (resp.status == 200 && !hasError(resp)) {
-              showToast(translate("Shipment received successfully", { shipmentId: payload.shipmentId }))
               return true;
             } else {
               throw resp.data;
@@ -205,7 +204,6 @@ const actions: ActionTree<ShipmentState, RootState> = {
         throw resp.data;
       }
     } catch (err) {
-      await dispatch('setCurrent', { shipmentId: payload.shipmentId })
       showToast(translate("Something went wrong, please try again"));
     }
     emitter.emit("dismissLoader");

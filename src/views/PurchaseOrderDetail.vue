@@ -361,9 +361,14 @@ export default defineComponent({
     },
     async createShipment() {
       const eligibleItems = this.order.items.filter((item: any) => item.quantityAccepted > 0)
-      const resp = await this.store.dispatch('order/createPurchaseShipment', { items: eligibleItems, orderId: this.order.orderId })
-      if (resp.status === 200 && !hasError(resp)) {
+      const isShipmentReceived = await this.store.dispatch('order/createAndReceiveIncomingShipment', { items: eligibleItems, orderId: this.order.orderId })
+      if (isShipmentReceived) {
+        showToast(translate("Purchase order received successfully", { orderId: this.order.orderId }))
         this.router.push('/purchase-orders')
+      } else {
+        this.store.dispatch("order/getOrderDetail", { orderId: this.$route.params.slug }).then(() => {
+          this.store.dispatch('order/getPOHistory', { orderId: this.order.orderId })
+        })
       }
     },
     isEligibileForCreatingShipment() {

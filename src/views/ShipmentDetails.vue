@@ -227,6 +227,7 @@ export default defineComponent({
       const shipmentId = this.current.shipment ? this.current.shipment.shipmentId : this.current.shipmentId 
       const isShipmentReceived = await this.store.dispatch('shipment/receiveShipmentJson', { items: eligibleItems, shipmentId })
       if (isShipmentReceived) {
+        showToast(translate("Shipment received successfully", { shipmentId: shipmentId }))
         this.router.push('/shipments');
       } else {
         showToast(translate("Failed to receive shipment"))

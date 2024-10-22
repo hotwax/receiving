@@ -79,6 +79,7 @@
   "Purchase Order": "Purchase Order",
   "Purchase Order Details": "Purchase Order Details",
   "Purchase Orders": "Purchase Orders",
+  "Purchase order received successfully" : "Purchase order received successfully {orderId}",
   "Qty": "Qty",
   "Receive": "Receive",
   "Receive All": "Receive All",
