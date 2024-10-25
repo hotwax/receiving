@@ -27,7 +27,7 @@ import '@ionic/vue/css/display.css';
 import './theme/variables.css';
 
 import store from './store'
-import permissionPlugin from '@/authorization';
+import permissionPlugin, { Actions, hasPermission } from '@/authorization';
 import permissionRules from '@/authorization/Rules';
 import permissionActions from '@/authorization/Actions';
 import { dxpComponents } from '@hotwax/dxp-components'
@@ -47,6 +47,7 @@ const app = createApp(App)
     actions: permissionActions
   })
   .use(dxpComponents, {
+    Actions,
     defaultImgUrl: require("@/assets/images/defaultImage.png"),
     login,
     logout,
@@ -58,7 +59,8 @@ const app = createApp(App)
     localeMessages,
     setUserTimeZone,
     setProductIdentificationPref,
-    getAvailableTimeZones
+    getAvailableTimeZones,
+    hasPermission
   });
 
 // Filters are removed in Vue 3 and global filter introduced https://v3.vuejs.org/guide/migration/filters.html#global-filters
