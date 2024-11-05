@@ -117,7 +117,7 @@ const actions: ActionTree<UtilState, RootState> = {
 
     // when selecting none as ecom store, not updating the pref as it's not possible to save pref with empty productStoreId
     if(!eComStoreId) {
-      showToast(translate("Unable to update force scan preference."))
+      showToast(translate("Unable to update force scan preference since no product store config found."))
       commit(types.UTIL_FORCE_SCAN_STATUS_UPDATED, prefValue)
       return;
     }
@@ -191,7 +191,7 @@ const actions: ActionTree<UtilState, RootState> = {
       }
     } catch(err) {
       console.error(err)
-      commit(types.UTIL_BARCODE_IDENTIFICATION_PREF_UPDATED, "primaryId")
+      commit(types.UTIL_BARCODE_IDENTIFICATION_PREF_UPDATED, "internalName")
     }
   },
 
@@ -218,7 +218,7 @@ const actions: ActionTree<UtilState, RootState> = {
         fromDate,
         "productStoreId": ecomStore.productStoreId,
         "settingTypeEnumId": "BARCODE_IDEN_PREF",
-        "settingValue": "primaryId"
+        "settingValue": "internalName"
       }  
 
       await UtilService.createBarcodeIdentificationPref(params) as any
@@ -228,7 +228,7 @@ const actions: ActionTree<UtilState, RootState> = {
 
     // not checking for resp success and fail case as every time we need to update the state with the
     // default value when creating a scan setting
-    commit(types.UTIL_BARCODE_IDENTIFICATION_PREF_UPDATED, "primaryId")
+    commit(types.UTIL_BARCODE_IDENTIFICATION_PREF_UPDATED, "internalName")
     return fromDate;
   },
 
@@ -238,7 +238,7 @@ const actions: ActionTree<UtilState, RootState> = {
 
     // when selecting none as ecom store, not updating the pref as it's not possible to save pref with empty productStoreId
     if(!eComStoreId) {
-      showToast(translate("Unable to update barcode identification preference."))
+      showToast(translate("Unable to update barcode identification preference since no product store config found."))
       commit(types.UTIL_BARCODE_IDENTIFICATION_PREF_UPDATED, prefValue)
       return;
     }

@@ -74,8 +74,7 @@
           </ion-item>
           <ion-item lines="none">
             <ion-select :label="translate('Barcode Identifier')" interface="popover" :placeholder="translate('Select')" :value="barcodeIdentificationPref" @ionChange="setBarcodeIdentificationPref($event.detail.value)">
-              <ion-select-option value="primaryId">{{ translate("Primary identifier") }}</ion-select-option>
-              <ion-select-option value="secondaryId">{{ translate("Secondary identifier") }}</ion-select-option>
+              <ion-select-option v-for="identification in barcodeIdentificationOptions" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
             </ion-select>
           </ion-item>
         </ion-card>
@@ -86,14 +85,14 @@
 
 <script lang="ts">
 import { alertController, IonAvatar, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader,IonIcon, IonItem, IonMenuButton, IonPage, IonSelect, IonSelectOption, IonTitle, IonToggle, IonToolbar } from '@ionic/vue';
-import { defineComponent } from 'vue';
+import { computed, defineComponent } from 'vue';
 import { codeWorkingOutline, ellipsisVertical, openOutline, saveOutline, globeOutline, personCircleOutline, storefrontOutline} from 'ionicons/icons'
 import { mapGetters, useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import Image from '@/components/Image.vue'
 import { DateTime } from 'luxon';
 import { Actions, hasPermission } from '@/authorization';
-import { DxpProductIdentifier, translate } from "@hotwax/dxp-components"
+import { DxpProductIdentifier, translate, useProductIdentificationStore } from "@hotwax/dxp-components"
 
 export default defineComponent({
   name: 'Settings',
@@ -208,9 +207,12 @@ export default defineComponent({
   setup(){
     const store = useStore();
     const router = useRouter();
+    const productIdentificationStore = useProductIdentificationStore();
+    let barcodeIdentificationOptions = computed(() => productIdentificationStore.getProductIdentificationOptions)
 
     return {
       Actions,
+      barcodeIdentificationOptions,
       codeWorkingOutline,
       ellipsisVertical,
       globeOutline,
