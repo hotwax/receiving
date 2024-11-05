@@ -117,7 +117,7 @@ const actions: ActionTree<UtilState, RootState> = {
 
     // when selecting none as ecom store, not updating the pref as it's not possible to save pref with empty productStoreId
     if(!eComStoreId) {
-      showToast(translate("Unable to update force scan preference since not product store config."))
+      showToast(translate("Unable to update force scan preference since no product store config."))
       commit(types.UTIL_FORCE_SCAN_STATUS_UPDATED, prefValue)
       return;
     }

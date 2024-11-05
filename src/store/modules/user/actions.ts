@@ -166,6 +166,8 @@ const actions: ActionTree<UserState, RootState> = {
       'userPrefValue': payload.eComStore.productStoreId
     });
     await useProductIdentificationStore().getIdentificationPref(payload.eComStore.productStoreId);
+    this.dispatch('util/getForceScanSetting', payload.ecomStore.productStoreId)
+    this.dispatch('util/getBarcodeIdentificationPref', payload.ecomStore.productStoreId)
   },
 
   /**
