@@ -166,8 +166,6 @@ const actions: ActionTree<UserState, RootState> = {
       'userPrefValue': payload.eComStore.productStoreId
     });
     await useProductIdentificationStore().getIdentificationPref(payload.eComStore.productStoreId);
-    this.dispatch('util/getForceScanSetting', payload.ecomStore.productStoreId)
-    this.dispatch('util/getBarcodeIdentificationPref', payload.ecomStore.productStoreId)
   },
 
   /**
@@ -180,6 +178,8 @@ const actions: ActionTree<UserState, RootState> = {
     commit(types.USER_CURRENT_ECOM_STORE_UPDATED, eComStore);
     commit(types.USER_CURRENT_FACILITY_UPDATED, payload.facility);
     await dispatch('getFacilityLocations', payload.facility.facilityId)
+    eComStore?.productStoreId ? this.dispatch('util/getForceScanSetting', eComStore.productStoreId) : this.dispatch('util/updateForceScanStatus', false)
+    eComStore?.productStoreId ? this.dispatch('util/getBarcodeIdentificationPref', eComStore.productStoreId) : this.dispatch('util/updateBarcodeIdentificationPref', "internalName")
   },
   
   /**
