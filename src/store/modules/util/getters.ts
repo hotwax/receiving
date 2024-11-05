@@ -16,11 +16,6 @@ const getters: GetterTree <UtilState, RootState> = {
   },
   getBarcodeIdentificationPref(state) {
     return state.barcodeIdentificationPref
-  },
-  getBarcodeIdentificationValue(state, getters, rootState, rootGetters) {
-    const productIdentificationStore = useProductIdentificationStore();
-    const productIdentificationPref = computed(() => productIdentificationStore.getProductIdentificationPref) as any;
-    return productIdentificationPref.value[state.barcodeIdentificationPref]
   }
 }
 export default getters;
