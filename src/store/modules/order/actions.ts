@@ -71,20 +71,6 @@ const actions: ActionTree<OrderState, RootState> = {
   async getOrderDetail({ commit, state }, { orderId }) {
     let resp;
 
-    const current = state.current as any
-    const orders = state.purchaseOrders.list as any
-
-    if (current.length && current[0]?.orderId === orderId) { return current }
-
-    else if(orders.length > 0) {
-      return orders.some((order: any) => {
-        if (order.doclist.docs[0]?.orderId === orderId) {
-          this.dispatch('product/fetchProductInformation',  { order: order.doclist.docs });
-          commit(types.ORDER_CURRENT_UPDATED, { ...state.current, orderId: order.doclist.docs[0]?.orderId, externalOrderId: order.doclist.docs[0]?.externalOrderId, orderStatusId: order.doclist.docs[0]?.orderStatusId, orderStatusDesc: order.doclist.docs[0]?.orderStatusDesc, items: JSON.parse(JSON.stringify(order.doclist.docs)) })
-          return current;
-        }
-      })
-    }
     try {
       const payload = {
         "json": {
@@ -96,7 +82,7 @@ const actions: ActionTree<OrderState, RootState> = {
           },
           "query": "docType:ORDER",
           "filter": [
-            `orderTypeId: PURCHASE_ORDER AND orderId: ${orderId} AND orderStatusId: (ORDER_APPROVED OR ORDER_CREATED) AND facilityId: ${this.state.user.currentFacility.facilityId}`
+            `orderTypeId: PURCHASE_ORDER AND orderId: ${orderId} AND orderStatusId: (ORDER_APPROVED OR ORDER_CREATED OR ORDER_COMPLETED) AND facilityId: ${this.state.user.currentFacility.facilityId}`
           ]
         }
       }
