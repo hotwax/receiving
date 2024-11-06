@@ -157,8 +157,6 @@ export default defineComponent({
   },
   async ionViewWillEnter() {
     const current = await this.store.dispatch('return/setCurrent', { shipmentId: this.$route.params.id })
-    console.log(this.current);
-    
   },
   computed: {
     ...mapGetters({
