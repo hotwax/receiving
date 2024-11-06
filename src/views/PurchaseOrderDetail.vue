@@ -321,7 +321,7 @@ export default defineComponent({
           this.lastScannedId = ''
         }, 3000)
       } else {
-        showToast(translate("Scanned item is not present within the shipment:", { itemName: this.queryString }));
+        showToast(translate("Searched item is not present within the shipment:", { itemName: this.queryString }));
       }
       this.queryString = ''
     },

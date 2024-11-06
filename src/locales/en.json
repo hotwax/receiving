@@ -106,6 +106,7 @@
   "Scanned item is not present within the shipment:": "Scanned item is not present within the shipment: {itemName}",
   "Scanned successfully.": "Scanned {itemName} successfully.",
   "Search items": "Search items",
+  "Searched item is not present within the shipment:": "Scanned item is not present within the shipment: {itemName}",
   "secondary identifier": "secondary identifier",
   "Secondary identifier": "Secondary identifier",
   "Search": "Search",
