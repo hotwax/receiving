@@ -47,7 +47,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
   },
 
   async updateShipmentProductCount ({ commit, state }, payload) {
-    const barcodeIdentifier = store.getters['util/getBarcodeIdentificationValue'];
+    const barcodeIdentifier = store.getters['util/getBarcodeIdentificationPref'];
     const getProduct = store.getters['product/getProduct'];
 
     const item = state.current.items.find((item: any) => {

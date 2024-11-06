@@ -17,16 +17,18 @@
             <p class="overline" v-show="current.externalOrderId || current.externalOrderName">{{ current.externalOrderName ? current.externalOrderName : current.externalOrderId }}</p>
             <h1 v-if="current.externalId">{{ translate("External ID") }}: {{ current.externalId }}</h1>
             <h1 v-else>{{ translate("Shipment ID") }}: {{ current.shipmentId }}</h1>
+            <p>{{ translate("Item count:", { count: current.items.length }) }}</p>
           </ion-label>
           <ion-chip v-show="current.trackingIdNumber">{{current.trackingIdNumber}}</ion-chip>
+          <ion-badge v-if="isShipmentReceived()">{{ translate("Completed") }}</ion-badge>
         </ion-item>
 
-        <div class="scanner" v-if="!isShipmentReceived()">
+        <div class="scanner">
           <ion-item>
-            <ion-input :label="translate('Scan items')" autofocus :placeholder="translate('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()"></ion-input>
+            <ion-input :label="translate(isShipmentReceived() ? 'Search items' : 'Scan items')" autofocus v-model="queryString" @keyup.enter="isShipmentReceived() ? searchProduct() : updateProductCount()"></ion-input>
           </ion-item>
 
-          <ion-button expand="block" fill="outline" @click="scanCode()">
+          <ion-button expand="block" fill="outline" @click="scanCode()" :disabled="isShipmentReceived()">
             <ion-icon slot="start" :icon="cameraOutline" />{{ translate("Scan") }}
           </ion-button>
         </div>
@@ -250,7 +252,7 @@ export default defineComponent({
       if(this.queryString) payload = this.queryString
 
       if(!payload) {
-        showToast(translate("Please provide a valid valid barcode identifier."))
+        showToast(translate("Please provide a valid barcode identifier."))
         return;
       }
       const result = await this.store.dispatch('shipment/updateShipmentProductCount', payload)
@@ -300,6 +302,26 @@ export default defineComponent({
       });
       return modal.present();
     },
+    searchProduct() {
+      if(!this.queryString) {
+        showToast(translate("Please provide a valid barcode identifier."))
+        return;
+      }
+
+      const scannedElement = document.getElementById(this.queryString);
+      if(scannedElement) {
+        this.lastScannedId = this.queryString
+        scannedElement.scrollIntoView()
+
+        // Scanned product should get un-highlighted after 3s for better experience hence adding setTimeOut
+        setTimeout(() => {
+          this.lastScannedId = ''
+        }, 3000)
+      } else {
+        showToast(translate("Searched item is not present within the shipment:", { itemName: this.queryString }));
+      }
+      this.queryString = ''
+    }
   }, 
   setup() {
     const store = useStore(); 

@@ -1,6 +1,6 @@
 {
   "name": "receiving",
-  "version": "2.27.3",
+  "version": "2.27.5",
   "private": true,
   "description": "HotWax Commerce Receiving App",
   "scripts": {
@@ -16,8 +16,8 @@
     "@casl/ability": "^6.0.0",
     "@hotwax/app-version-info": "^1.0.0",
     "@hotwax/apps-theme": "^1.2.6",
-    "@hotwax/dxp-components": "^1.15.3",
-    "@hotwax/oms-api": "^1.14.0",
+    "@hotwax/dxp-components": "^1.15.5",
+    "@hotwax/oms-api": "^1.16.0",
     "@ionic/core": "^7.6.0",
     "@ionic/vue": "^7.6.0",
     "@ionic/vue-router": "^7.6.0",
