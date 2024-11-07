@@ -46,7 +46,7 @@ const actions: ActionTree<OrderState, RootState> = {
     return resp;
   },
   async updateProductCount({ commit, state }, payload ) {
-    const barcodeIdentifier = store.getters['util/getBarcodeIdentificationValue'];
+    const barcodeIdentifier = store.getters['util/getBarcodeIdentificationPref'];
     const getProduct = store.getters['product/getProduct'];
 
     const item = state.current.items.find((item: any) => {
@@ -101,7 +101,7 @@ const actions: ActionTree<OrderState, RootState> = {
           },
           "query": "docType:ORDER",
           "filter": [
-            `orderTypeId: PURCHASE_ORDER AND orderId: ${orderId} AND orderStatusId: (ORDER_APPROVED OR ORDER_CREATED) AND facilityId: ${currentFacilityId}`
+            `orderTypeId: PURCHASE_ORDER AND orderId: ${orderId} AND orderStatusId: (ORDER_APPROVED OR ORDER_CREATED OR ORDER_COMPLETED) AND facilityId: ${currentFacilityId}`
           ]
         }
       }
@@ -154,7 +154,8 @@ const actions: ActionTree<OrderState, RootState> = {
 
           const poShipment = {
             shipmentId,
-            items: payload.items
+            items: payload.items,
+            isMultiReceivingEnabled: true
           }
           await this.dispatch('shipment/receiveShipment', poShipment).catch((err) => console.error(err))
         })

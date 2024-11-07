@@ -11,7 +11,7 @@
       <main>
         <div class="doc-id">
           <ion-item lines="none">
-            <h1>{{ current.shopifyOrderName ? current.shopifyOrderName : current.hcOrderId }}</h1>
+            <h1> {{ current.shopifyOrderName ? current.shopifyOrderName : current.hcOrderId ? current.hcOrderId : current.externalId ? current.externalId : translate("Return Details") }}</h1>
             <!-- TODO: Fetch Customer name -->
             <!-- <p>{{ translate("Customer: <customer name>")}}</p> -->
           </ion-item>
@@ -25,10 +25,10 @@
   
         <div class="scanner">
           <ion-item>
-            <ion-input :label="translate('Scan items')" autofocus :placeholder="translate('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()" />
+            <ion-input :label="translate(isReturnReceivable(current.statusId) ? 'Scan items' : 'Search items')" autofocus v-model="queryString" @keyup.enter="isReturnReceivable(current.statusId) ? updateProductCount() : searchProduct()" />
           </ion-item>
 
-          <ion-button expand="block" fill="outline" @click="scanCode()">
+          <ion-button expand="block" fill="outline" @click="scanCode()" :disabled="!isReturnReceivable(current.statusId)">
             <ion-icon slot="start" :icon="barcodeOutline" />{{ translate("Scan") }}
           </ion-button>
         </div>
@@ -157,10 +157,6 @@ export default defineComponent({
   },
   async ionViewWillEnter() {
     const current = await this.store.dispatch('return/setCurrent', { shipmentId: this.$route.params.id })
-
-    if(!this.isReturnReceivable(current.statusId)) {
-      showToast(translate("This return has been and cannot be edited.", { status: current?.statusDesc?.toLowerCase() }));
-    }
   },
   computed: {
     ...mapGetters({
@@ -280,6 +276,24 @@ export default defineComponent({
       });
       return modal.present();
     },
+    searchProduct() {
+      if(!this.queryString) {
+        showToast(translate("Please provide a valid barcode identifier."))
+        return;
+      }
+      const scannedElement = document.getElementById(this.queryString);
+      if(scannedElement) {
+        this.lastScannedId = this.queryString
+        scannedElement.scrollIntoView()
+        // Scanned product should get un-highlighted after 3s for better experience hence adding setTimeOut
+        setTimeout(() => {
+          this.lastScannedId = ''
+        }, 3000)
+      } else {
+        showToast(translate("Searched item is not present within the shipment:", { itemName: this.queryString }));
+      }
+      this.queryString = ''
+    }
   }, 
   setup() {
     const store = useStore(); 

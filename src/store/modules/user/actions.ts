@@ -14,6 +14,7 @@ import {
 } from '@/authorization'
 import { translate, useAuthStore, useProductIdentificationStore, useUserStore } from '@hotwax/dxp-components'
 import emitter from '@/event-bus'
+import store from '@/store'
 
 const actions: ActionTree<UserState, RootState> = {
 
@@ -170,10 +171,14 @@ const actions: ActionTree<UserState, RootState> = {
   /**
    * update current facility information
    */
-  async setFacilityUpdates ({ commit, dispatch, state }, payload) {
-    const eComStore = await UserService.getEComStores(state.token, payload);
+  async setFacility ({ commit, dispatch }, facilityId) {
+    const token = store.getters['user/getUserToken'];
+    const eComStore = await UserService.getEComStores(token, facilityId);
+
     commit(types.USER_CURRENT_ECOM_STORE_UPDATED, eComStore);
-    await dispatch('getFacilityLocations', payload)
+    await dispatch('getFacilityLocations', facilityId)
+    eComStore?.productStoreId ? this.dispatch('util/getForceScanSetting', eComStore.productStoreId) : this.dispatch('util/updateForceScanStatus', false)
+    eComStore?.productStoreId ? this.dispatch('util/getBarcodeIdentificationPref', eComStore.productStoreId) : this.dispatch('util/updateBarcodeIdentificationPref', "internalName")
   },
   
   /**

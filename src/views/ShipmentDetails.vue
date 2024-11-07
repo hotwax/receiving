@@ -17,16 +17,18 @@
             <p class="overline" v-show="current.externalOrderId || current.externalOrderName">{{ current.externalOrderName ? current.externalOrderName : current.externalOrderId }}</p>
             <h1 v-if="current.externalId">{{ translate("External ID") }}: {{ current.externalId }}</h1>
             <h1 v-else>{{ translate("Shipment ID") }}: {{ current.shipmentId }}</h1>
+            <p>{{ translate("Item count:", { count: current.items.length }) }}</p>
           </ion-label>
           <ion-chip v-show="current.trackingIdNumber">{{current.trackingIdNumber}}</ion-chip>
+          <ion-badge v-if="isShipmentReceived()">{{ translate("Completed") }}</ion-badge>
         </ion-item>
 
-        <div class="scanner" v-if="!isShipmentReceived()">
+        <div class="scanner">
           <ion-item>
-            <ion-input :label="translate('Scan items')" autofocus :placeholder="translate('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()"></ion-input>
+            <ion-input :label="translate(isShipmentReceived() ? 'Search items' : 'Scan items')" autofocus v-model="queryString" @keyup.enter="isShipmentReceived() ? searchProduct() : updateProductCount()"></ion-input>
           </ion-item>
 
-          <ion-button expand="block" fill="outline" @click="scanCode()">
+          <ion-button expand="block" fill="outline" @click="scanCode()" :disabled="isShipmentReceived()">
             <ion-icon slot="start" :icon="cameraOutline" />{{ translate("Scan") }}
           </ion-button>
         </div>
@@ -46,7 +48,7 @@
             </div>
 
             <div class="location">
-              <LocationPopover v-if="!isShipmentReceived()" :item="item" type="shipment" :facilityId="currentFacility?.facilityId" />
+              <LocationPopover v-if="!isShipmentReceived() && item.quantityReceived === 0" :item="item" type="shipment" :facilityId="currentFacility?.facilityId" />
               <ion-chip :disabled="true" outline v-else>
                 <ion-icon :icon="locationOutline"/>
                 <ion-label>{{ item.locationSeqId }}</ion-label>
@@ -54,19 +56,19 @@
             </div>
 
             <div class="product-count">
-              <ion-item v-if="!isShipmentReceived()">
+              <ion-item v-if="!isShipmentReceived() && item.quantityReceived === 0">
                 <ion-input :label="translate('Qty')" :disabled="isForceScanEnabled" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" />
               </ion-item>
               <div v-else>
                 <ion-item lines="none">
-                  <ion-badge color="medium" slot="end">{{ item.quantityOrdered }} {{ translate("ordered") }}</ion-badge>
-                  <ion-badge color="success" class="ion-margin-start" slot="end">{{ item.quantityAccepted }} {{ translate("received") }}</ion-badge>
+                  <ion-label slot="end">{{ translate("/ received", { receivedCount: item.quantityAccepted, orderedCount: item.quantityOrdered }) }}</ion-label>
+                  <ion-icon :icon="(item.quantityReceived == item.quantityOrdered) ? checkmarkDoneCircleOutline : warningOutline" :color="(item.quantityReceived == item.quantityOrdered) ? '' : 'warning'" slot="end" />
                 </ion-item>
               </div>
             </div>
           </div>
 
-          <ion-item lines="none" class="border-top" v-if="item.quantityOrdered > 0 && !isShipmentReceived()">
+          <ion-item lines="none" class="border-top" v-if="item.quantityOrdered > 0 && !isShipmentReceived() && item.quantityReceived === 0">
             <ion-button @click="receiveAll(item)" :disabled="isForceScanEnabled" slot="start" fill="outline">
               {{ translate("Receive All") }}
             </ion-button>
@@ -113,7 +115,7 @@ import {
   alertController,
 } from '@ionic/vue';
 import { defineComponent, computed } from 'vue';
-import { add, checkmarkDone, cameraOutline, locationOutline } from 'ionicons/icons';
+import { add, checkmarkDone, checkmarkDoneCircleOutline, cameraOutline, locationOutline, warningOutline } from 'ionicons/icons';
 import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
 import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore, useUserStore } from '@hotwax/dxp-components';
@@ -224,11 +226,12 @@ export default defineComponent({
     async receiveShipment() {
       const eligibleItems = this.current.items.filter((item: any) => item.quantityAccepted > 0)
       const shipmentId = this.current.shipment ? this.current.shipment.shipmentId : this.current.shipmentId 
-      const resp = await this.store.dispatch('shipment/receiveShipment', { items: eligibleItems, shipmentId })
-      if (resp.status === 200 && !hasError(resp)) {
+      const isShipmentReceived = await this.store.dispatch('shipment/receiveShipment', { items: eligibleItems, shipmentId })
+      if(isShipmentReceived) {
         this.router.push('/shipments');
       } else {
         showToast(translate("Failed to receive shipment"))
+        this.store.dispatch('shipment/setCurrent', { shipmentId: this.$route.params.id })
       }
     },
     isEligibleForReceivingShipment() {
@@ -247,7 +250,7 @@ export default defineComponent({
       if(this.queryString) payload = this.queryString
 
       if(!payload) {
-        showToast(translate("Please provide a valid valid barcode identifier."))
+        showToast(translate("Please provide a valid barcode identifier."))
         return;
       }
       const result = await this.store.dispatch('shipment/updateShipmentProductCount', payload)
@@ -297,6 +300,26 @@ export default defineComponent({
       });
       return modal.present();
     },
+    searchProduct() {
+      if(!this.queryString) {
+        showToast(translate("Please provide a valid barcode identifier."))
+        return;
+      }
+
+      const scannedElement = document.getElementById(this.queryString);
+      if(scannedElement) {
+        this.lastScannedId = this.queryString
+        scannedElement.scrollIntoView()
+
+        // Scanned product should get un-highlighted after 3s for better experience hence adding setTimeOut
+        setTimeout(() => {
+          this.lastScannedId = ''
+        }, 3000)
+      } else {
+        showToast(translate("Searched item is not present within the shipment:", { itemName: this.queryString }));
+      }
+      this.queryString = ''
+    }
   }, 
   setup() {
     const store = useStore(); 
@@ -311,6 +334,7 @@ export default defineComponent({
       add,
       cameraOutline,
       checkmarkDone,
+      checkmarkDoneCircleOutline,
       currentFacility,
       hasPermission,
       locationOutline,
@@ -318,7 +342,8 @@ export default defineComponent({
       router,
       translate,
       getProductIdentificationValue,
-      productIdentificationPref
+      productIdentificationPref,
+      warningOutline
     };
   },
 });
