@@ -3,15 +3,10 @@ import { ActionTree } from 'vuex'
 import RootState from '@/store/RootState'
 import ShipmentState from './ShipmentState'
 import * as types from './mutation-types'
-import { hasError, showToast } from '@/utils'
+import { hasError, showToast, getCurrentFacilityId } from '@/utils'
 import { getProductIdentificationValue, translate, useUserStore } from '@hotwax/dxp-components'
 import emitter from '@/event-bus'
 import store from "@/store";
-
-const getCurrentFacilityId = () => {
-  const currentFacility: any = useUserStore().getCurrentFacility;
-  return currentFacility?.facilityId
-}
 
 const actions: ActionTree<ShipmentState, RootState> = {
   async findShipment ({ commit, state }, payload) {

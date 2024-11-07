@@ -37,7 +37,7 @@
       </div>
       <section>
         <DxpOmsInstanceNavigator />
-        <DxpFacilitySwitcher @updateFacility="handleFacilityUpdate($event)"/>
+        <DxpFacilitySwitcher @updateFacility="updateFacility(facility)"/>
       </section>
       <hr />
 
@@ -126,9 +126,9 @@ export default defineComponent({
     async timeZoneUpdated(tzId: string) {
       await this.store.dispatch("user/setUserTimeZone", tzId)
     },
-    async handleFacilityUpdate(selectedFacility: any) {
+    async updateFacility(facility: any) {
       this.store.dispatch('shipment/clearShipments');
-      await this.store.dispatch('user/setFacilityUpdates', selectedFacility?.facilityId);
+      await this.store.dispatch('user/setFacility', facility?.facilityId);
     },
     async presentAlert () {
       const alert = await alertController.create({
