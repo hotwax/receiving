@@ -61,8 +61,8 @@
               </ion-item>
               <div v-else>
                 <ion-item lines="none">
-                  <ion-badge color="medium" slot="end">{{ item.quantityOrdered }} {{ translate("ordered") }}</ion-badge>
-                  <ion-badge color="success" class="ion-margin-start" slot="end">{{ item.quantityAccepted }} {{ translate("received") }}</ion-badge>
+                  <ion-label slot="end">{{ translate("/ received", { receivedCount: item.quantityAccepted, orderedCount: item.quantityOrdered }) }}</ion-label>
+                  <ion-icon :icon="(item.quantityReceived == item.quantityOrdered) ? checkmarkDoneCircleOutline : warningOutline" :color="(item.quantityReceived == item.quantityOrdered) ? '' : 'warning'" slot="end" />
                 </ion-item>
               </div>
             </div>
@@ -115,7 +115,7 @@ import {
   alertController,
 } from '@ionic/vue';
 import { defineComponent, computed } from 'vue';
-import { add, checkmarkDone, cameraOutline, locationOutline } from 'ionicons/icons';
+import { add, checkmarkDone, checkmarkDoneCircleOutline, cameraOutline, locationOutline, warningOutline } from 'ionicons/icons';
 import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
 import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore } from '@hotwax/dxp-components';
@@ -333,13 +333,15 @@ export default defineComponent({
       add,
       cameraOutline,
       checkmarkDone,
+      checkmarkDoneCircleOutline,
       hasPermission,
       locationOutline,
       store,
       router,
       translate,
       getProductIdentificationValue,
-      productIdentificationPref
+      productIdentificationPref,
+      warningOutline
     };
   },
 });
