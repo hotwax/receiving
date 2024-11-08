@@ -113,6 +113,13 @@ const fetchShipmentAttributes = async (shipmentIds: Array<string>): Promise<any>
   return shipmentAttributes;
 }
 
+const getInventoryAvailableByFacility = async (query: any): Promise <any> => {
+  return api({
+    url: "service/getInventoryAvailableByFacility",
+    method: "post",
+    data: query
+  });
+}
 
 export const ShipmentService = {
   fetchShipments,
@@ -121,5 +128,6 @@ export const ShipmentService = {
   getShipmentDetail,
   receiveShipmentItem,
   receiveShipment,
-  addShipmentItem
+  addShipmentItem,
+  getInventoryAvailableByFacility
 }
