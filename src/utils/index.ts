@@ -52,4 +52,16 @@ const handleDateTimeInput = (dateTimeValue: any) => {
   return DateTime.fromISO(dateTime).toMillis()
 }
 
-export { handleDateTimeInput, showToast, hasError, copyToClipboard }
+const hasCameraAccess = async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    if (stream) {
+      showToast(translate('Camera access granted.'));
+    }
+  } catch (error) {
+    console.error('Camera access denied:', error);
+    showToast(translate('Camera permission is denied. Please enable the camera permission in your device settings to use the scanner.'));
+  }
+}
+
+export { handleDateTimeInput, showToast, hasError, copyToClipboard, hasCameraAccess }

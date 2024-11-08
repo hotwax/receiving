@@ -192,6 +192,7 @@ import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
 import { copyToClipboard, hasError, showToast } from '@/utils';
 import { Actions, hasPermission } from '@/authorization'
+import { hasCameraAccess } from '@/utils/';
 
 export default defineComponent({
   name: "PurchaseOrderDetails",
@@ -251,6 +252,10 @@ export default defineComponent({
       return imageModal.present();
     },
     async scan() {
+      if (!hasCameraAccess()) {
+        showToast(translate("Camera access is required to scan items."));
+        return;
+      }
       const modal = await modalController
       .create({
         component: Scanner,
