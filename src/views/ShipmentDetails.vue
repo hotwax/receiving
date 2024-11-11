@@ -48,7 +48,7 @@
             </div>
 
             <div class="location">
-              <ion-button v-if="!productQoh[item.productId]" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
+              <ion-button v-if="!(productQoh[item.productId] >= 0)" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
                 <ion-icon color="medium" slot="icon-only" :icon="cubeOutline" />
               </ion-button>
               <ion-chip v-else outline>
