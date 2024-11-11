@@ -34,7 +34,7 @@
         </div>
 
         <ion-card v-for="item in current.items" :key="item.id" :class="item.sku === lastScannedId ? 'scanned-item' : ''" :id="item.sku">
-          <div class="product">
+          <div class="product" :data-product-id="item.productId">
             <div class="product-info">
               <ion-item lines="none">
                 <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
@@ -160,8 +160,9 @@ export default defineComponent({
       productQoh: {} as any
     }
   },
-  mounted() {
-    this.store.dispatch('shipment/setCurrent', { shipmentId: this.$route.params.id })
+  async mounted() {
+    await this.store.dispatch('shipment/setCurrent', { shipmentId: this.$route.params.id })
+    this.observeProductVisibility();
   },
   computed: {
     ...mapGetters({
@@ -198,6 +199,28 @@ export default defineComponent({
         })
       return modal.present();
     },
+    observeProductVisibility() {
+      const observer = new IntersectionObserver((entries: any) => {
+        entries.forEach((entry: any) => {
+          if (entry.isIntersecting) {
+            const productId = entry.target.getAttribute('data-product-id');
+            if (productId && !(this.productQoh[productId] >= 0)) {
+              this.fetchQuantityOnHand(productId);
+            }
+          }
+        });
+      }, {
+        root: null,
+        threshold: 0.4
+      });
+
+      const products = document.querySelectorAll('.product');
+      if (products) {
+        products.forEach((product: any) => {
+          observer.observe(product);
+        });
+      }
+    },
     async fetchQuantityOnHand(productId: any) {
       try {
         const payload = {
@@ -213,7 +236,6 @@ export default defineComponent({
         }
       } catch (err) {
         console.error(err)
-        showToast(translate('No data available!'))
       } 
     },
     async fetchProducts(vSize: any, vIndex: any) {
