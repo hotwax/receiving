@@ -113,6 +113,7 @@ const fetchShipmentAttributes = async (shipmentIds: Array<string>): Promise<any>
   return shipmentAttributes;
 }
 
+
 export const ShipmentService = {
   fetchShipments,
   fetchShipmentAttributes,
@@ -120,5 +121,5 @@ export const ShipmentService = {
   getShipmentDetail,
   receiveShipmentItem,
   receiveShipment,
-  addShipmentItem,
+  addShipmentItem
 }
