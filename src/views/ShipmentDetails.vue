@@ -124,9 +124,9 @@ import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIden
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import ImageModal from '@/components/ImageModal.vue';
-import { hasError, showToast } from '@/utils'
+import { showToast } from '@/utils'
 import { Actions, hasPermission } from '@/authorization'
-import { ShipmentService } from '@/services/ShipmentService';
+import { ProductService } from '@/services/ProductService';
 
 export default defineComponent({
   name: "ShipmentDetails",
@@ -222,21 +222,7 @@ export default defineComponent({
       }
     },
     async fetchQuantityOnHand(productId: any) {
-      try {
-        const payload = {
-          productId: productId,
-          facilityId: this.currentFacility.facilityId
-        }
-
-        const resp: any = await ShipmentService.getInventoryAvailableByFacility(payload);
-        if (!hasError(resp)) {
-          this.productQoh[productId] = resp.data.quantityOnHandTotal;
-        } else {
-          throw resp.data;
-        }
-      } catch (err) {
-        console.error(err)
-      } 
+      this.productQoh[productId] = await ProductService.getInventoryAvailableByFacility(productId);  
     },
     async fetchProducts(vSize: any, vIndex: any) {
       const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
