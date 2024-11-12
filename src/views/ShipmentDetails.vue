@@ -34,7 +34,7 @@
         </div>
 
         <ion-card v-for="item in current.items" :key="item.id" :class="item.sku === lastScannedId ? 'scanned-item' : ''" :id="item.sku">
-          <div class="product">
+          <div class="product" :data-product-id="item.productId">
             <div class="product-info">
               <ion-item lines="none">
                 <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
@@ -48,10 +48,12 @@
             </div>
 
             <div class="location">
-              <LocationPopover v-if="!isShipmentReceived() && item.quantityReceived === 0" :item="item" type="shipment" :facilityId="currentFacility.facilityId" />
-              <ion-chip :disabled="true" outline v-else>
-                <ion-icon :icon="locationOutline"/>
-                <ion-label>{{ item.locationSeqId }}</ion-label>
+              <ion-button v-if="!(productQoh[item.productId] >= 0)" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
+                <ion-icon color="medium" slot="icon-only" :icon="cubeOutline" />
+              </ion-button>
+              <ion-chip v-else outline>
+                {{ translate("on hand", { qoh: productQoh[item.productId] }) }}
+                <ion-icon color="medium" :icon="cubeOutline"/>
               </ion-chip>
             </div>
 
@@ -115,16 +117,16 @@ import {
   alertController,
 } from '@ionic/vue';
 import { defineComponent, computed } from 'vue';
-import { add, checkmarkDone, checkmarkDoneCircleOutline, cameraOutline, locationOutline, warningOutline } from 'ionicons/icons';
+import { add, checkmarkDone, checkmarkDoneCircleOutline, cameraOutline, cubeOutline, locationOutline, warningOutline } from 'ionicons/icons';
 import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
 import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore } from '@hotwax/dxp-components';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
-import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
-import { hasError, showToast } from '@/utils'
+import { showToast } from '@/utils'
 import { Actions, hasPermission } from '@/authorization'
+import { ProductService } from '@/services/ProductService';
 
 export default defineComponent({
   name: "ShipmentDetails",
@@ -149,17 +151,18 @@ export default defineComponent({
     IonToolbar,
     DxpShopifyImg,
     IonChip,
-    LocationPopover
   },
   props: ["shipment"],
   data() {
     return {
       queryString: '',
-      lastScannedId: ''
+      lastScannedId: '',
+      productQoh: {} as any
     }
   },
-  mounted() {
-    this.store.dispatch('shipment/setCurrent', { shipmentId: this.$route.params.id })
+  async mounted() {
+    await this.store.dispatch('shipment/setCurrent', { shipmentId: this.$route.params.id })
+    this.observeProductVisibility();
   },
   computed: {
     ...mapGetters({
@@ -195,6 +198,31 @@ export default defineComponent({
           this.store.dispatch('product/clearSearchedProducts')
         })
       return modal.present();
+    },
+    observeProductVisibility() {
+      const observer = new IntersectionObserver((entries: any) => {
+        entries.forEach((entry: any) => {
+          if (entry.isIntersecting) {
+            const productId = entry.target.getAttribute('data-product-id');
+            if (productId && !(this.productQoh[productId] >= 0)) {
+              this.fetchQuantityOnHand(productId);
+            }
+          }
+        });
+      }, {
+        root: null,
+        threshold: 0.4
+      });
+
+      const products = document.querySelectorAll('.product');
+      if (products) {
+        products.forEach((product: any) => {
+          observer.observe(product);
+        });
+      }
+    },
+    async fetchQuantityOnHand(productId: any) {
+      this.productQoh[productId] = await ProductService.getInventoryAvailableByFacility(productId);  
     },
     async fetchProducts(vSize: any, vIndex: any) {
       const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
@@ -334,6 +362,7 @@ export default defineComponent({
       cameraOutline,
       checkmarkDone,
       checkmarkDoneCircleOutline,
+      cubeOutline,
       hasPermission,
       locationOutline,
       store,
