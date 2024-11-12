@@ -11,7 +11,7 @@ const fetchProducts = async (query: any): Promise <any> => {
 }
 
 const getInventoryAvailableByFacility = async (productId: any): Promise<any> => {
-  let inventoryAvailableByFacility = {}
+  let productQoh = ''
   const payload = {
     productId: productId,
     facilityId: store.getters['user/getCurrentFacility']?.facilityId
@@ -24,14 +24,14 @@ const getInventoryAvailableByFacility = async (productId: any): Promise<any> => 
       data: payload
     })
     if (!hasError(resp)) {
-      inventoryAvailableByFacility = resp?.data.quantityOnHandTotal;
+      productQoh = resp?.data.quantityOnHandTotal;
     } else {
       throw resp.data;
     }
   } catch (err) {
     console.error(err)
   } 
-  return inventoryAvailableByFacility
+  return productQoh;
 }
 
 export const ProductService = {
