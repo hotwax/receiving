@@ -133,23 +133,51 @@ export default defineComponent({
       const eligibleItems = this.order.items.filter((item: any) => item.isChecked && this.isPOItemStatusPending(item))
       let hasFailedItems = false;
       let completedItems = [] as any;
+      let lastItem = {} as any;
 
-      for(const item of eligibleItems) {
-        try{
-          const resp = await OrderService.updatePOItemStatus({
-            orderId: item.orderId,
-            orderItemSeqId: item.orderItemSeqId,
-            statusId: "ITEM_COMPLETED"
+      if(eligibleItems.length > 1) {
+        const itemsToBatchUpdate = eligibleItems.slice(0, -1);
+        lastItem = eligibleItems[eligibleItems.length - 1];
+       
+        const batchSize = 10;
+        while(itemsToBatchUpdate.length) {
+          const itemsToUpdate = itemsToBatchUpdate.splice(0, batchSize)
+  
+          const responses = await Promise.allSettled(itemsToUpdate.map(async(item: any) => {
+            await OrderService.updatePOItemStatus({
+              orderId: item.orderId,
+              orderItemSeqId: item.orderItemSeqId,
+              statusId: "ITEM_COMPLETED"
+            })
+            return item.orderItemSeqId
+          }))
+
+          responses.map((response: any) => {
+            if(response.status === "fulfilled") {
+              completedItems.push(response.value)
+            } else {
+              hasFailedItems = true
+            }
           })
-
-          if(!hasError(resp)) {
-            completedItems.push(item.orderItemSeqId)
-          } else {
-            throw resp.data;
-          }
-        } catch(error: any) {
-          hasFailedItems = true;
         }
+      } else {
+        lastItem = eligibleItems[0]
+      }
+
+      try{
+        const resp = await OrderService.updatePOItemStatus({
+          orderId: lastItem.orderId,
+          orderItemSeqId: lastItem.orderItemSeqId,
+          statusId: "ITEM_COMPLETED"
+        })
+
+        if(!hasError(resp)) {
+          completedItems.push(lastItem.orderItemSeqId)
+        } else {
+          throw resp.data;
+        }
+      } catch(error: any) {
+        hasFailedItems = true;
       }
 
       if(hasFailedItems){
