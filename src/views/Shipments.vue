@@ -5,11 +5,22 @@
         <ion-menu-button slot="start" />
         <ion-title>{{ translate("Shipments") }}</ion-title>
       </ion-toolbar>
+
+      <div>
+        <ion-searchbar :placeholder="translate('Search')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getShipments();" />
+
+        <ion-segment v-model="selectedSegment" @ionChange="segmentChanged()">
+          <ion-segment-button value="open">
+            <ion-label>{{ translate("Open") }}</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="completed">
+            <ion-label>{{ translate("Completed") }}</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </div>
     </ion-header>
     <ion-content>
       <main>
-        <ion-searchbar :placeholder="translate('Scan ASN to start receiving')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getShipments();" />
-
         <ShipmentListItem v-for="shipment in shipments" :key="shipment.shipmentId" :shipment="shipment"/>
 
         <div v-if="shipments.length" class="load-more-action ion-text-center">
@@ -44,11 +55,14 @@ import {
   IonContent,
   IonHeader,
   IonIcon,
+  IonLabel,
   IonMenuButton,
   IonPage,
   IonRefresher,
   IonRefresherContent,
   IonSearchbar,
+  IonSegment,
+  IonSegmentButton,
   IonTitle,
   IonToolbar
 } from '@ionic/vue';
@@ -65,11 +79,14 @@ export default defineComponent({
     IonContent,
     IonHeader,
     IonIcon,
+    IonLabel,
     IonMenuButton,
     IonSearchbar,
     IonPage,
     IonRefresher,
     IonRefresherContent,
+    IonSegment,
+    IonSegmentButton,
     IonTitle,
     IonToolbar,
     ShipmentListItem
@@ -84,7 +101,8 @@ export default defineComponent({
     return {
       queryString: '',
       fetchingShipments: false,
-      showErrorMessage: false 
+      showErrorMessage: false,
+      selectedSegment: "open"
     }
   },
   ionViewWillEnter () {
@@ -104,7 +122,7 @@ export default defineComponent({
       const payload = {
         "inputFields": {
           "destinationFacilityId": this.user.facilityId,
-          "statusId": "PURCH_SHIP_SHIPPED",
+          "statusId": this.selectedSegment === "open" ? "PURCH_SHIP_SHIPPED" : "PURCH_SHIP_RECEIVED",
           "grp_op": "AND",
           "shipmentTypeId_value": "INCOMING_SHIPMENT",
           "shipmentTypeId_op": "equals",
@@ -147,6 +165,9 @@ export default defineComponent({
         if (event) event.target.complete();
       })
     },
+    segmentChanged() {
+      this.getShipments()
+    }
   },
   setup() {
     const store = useStore();
@@ -159,3 +180,11 @@ export default defineComponent({
   }
 })
 </script>
+
+<style scoped>
+@media (min-width: 991px) {
+  ion-header > div {
+    display: flex;
+  }
+}
+</style>

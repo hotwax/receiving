@@ -25,16 +25,16 @@
   
         <div class="scanner">
           <ion-item>
-            <ion-input :label="translate('Scan items')" autofocus :placeholder="translate('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()" />
+            <ion-input :label="translate(isReturnReceivable(current.statusId) ? 'Scan items' : 'Search items')" autofocus v-model="queryString" @keyup.enter="isReturnReceivable(current.statusId) ? updateProductCount() : searchProduct()" />
           </ion-item>
 
-          <ion-button expand="block" fill="outline" @click="scanCode()">
+          <ion-button expand="block" fill="outline" @click="scanCode()" :disabled="!isReturnReceivable(current.statusId)">
             <ion-icon slot="start" :icon="barcodeOutline" />{{ translate("Scan") }}
           </ion-button>
         </div>
 
         <ion-card v-for="item in current.items" :key="item.id" :class="item.sku === lastScannedId ? 'scanned-item' : ''" :id="item.sku">
-          <div class="product">
+          <div class="product" :data-product-id="item.productId">
             <div class="product-info">
               <ion-item lines="none">
                 <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
@@ -48,9 +48,12 @@
             </div>
 
             <div class="location">
-              <ion-chip outline :disabled="true">
-                <ion-icon :icon="locationOutline" />
-                <ion-label>{{ current.locationSeqId }}</ion-label>
+              <ion-button v-if="productQoh[item.productId] === '' || !(productQoh[item.productId] >= 0)" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
+                <ion-icon color="medium" slot="icon-only" :icon="cubeOutline" />
+              </ion-button>
+              <ion-chip v-else outline>
+                {{ translate("on hand", { qoh: productQoh[item.productId] }) }}
+                <ion-icon color="medium" :icon="cubeOutline"/>
               </ion-chip>
             </div>
 
@@ -107,7 +110,7 @@ import {
   alertController,
 } from '@ionic/vue';
 import { defineComponent, computed } from 'vue';
-import { checkmarkDone, barcodeOutline, locationOutline } from 'ionicons/icons';
+import { checkmarkDone, cubeOutline, barcodeOutline, locationOutline } from 'ionicons/icons';
 import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
 import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore } from '@hotwax/dxp-components';
@@ -117,6 +120,7 @@ import ImageModal from '@/components/ImageModal.vue';
 import { hasError } from '@/utils';
 import { showToast } from '@/utils'
 import { Actions, hasPermission } from '@/authorization'
+import { ProductService } from '@/services/ProductService';
 
 export default defineComponent({
   name: "ReturnDetails",
@@ -152,15 +156,13 @@ export default defineComponent({
         'Shipped': 'medium',
         'Created': 'medium'
       } as any,
-      lastScannedId: ''
+      lastScannedId: '',
+      productQoh: {} as any
     }
   },
   async ionViewWillEnter() {
     const current = await this.store.dispatch('return/setCurrent', { shipmentId: this.$route.params.id })
-
-    if(!this.isReturnReceivable(current.statusId)) {
-      showToast(translate("This return has been and cannot be edited.", { status: current?.statusDesc?.toLowerCase() }));
-    }
+    this.observeProductVisibility();
   },
   computed: {
     ...mapGetters({
@@ -205,7 +207,31 @@ export default defineComponent({
       }
       await this.store.dispatch("product/fetchProducts", payload);
     },
-    
+    observeProductVisibility() {
+      const observer = new IntersectionObserver((entries: any) => {
+        entries.forEach((entry: any) => {
+          if (entry.isIntersecting) {
+            const productId = entry.target.getAttribute('data-product-id');
+            if (productId && !(this.productQoh[productId] >= 0)) {
+              this.fetchQuantityOnHand(productId);
+            }
+          }
+        });
+      }, {
+        root: null,
+        threshold: 0.4
+      });
+
+      const products = document.querySelectorAll('.product');
+      if (products) {
+        products.forEach((product: any) => {
+          observer.observe(product);
+        });
+      }
+    },
+    async fetchQuantityOnHand(productId: any) {
+      this.productQoh[productId] = await ProductService.getInventoryAvailableByFacility(productId);  
+    },
     async completeShipment() {
       const alert = await alertController.create({
         header: translate("Receive Shipment"),
@@ -280,6 +306,24 @@ export default defineComponent({
       });
       return modal.present();
     },
+    searchProduct() {
+      if(!this.queryString) {
+        showToast(translate("Please provide a valid barcode identifier."))
+        return;
+      }
+      const scannedElement = document.getElementById(this.queryString);
+      if(scannedElement) {
+        this.lastScannedId = this.queryString
+        scannedElement.scrollIntoView()
+        // Scanned product should get un-highlighted after 3s for better experience hence adding setTimeOut
+        setTimeout(() => {
+          this.lastScannedId = ''
+        }, 3000)
+      } else {
+        showToast(translate("Searched item is not present within the shipment:", { itemName: this.queryString }));
+      }
+      this.queryString = ''
+    }
   }, 
   setup() {
     const store = useStore(); 
@@ -291,6 +335,7 @@ export default defineComponent({
       Actions,
       barcodeOutline,
       checkmarkDone,
+      cubeOutline,
       hasPermission,
       locationOutline,
       store,
