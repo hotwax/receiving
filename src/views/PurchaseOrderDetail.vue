@@ -49,7 +49,7 @@
         </ion-item>
 
         <template v-if="!isPOReceived()">
-          <ion-card v-for="(item, index) in getPOItems('pending')" v-show="item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED'" :key="index" :class="item.internalName === lastScannedId ? 'scanned-item' : '' " :id="item.internalName">
+          <ion-card v-for="(item, index) in getPOItems('pending')" v-show="item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED'" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
             <div  class="product">
               <div class="product-info">
                 <ion-item lines="none">
@@ -112,7 +112,7 @@
           </ion-button>
         </ion-item>
         
-        <ion-card v-for="(item, index) in getPOItems('completed')" v-show="showCompletedItems && item.orderItemStatusId === 'ITEM_COMPLETED'" :key="index">
+        <ion-card v-for="(item, index) in getPOItems('completed')" v-show="showCompletedItems && item.orderItemStatusId === 'ITEM_COMPLETED'" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
           <div class="product">
             <div class="product-info">
               <ion-item lines="none">
@@ -233,6 +233,7 @@ export default defineComponent({
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
       currentFacility: 'user/getCurrentFacility',
       isForceScanEnabled: 'util/isForceScanEnabled',
+      barcodeIdentifier: 'util/getBarcodeIdentificationPref',
     })
   },
   methods: {
