@@ -33,7 +33,7 @@
           </ion-button>
         </div>
 
-        <ion-card v-for="item in current.items" :key="item.id" :class="item.sku === lastScannedId ? 'scanned-item' : ''" :id="item.sku">
+        <ion-card v-for="item in current.items" :key="item.id" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : ''" :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
           <div class="product" :data-product-id="item.productId">
             <div class="product-info">
               <ion-item lines="none">
@@ -174,6 +174,7 @@ export default defineComponent({
       validStatusChange: 'return/isReturnReceivable',
       isReturnReceivable: 'return/isReturnReceivable',
       isForceScanEnabled: 'util/isForceScanEnabled',
+      barcodeIdentifier: 'util/getBarcodeIdentificationPref'
     }),
   },
   methods: {
