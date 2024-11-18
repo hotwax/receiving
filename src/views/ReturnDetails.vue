@@ -33,8 +33,8 @@
           </ion-button>
         </div>
 
-        <ion-card v-for="item in current.items" :key="item.id" :class="item.sku === lastScannedId ? 'scanned-item' : ''" :id="item.sku">
-          <div class="product">
+        <ion-card v-for="item in current.items" :key="item.id" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : ''" :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+          <div class="product" :data-product-id="item.productId">
             <div class="product-info">
               <ion-item lines="none">
                 <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
@@ -48,9 +48,12 @@
             </div>
 
             <div class="location">
-              <ion-chip outline :disabled="true">
-                <ion-icon :icon="locationOutline" />
-                <ion-label>{{ current.locationSeqId }}</ion-label>
+              <ion-button v-if="productQoh[item.productId] === '' || !(productQoh[item.productId] >= 0)" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
+                <ion-icon color="medium" slot="icon-only" :icon="cubeOutline" />
+              </ion-button>
+              <ion-chip v-else outline>
+                {{ translate("on hand", { qoh: productQoh[item.productId] }) }}
+                <ion-icon color="medium" :icon="cubeOutline"/>
               </ion-chip>
             </div>
 
@@ -107,7 +110,7 @@ import {
   alertController,
 } from '@ionic/vue';
 import { defineComponent, computed } from 'vue';
-import { checkmarkDone, barcodeOutline, locationOutline } from 'ionicons/icons';
+import { checkmarkDone, cubeOutline, barcodeOutline, locationOutline } from 'ionicons/icons';
 import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
 import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore } from '@hotwax/dxp-components';
@@ -117,6 +120,7 @@ import ImageModal from '@/components/ImageModal.vue';
 import { hasError } from '@/utils';
 import { showToast } from '@/utils'
 import { Actions, hasPermission } from '@/authorization'
+import { ProductService } from '@/services/ProductService';
 
 export default defineComponent({
   name: "ReturnDetails",
@@ -152,11 +156,13 @@ export default defineComponent({
         'Shipped': 'medium',
         'Created': 'medium'
       } as any,
-      lastScannedId: ''
+      lastScannedId: '',
+      productQoh: {} as any
     }
   },
   async ionViewWillEnter() {
     const current = await this.store.dispatch('return/setCurrent', { shipmentId: this.$route.params.id })
+    this.observeProductVisibility();
   },
   computed: {
     ...mapGetters({
@@ -168,6 +174,7 @@ export default defineComponent({
       validStatusChange: 'return/isReturnReceivable',
       isReturnReceivable: 'return/isReturnReceivable',
       isForceScanEnabled: 'util/isForceScanEnabled',
+      barcodeIdentifier: 'util/getBarcodeIdentificationPref'
     }),
   },
   methods: {
@@ -201,7 +208,31 @@ export default defineComponent({
       }
       await this.store.dispatch("product/fetchProducts", payload);
     },
-    
+    observeProductVisibility() {
+      const observer = new IntersectionObserver((entries: any) => {
+        entries.forEach((entry: any) => {
+          if (entry.isIntersecting) {
+            const productId = entry.target.getAttribute('data-product-id');
+            if (productId && !(this.productQoh[productId] >= 0)) {
+              this.fetchQuantityOnHand(productId);
+            }
+          }
+        });
+      }, {
+        root: null,
+        threshold: 0.4
+      });
+
+      const products = document.querySelectorAll('.product');
+      if (products) {
+        products.forEach((product: any) => {
+          observer.observe(product);
+        });
+      }
+    },
+    async fetchQuantityOnHand(productId: any) {
+      this.productQoh[productId] = await ProductService.getInventoryAvailableByFacility(productId);  
+    },
     async completeShipment() {
       const alert = await alertController.create({
         header: translate("Receive Shipment"),
@@ -309,6 +340,7 @@ export default defineComponent({
       Actions,
       barcodeOutline,
       checkmarkDone,
+      cubeOutline,
       hasPermission,
       locationOutline,
       store,

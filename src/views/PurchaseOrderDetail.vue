@@ -49,7 +49,7 @@
         </ion-item>
 
         <template v-if="!isPOReceived()">
-          <ion-card v-for="(item, index) in getPOItems('pending')" v-show="item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED'" :key="index" :class="item.internalName === lastScannedId ? 'scanned-item' : '' " :id="item.internalName">
+          <ion-card v-for="(item, index) in getPOItems('pending')" v-show="item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED'" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
             <div  class="product">
               <div class="product-info">
                 <ion-item lines="none">
@@ -112,7 +112,7 @@
           </ion-button>
         </ion-item>
         
-        <ion-card v-for="(item, index) in getPOItems('completed')" v-show="showCompletedItems && item.orderItemStatusId === 'ITEM_COMPLETED'" :key="index">
+        <ion-card v-for="(item, index) in getPOItems('completed')" v-show="showCompletedItems && item.orderItemStatusId === 'ITEM_COMPLETED'" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
           <div class="product">
             <div class="product-info">
               <ion-item lines="none">
@@ -135,8 +135,8 @@
             
             <div>
               <ion-item lines="none">
-                <ion-badge color="medium" slot="end">{{ item.quantity }} {{ translate("ordered") }}</ion-badge>
-                <ion-badge color="success" class="ion-margin-start" slot="end">{{ getPOItemAccepted(item.productId) }} {{ translate("received") }}</ion-badge>
+                <ion-label slot="end">{{ translate("/ received", { receivedCount: getPOItemAccepted(item.productId), orderedCount: item.quantity }) }}</ion-label>
+                <ion-icon :icon="(getPOItemAccepted(item.productId) == item.quantity) ? checkmarkDoneCircleOutline : warningOutline" :color="(getPOItemAccepted(item.productId) == item.quantity) ? '' : 'warning'" slot="end" />
               </ion-item>
             </div>
           </div>
@@ -180,7 +180,7 @@ import {
   modalController
 } from '@ionic/vue';
 import { defineComponent, computed } from 'vue';
-import { addOutline, cameraOutline, checkmarkDone, copyOutline, eyeOffOutline, eyeOutline, locationOutline, saveOutline, timeOutline } from 'ionicons/icons';
+import { addOutline, cameraOutline, checkmarkDone, checkmarkDoneCircleOutline, copyOutline, eyeOffOutline, eyeOutline, locationOutline, saveOutline, timeOutline, warningOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore } from '@hotwax/dxp-components';
 import { useStore, mapGetters } from 'vuex';
@@ -233,6 +233,7 @@ export default defineComponent({
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
       currentFacility: 'user/getCurrentFacility',
       isForceScanEnabled: 'util/isForceScanEnabled',
+      barcodeIdentifier: 'util/getBarcodeIdentificationPref',
     })
   },
   methods: {
@@ -427,6 +428,7 @@ export default defineComponent({
       addOutline,
       cameraOutline,
       checkmarkDone,
+      checkmarkDoneCircleOutline,
       copyOutline,
       copyToClipboard,
       eyeOffOutline,
@@ -440,6 +442,7 @@ export default defineComponent({
       translate,
       getProductIdentificationValue,
       productIdentificationPref,
+      warningOutline
     };
   },
 });

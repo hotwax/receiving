@@ -67,6 +67,7 @@ import { mapGetters, useStore } from 'vuex'
 import { OrderService } from "@/services/OrderService";
 import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore } from '@hotwax/dxp-components';
 import { useRouter } from 'vue-router';
+import { hasError } from '@/utils';
 
 export default defineComponent({
   name: "ClosePurchaseOrderModal",
@@ -130,20 +131,58 @@ export default defineComponent({
       }
 
       const eligibleItems = this.order.items.filter((item: any) => item.isChecked && this.isPOItemStatusPending(item))
-      const responses = await Promise.allSettled(eligibleItems.map(async (item: any) => {
-        await OrderService.updatePOItemStatus({
-          orderId: item.orderId,
-          orderItemSeqId: item.orderItemSeqId,
-          statusId: "ITEM_COMPLETED"
-        })
-        return item.orderItemSeqId
-      }))
-      const failedItemsCount = responses.filter((response) => response.status === 'rejected').length
-      if(failedItemsCount){
-        console.error('Failed to update the status of purchase order items.')
+      let hasFailedItems = false;
+      let completedItems = [] as any;
+      let lastItem = {} as any;
+
+      if(eligibleItems.length > 1) {
+        const itemsToBatchUpdate = eligibleItems.slice(0, -1);
+        lastItem = eligibleItems[eligibleItems.length - 1];
+       
+        const batchSize = 10;
+        while(itemsToBatchUpdate.length) {
+          const itemsToUpdate = itemsToBatchUpdate.splice(0, batchSize)
+  
+          const responses = await Promise.allSettled(itemsToUpdate.map(async(item: any) => {
+            await OrderService.updatePOItemStatus({
+              orderId: item.orderId,
+              orderItemSeqId: item.orderItemSeqId,
+              statusId: "ITEM_COMPLETED"
+            })
+            return item.orderItemSeqId
+          }))
+
+          responses.map((response: any) => {
+            if(response.status === "fulfilled") {
+              completedItems.push(response.value)
+            } else {
+              hasFailedItems = true
+            }
+          })
+        }
+      } else {
+        lastItem = eligibleItems[0]
       }
 
-      const completedItems = responses.filter((response) => response.status === 'fulfilled')?.map((response: any) => response.value)
+      try{
+        const resp = await OrderService.updatePOItemStatus({
+          orderId: lastItem.orderId,
+          orderItemSeqId: lastItem.orderItemSeqId,
+          statusId: "ITEM_COMPLETED"
+        })
+
+        if(!hasError(resp)) {
+          completedItems.push(lastItem.orderItemSeqId)
+        } else {
+          throw resp.data;
+        }
+      } catch(error: any) {
+        hasFailedItems = true;
+      }
+
+      if(hasFailedItems){
+        console.error('Failed to update the status of purchase order items.')
+      }
 
       if(!completedItems.length) return;
 
