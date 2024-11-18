@@ -167,10 +167,8 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       current: 'shipment/getCurrent',
-      user: 'user/getCurrentFacility',
       getProduct: 'product/getProduct',
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
-      currentFacility: 'user/getCurrentFacility',
       isForceScanEnabled: 'util/isForceScanEnabled',
       barcodeIdentifier: 'util/getBarcodeIdentificationPref',
     }),

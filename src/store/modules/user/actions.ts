@@ -3,16 +3,16 @@ import { ActionTree } from 'vuex'
 import RootState from '@/store/RootState'
 import UserState from './UserState'
 import * as types from './mutation-types'
-import { hasError, showToast } from '@/utils'
+import { getCurrentFacilityId, hasError, showToast } from '@/utils'
 import { Settings } from 'luxon';
-import { getUserFacilities, logout, updateInstanceUrl, updateToken, resetConfig } from '@/adapter'
+import { logout, updateInstanceUrl, updateToken, resetConfig } from '@/adapter'
 import {
   getServerPermissionsFromRules,
   prepareAppPermissions,
   resetPermissions,
   setPermissions
 } from '@/authorization'
-import { translate, useAuthStore, useProductIdentificationStore } from '@hotwax/dxp-components'
+import { translate, useAuthStore, useProductIdentificationStore, useUserStore } from '@hotwax/dxp-components'
 import emitter from '@/event-bus'
 import store from '@/store'
 
@@ -57,8 +57,8 @@ const actions: ActionTree<UserState, RootState> = {
 
       //fetching user facilities
       const isAdminUser = appPermissions.some((appPermission: any) => appPermission?.action === "APP_RECVG_ADMIN");
-      const baseURL = store.getters['user/getBaseUrl'];
-      const facilities = await getUserFacilities(token, baseURL, userProfile?.partyId, "", isAdminUser);
+      const facilities = await useUserStore().getUserFacilities(userProfile?.partyId, "", isAdminUser)
+      await useUserStore().getFacilityPreference('SELECTED_FACILITY')
 
       if (!facilities.length) throw 'Unable to login. User is not assocaited with any facility'
 
@@ -71,9 +71,8 @@ const actions: ActionTree<UserState, RootState> = {
         return uniqueFacilities
       }, []);
 
-      const currentFacility = userProfile.facilities[0];
-      const currentEComStore = await UserService.getEComStores(token, currentFacility.facilityId);
-
+      const currentFacility: any = getCurrentFacilityId();
+      const currentEComStore = await UserService.getEComStores(token, currentFacility?.facilityId);
       const productStoreId = currentEComStore?.productStoreId;
 
       await useProductIdentificationStore().getIdentificationPref(productStoreId)
@@ -87,7 +86,6 @@ const actions: ActionTree<UserState, RootState> = {
 
       // TODO user single mutation
       commit(types.USER_INFO_UPDATED, userProfile);
-      commit(types.USER_CURRENT_FACILITY_UPDATED, currentFacility);
       commit(types.USER_CURRENT_ECOM_STORE_UPDATED, currentEComStore);
       commit(types.USER_PERMISSIONS_UPDATED, appPermissions);
       commit(types.USER_TOKEN_CHANGED, { newToken: token })
@@ -173,13 +171,12 @@ const actions: ActionTree<UserState, RootState> = {
   /**
    * update current facility information
    */
-  async setFacility ({ commit, dispatch }, payload) {
+  async setFacility ({ commit, dispatch }, facilityId) {
     const token = store.getters['user/getUserToken'];
-    const eComStore = await UserService.getEComStores(token, payload.facility.facilityId);
+    const eComStore = await UserService.getEComStores(token, facilityId);
 
     commit(types.USER_CURRENT_ECOM_STORE_UPDATED, eComStore);
-    commit(types.USER_CURRENT_FACILITY_UPDATED, payload.facility);
-    await dispatch('getFacilityLocations', payload.facility.facilityId)
+    await dispatch('getFacilityLocations', facilityId)
     eComStore?.productStoreId ? this.dispatch('util/getForceScanSetting', eComStore.productStoreId) : this.dispatch('util/updateForceScanStatus', false)
     eComStore?.productStoreId ? this.dispatch('util/getBarcodeIdentificationPref', eComStore.productStoreId) : this.dispatch('util/updateBarcodeIdentificationPref', "internalName")
   },

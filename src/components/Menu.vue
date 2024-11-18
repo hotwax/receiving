@@ -36,6 +36,7 @@ import { computed, defineComponent } from "vue";
 import { mapGetters } from "vuex";
 import { calendar, download, gitPullRequestOutline, settings } from "ionicons/icons";
 import { useStore } from "@/store";
+import { useUserStore } from "@hotwax/dxp-components"
 import { useRouter } from "vue-router";
 
 export default defineComponent({
@@ -55,12 +56,14 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       isUserAuthenticated: 'user/isUserAuthenticated',
-      currentFacility: 'user/getCurrentFacility',
     })
   },
   setup() {
     const store = useStore();
     const router = useRouter();
+    const userStore = useUserStore()
+    let currentFacility: any = computed(() => userStore.getCurrentFacility) 
+
     const appPages = [
       {
         title: "Shipments",
@@ -97,6 +100,7 @@ export default defineComponent({
     })
 
     return {
+      currentFacility,
       selectedIndex,
       appPages,
       download,

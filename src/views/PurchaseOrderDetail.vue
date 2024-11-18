@@ -64,7 +64,7 @@
               </div>
 
               <div class="location">
-                <LocationPopover :item="item" type="order" :facilityId="currentFacility.facilityId" />
+                <LocationPopover :item="item" type="order" :facilityId="currentFacility?.facilityId" />
               </div>
 
               <div class="product-count">
@@ -182,7 +182,7 @@ import {
 import { defineComponent, computed } from 'vue';
 import { addOutline, cameraOutline, checkmarkDone, checkmarkDoneCircleOutline, copyOutline, eyeOffOutline, eyeOutline, locationOutline, saveOutline, timeOutline, warningOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
-import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore } from '@hotwax/dxp-components';
+import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore, useUserStore } from '@hotwax/dxp-components';
 import { useStore, mapGetters } from 'vuex';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue"
@@ -231,7 +231,6 @@ export default defineComponent({
       getProduct: 'product/getProduct',
       getPOItemAccepted: 'order/getPOItemAccepted',
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
-      currentFacility: 'user/getCurrentFacility',
       isForceScanEnabled: 'util/isForceScanEnabled',
       barcodeIdentifier: 'util/getBarcodeIdentificationPref',
     })
@@ -420,8 +419,10 @@ export default defineComponent({
   setup() {
     const store = useStore();
     const router = useRouter();
+    const userStore = useUserStore()
     const productIdentificationStore = useProductIdentificationStore();
     let productIdentificationPref = computed(() => productIdentificationStore.getProductIdentificationPref);
+    let currentFacility: any = computed(() => userStore.getCurrentFacility) 
 
     return {
       Actions,
@@ -431,6 +432,7 @@ export default defineComponent({
       checkmarkDoneCircleOutline,
       copyOutline,
       copyToClipboard,
+      currentFacility,
       eyeOffOutline,
       eyeOutline,
       hasPermission,

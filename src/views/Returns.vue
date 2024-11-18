@@ -67,10 +67,10 @@ import {
   IonToolbar
 } from '@ionic/vue';
 import { cloudDownloadOutline, reload } from 'ionicons/icons'
-import { defineComponent } from 'vue'
+import { defineComponent, computed } from 'vue'
 import { mapGetters, useStore } from 'vuex'
 import ReturnListItem from '@/components/ReturnListItem.vue'
-import { translate } from "@hotwax/dxp-components"
+import { translate, useUserStore } from "@hotwax/dxp-components"
 
 export default defineComponent({
   name: "Returns",
@@ -94,7 +94,6 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       returns: 'return/getReturns',
-      currentFacility: 'user/getCurrentFacility'
     })
   },
   data () {
@@ -120,7 +119,7 @@ export default defineComponent({
       const payload = {
         "entityName": "SalesReturnShipmentView",
         "inputFields": {
-          "destinationFacilityId": this.currentFacility.facilityId,
+          "destinationFacilityId": this.currentFacility?.facilityId,
           "statusId": "PURCH_SHIP_RECEIVED",
           "statusId_op": this.selectedSegment === "open" ? "notEqual" : "equals"
         },
@@ -172,8 +171,12 @@ export default defineComponent({
   },
   setup() {
     const store = useStore();
+    const userStore = useUserStore()
+    let currentFacility: any = computed(() => userStore.getCurrentFacility) 
+
     return {
       cloudDownloadOutline,
+      currentFacility,
       reload,
       store,
       translate

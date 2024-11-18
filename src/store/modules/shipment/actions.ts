@@ -3,8 +3,8 @@ import { ActionTree } from 'vuex'
 import RootState from '@/store/RootState'
 import ShipmentState from './ShipmentState'
 import * as types from './mutation-types'
-import { hasError, showToast } from '@/utils'
-import { getProductIdentificationValue, translate } from '@hotwax/dxp-components'
+import { hasError, showToast, getCurrentFacilityId } from '@/utils'
+import { getProductIdentificationValue, translate, useUserStore } from '@hotwax/dxp-components'
 import emitter from '@/event-bus'
 import store from "@/store";
 import { DateTime } from 'luxon';
@@ -72,8 +72,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
         const shipmentAttributes = await ShipmentService.fetchShipmentAttributes([shipmentDetail.shipmentId])
         shipmentDetail.externalOrderId = shipmentAttributes?.[shipmentDetail.shipmentId]?.['EXTERNAL_ORDER_ID']
         shipmentDetail.externalOrderName = shipmentAttributes?.[shipmentDetail.shipmentId]?.['EXTERNAL_ORDER_NAME']
-
-        const facilityLocations = await this.dispatch('user/getFacilityLocations', this.state.user.currentFacility.facilityId);
+        const facilityLocations = await this.dispatch('user/getFacilityLocations', getCurrentFacilityId());
         if(facilityLocations.length){
           const locationSeqId = facilityLocations[0].locationSeqId
           resp.data.items.map((item: any) => {
@@ -118,7 +117,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
 
         const params = {
           shipmentId: payload.shipmentId,
-          facilityId: this.state.user.currentFacility.facilityId,
+          facilityId: getCurrentFacilityId(),
           shipmentItemSeqId: item.itemSeqId,
           productId: item.productId,
           quantityAccepted: item.quantityAccepted,
@@ -153,7 +152,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
     const uploadData = payload.items.map((item: any) => {
       return {
         shipmentId: payload.shipmentId,
-        facilityId: this.state.user.currentFacility.facilityId,
+        facilityId: getCurrentFacilityId(),
         shipmentItemSeqId: item.itemSeqId,
         productId: item.productId,
         quantityAccepted: item.quantityAccepted,

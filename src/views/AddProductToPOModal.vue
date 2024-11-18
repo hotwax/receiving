@@ -60,7 +60,7 @@ import { defineComponent, computed } from 'vue';
 import { closeOutline, checkmarkCircle } from 'ionicons/icons';
 import { mapGetters } from 'vuex'
 import { useStore } from "@/store";
-import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore } from '@hotwax/dxp-components';
+import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore, useUserStore } from '@hotwax/dxp-components';
 import { showToast } from '@/utils'
 
 export default defineComponent({
@@ -95,7 +95,6 @@ export default defineComponent({
       getProduct: 'product/getProduct',
       isScrollable: 'product/isScrollable',
       isProductAvailableInOrder: 'order/isProductAvailableInOrder',
-      currentFacility: 'user/getCurrentFacility',
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId'
     })
   },
@@ -159,9 +158,13 @@ export default defineComponent({
   },
   setup() {
     const store = useStore();
+    const userStore = useUserStore()
     const productIdentificationStore = useProductIdentificationStore();
     let productIdentificationPref = computed(() => productIdentificationStore.getProductIdentificationPref);
+    let currentFacility: any = computed(() => userStore.getCurrentFacility) 
+
     return {
+      currentFacility,
       closeOutline,
       checkmarkCircle,
       store,

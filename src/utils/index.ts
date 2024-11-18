@@ -1,5 +1,5 @@
 import { toastController } from '@ionic/vue';
-import { translate } from '@hotwax/dxp-components'
+import { translate, useUserStore } from '@hotwax/dxp-components'
 import { Plugins } from '@capacitor/core';
 import { DateTime } from "luxon";
 
@@ -52,4 +52,9 @@ const handleDateTimeInput = (dateTimeValue: any) => {
   return DateTime.fromISO(dateTime).toMillis()
 }
 
-export { handleDateTimeInput, showToast, hasError, copyToClipboard }
+const getCurrentFacilityId = () => {
+  const currentFacility: any = useUserStore().getCurrentFacility;
+  return currentFacility?.facilityId
+}
+
+export { handleDateTimeInput, getCurrentFacilityId, showToast, hasError, copyToClipboard }
