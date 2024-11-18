@@ -90,6 +90,7 @@ const actions: ActionTree<ReturnState, RootState> = {
           const locationSeqId = facilityLocations[0].locationSeqId
           resp.data.items.map((item: any) => {
             item.locationSeqId = locationSeqId;
+            item.quantityReceived = item.quantityAccepted ? Number(item.quantityAccepted) : 0
           });
         } else {
           showToast(translate("Facility locations were not found corresponding to destination facility of return shipment. Please add facility locations to avoid receive return shipment failure."))

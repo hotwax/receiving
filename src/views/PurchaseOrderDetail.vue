@@ -49,7 +49,7 @@
         </ion-item>
 
         <template v-if="!isPOReceived()">
-          <ion-card v-for="(item, index) in getPOItems('pending')" v-show="item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED'" :key="index" :class="item.internalName === lastScannedId ? 'scanned-item' : '' " :id="item.internalName">
+          <ion-card v-for="(item, index) in getPOItems('pending')" v-show="item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED'" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
             <div  class="product">
               <div class="product-info">
                 <ion-item lines="none">
@@ -112,7 +112,7 @@
           </ion-button>
         </ion-item>
         
-        <ion-card v-for="(item, index) in getPOItems('completed')" v-show="showCompletedItems && item.orderItemStatusId === 'ITEM_COMPLETED'" :key="index">
+        <ion-card v-for="(item, index) in getPOItems('completed')" v-show="showCompletedItems && item.orderItemStatusId === 'ITEM_COMPLETED'" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
           <div class="product">
             <div class="product-info">
               <ion-item lines="none">
@@ -232,6 +232,7 @@ export default defineComponent({
       getPOItemAccepted: 'order/getPOItemAccepted',
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
       isForceScanEnabled: 'util/isForceScanEnabled',
+      barcodeIdentifier: 'util/getBarcodeIdentificationPref',
     })
   },
   methods: {
@@ -380,9 +381,14 @@ export default defineComponent({
     },
     async createShipment() {
       const eligibleItems = this.order.items.filter((item: any) => item.quantityAccepted > 0)
-      const resp = await this.store.dispatch('order/createPurchaseShipment', { items: eligibleItems, orderId: this.order.orderId })
-      if (resp.status === 200 && !hasError(resp)) {
+      const isShipmentReceived = await this.store.dispatch('order/createAndReceiveIncomingShipment', { items: eligibleItems, orderId: this.order.orderId })
+      if (isShipmentReceived) {
+        showToast(translate("Purchase order received successfully", { orderId: this.order.orderId }))
         this.router.push('/purchase-orders')
+      } else {
+        this.store.dispatch("order/getOrderDetail", { orderId: this.$route.params.slug }).then(() => {
+          this.store.dispatch('order/getPOHistory', { orderId: this.order.orderId })
+        })
       }
     },
     isEligibileForCreatingShipment() {
