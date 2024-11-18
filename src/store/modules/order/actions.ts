@@ -150,6 +150,50 @@ const actions: ActionTree<OrderState, RootState> = {
     return resp;
   },
 
+  async createAndReceiveIncomingShipment({ commit }, payload) {
+    let resp;
+    try {
+      payload.items.map((item: any, index: number) => {
+        item.itemSeqId = `1000${index+1}`
+        item.quantity = item.quantityAccepted
+      })
+
+      const params = {
+        orderId: payload.orderId,
+        destinationFacilityId: this.state.user.currentFacility.facilityId,
+        "type": "PURCHASE_SHIPMENT",
+        "status": "PURCH_SHIP_CREATED",
+        "items": payload.items
+      }
+      resp = await OrderService.createIncomingShipment({"payload": params})
+      
+      if (resp.status === 200 && !hasError(resp) && resp.data.shipmentId) {
+        const facilityLocations = await this.dispatch('user/getFacilityLocations', this.state.user.currentFacility.facilityId);
+        if (facilityLocations.length){
+          const locationSeqId = facilityLocations[0].locationSeqId
+          payload.items.map((item: any) => {
+            item.locationSeqId = locationSeqId
+            item.quantityReceived = item.quantityAccepted ? Number(item.quantityAccepted) : 0
+          })
+        } else {
+          showToast(translate("Facility locations were not found corresponding to destination facility of PO. Please add facility locations to avoid receive PO failure."))
+        }
+        const poShipment = {
+          shipmentId : resp.data.shipmentId,
+          items: payload.items,
+          isMultiReceivingEnabled: true
+        }
+        return await this.dispatch('shipment/receiveShipmentJson', poShipment).catch((err) => console.error(err))
+      } else {
+        showToast(translate("Something went wrong"));
+      }
+    } catch(error){
+      console.error(error)
+      showToast(translate("Something went wrong"));
+    }
+    return false;
+  },
+
   async getPOHistory({ commit, state }, payload) {
     let resp;
     const current = state.current as any;
@@ -161,7 +205,8 @@ const actions: ActionTree<OrderState, RootState> = {
         },
         "entityName": "ShipmentReceiptAndItem",
         "fieldList": ["datetimeReceived", "productId", "quantityAccepted", "quantityRejected", "receivedByUserLoginId", "shipmentId", 'locationSeqId'],
-        "orderBy": 'datetimeReceived DESC'
+        "orderBy": 'datetimeReceived DESC',
+        "viewSize": "250"
       }
       const facilityLocations = await this.dispatch('user/getFacilityLocations', this.state.user.currentFacility.facilityId);
       const locationSeqId = facilityLocations.length > 0 ? facilityLocations[0].locationSeqId : "";

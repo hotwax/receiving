@@ -7,6 +7,9 @@ import { hasError, showToast } from '@/utils'
 import { getProductIdentificationValue, translate } from '@hotwax/dxp-components'
 import emitter from '@/event-bus'
 import store from "@/store";
+import { DateTime } from 'luxon';
+import { UploadService } from "@/services/UploadService";
+import { toHandlerKey } from "vue";
 
 const actions: ActionTree<ShipmentState, RootState> = {
   async findShipment ({ commit, state }, payload) {
@@ -138,6 +141,75 @@ const actions: ActionTree<ShipmentState, RootState> = {
 
     return areAllSuccess;
   },
+  async receiveShipmentJson ({ dispatch }, payload) {
+    emitter.emit("presentLoader");
+    const fileName = `ReceiveShipment_${payload.shipmentId}_${DateTime.now().toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS)}.json`;
+    const params = {
+      "configId": "RECEIVE_SHIP_ITEMS"
+    }
+    if(!payload.isMultiReceivingEnabled) {
+      payload.items = payload.items.filter((item: any) => item.quantityReceived === 0)
+    }
+    const uploadData = payload.items.map((item: any) => {
+      return {
+        shipmentId: payload.shipmentId,
+        facilityId: this.state.user.currentFacility.facilityId,
+        shipmentItemSeqId: item.itemSeqId,
+        productId: item.productId,
+        quantityAccepted: item.quantityAccepted,
+        orderId: item.orderId,
+        orderItemSeqId: item.orderItemSeqId,
+        unitCost: 0.00,
+        locationSeqId: item.locationSeqId
+      };
+    })
+
+    try {
+      const uploadPayload = UploadService.prepareUploadJsonPayload({
+        uploadData,
+        fileName,
+        params
+      });
+      let resp = await UploadService.uploadJsonFile(uploadPayload);
+      if (resp.status == 200 && !hasError(resp)) {
+        const uploadFileContentId = resp.data.uploadFileContentId;
+        if (uploadFileContentId) {
+          resp = await UploadService.fetchDataManagerLog({
+            "inputFields": {
+              "configId": "RECEIVE_SHIP_ITEMS",
+              "uploadFileContentId": uploadFileContentId,
+              "errorRecordContentId_op": "empty",
+              "statusI": "SERVICE_FINISHED",
+            },
+            "fieldList": ["logId", "configId", "uploadFileContentId", "errorRecordContentId", "statusId"],
+            "entityName": "DataManagerLog",
+            "viewSize": 1
+          });
+          if (!hasError(resp) && resp.data.docs.length) {
+            //If there is no error and file is processed then mark the shipment as received
+            resp = await ShipmentService.receiveShipment({
+              "shipmentId": payload.shipmentId,
+              "statusId": "PURCH_SHIP_RECEIVED"
+            })
+            if (resp.status == 200 && !hasError(resp)) {
+              return true;
+            } else {
+              throw resp.data;
+            }
+          } else {
+            throw resp.data;
+          }
+        }
+      } else {
+        throw resp.data;
+      }
+    } catch (err) {
+      showToast(translate("Something went wrong, please try again"));
+    }
+    emitter.emit("dismissLoader");
+    return false;
+  },
+
   async receiveShipment ({ dispatch }, payload) {
     emitter.emit("presentLoader", {message: 'Receiving in-progress.', backdropDismiss: false});
     const areAllSuccess = await dispatch("receiveShipmentItem", payload);

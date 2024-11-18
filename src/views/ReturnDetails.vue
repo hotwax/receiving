@@ -58,17 +58,17 @@
             </div>
 
             <div class="product-count">
-              <ion-item v-if="isReturnReceivable(current.statusId)">
+              <ion-item v-if="isReturnReceivable(current.statusId) && item.quantityReceived === 0">
                 <ion-input :label="translate('Qty')" :disabled="isForceScanEnabled" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" />
               </ion-item>
-              <ion-item v-if="!isReturnReceivable(current.statusId)" lines="none">
+              <ion-item v-else lines="none">
                 <ion-label>{{ item.quantityAccepted }} {{ translate("received") }}</ion-label>
               </ion-item>
             </div>
           </div>
   
           <ion-item lines="none" class="border-top" v-if="item.quantityOrdered > 0">
-            <ion-button v-if="isReturnReceivable(current.statusId)" :disabled="isForceScanEnabled" @click="receiveAll(item)" slot="start" fill="outline">
+            <ion-button v-if="isReturnReceivable(current.statusId) && item.quantityReceived === 0" :disabled="isForceScanEnabled" @click="receiveAll(item)" slot="start" fill="outline">
               {{ translate("Receive All") }}
             </ion-button>
             <ion-progress-bar :color="getRcvdToOrdrdFraction(item) === 1 ? 'success' : getRcvdToOrdrdFraction(item) > 1 ? 'danger' : 'primary'" :value="getRcvdToOrdrdFraction(item)" />
@@ -255,9 +255,13 @@ export default defineComponent({
     async receiveReturn() {
       const eligibleItems = this.current.items.filter((item: any) => item.quantityAccepted > 0)
       const shipmentId = this.current.shipment ? this.current.shipment.shipmentId : this.current.shipmentId 
-      let resp = await this.store.dispatch('return/receiveReturn', { items: eligibleItems, shipmentId });
-      if(resp.status === 200 && !hasError(resp)) {
+      let isReturnReceived = await this.store.dispatch('shipment/receiveShipmentJson', { items: eligibleItems, shipmentId });
+      if (isReturnReceived) {
+        showToast(translate("Return received successfully", { shipmentId: shipmentId }))
         this.router.push('/returns');
+      } else {
+        showToast(translate('Something went wrong'));
+        await this.store.dispatch('return/setCurrent', { shipmentId: this.$route.params.id })
       }
     },
     isEligibleForReceivingReturns() {
