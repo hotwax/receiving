@@ -4,7 +4,7 @@ import RootState from '@/store/RootState'
 import OrderState from './OrderState'
 import * as types from './mutation-types'
 import { hasError, showToast, getCurrentFacilityId } from '@/utils'
-import { getProductIdentificationValue, translate, useUserStore } from '@hotwax/dxp-components'
+import { getProductIdentificationValue, translate } from '@hotwax/dxp-components'
 import emitter from "@/event-bus";
 import store from "@/store";
 
@@ -70,7 +70,6 @@ const actions: ActionTree<OrderState, RootState> = {
   },
   async getOrderDetail({ commit, state }, { orderId }) {
     let resp;
-    const currentFacilityId = getCurrentFacilityId();
 
     try {
       const payload = {
@@ -83,7 +82,7 @@ const actions: ActionTree<OrderState, RootState> = {
           },
           "query": "docType:ORDER",
           "filter": [
-            `orderTypeId: PURCHASE_ORDER AND orderId: ${orderId} AND orderStatusId: (ORDER_APPROVED OR ORDER_CREATED OR ORDER_COMPLETED) AND facilityId: ${currentFacilityId}`
+            `orderTypeId: PURCHASE_ORDER AND orderId: ${orderId} AND orderStatusId: (ORDER_APPROVED OR ORDER_CREATED OR ORDER_COMPLETED) AND facilityId: ${getCurrentFacilityId()}`
           ]
         }
       }
@@ -161,7 +160,7 @@ const actions: ActionTree<OrderState, RootState> = {
 
       const params = {
         orderId: payload.orderId,
-        destinationFacilityId: this.state.user.currentFacility.facilityId,
+        destinationFacilityId: getCurrentFacilityId(),
         "type": "PURCHASE_SHIPMENT",
         "status": "PURCH_SHIP_CREATED",
         "items": payload.items
@@ -169,7 +168,7 @@ const actions: ActionTree<OrderState, RootState> = {
       resp = await OrderService.createIncomingShipment({"payload": params})
       
       if (resp.status === 200 && !hasError(resp) && resp.data.shipmentId) {
-        const facilityLocations = await this.dispatch('user/getFacilityLocations', this.state.user.currentFacility.facilityId);
+        const facilityLocations = await this.dispatch('user/getFacilityLocations', getCurrentFacilityId());
         if (facilityLocations.length){
           const locationSeqId = facilityLocations[0].locationSeqId
           payload.items.map((item: any) => {
@@ -209,8 +208,7 @@ const actions: ActionTree<OrderState, RootState> = {
         "orderBy": 'datetimeReceived DESC',
         "viewSize": "250"
       }
-      const currentFacilityId = getCurrentFacilityId()
-      const facilityLocations = await this.dispatch('user/getFacilityLocations', currentFacilityId);
+      const facilityLocations = await this.dispatch('user/getFacilityLocations', getCurrentFacilityId());
       const locationSeqId = facilityLocations.length > 0 ? facilityLocations[0].locationSeqId : "";
       resp = await OrderService.fetchPOHistory(params)
       if (resp.status === 200 && !hasError(resp) && resp.data?.count > 0) {

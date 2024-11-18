@@ -3,7 +3,7 @@ import { ActionTree } from 'vuex'
 import RootState from '@/store/RootState'
 import UserState from './UserState'
 import * as types from './mutation-types'
-import { hasError, showToast } from '@/utils'
+import { getCurrentFacilityId, hasError, showToast } from '@/utils'
 import { Settings } from 'luxon';
 import { logout, updateInstanceUrl, updateToken, resetConfig } from '@/adapter'
 import {
@@ -71,7 +71,7 @@ const actions: ActionTree<UserState, RootState> = {
         return uniqueFacilities
       }, []);
 
-      const currentFacility: any = useUserStore().getCurrentFacility
+      const currentFacility: any = getCurrentFacilityId();
       const currentEComStore = await UserService.getEComStores(token, currentFacility?.facilityId);
       const productStoreId = currentEComStore?.productStoreId;
 

@@ -120,7 +120,7 @@ import { defineComponent, computed } from 'vue';
 import { add, checkmarkDone, checkmarkDoneCircleOutline, cameraOutline, cubeOutline, locationOutline, warningOutline } from 'ionicons/icons';
 import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
-import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore, useUserStore } from '@hotwax/dxp-components';
+import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore } from '@hotwax/dxp-components';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import ImageModal from '@/components/ImageModal.vue';
@@ -167,7 +167,6 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       current: 'shipment/getCurrent',
-      user: 'user/getCurrentFacility',
       getProduct: 'product/getProduct',
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
       isForceScanEnabled: 'util/isForceScanEnabled',
@@ -354,10 +353,8 @@ export default defineComponent({
   setup() {
     const store = useStore(); 
     const router = useRouter();
-    const userStore = useUserStore()
     const productIdentificationStore = useProductIdentificationStore();
     let productIdentificationPref = computed(() => productIdentificationStore.getProductIdentificationPref)
-    let currentFacility: any = computed(() => userStore.getCurrentFacility) 
 
     return {
       Actions,
@@ -366,7 +363,6 @@ export default defineComponent({
       checkmarkDone,
       checkmarkDoneCircleOutline,
       cubeOutline,
-      currentFacility,
       hasPermission,
       locationOutline,
       store,

@@ -72,8 +72,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
         const shipmentAttributes = await ShipmentService.fetchShipmentAttributes([shipmentDetail.shipmentId])
         shipmentDetail.externalOrderId = shipmentAttributes?.[shipmentDetail.shipmentId]?.['EXTERNAL_ORDER_ID']
         shipmentDetail.externalOrderName = shipmentAttributes?.[shipmentDetail.shipmentId]?.['EXTERNAL_ORDER_NAME']
-        const currentFacilityId = getCurrentFacilityId();
-        const facilityLocations = await this.dispatch('user/getFacilityLocations', currentFacilityId);
+        const facilityLocations = await this.dispatch('user/getFacilityLocations', getCurrentFacilityId());
         if(facilityLocations.length){
           const locationSeqId = facilityLocations[0].locationSeqId
           resp.data.items.map((item: any) => {
@@ -106,7 +105,6 @@ const actions: ActionTree<ShipmentState, RootState> = {
     }
   },
   async receiveShipmentItem ({ commit }, payload) {
-    const currentFacilityId = getCurrentFacilityId();
     let areAllSuccess = true;
 
     for (const item of payload.items) {
@@ -119,7 +117,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
 
         const params = {
           shipmentId: payload.shipmentId,
-          facilityId: currentFacilityId,
+          facilityId: getCurrentFacilityId(),
           shipmentItemSeqId: item.itemSeqId,
           productId: item.productId,
           quantityAccepted: item.quantityAccepted,
@@ -154,7 +152,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
     const uploadData = payload.items.map((item: any) => {
       return {
         shipmentId: payload.shipmentId,
-        facilityId: this.state.user.currentFacility.facilityId,
+        facilityId: getCurrentFacilityId(),
         shipmentItemSeqId: item.itemSeqId,
         productId: item.productId,
         quantityAccepted: item.quantityAccepted,

@@ -167,7 +167,6 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       current: 'return/getCurrent',
-      user: 'user/getCurrentFacility',
       getProduct: 'product/getProduct',
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
       returns: 'return/getReturns',

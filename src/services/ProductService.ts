@@ -1,5 +1,5 @@
 import { api, hasError } from '@/adapter';
-import store from '@/store';
+import { getCurrentFacilityId } from '@/utils';
 
 const fetchProducts = async (query: any): Promise <any> => {
   return api({
@@ -14,7 +14,7 @@ const getInventoryAvailableByFacility = async (productId: any): Promise<any> => 
   let productQoh = ''
   const payload = {
     productId: productId,
-    facilityId: store.getters['user/getCurrentFacility']?.facilityId
+    facilityId: getCurrentFacilityId()
   }
 
   try {
