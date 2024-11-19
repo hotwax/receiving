@@ -37,7 +37,7 @@
       </div>
       <section>
         <DxpOmsInstanceNavigator />
-        <DxpFacilitySwitcher @updateFacility="updateFacility(facility)"/>
+        <DxpFacilitySwitcher @updateFacility="updateFacility" />
       </section>
       <hr />
 
