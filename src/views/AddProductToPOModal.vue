@@ -19,8 +19,8 @@
           </ion-thumbnail>
           <ion-label>
             <!-- Honouring the identifications set by the user on the settings page -->
-            <h2>{{ product[productIdentificationPref.primaryId] }}</h2>
-            <p>{{ product[productIdentificationPref.secondaryId] }}</p>
+            <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(product.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(product.productId)) : getProduct(product.productId).productName }}</h2>
+            <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(product.productId)) }}</p>
           </ion-label>
           <ion-icon v-if="isProductAvailableInOrder(product.productId)" color="success" :icon="checkmarkCircle" />
           <ion-button v-else fill="outline" @click="addtoOrder(product)">{{ translate("Add to Purchase Order") }}</ion-button>
@@ -56,11 +56,11 @@ import {
   IonToolbar,
   modalController,
 } from '@ionic/vue';
-import { defineComponent } from 'vue';
+import { defineComponent, computed } from 'vue';
 import { closeOutline, checkmarkCircle } from 'ionicons/icons';
 import { mapGetters } from 'vuex'
 import { useStore } from "@/store";
-import { DxpShopifyImg, translate } from '@hotwax/dxp-components';
+import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore, useUserStore } from '@hotwax/dxp-components';
 import { showToast } from '@/utils'
 
 export default defineComponent({
@@ -92,10 +92,9 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       products: 'product/getProducts',
+      getProduct: 'product/getProduct',
       isScrollable: 'product/isScrollable',
       isProductAvailableInOrder: 'order/isProductAvailableInOrder',
-      productIdentificationPref: 'user/getProductIdentificationPref',
-      currentFacility: 'user/getCurrentFacility',
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId'
     })
   },
@@ -159,11 +158,19 @@ export default defineComponent({
   },
   setup() {
     const store = useStore();
+    const userStore = useUserStore()
+    const productIdentificationStore = useProductIdentificationStore();
+    let productIdentificationPref = computed(() => productIdentificationStore.getProductIdentificationPref);
+    let currentFacility: any = computed(() => userStore.getCurrentFacility) 
+
     return {
+      currentFacility,
       closeOutline,
       checkmarkCircle,
       store,
-      translate
+      translate,
+      getProductIdentificationValue,
+      productIdentificationPref
     };
   },
 });

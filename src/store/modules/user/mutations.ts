@@ -9,15 +9,11 @@ const mutations: MutationTree <UserState> = {
     [types.USER_END_SESSION] (state) {
       state.token = ''
       state.current = {}
-      state.currentFacility = {},
       state.facilityLocationsByFacilityId = {},
       state.permissions = []
     },
     [types.USER_INFO_UPDATED] (state, payload) {
         state.current = payload
-    },
-    [types.USER_CURRENT_FACILITY_UPDATED] (state, payload) {
-        state.currentFacility = payload;
     },
     [types.USER_INSTANCE_URL_UPDATED] (state, payload) {
         state.instanceUrl = payload;
@@ -27,9 +23,6 @@ const mutations: MutationTree <UserState> = {
     },
     [types.USER_FACILITY_LOCATIONS_BY_FACILITY_ID] (state, payload) {
         state.facilityLocationsByFacilityId[payload.facilityId] = payload.facilityLocations;
-    },
-    [types.USER_PREF_PRODUCT_IDENT_CHANGED](state, payload) {
-        state.productIdentificationPref = payload
     },
     [types.USER_PERMISSIONS_UPDATED] (state, payload) {
         state.permissions = payload

@@ -5,11 +5,21 @@
         <ion-menu-button slot="start" />
         <ion-title>{{ translate("Purchase Orders") }}</ion-title>
       </ion-toolbar>
+      <div>
+        <ion-searchbar :placeholder="translate('Search purchase orders')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getPurchaseOrders()" />
+
+        <ion-segment v-model="selectedSegment" @ionChange="segmentChanged()">
+          <ion-segment-button value="open">
+            <ion-label>{{ translate("Open") }}</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="completed">
+            <ion-label>{{ translate("Completed") }}</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </div>
     </ion-header>
     <ion-content>
       <main>
-        <ion-searchbar :placeholder="translate('Search purchase orders')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getPurchaseOrders()" />
-
         <PurchaseOrderItem v-for="(order, index) in orders" :key="index" :purchaseOrder="order.doclist.docs[0]" />
         
         <div v-if="orders.length" class="load-more-action ion-text-center">
@@ -44,19 +54,22 @@ import {
   IonContent,
   IonHeader,
   IonIcon,
+  IonLabel,
   IonMenuButton,
   IonPage,
   IonRefresher,
   IonRefresherContent,
   IonSearchbar,
+  IonSegment,
+  IonSegmentButton,
   IonTitle,
   IonToolbar
 } from '@ionic/vue';
 import { cloudDownloadOutline, reload } from 'ionicons/icons'
-import { defineComponent } from 'vue';
+import { defineComponent, computed } from 'vue';
 import { mapGetters, useStore } from 'vuex';
 import PurchaseOrderItem from '@/components/PurchaseOrderItem.vue'
-import { translate } from "@hotwax/dxp-components"
+import { translate, useUserStore } from "@hotwax/dxp-components"
 
 export default defineComponent({
   name: 'PurchaseOrders',
@@ -65,11 +78,14 @@ export default defineComponent({
     IonContent,
     IonHeader,
     IonIcon, 
+    IonLabel,
     IonMenuButton,
     IonPage,
     IonRefresher,
     IonRefresherContent,
     IonSearchbar,
+    IonSegment,
+    IonSegmentButton,
     IonTitle,
     IonToolbar,
     PurchaseOrderItem
@@ -78,14 +94,14 @@ export default defineComponent({
     return {
       queryString: '',
       fetchingOrders: false,
-      showErrorMessage: false
+      showErrorMessage: false,
+      selectedSegment: "open"
     }
   },
   computed: {
     ...mapGetters({
       orders: 'order/getPurchaseOrders',
       isScrollable: 'order/isScrollable',
-      currentFacility: 'user/getCurrentFacility'
     })
   },
   methods: {
@@ -105,7 +121,7 @@ export default defineComponent({
             "group.ngroups": true,
           } as any,
           "query": "*:*",
-          "filter": `docType: ORDER AND orderTypeId: PURCHASE_ORDER AND orderStatusId: (ORDER_APPROVED OR ORDER_CREATED) AND facilityId: ${this.currentFacility.facilityId}`
+          "filter": `docType: ORDER AND orderTypeId: PURCHASE_ORDER AND orderStatusId: ${this.selectedSegment === 'open' ? '(ORDER_APPROVED OR ORDER_CREATED)' : 'ORDER_COMPLETED'} AND facilityId: ${this.currentFacility?.facilityId}`
         }
       }
       if(this.queryString) {
@@ -129,15 +145,21 @@ export default defineComponent({
         if (event) event.target.complete();
       })
     },
+    segmentChanged() {
+      this.getPurchaseOrders();
+    }
   },
-  mounted () {
+  ionViewWillEnter () {
     this.getPurchaseOrders();
   },
   setup () {
     const store = useStore();
+    const userStore = useUserStore()
+    let currentFacility: any = computed(() => userStore.getCurrentFacility) 
 
     return {
       cloudDownloadOutline,
+      currentFacility,
       reload,
       store,
       translate
@@ -145,3 +167,11 @@ export default defineComponent({
   }
 });
 </script>
+
+<style scoped>
+@media (min-width: 991px) {
+  ion-header > div {
+    display: flex;
+  }
+}
+</style>

@@ -5,11 +5,22 @@
         <ion-menu-button slot="start" />
         <ion-title>{{ translate("Shipments") }}</ion-title>
       </ion-toolbar>
+
+      <div>
+        <ion-searchbar :placeholder="translate('Search')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getShipments();" />
+
+        <ion-segment v-model="selectedSegment" @ionChange="segmentChanged()">
+          <ion-segment-button value="open">
+            <ion-label>{{ translate("Open") }}</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="completed">
+            <ion-label>{{ translate("Completed") }}</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </div>
     </ion-header>
     <ion-content>
       <main>
-        <ion-searchbar :placeholder="translate('Scan ASN to start receiving')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getShipments();" />
-
         <ShipmentListItem v-for="shipment in shipments" :key="shipment.shipmentId" :shipment="shipment"/>
 
         <div v-if="shipments.length" class="load-more-action ion-text-center">
@@ -44,19 +55,22 @@ import {
   IonContent,
   IonHeader,
   IonIcon,
+  IonLabel,
   IonMenuButton,
   IonPage,
   IonRefresher,
   IonRefresherContent,
   IonSearchbar,
+  IonSegment,
+  IonSegmentButton,
   IonTitle,
   IonToolbar
 } from '@ionic/vue';
 import { cloudDownloadOutline, reload } from 'ionicons/icons'
-import { defineComponent } from 'vue'
+import { defineComponent, computed } from 'vue'
 import { mapGetters, useStore } from 'vuex'
 import ShipmentListItem from '@/components/ShipmentListItem.vue'
-import { translate } from "@hotwax/dxp-components"
+import { translate, useUserStore } from "@hotwax/dxp-components"
 
 export default defineComponent({
   name: "Shipments",
@@ -65,11 +79,14 @@ export default defineComponent({
     IonContent,
     IonHeader,
     IonIcon,
+    IonLabel,
     IonMenuButton,
     IonSearchbar,
     IonPage,
     IonRefresher,
     IonRefresherContent,
+    IonSegment,
+    IonSegmentButton,
     IonTitle,
     IonToolbar,
     ShipmentListItem
@@ -77,14 +94,14 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       shipments: 'shipment/getShipments',
-      user: 'user/getCurrentFacility'
     })
   },
   data() {
     return {
       queryString: '',
       fetchingShipments: false,
-      showErrorMessage: false 
+      showErrorMessage: false,
+      selectedSegment: "open"
     }
   },
   ionViewWillEnter () {
@@ -103,8 +120,8 @@ export default defineComponent({
       const viewIndex = vIndex ? vIndex : 0;
       const payload = {
         "inputFields": {
-          "destinationFacilityId": this.user.facilityId,
-          "statusId": "PURCH_SHIP_SHIPPED",
+          "destinationFacilityId": this.currentFacility.facilityId,
+          "statusId": this.selectedSegment === "open" ? "PURCH_SHIP_SHIPPED" : "PURCH_SHIP_RECEIVED",
           "grp_op": "AND",
           "shipmentTypeId_value": "INCOMING_SHIPMENT",
           "shipmentTypeId_op": "equals",
@@ -129,6 +146,10 @@ export default defineComponent({
           payload.inputFields["externalOrderId_op"] = 'contains'
           payload.inputFields["externalOrderId_ic"] = 'Y'
           payload.inputFields["externalOrderId_grp"] = '2'
+          payload.inputFields["externalOrderName_value"] = this.queryString
+          payload.inputFields["externalOrderName_op"] = 'contains'
+          payload.inputFields["externalOrderName_ic"] = 'Y'
+          payload.inputFields["externalOrderName_grp"] = '2'
           payload.inputFields["grp_op_2"] = 'OR'
       }
       await this.store.dispatch("shipment/findShipment", payload);
@@ -143,11 +164,18 @@ export default defineComponent({
         if (event) event.target.complete();
       })
     },
+    segmentChanged() {
+      this.getShipments()
+    }
   },
   setup() {
     const store = useStore();
+    const userStore = useUserStore()
+    let currentFacility: any = computed(() => userStore.getCurrentFacility) 
+
     return {
       cloudDownloadOutline,
+      currentFacility,
       reload,
       store,
       translate
@@ -155,3 +183,11 @@ export default defineComponent({
   }
 })
 </script>
+
+<style scoped>
+@media (min-width: 991px) {
+  ion-header > div {
+    display: flex;
+  }
+}
+</style>

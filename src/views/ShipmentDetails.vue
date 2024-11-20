@@ -17,57 +17,61 @@
             <p class="overline" v-show="current.externalOrderId || current.externalOrderName">{{ current.externalOrderName ? current.externalOrderName : current.externalOrderId }}</p>
             <h1 v-if="current.externalId">{{ translate("External ID") }}: {{ current.externalId }}</h1>
             <h1 v-else>{{ translate("Shipment ID") }}: {{ current.shipmentId }}</h1>
+            <p>{{ translate("Item count:", { count: current.items.length }) }}</p>
           </ion-label>
           <ion-chip v-show="current.trackingIdNumber">{{current.trackingIdNumber}}</ion-chip>
+          <ion-badge v-if="isShipmentReceived()">{{ translate("Completed") }}</ion-badge>
         </ion-item>
 
-        <div class="scanner" v-if="!isShipmentReceived()">
+        <div class="scanner">
           <ion-item>
-            <ion-input :label="translate('Scan items')" autofocus :placeholder="translate('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()"></ion-input>
+            <ion-input :label="translate(isShipmentReceived() ? 'Search items' : 'Scan items')" autofocus v-model="queryString" @keyup.enter="isShipmentReceived() ? searchProduct() : updateProductCount()"></ion-input>
           </ion-item>
 
-          <ion-button expand="block" fill="outline" @click="scanCode()">
+          <ion-button expand="block" fill="outline" @click="scanCode()" :disabled="isShipmentReceived()">
             <ion-icon slot="start" :icon="cameraOutline" />{{ translate("Scan") }}
           </ion-button>
         </div>
 
-        <ion-card v-for="item in current.items" :key="item.id" :class="item.sku === lastScannedId ? 'scanned-item' : ''" :id="item.sku">
-          <div class="product">
+        <ion-card v-for="item in current.items" :key="item.id" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : ''" :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+          <div class="product" :data-product-id="item.productId">
             <div class="product-info">
               <ion-item lines="none">
                 <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
                   <DxpShopifyImg :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
-                  <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
-                  <p>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                  <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
+                  <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
                 </ion-label>
               </ion-item>
             </div>
 
             <div class="location">
-              <LocationPopover v-if="!isShipmentReceived()" :item="item" type="shipment" :facilityId="currentFacility.facilityId" />
-              <ion-chip :disabled="true" outline v-else>
-                <ion-icon :icon="locationOutline"/>
-                <ion-label>{{ item.locationSeqId }}</ion-label>
+              <ion-button v-if="productQoh[item.productId] === '' || !(productQoh[item.productId] >= 0)" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
+                <ion-icon color="medium" slot="icon-only" :icon="cubeOutline" />
+              </ion-button>
+              <ion-chip v-else outline>
+                {{ translate("on hand", { qoh: productQoh[item.productId] }) }}
+                <ion-icon color="medium" :icon="cubeOutline"/>
               </ion-chip>
             </div>
 
             <div class="product-count">
-              <ion-item v-if="!isShipmentReceived()">
-                <ion-input :label="translate('Qty')" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" />
+              <ion-item v-if="!isShipmentReceived() && item.quantityReceived === 0">
+                <ion-input :label="translate('Qty')" :disabled="isForceScanEnabled" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" />
               </ion-item>
               <div v-else>
                 <ion-item lines="none">
-                  <ion-badge color="medium" slot="end">{{ item.quantityOrdered }} {{ translate("ordered") }}</ion-badge>
-                  <ion-badge color="success" class="ion-margin-start" slot="end">{{ item.quantityAccepted }} {{ translate("received") }}</ion-badge>
+                  <ion-label slot="end">{{ translate("/ received", { receivedCount: item.quantityAccepted, orderedCount: item.quantityOrdered }) }}</ion-label>
+                  <ion-icon :icon="(item.quantityReceived == item.quantityOrdered) ? checkmarkDoneCircleOutline : warningOutline" :color="(item.quantityReceived == item.quantityOrdered) ? '' : 'warning'" slot="end" />
                 </ion-item>
               </div>
             </div>
           </div>
 
-          <ion-item lines="none" class="border-top" v-if="item.quantityOrdered > 0 && !isShipmentReceived()">
-            <ion-button @click="receiveAll(item)" slot="start" fill="outline">
+          <ion-item lines="none" class="border-top" v-if="item.quantityOrdered > 0 && !isShipmentReceived() && item.quantityReceived === 0">
+            <ion-button @click="receiveAll(item)" :disabled="isForceScanEnabled" slot="start" fill="outline">
               {{ translate("Receive All") }}
             </ion-button>
 
@@ -112,17 +116,17 @@ import {
   modalController,
   alertController,
 } from '@ionic/vue';
-import { defineComponent } from 'vue';
-import { add, checkmarkDone, cameraOutline, locationOutline } from 'ionicons/icons';
+import { defineComponent, computed } from 'vue';
+import { add, checkmarkDone, checkmarkDoneCircleOutline, cameraOutline, cubeOutline, locationOutline, warningOutline } from 'ionicons/icons';
 import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
-import { DxpShopifyImg, translate } from '@hotwax/dxp-components';
+import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore } from '@hotwax/dxp-components';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
-import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
-import { hasError, productHelpers, showToast } from '@/utils'
+import { showToast } from '@/utils'
 import { Actions, hasPermission } from '@/authorization'
+import { ProductService } from '@/services/ProductService';
 
 export default defineComponent({
   name: "ShipmentDetails",
@@ -147,26 +151,26 @@ export default defineComponent({
     IonToolbar,
     DxpShopifyImg,
     IonChip,
-    LocationPopover
   },
   props: ["shipment"],
   data() {
     return {
       queryString: '',
-      lastScannedId: ''
+      lastScannedId: '',
+      productQoh: {} as any
     }
   },
-  mounted() {
-    this.store.dispatch('shipment/setCurrent', { shipmentId: this.$route.params.id })
+  async mounted() {
+    await this.store.dispatch('shipment/setCurrent', { shipmentId: this.$route.params.id })
+    this.observeProductVisibility();
   },
   computed: {
     ...mapGetters({
       current: 'shipment/getCurrent',
-      user: 'user/getCurrentFacility',
       getProduct: 'product/getProduct',
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
-      currentFacility: 'user/getCurrentFacility',
-      productIdentificationPref: 'user/getProductIdentificationPref'
+      isForceScanEnabled: 'util/isForceScanEnabled',
+      barcodeIdentifier: 'util/getBarcodeIdentificationPref',
     }),
   },
   methods: {
@@ -193,6 +197,31 @@ export default defineComponent({
           this.store.dispatch('product/clearSearchedProducts')
         })
       return modal.present();
+    },
+    observeProductVisibility() {
+      const observer = new IntersectionObserver((entries: any) => {
+        entries.forEach((entry: any) => {
+          if (entry.isIntersecting) {
+            const productId = entry.target.getAttribute('data-product-id');
+            if (productId && !(this.productQoh[productId] >= 0)) {
+              this.fetchQuantityOnHand(productId);
+            }
+          }
+        });
+      }, {
+        root: null,
+        threshold: 0.4
+      });
+
+      const products = document.querySelectorAll('.product');
+      if (products) {
+        products.forEach((product: any) => {
+          observer.observe(product);
+        });
+      }
+    },
+    async fetchQuantityOnHand(productId: any) {
+      this.productQoh[productId] = await ProductService.getInventoryAvailableByFacility(productId);  
     },
     async fetchProducts(vSize: any, vIndex: any) {
       const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
@@ -225,11 +254,13 @@ export default defineComponent({
     async receiveShipment() {
       const eligibleItems = this.current.items.filter((item: any) => item.quantityAccepted > 0)
       const shipmentId = this.current.shipment ? this.current.shipment.shipmentId : this.current.shipmentId 
-      const resp = await this.store.dispatch('shipment/receiveShipment', { items: eligibleItems, shipmentId })
-      if (resp.status === 200 && !hasError(resp)) {
+      const isShipmentReceived = await this.store.dispatch('shipment/receiveShipmentJson', { items: eligibleItems, shipmentId })
+      if (isShipmentReceived) {
+        showToast(translate("Shipment received successfully", { shipmentId: shipmentId }))
         this.router.push('/shipments');
       } else {
         showToast(translate("Failed to receive shipment"))
+        this.store.dispatch('shipment/setCurrent', { shipmentId: this.$route.params.id })
       }
     },
     isEligibleForReceivingShipment() {
@@ -248,7 +279,7 @@ export default defineComponent({
       if(this.queryString) payload = this.queryString
 
       if(!payload) {
-        showToast(translate("Please provide a valid SKU."))
+        showToast(translate("Please provide a valid barcode identifier."))
         return;
       }
       const result = await this.store.dispatch('shipment/updateShipmentProductCount', payload)
@@ -298,22 +329,48 @@ export default defineComponent({
       });
       return modal.present();
     },
+    searchProduct() {
+      if(!this.queryString) {
+        showToast(translate("Please provide a valid barcode identifier."))
+        return;
+      }
+
+      const scannedElement = document.getElementById(this.queryString);
+      if(scannedElement) {
+        this.lastScannedId = this.queryString
+        scannedElement.scrollIntoView()
+
+        // Scanned product should get un-highlighted after 3s for better experience hence adding setTimeOut
+        setTimeout(() => {
+          this.lastScannedId = ''
+        }, 3000)
+      } else {
+        showToast(translate("Searched item is not present within the shipment:", { itemName: this.queryString }));
+      }
+      this.queryString = ''
+    }
   }, 
   setup() {
     const store = useStore(); 
     const router = useRouter();
+    const productIdentificationStore = useProductIdentificationStore();
+    let productIdentificationPref = computed(() => productIdentificationStore.getProductIdentificationPref)
 
     return {
       Actions,
       add,
       cameraOutline,
       checkmarkDone,
+      checkmarkDoneCircleOutline,
+      cubeOutline,
       hasPermission,
       locationOutline,
       store,
-      productHelpers,
       router,
-      translate
+      translate,
+      getProductIdentificationValue,
+      productIdentificationPref,
+      warningOutline
     };
   },
 });

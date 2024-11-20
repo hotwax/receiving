@@ -4,8 +4,9 @@ import RootState from '@/store/RootState'
 import ReturnState from './ReturnState'
 import * as types from './mutation-types'
 import { hasError, showToast } from '@/utils'
-import { translate } from '@hotwax/dxp-components'
+import { getProductIdentificationValue, translate } from '@hotwax/dxp-components'
 import emitter from '@/event-bus'
+import store from "@/store";
 
 const actions: ActionTree<ReturnState, RootState> = {
   async findReturn ({ commit, state }, payload) {
@@ -33,7 +34,13 @@ const actions: ActionTree<ReturnState, RootState> = {
     return resp;
   },
   async updateReturnProductCount ({ commit, state }, payload) {
-    const item = state.current.items.find((item: any) => item.sku === payload);
+    const barcodeIdentifier = store.getters['util/getBarcodeIdentificationPref'];
+    const getProduct = store.getters['product/getProduct'];
+
+    const item = state.current.items.find((item: any) => {
+      const itemVal = barcodeIdentifier ? getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) : item.internalName;
+      return itemVal === payload;
+    });
 
     if (item) {
       item.quantityAccepted = item.quantityAccepted ? parseInt(item.quantityAccepted) + 1 : 1;
@@ -83,6 +90,7 @@ const actions: ActionTree<ReturnState, RootState> = {
           const locationSeqId = facilityLocations[0].locationSeqId
           resp.data.items.map((item: any) => {
             item.locationSeqId = locationSeqId;
+            item.quantityReceived = item.quantityAccepted ? Number(item.quantityAccepted) : 0
           });
         } else {
           showToast(translate("Facility locations were not found corresponding to destination facility of return shipment. Please add facility locations to avoid receive return shipment failure."))

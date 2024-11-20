@@ -5,11 +5,22 @@
         <ion-menu-button slot="start" />
         <ion-title>{{ translate("Returns") }}</ion-title>
       </ion-toolbar>
+
+      <div>
+        <ion-searchbar :placeholder="translate('Search returns')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getReturns()" />
+
+        <ion-segment v-model="selectedSegment" @ionChange="segmentChanged()">
+          <ion-segment-button value="open">
+            <ion-label>{{ translate("Open") }}</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="completed">
+            <ion-label>{{ translate("Completed") }}</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </div>
     </ion-header>
     <ion-content>
       <main>
-        <ion-searchbar :placeholder="translate('Search returns')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getReturns()" />
-  
         <ReturnListItem v-for="returnShipment in returns" :key="returnShipment.shipmentId" :returnShipment="returnShipment" />
 
         <div v-if="returns.length" class="load-more-action ion-text-center">
@@ -44,19 +55,22 @@ import {
   IonContent,
   IonHeader,
   IonIcon,
+  IonLabel,
   IonMenuButton,
   IonPage,
   IonRefresher,
   IonRefresherContent,
   IonSearchbar,
+  IonSegment,
+  IonSegmentButton,
   IonTitle,
   IonToolbar
 } from '@ionic/vue';
 import { cloudDownloadOutline, reload } from 'ionicons/icons'
-import { defineComponent } from 'vue'
+import { defineComponent, computed } from 'vue'
 import { mapGetters, useStore } from 'vuex'
 import ReturnListItem from '@/components/ReturnListItem.vue'
-import { translate } from "@hotwax/dxp-components"
+import { translate, useUserStore } from "@hotwax/dxp-components"
 
 export default defineComponent({
   name: "Returns",
@@ -65,11 +79,14 @@ export default defineComponent({
     IonContent,
     IonHeader,
     IonIcon,
+    IonLabel,
     IonMenuButton,
     IonSearchbar,
     IonPage,
     IonRefresher,
     IonRefresherContent,
+    IonSegment,
+    IonSegmentButton,
     IonTitle,
     IonToolbar,
     ReturnListItem
@@ -77,14 +94,14 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       returns: 'return/getReturns',
-      currentFacility: 'user/getCurrentFacility'
     })
   },
   data () {
     return {
       queryString: '',
       fetchingReturns: false,
-      showErrorMessage: false
+      showErrorMessage: false,
+      selectedSegment: "open"
     }
   },
   mounted () {
@@ -102,7 +119,9 @@ export default defineComponent({
       const payload = {
         "entityName": "SalesReturnShipmentView",
         "inputFields": {
-          "destinationFacilityId": this.currentFacility.facilityId
+          "destinationFacilityId": this.currentFacility?.facilityId,
+          "statusId": "PURCH_SHIP_RECEIVED",
+          "statusId_op": this.selectedSegment === "open" ? "notEqual" : "equals"
         },
         "fieldList" : [ "shipmentId","externalId","statusId","shopifyOrderName","hcOrderId","trackingCode", "destinationFacilityId" ],
         "noConditionFind": "Y",
@@ -146,11 +165,18 @@ export default defineComponent({
         if (event) event.target.complete();
       })
     },
+    segmentChanged() {
+      this.getReturns();
+    }
   },
   setup() {
     const store = useStore();
+    const userStore = useUserStore()
+    let currentFacility: any = computed(() => userStore.getCurrentFacility) 
+
     return {
       cloudDownloadOutline,
+      currentFacility,
       reload,
       store,
       translate
@@ -158,3 +184,11 @@ export default defineComponent({
   }
 })
 </script>
+
+<style scoped>
+@media (min-width: 991px) {
+  ion-header > div {
+    display: flex;
+  }
+}
+</style>

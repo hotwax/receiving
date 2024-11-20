@@ -3,9 +3,10 @@ import { ActionTree } from 'vuex'
 import RootState from '@/store/RootState'
 import OrderState from './OrderState'
 import * as types from './mutation-types'
-import { hasError, showToast } from '@/utils'
-import { translate } from '@hotwax/dxp-components'
+import { hasError, showToast, getCurrentFacilityId } from '@/utils'
+import { getProductIdentificationValue, translate } from '@hotwax/dxp-components'
 import emitter from "@/event-bus";
+import store from "@/store";
 
 
 const actions: ActionTree<OrderState, RootState> = {
@@ -41,7 +42,13 @@ const actions: ActionTree<OrderState, RootState> = {
     return resp;
   },
   async updateProductCount({ commit, state }, payload ) {
-    const item = state.current.items.find((item: any) => item.internalName === payload);
+    const barcodeIdentifier = store.getters['util/getBarcodeIdentificationPref'];
+    const getProduct = store.getters['product/getProduct'];
+
+    const item = state.current.items.find((item: any) => {
+      const itemVal = barcodeIdentifier ? getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) : item.internalName;
+      return itemVal === payload;
+    });
 
     if (item) {
       if(item.orderItemStatusId === 'ITEM_COMPLETED') return { isCompleted: true }
@@ -64,20 +71,6 @@ const actions: ActionTree<OrderState, RootState> = {
   async getOrderDetail({ commit, state }, { orderId }) {
     let resp;
 
-    const current = state.current as any
-    const orders = state.purchaseOrders.list as any
-
-    if (current.length && current[0]?.orderId === orderId) { return current }
-
-    else if(orders.length > 0) {
-      return orders.some((order: any) => {
-        if (order.doclist.docs[0]?.orderId === orderId) {
-          this.dispatch('product/fetchProductInformation',  { order: order.doclist.docs });
-          commit(types.ORDER_CURRENT_UPDATED, { ...state.current, orderId: order.doclist.docs[0]?.orderId, externalOrderId: order.doclist.docs[0]?.externalOrderId, orderStatusId: order.doclist.docs[0]?.orderStatusId, orderStatusDesc: order.doclist.docs[0]?.orderStatusDesc, items: JSON.parse(JSON.stringify(order.doclist.docs)) })
-          return current;
-        }
-      })
-    }
     try {
       const payload = {
         "json": {
@@ -89,7 +82,7 @@ const actions: ActionTree<OrderState, RootState> = {
           },
           "query": "docType:ORDER",
           "filter": [
-            `orderTypeId: PURCHASE_ORDER AND orderId: ${orderId} AND orderStatusId: (ORDER_APPROVED OR ORDER_CREATED) AND facilityId: ${this.state.user.currentFacility.facilityId}`
+            `orderTypeId: PURCHASE_ORDER AND orderId: ${orderId} AND orderStatusId: (ORDER_APPROVED OR ORDER_CREATED OR ORDER_COMPLETED) AND facilityId: ${getCurrentFacilityId()}`
           ]
         }
       }
@@ -118,7 +111,7 @@ const actions: ActionTree<OrderState, RootState> = {
     try {
       const params = {
         orderId: payload.orderId,
-        facilityId: this.state.user.currentFacility.facilityId
+        facilityId: getCurrentFacilityId()
       }
 
       resp = await OrderService.createPurchaseShipment(params)
@@ -142,7 +135,8 @@ const actions: ActionTree<OrderState, RootState> = {
 
           const poShipment = {
             shipmentId,
-            items: payload.items
+            items: payload.items,
+            isMultiReceivingEnabled: true
           }
           await this.dispatch('shipment/receiveShipment', poShipment).catch((err) => console.error(err))
         })
@@ -156,6 +150,50 @@ const actions: ActionTree<OrderState, RootState> = {
     return resp;
   },
 
+  async createAndReceiveIncomingShipment({ commit }, payload) {
+    let resp;
+    try {
+      payload.items.map((item: any, index: number) => {
+        item.itemSeqId = `1000${index+1}`
+        item.quantity = item.quantityAccepted
+      })
+
+      const params = {
+        orderId: payload.orderId,
+        destinationFacilityId: getCurrentFacilityId(),
+        "type": "PURCHASE_SHIPMENT",
+        "status": "PURCH_SHIP_CREATED",
+        "items": payload.items
+      }
+      resp = await OrderService.createIncomingShipment({"payload": params})
+      
+      if (resp.status === 200 && !hasError(resp) && resp.data.shipmentId) {
+        const facilityLocations = await this.dispatch('user/getFacilityLocations', getCurrentFacilityId());
+        if (facilityLocations.length){
+          const locationSeqId = facilityLocations[0].locationSeqId
+          payload.items.map((item: any) => {
+            item.locationSeqId = locationSeqId
+            item.quantityReceived = item.quantityAccepted ? Number(item.quantityAccepted) : 0
+          })
+        } else {
+          showToast(translate("Facility locations were not found corresponding to destination facility of PO. Please add facility locations to avoid receive PO failure."))
+        }
+        const poShipment = {
+          shipmentId : resp.data.shipmentId,
+          items: payload.items,
+          isMultiReceivingEnabled: true
+        }
+        return await this.dispatch('shipment/receiveShipmentJson', poShipment).catch((err) => console.error(err))
+      } else {
+        showToast(translate("Something went wrong"));
+      }
+    } catch(error){
+      console.error(error)
+      showToast(translate("Something went wrong"));
+    }
+    return false;
+  },
+
   async getPOHistory({ commit, state }, payload) {
     let resp;
     const current = state.current as any;
@@ -167,9 +205,10 @@ const actions: ActionTree<OrderState, RootState> = {
         },
         "entityName": "ShipmentReceiptAndItem",
         "fieldList": ["datetimeReceived", "productId", "quantityAccepted", "quantityRejected", "receivedByUserLoginId", "shipmentId", 'locationSeqId'],
-        "orderBy": 'datetimeReceived DESC'
+        "orderBy": 'datetimeReceived DESC',
+        "viewSize": "250"
       }
-      const facilityLocations = await this.dispatch('user/getFacilityLocations', this.state.user.currentFacility.facilityId);
+      const facilityLocations = await this.dispatch('user/getFacilityLocations', getCurrentFacilityId());
       const locationSeqId = facilityLocations.length > 0 ? facilityLocations[0].locationSeqId : "";
       resp = await OrderService.fetchPOHistory(params)
       if (resp.status === 200 && !hasError(resp) && resp.data?.count > 0) {

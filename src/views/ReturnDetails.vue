@@ -11,7 +11,7 @@
       <main>
         <div class="doc-id">
           <ion-item lines="none">
-            <h1>{{ current.shopifyOrderName ? current.shopifyOrderName : current.hcOrderId }}</h1>
+            <h1> {{ current.shopifyOrderName ? current.shopifyOrderName : current.hcOrderId ? current.hcOrderId : current.externalId ? current.externalId : translate("Return Details") }}</h1>
             <!-- TODO: Fetch Customer name -->
             <!-- <p>{{ translate("Customer: <customer name>")}}</p> -->
           </ion-item>
@@ -25,47 +25,50 @@
   
         <div class="scanner">
           <ion-item>
-            <ion-input :label="translate('Scan items')" autofocus :placeholder="translate('Scan barcodes to receive them')" v-model="queryString" @keyup.enter="updateProductCount()" />
+            <ion-input :label="translate(isReturnReceivable(current.statusId) ? 'Scan items' : 'Search items')" autofocus v-model="queryString" @keyup.enter="isReturnReceivable(current.statusId) ? updateProductCount() : searchProduct()" />
           </ion-item>
 
-          <ion-button expand="block" fill="outline" @click="scanCode()">
+          <ion-button expand="block" fill="outline" @click="scanCode()" :disabled="!isReturnReceivable(current.statusId)">
             <ion-icon slot="start" :icon="barcodeOutline" />{{ translate("Scan") }}
           </ion-button>
         </div>
 
-        <ion-card v-for="item in current.items" :key="item.id" :class="item.sku === lastScannedId ? 'scanned-item' : ''" :id="item.sku">
-          <div class="product">
+        <ion-card v-for="item in current.items" :key="item.id" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : ''" :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+          <div class="product" :data-product-id="item.productId">
             <div class="product-info">
               <ion-item lines="none">
                 <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
                   <DxpShopifyImg :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
-                  <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
-                  <p>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                  <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
+                  <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
                 </ion-label>
               </ion-item>
             </div>
 
             <div class="location">
-              <ion-chip outline :disabled="true">
-                <ion-icon :icon="locationOutline" />
-                <ion-label>{{ current.locationSeqId }}</ion-label>
+              <ion-button v-if="productQoh[item.productId] === '' || !(productQoh[item.productId] >= 0)" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
+                <ion-icon color="medium" slot="icon-only" :icon="cubeOutline" />
+              </ion-button>
+              <ion-chip v-else outline>
+                {{ translate("on hand", { qoh: productQoh[item.productId] }) }}
+                <ion-icon color="medium" :icon="cubeOutline"/>
               </ion-chip>
             </div>
 
             <div class="product-count">
-              <ion-item v-if="isReturnReceivable(current.statusId)">
-                <ion-input :label="translate('Qty')" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" />
+              <ion-item v-if="isReturnReceivable(current.statusId) && item.quantityReceived === 0">
+                <ion-input :label="translate('Qty')" :disabled="isForceScanEnabled" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" />
               </ion-item>
-              <ion-item v-if="!isReturnReceivable(current.statusId)" lines="none">
+              <ion-item v-else lines="none">
                 <ion-label>{{ item.quantityAccepted }} {{ translate("received") }}</ion-label>
               </ion-item>
             </div>
           </div>
   
           <ion-item lines="none" class="border-top" v-if="item.quantityOrdered > 0">
-            <ion-button v-if="isReturnReceivable(current.statusId)" @click="receiveAll(item)" slot="start" fill="outline">
+            <ion-button v-if="isReturnReceivable(current.statusId) && item.quantityReceived === 0" :disabled="isForceScanEnabled" @click="receiveAll(item)" slot="start" fill="outline">
               {{ translate("Receive All") }}
             </ion-button>
             <ion-progress-bar :color="getRcvdToOrdrdFraction(item) === 1 ? 'success' : getRcvdToOrdrdFraction(item) > 1 ? 'danger' : 'primary'" :value="getRcvdToOrdrdFraction(item)" />
@@ -106,17 +109,18 @@ import {
   modalController,
   alertController,
 } from '@ionic/vue';
-import { defineComponent } from 'vue';
-import { checkmarkDone, barcodeOutline, locationOutline } from 'ionicons/icons';
+import { defineComponent, computed } from 'vue';
+import { checkmarkDone, cubeOutline, barcodeOutline, locationOutline } from 'ionicons/icons';
 import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
-import { DxpShopifyImg, translate } from '@hotwax/dxp-components';
+import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore } from '@hotwax/dxp-components';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import ImageModal from '@/components/ImageModal.vue';
 import { hasError } from '@/utils';
-import { showToast, productHelpers } from '@/utils'
+import { showToast } from '@/utils'
 import { Actions, hasPermission } from '@/authorization'
+import { ProductService } from '@/services/ProductService';
 
 export default defineComponent({
   name: "ReturnDetails",
@@ -152,26 +156,24 @@ export default defineComponent({
         'Shipped': 'medium',
         'Created': 'medium'
       } as any,
-      lastScannedId: ''
+      lastScannedId: '',
+      productQoh: {} as any
     }
   },
   async ionViewWillEnter() {
     const current = await this.store.dispatch('return/setCurrent', { shipmentId: this.$route.params.id })
-
-    if(!this.isReturnReceivable(current.statusId)) {
-      showToast(translate("This return has been and cannot be edited.", { status: current?.statusDesc?.toLowerCase() }));
-    }
+    this.observeProductVisibility();
   },
   computed: {
     ...mapGetters({
       current: 'return/getCurrent',
-      user: 'user/getCurrentFacility',
       getProduct: 'product/getProduct',
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
       returns: 'return/getReturns',
       validStatusChange: 'return/isReturnReceivable',
       isReturnReceivable: 'return/isReturnReceivable',
-      productIdentificationPref: 'user/getProductIdentificationPref'
+      isForceScanEnabled: 'util/isForceScanEnabled',
+      barcodeIdentifier: 'util/getBarcodeIdentificationPref'
     }),
   },
   methods: {
@@ -205,7 +207,31 @@ export default defineComponent({
       }
       await this.store.dispatch("product/fetchProducts", payload);
     },
-    
+    observeProductVisibility() {
+      const observer = new IntersectionObserver((entries: any) => {
+        entries.forEach((entry: any) => {
+          if (entry.isIntersecting) {
+            const productId = entry.target.getAttribute('data-product-id');
+            if (productId && !(this.productQoh[productId] >= 0)) {
+              this.fetchQuantityOnHand(productId);
+            }
+          }
+        });
+      }, {
+        root: null,
+        threshold: 0.4
+      });
+
+      const products = document.querySelectorAll('.product');
+      if (products) {
+        products.forEach((product: any) => {
+          observer.observe(product);
+        });
+      }
+    },
+    async fetchQuantityOnHand(productId: any) {
+      this.productQoh[productId] = await ProductService.getInventoryAvailableByFacility(productId);  
+    },
     async completeShipment() {
       const alert = await alertController.create({
         header: translate("Receive Shipment"),
@@ -228,9 +254,13 @@ export default defineComponent({
     async receiveReturn() {
       const eligibleItems = this.current.items.filter((item: any) => item.quantityAccepted > 0)
       const shipmentId = this.current.shipment ? this.current.shipment.shipmentId : this.current.shipmentId 
-      let resp = await this.store.dispatch('return/receiveReturn', { items: eligibleItems, shipmentId });
-      if(resp.status === 200 && !hasError(resp)) {
+      let isReturnReceived = await this.store.dispatch('shipment/receiveShipmentJson', { items: eligibleItems, shipmentId });
+      if (isReturnReceived) {
+        showToast(translate("Return received successfully", { shipmentId: shipmentId }))
         this.router.push('/returns');
+      } else {
+        showToast(translate('Something went wrong'));
+        await this.store.dispatch('return/setCurrent', { shipmentId: this.$route.params.id })
       }
     },
     isEligibleForReceivingReturns() {
@@ -280,21 +310,43 @@ export default defineComponent({
       });
       return modal.present();
     },
+    searchProduct() {
+      if(!this.queryString) {
+        showToast(translate("Please provide a valid barcode identifier."))
+        return;
+      }
+      const scannedElement = document.getElementById(this.queryString);
+      if(scannedElement) {
+        this.lastScannedId = this.queryString
+        scannedElement.scrollIntoView()
+        // Scanned product should get un-highlighted after 3s for better experience hence adding setTimeOut
+        setTimeout(() => {
+          this.lastScannedId = ''
+        }, 3000)
+      } else {
+        showToast(translate("Searched item is not present within the shipment:", { itemName: this.queryString }));
+      }
+      this.queryString = ''
+    }
   }, 
   setup() {
     const store = useStore(); 
     const router = useRouter();
+    const productIdentificationStore = useProductIdentificationStore();
+    let productIdentificationPref = computed(() => productIdentificationStore.getProductIdentificationPref)
 
     return {
       Actions,
       barcodeOutline,
       checkmarkDone,
+      cubeOutline,
       hasPermission,
       locationOutline,
       store,
-      productHelpers,
       router,
-      translate
+      translate,
+      getProductIdentificationValue,
+      productIdentificationPref
     };
   },
 });

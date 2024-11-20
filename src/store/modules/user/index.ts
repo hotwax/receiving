@@ -10,15 +10,10 @@ const userModule: Module<UserState, RootState> = {
     state: {
       token: '',
       current: {},
-      currentFacility: {},
       currentEComStore: {},
       permissions: [],
       instanceUrl: '',
       facilityLocationsByFacilityId: {},
-      productIdentificationPref: {
-        primaryId: 'productId',
-        secondaryId: ''
-      },
       pwaState: {
         updateExists: false,
         registration: null,

@@ -37,67 +37,47 @@
       </div>
       <section>
         <DxpOmsInstanceNavigator />
-
-        <ion-card>
-          <ion-card-header>
-            <ion-card-title>
-              {{ translate("Facility") }}
-            </ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            {{ translate('Specify which facility you want to operate from. Order, inventory and other configuration data will be specific to the facility you select.') }}
-          </ion-card-content>
-          <ion-item lines="none">
-            <ion-select :label="translate('Select facility')" interface="popover" :value="currentFacility.facilityId" @ionChange="setFacility($event)">
-              <ion-select-option v-for="facility in (userProfile ? userProfile.facilities : [])" :key="facility.facilityId" :value="facility.facilityId" >{{ facility.facilityName }}</ion-select-option>
-            </ion-select>
-          </ion-item>
-        </ion-card>
+        <DxpFacilitySwitcher @updateFacility="updateFacility" />
       </section>
       <hr />
 
       <DxpAppVersionInfo />
 
       <section>
+        <DxpProductIdentifier />
+        <DxpTimeZoneSwitcher @timeZoneUpdated="timeZoneUpdated" />
+
         <ion-card>
           <ion-card-header>
             <ion-card-title>
-              {{ translate('Product Identifier') }}
+              {{ translate("Force scan") }}
             </ion-card-title>
           </ion-card-header>
-
-          <ion-card-content>
-            {{ translate('Choosing a product identifier allows you to view products with your preferred identifiers.') }}
-          </ion-card-content>
-
+          <ion-card-content v-html="barcodeContentMessage"></ion-card-content>
           <ion-item>
-            <ion-select :label="translate('Primary Product Identifier')" :disabled="!hasPermission(Actions.APP_PRODUCT_IDENTIFIER_UPDATE) || !currentEComStore?.productStoreId" interface="popover" :placeholder="translate('primary identifier')" :value="productIdentificationPref.primaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'primaryId')">
-              <ion-select-option v-for="identification in productIdentifications" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
-            </ion-select>
+            <ion-toggle label-placement="start" :checked="isForceScanEnabled" @click.prevent="updateForceScanStatus($event)">{{ translate("Require scanning") }}</ion-toggle>
           </ion-item>
-          <ion-item>
-            <ion-select :label="translate('Secondary Product Identifier')" :disabled="!hasPermission(Actions.APP_PRODUCT_IDENTIFIER_UPDATE) || !currentEComStore?.productStoreId" interface="popover" :placeholder="translate('secondary identifier')" :value="productIdentificationPref.secondaryId" @ionChange="setProductIdentificationPref($event.detail.value, 'secondaryId')">
-              <ion-select-option v-for="identification in productIdentifications" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
-              <ion-select-option value="">{{ translate("None") }}</ion-select-option>
+          <ion-item lines="none">
+            <ion-select :label="translate('Barcode Identifier')" interface="popover" :placeholder="translate('Select')" :value="barcodeIdentificationPref" @ionChange="setBarcodeIdentificationPref($event.detail.value)">
+              <ion-select-option v-for="identification in barcodeIdentificationOptions" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
             </ion-select>
           </ion-item>
         </ion-card>
-        <DxpTimeZoneSwitcher @timeZoneUpdated="timeZoneUpdated" />
       </section>
     </ion-content>
   </ion-page>
 </template>
 
 <script lang="ts">
-import { alertController, IonAvatar, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader,IonIcon, IonItem, IonMenuButton, IonPage, IonSelect, IonSelectOption, IonTitle, IonToolbar } from '@ionic/vue';
-import { defineComponent } from 'vue';
+import { alertController, IonAvatar, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader,IonIcon, IonItem, IonMenuButton, IonPage, IonSelect, IonSelectOption, IonTitle, IonToggle, IonToolbar } from '@ionic/vue';
+import { computed, defineComponent } from 'vue';
 import { codeWorkingOutline, ellipsisVertical, openOutline, saveOutline, globeOutline, personCircleOutline, storefrontOutline} from 'ionicons/icons'
 import { mapGetters, useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import Image from '@/components/Image.vue'
 import { DateTime } from 'luxon';
 import { Actions, hasPermission } from '@/authorization';
-import { translate } from "@hotwax/dxp-components"
+import { DxpProductIdentifier, translate, useProductIdentificationStore } from "@hotwax/dxp-components"
 
 export default defineComponent({
   name: 'Settings',
@@ -118,6 +98,7 @@ export default defineComponent({
     IonSelect, 
     IonSelectOption,
     IonTitle, 
+    IonToggle,
     IonToolbar,
     Image
   },
@@ -126,16 +107,16 @@ export default defineComponent({
       baseURL: process.env.VUE_APP_BASE_URL,
       currentStore: '',
       appInfo: (process.env.VUE_APP_VERSION_INFO ? JSON.parse(process.env.VUE_APP_VERSION_INFO) : {}) as any,
-      appVersion: ""
+      appVersion: "",
+      barcodeContentMessage: translate("Only allow received quantity to be incremented by scanning the barcode of products. If the identifier is not found, the scan will default to using the internal name.", { space: '<br /><br />' })
     };
   },
   computed: {
     ...mapGetters({
       userProfile: 'user/getUserProfile',
-      currentFacility: 'user/getCurrentFacility',
       currentEComStore: 'user/getCurrentEComStore',
-      productIdentifications: 'util/getProductIdentifications',
-      productIdentificationPref: 'user/getProductIdentificationPref'
+      isForceScanEnabled: 'util/isForceScanEnabled',
+      barcodeIdentificationPref: 'util/getBarcodeIdentificationPref'
     })
   },
   mounted() {
@@ -145,16 +126,9 @@ export default defineComponent({
     async timeZoneUpdated(tzId: string) {
       await this.store.dispatch("user/setUserTimeZone", tzId)
     },
-    setFacility (facility: any) {
-      // Checking if current facility is not equal to the facility selected to avoid extra api call on logging in again after logout.
-      if(this.currentFacility.facilityId != facility['detail'].value && this.userProfile?.facilities) {
-        this.userProfile?.facilities?.map((fac: any) => {
-          if (fac.facilityId == facility['detail'].value) {
-            this.store.dispatch('shipment/clearShipments');
-            this.store.dispatch('user/setFacility', {'facility': fac});
-          }
-        })
-      }
+    async updateFacility(facility: any) {
+      this.store.dispatch('shipment/clearShipments');
+      await this.store.dispatch('user/setFacility', facility?.facilityId);
     },
     async presentAlert () {
       const alert = await alertController.create({
@@ -196,23 +170,26 @@ export default defineComponent({
     goToLaunchpad() {
       window.location.href = `${process.env.VUE_APP_LOGIN_URL}`
     },
-    setProductIdentificationPref(value: string, id: string) {
-      // Not dispatching an action if the value for id is same as saved in state
-      if(this.productIdentificationPref[id] == value) {
-        return;
-      }
-      this.store.dispatch('user/setProductIdentificationPref', { id, value })
+    setBarcodeIdentificationPref(value: string) {
+      this.store.dispatch('util/setBarcodeIdentificationPref', value)
     },
     getDateTime(time: any) {
       return DateTime.fromMillis(time).toLocaleString(DateTime.DATETIME_MED);
-    }
+    },
+    async updateForceScanStatus(event: any) {
+      event.stopImmediatePropagation();
+      this.store.dispatch("util/setForceScanSetting", !this.isForceScanEnabled)
+    },
   },
   setup(){
     const store = useStore();
     const router = useRouter();
+    const productIdentificationStore = useProductIdentificationStore();
+    let barcodeIdentificationOptions = computed(() => productIdentificationStore.getProductIdentificationOptions)
 
     return {
       Actions,
+      barcodeIdentificationOptions,
       codeWorkingOutline,
       ellipsisVertical,
       globeOutline,
