@@ -350,6 +350,9 @@ export default defineComponent({
       this.queryString = ''
     }
   }, 
+  ionViewDidLeave() {
+    this.productQoh = {};
+  },
   setup() {
     const store = useStore(); 
     const router = useRouter();
