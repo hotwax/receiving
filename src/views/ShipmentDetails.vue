@@ -164,6 +164,9 @@ export default defineComponent({
     await this.store.dispatch('shipment/setCurrent', { shipmentId: this.$route.params.id })
     this.observeProductVisibility();
   },
+  ionViewDidLeave() {
+    this.productQoh = {};
+  },
   computed: {
     ...mapGetters({
       current: 'shipment/getCurrent',
@@ -350,9 +353,6 @@ export default defineComponent({
       this.queryString = ''
     }
   }, 
-  ionViewDidLeave() {
-    this.productQoh = {};
-  },
   setup() {
     const store = useStore(); 
     const router = useRouter();
