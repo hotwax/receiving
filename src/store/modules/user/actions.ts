@@ -71,8 +71,9 @@ const actions: ActionTree<UserState, RootState> = {
         return uniqueFacilities
       }, []);
 
-      const currentFacility: any = getCurrentFacilityId();
-      const currentEComStore = await UserService.getEComStores(token, currentFacility?.facilityId);
+      const currentFacilityId: any = getCurrentFacilityId();
+      const currentEComStore = await UserService.getEComStores(token, currentFacilityId);
+      useUserStore().currentEComStore = currentEComStore
       const productStoreId = currentEComStore?.productStoreId;
 
       await useProductIdentificationStore().getIdentificationPref(productStoreId)
@@ -90,7 +91,7 @@ const actions: ActionTree<UserState, RootState> = {
       commit(types.USER_PERMISSIONS_UPDATED, appPermissions);
       commit(types.USER_TOKEN_CHANGED, { newToken: token })
       // Get facility location of selected facility
-      dispatch('getFacilityLocations', currentFacility.facilityId);
+      dispatch('getFacilityLocations', currentFacilityId);
       // TODO: fetch product identifications from enumeration instead of storing it in env
       this.dispatch('util/getForceScanSetting', currentEComStore?.productStoreId);
       this.dispatch('util/getBarcodeIdentificationPref', currentEComStore?.productStoreId);
@@ -173,12 +174,16 @@ const actions: ActionTree<UserState, RootState> = {
    */
   async setFacility ({ commit, dispatch }, facilityId) {
     const token = store.getters['user/getUserToken'];
+    const previousEComStore = await useUserStore().getCurrentEComStore as any
     const eComStore = await UserService.getEComStores(token, facilityId);
-
-    commit(types.USER_CURRENT_ECOM_STORE_UPDATED, eComStore);
     await dispatch('getFacilityLocations', facilityId)
-    eComStore?.productStoreId ? this.dispatch('util/getForceScanSetting', eComStore.productStoreId) : this.dispatch('util/updateForceScanStatus', false)
-    eComStore?.productStoreId ? this.dispatch('util/getBarcodeIdentificationPref', eComStore.productStoreId) : this.dispatch('util/updateBarcodeIdentificationPref', "internalName")
+
+    if(previousEComStore.productStoreId !== eComStore.productStoreId) {
+      await useUserStore().setEComStorePreference(eComStore);
+      commit(types.USER_CURRENT_ECOM_STORE_UPDATED, eComStore);
+      eComStore?.productStoreId ? this.dispatch('util/getForceScanSetting', eComStore.productStoreId) : this.dispatch('util/updateForceScanStatus', false)
+      eComStore?.productStoreId ? this.dispatch('util/getBarcodeIdentificationPref', eComStore.productStoreId) : this.dispatch('util/updateBarcodeIdentificationPref', "internalName")
+    }
   },
   
   /**
