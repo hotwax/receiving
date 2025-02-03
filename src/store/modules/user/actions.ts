@@ -174,12 +174,16 @@ const actions: ActionTree<UserState, RootState> = {
    */
   async setFacility ({ commit, dispatch }, facilityId) {
     const token = store.getters['user/getUserToken'];
+    const previousEComStore = await useUserStore().getCurrentEComStore as any
     const eComStore = await UserService.getEComStores(token, facilityId);
-    await useUserStore().setEComStorePreference(eComStore);
-    commit(types.USER_CURRENT_ECOM_STORE_UPDATED, eComStore);
     await dispatch('getFacilityLocations', facilityId)
-    eComStore?.productStoreId ? this.dispatch('util/getForceScanSetting', eComStore.productStoreId) : this.dispatch('util/updateForceScanStatus', false)
-    eComStore?.productStoreId ? this.dispatch('util/getBarcodeIdentificationPref', eComStore.productStoreId) : this.dispatch('util/updateBarcodeIdentificationPref', "internalName")
+
+    if(previousEComStore.productStoreId !== eComStore.productStoreId) {
+      await useUserStore().setEComStorePreference(eComStore);
+      commit(types.USER_CURRENT_ECOM_STORE_UPDATED, eComStore);
+      eComStore?.productStoreId ? this.dispatch('util/getForceScanSetting', eComStore.productStoreId) : this.dispatch('util/updateForceScanStatus', false)
+      eComStore?.productStoreId ? this.dispatch('util/getBarcodeIdentificationPref', eComStore.productStoreId) : this.dispatch('util/updateBarcodeIdentificationPref', "internalName")
+    }
   },
   
   /**
