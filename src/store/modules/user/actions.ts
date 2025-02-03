@@ -73,7 +73,7 @@ const actions: ActionTree<UserState, RootState> = {
 
       const currentFacilityId: any = getCurrentFacilityId();
       const currentEComStore = await UserService.getEComStores(token, currentFacilityId);
-      await useUserStore().setEComStorePreference(currentEComStore);
+      useUserStore().currentEComStore = currentEComStore
       const productStoreId = currentEComStore?.productStoreId;
 
       await useProductIdentificationStore().getIdentificationPref(productStoreId)
