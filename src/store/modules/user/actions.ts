@@ -177,12 +177,16 @@ const actions: ActionTree<UserState, RootState> = {
     const previousEComStore = await useUserStore().getCurrentEComStore as any
     const eComStore = await UserService.getEComStores(token, facilityId);
     await dispatch('getFacilityLocations', facilityId)
-
-    if(previousEComStore.productStoreId !== eComStore.productStoreId) {
-      await useUserStore().setEComStorePreference(eComStore);
-      commit(types.USER_CURRENT_ECOM_STORE_UPDATED, eComStore);
-      eComStore?.productStoreId ? this.dispatch('util/getForceScanSetting', eComStore.productStoreId) : this.dispatch('util/updateForceScanStatus', false)
-      eComStore?.productStoreId ? this.dispatch('util/getBarcodeIdentificationPref', eComStore.productStoreId) : this.dispatch('util/updateBarcodeIdentificationPref', "internalName")
+    // Initialize or update eComStore based on productStoreId changes
+    if(!Object.keys(eComStore).length) {
+      useUserStore().currentEComStore = {}
+    } else {
+      if(previousEComStore.productStoreId !== eComStore.productStoreId) {
+        await useUserStore().setEComStorePreference(eComStore);
+        commit(types.USER_CURRENT_ECOM_STORE_UPDATED, eComStore);
+        this.dispatch('util/getForceScanSetting', eComStore.productStoreId)
+        this.dispatch('util/getBarcodeIdentificationPref', eComStore.productStoreId)
+      }
     }
   },
   

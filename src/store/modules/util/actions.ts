@@ -49,6 +49,11 @@ const actions: ActionTree<UtilState, RootState> = {
   },
 
   async getForceScanSetting({ commit, dispatch }, eComStoreId) {
+    if(!eComStoreId) {
+      commit(types.UTIL_FORCE_SCAN_STATUS_UPDATED, "false")
+      return;
+    }
+
     const payload = {
       "inputFields": {
         "productStoreId": eComStoreId,
@@ -170,6 +175,11 @@ const actions: ActionTree<UtilState, RootState> = {
   },
 
   async getBarcodeIdentificationPref({ commit, dispatch }, eComStoreId) {
+    if(!eComStoreId) {
+      commit(types.UTIL_BARCODE_IDENTIFICATION_PREF_UPDATED, "internalName")
+      return;
+    }
+
     const payload = {
       "inputFields": {
         "productStoreId": eComStoreId,
