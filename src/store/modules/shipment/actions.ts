@@ -70,14 +70,18 @@ const actions: ActionTree<ShipmentState, RootState> = {
       if (resp.status === 200 && resp.data.items&& !hasError(resp)) {
         const shipmentDetail = resp.data;
         const shipmentAttributes = await ShipmentService.fetchShipmentAttributes([shipmentDetail.shipmentId])
+        const orderShipmentData = await ShipmentService.fetchOrderShipments(shipmentDetail.shipmentId)
         shipmentDetail.externalOrderId = shipmentAttributes?.[shipmentDetail.shipmentId]?.['EXTERNAL_ORDER_ID']
         shipmentDetail.externalOrderName = shipmentAttributes?.[shipmentDetail.shipmentId]?.['EXTERNAL_ORDER_NAME']
         const facilityLocations = await this.dispatch('user/getFacilityLocations', getCurrentFacilityId());
         if(facilityLocations.length){
           const locationSeqId = facilityLocations[0].locationSeqId
           resp.data.items.map((item: any) => {
+            const orderShipment = orderShipmentData[shipmentDetail.shipmentId + "-" + item.itemSeqId];
             item.locationSeqId = locationSeqId;
-            item.quantityReceived = item.quantityAccepted ? Number(item.quantityAccepted) : 0
+            item.quantityReceived = item.quantityAccepted ? Number(item.quantityAccepted) : 0,
+            item.orderId = orderShipment?.orderId,
+            item.orderItemSeqId = orderShipment?.orderItemSeqId
           });
         } else {
           showToast(translate("Facility locations were not found corresponding to destination facility of return shipment. Please add facility locations to avoid receive return shipment failure."))
