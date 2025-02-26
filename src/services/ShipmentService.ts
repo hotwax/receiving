@@ -113,8 +113,42 @@ const fetchShipmentAttributes = async (shipmentIds: Array<string>): Promise<any>
   return shipmentAttributes;
 }
 
+const fetchOrderShipments = async (shipmentId: string): Promise<any> => {
+  let orderShipmentData = {} as any;
+  const params = {
+    "entityName": "OrderShipment",
+    "inputFields": {
+      "shipmentId": shipmentId
+    },
+    "viewSize": 250,  // maximum records we could have
+  }
+
+  try {
+    const resp = await api({
+      url: "performFind",
+      method: "get",
+      params
+    }) as any;
+
+    if (!hasError(resp)) {
+      orderShipmentData = resp?.data?.docs.reduce((shipmentData: any, shipment: any) => {
+        const key = `${shipment.shipmentId}-${shipment.shipmentItemSeqId}`;
+        shipmentData[key] = shipment;
+        return shipmentData;
+      }, {});
+    } else {
+      throw resp.data
+    }
+  } catch (err) {
+    console.error('Failed to fetch order shipments', err)
+  }
+
+  return orderShipmentData;
+}
+
 
 export const ShipmentService = {
+  fetchOrderShipments,
   fetchShipments,
   fetchShipmentAttributes,
   fetchTrackingCodes,
