@@ -119,9 +119,7 @@ export default defineComponent({
       }
       await this.store.dispatch("product/findProduct", payload);
     },
-    async handleSearch(){
-      console.log(this.queryString);
-      
+    async handleSearch(){    
       if(!this.queryString){
         showToast(translate("Enter product sku to search"))
         this.isSearching = false
