@@ -166,15 +166,14 @@ const actions: ActionTree<UserState, RootState> = {
     // Initialize or update eComStore based on productStoreId changes
     if(!Object.keys(eComStore).length) {
       useUserStore().currentEComStore = {}
+      commit(types.USER_CURRENT_ECOM_STORE_UPDATED, '');
       this.dispatch('util/getForceScanSetting', '')
       this.dispatch('util/getBarcodeIdentificationPref', '')
-    } else {
-      if(previousEComStore.productStoreId !== eComStore.productStoreId) {
-        await useUserStore().setEComStorePreference(eComStore);
-        commit(types.USER_CURRENT_ECOM_STORE_UPDATED, eComStore);
-        this.dispatch('util/getForceScanSetting', eComStore.productStoreId)
-        this.dispatch('util/getBarcodeIdentificationPref', eComStore.productStoreId)
-      }
+    } else if(previousEComStore.productStoreId !== eComStore.productStoreId) {
+      await useUserStore().setEComStorePreference(eComStore);
+      commit(types.USER_CURRENT_ECOM_STORE_UPDATED, eComStore);
+      this.dispatch('util/getForceScanSetting', eComStore.productStoreId)
+      this.dispatch('util/getBarcodeIdentificationPref', eComStore.productStoreId)
     }
   },
   
