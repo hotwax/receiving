@@ -156,20 +156,6 @@ const actions: ActionTree<UserState, RootState> = {
   },
 
   /**
-   *  update current eComStore information
-  */
-  async setEComStore({ commit, dispatch }, payload) {
-    commit(types.USER_CURRENT_ECOM_STORE_UPDATED, payload.eComStore);
-    await UserService.setUserPreference({
-      'userPrefTypeId': 'SELECTED_BRAND',
-      'userPrefValue': payload.eComStore.productStoreId
-    });
-    await useProductIdentificationStore().getIdentificationPref(payload.eComStore.productStoreId);
-    this.dispatch('util/getForceScanSetting', payload.ecomStore.productStoreId)
-    this.dispatch('util/getBarcodeIdentificationPref', payload.ecomStore.productStoreId)
-  },
-
-  /**
    * update current facility information
    */
   async setFacility ({ commit, dispatch }, facilityId) {
@@ -180,6 +166,8 @@ const actions: ActionTree<UserState, RootState> = {
     // Initialize or update eComStore based on productStoreId changes
     if(!Object.keys(eComStore).length) {
       useUserStore().currentEComStore = {}
+      this.dispatch('util/getForceScanSetting', '')
+      this.dispatch('util/getBarcodeIdentificationPref', '')
     } else {
       if(previousEComStore.productStoreId !== eComStore.productStoreId) {
         await useUserStore().setEComStorePreference(eComStore);
