@@ -10,7 +10,7 @@
     </ion-toolbar>
   </ion-header>
   <ion-content ref="contentRef" :scroll-events="true" @ionScroll="enableScrolling()">
-    <ion-searchbar @ionFocus="selectSearchBarText($event)" v-model="queryString" :placeholder="translate('Search SKU or product name')" v-on:keyup.enter="queryString = $event.target.value; getProducts()" />
+    <ion-searchbar @ionFocus="selectSearchBarText($event)" v-model="queryString" :placeholder="translate('Search SKU or product name')" @keyup.enter="handleSearch" @ionInput='handleInput'/>
     <template v-if="products.length">
       <ion-list v-for="product in products" :key="product.productId">
         <ion-item lines="none">
@@ -31,6 +31,9 @@
         <ion-infinite-scroll-content loading-spinner="crescent" :loading-text="translate('Loading')" />
       </ion-infinite-scroll>
     </template>
+    <div v-else-if="queryString && isSearching && !products.length" class="empty-state">
+      <p>{{ translate("No products found") }}</p>
+    </div>
     <div v-else class="empty-state">
       <img src="../assets/images/empty-state-add-product-modal.png" alt="empty-state" />
       <p>{{ translate("Enter a SKU, or product name to search a product") }}</p>
@@ -85,7 +88,8 @@ export default defineComponent({
   data() {
     return {
       queryString: this.selectedSKU ? this.selectedSKU : '',
-      isScrollingEnabled: false
+      isScrollingEnabled: false,
+      isSearching: false
     }
   },
   props: ["selectedSKU"],
@@ -111,13 +115,24 @@ export default defineComponent({
       const payload = {
         viewSize,
         viewIndex,
-        queryString: this.queryString
+        queryString: this.queryString.trim()
       }
-      if (this.queryString) {
-        await this.store.dispatch("product/findProduct", payload);
-      }
-      else {
+      await this.store.dispatch("product/findProduct", payload);
+    },
+    async handleSearch(){    
+      if (!this.queryString.trim()){
         showToast(translate("Enter product sku to search"))
+        this.isSearching = false
+        this.store.dispatch("product/clearSearchedProducts")
+        return
+      }
+      await this.getProducts()
+      this.isSearching = true
+    },
+    async handleInput(){
+      if (!this.queryString.trim()){
+        this.isSearching = false
+        this.store.dispatch("product/clearSearchedProducts")
       }
     },
     enableScrolling() {
