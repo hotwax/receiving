@@ -32,7 +32,7 @@
       </ion-infinite-scroll>
     </template>
     <div v-else-if="queryString && isSearching && !products.length" class="empty-state">
-      <p>{{ translate("No product found") }}</p>
+      <p>{{ translate("No products found") }}</p>
     </div>
     <div v-else class="empty-state">
       <img src="../assets/images/empty-state-add-product-modal.png" alt="empty-state" />
@@ -115,12 +115,12 @@ export default defineComponent({
       const payload = {
         viewSize,
         viewIndex,
-        queryString: this.queryString
+        queryString: this.queryString.trim()
       }
       await this.store.dispatch("product/findProduct", payload);
     },
     async handleSearch(){    
-      if(!this.queryString){
+      if (!this.queryString.trim()){
         showToast(translate("Enter product sku to search"))
         this.isSearching = false
         this.store.dispatch("product/clearSearchedProducts")
@@ -130,7 +130,7 @@ export default defineComponent({
       this.isSearching = true
     },
     async handleInput(){
-      if(!this.queryString){
+      if (!this.queryString.trim()){
         this.isSearching = false
         this.store.dispatch("product/clearSearchedProducts")
       }
