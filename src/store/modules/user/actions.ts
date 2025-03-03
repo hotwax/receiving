@@ -15,6 +15,7 @@ import {
 import { translate, useAuthStore, useProductIdentificationStore, useUserStore } from '@hotwax/dxp-components'
 import emitter from '@/event-bus'
 import store from '@/store'
+import router from '@/router'
 
 const actions: ActionTree<UserState, RootState> = {
 
@@ -71,6 +72,18 @@ const actions: ActionTree<UserState, RootState> = {
         return uniqueFacilities
       }, []);
 
+      const facilityId = router.currentRoute.value.query.facilityId
+      let isQueryFacilityFound = false
+      if (facilityId) {
+        const facility = userProfile.facilities.find((facility: any) => facility.facilityId === facilityId);
+        if (facility) {
+          isQueryFacilityFound = true
+          useUserStore().currentFacility = facility
+        } else {
+          showToast(translate("Redirecting to home page due to incorrect information being passed."))
+        }
+      }
+
       const currentFacilityId: any = getCurrentFacilityId();
       const currentEComStore = await UserService.getEComStores(token, currentFacilityId);
       useUserStore().currentEComStore = currentEComStore
@@ -95,6 +108,11 @@ const actions: ActionTree<UserState, RootState> = {
       // TODO: fetch product identifications from enumeration instead of storing it in env
       this.dispatch('util/getForceScanSetting', currentEComStore?.productStoreId);
       this.dispatch('util/getBarcodeIdentificationPref', currentEComStore?.productStoreId);
+
+      const shipmentId = router.currentRoute.value.query.shipmentId
+      if (isQueryFacilityFound && shipmentId) {
+        return `/shipment/${shipmentId}`;
+      }
     } catch (err: any) {
       // If any of the API call in try block has status code other than 2xx it will be handled in common catch block.
       // TODO Check if handling of specific status codes is required.
