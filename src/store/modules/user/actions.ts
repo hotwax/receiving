@@ -73,9 +73,15 @@ const actions: ActionTree<UserState, RootState> = {
       }, []);
 
       const facilityId = router.currentRoute.value.query.facilityId
+      let isQueryFacilityFound = false
       if (facilityId) {
         const facility = userProfile.facilities.find((facility: any) => facility.facilityId === facilityId);
-        useUserStore().currentFacility = facility
+        if (facility) {
+          isQueryFacilityFound = true
+          useUserStore().currentFacility = facility
+        } else {
+          showToast(translate("Redirecting to home page due to incorrect information being passed."))
+        }
       }
 
       const currentFacilityId: any = getCurrentFacilityId();
@@ -104,7 +110,7 @@ const actions: ActionTree<UserState, RootState> = {
       this.dispatch('util/getBarcodeIdentificationPref', currentEComStore?.productStoreId);
 
       const shipmentId = router.currentRoute.value.query.shipmentId
-      if (shipmentId) {
+      if (isQueryFacilityFound && shipmentId) {
         return `/shipment/${shipmentId}`;
       }
     } catch (err: any) {
