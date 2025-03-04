@@ -57,4 +57,17 @@ const getCurrentFacilityId = () => {
   return currentFacility?.facilityId
 }
 
-export { handleDateTimeInput, getCurrentFacilityId, showToast, hasError, copyToClipboard }
+const hasWebcamAccess = async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    if (stream.getVideoTracks().length > 0) {
+      return { success: true };
+    } else {
+      return { success: false, message: translate("Camera access not allowed") };
+    }
+  } catch (error: any) {
+    return { success: false, message: `${translate("Error accessing webcam")}: ${error.message }`};
+  }
+}
+
+export { handleDateTimeInput, getCurrentFacilityId, showToast, hasError, copyToClipboard, hasWebcamAccess }
