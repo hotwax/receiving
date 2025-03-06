@@ -190,7 +190,7 @@ import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
 import ClosePurchaseOrderModal from '@/components/ClosePurchaseOrderModal.vue'
 import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
-import { copyToClipboard, hasError, showToast } from '@/utils';
+import { copyToClipboard, hasError, showToast, hasWebcamAccess } from '@/utils';
 import { Actions, hasPermission } from '@/authorization'
 
 export default defineComponent({
@@ -251,6 +251,10 @@ export default defineComponent({
       return imageModal.present();
     },
     async scan() {
+      if (!(await hasWebcamAccess())) {
+        showToast(translate("Camera access not allowed, please check permissons."));
+        return;
+      } 
       const modal = await modalController
       .create({
         component: Scanner,

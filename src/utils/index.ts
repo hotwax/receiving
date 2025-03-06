@@ -57,4 +57,13 @@ const getCurrentFacilityId = () => {
   return currentFacility?.facilityId
 }
 
-export { handleDateTimeInput, getCurrentFacilityId, showToast, hasError, copyToClipboard }
+const hasWebcamAccess = async () => {
+  try {
+    await navigator.mediaDevices.getUserMedia({ video: true });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export { handleDateTimeInput, getCurrentFacilityId, showToast, hasError, copyToClipboard, hasWebcamAccess }
