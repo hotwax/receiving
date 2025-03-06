@@ -251,11 +251,10 @@ export default defineComponent({
       return imageModal.present();
     },
     async scan() {
-      const accessResult = await hasWebcamAccess();
-      if (!accessResult.success) {
-        showToast(accessResult.message);
+      if (!(await hasWebcamAccess())) {
+        showToast(translate("Camera access not allowed, please check permissons."));
         return;
-      }
+      } 
       const modal = await modalController
       .create({
         component: Scanner,

@@ -118,7 +118,7 @@ import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import ImageModal from '@/components/ImageModal.vue';
 import { hasError } from '@/utils';
-import { showToast } from '@/utils'
+import { showToast, hasWebcamAccess } from '@/utils'
 import { Actions, hasPermission } from '@/authorization'
 import { ProductService } from '@/services/ProductService';
 
@@ -301,6 +301,10 @@ export default defineComponent({
       this.queryString = ''
     },
     async scanCode () {
+      if (!(await hasWebcamAccess())) {
+        showToast(translate("Camera access not allowed, please check permissons."));
+        return;
+      } 
       const modal = await modalController
         .create({
           component: Scanner,
