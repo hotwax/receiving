@@ -167,8 +167,7 @@ const actions: ActionTree<UserState, RootState> = {
     if(!Object.keys(eComStore).length) {
       useUserStore().currentEComStore = {}
       commit(types.USER_CURRENT_ECOM_STORE_UPDATED, '');
-      this.dispatch('util/getForceScanSetting', '')
-      this.dispatch('util/getBarcodeIdentificationPref', '')
+      await dispatch('updateSettingsToDefault')
     } else if(previousEComStore.productStoreId !== eComStore.productStoreId) {
       await useUserStore().setEComStorePreference(eComStore);
       commit(types.USER_CURRENT_ECOM_STORE_UPDATED, eComStore);
@@ -177,6 +176,11 @@ const actions: ActionTree<UserState, RootState> = {
     }
   },
   
+  async updateSettingsToDefault() {
+    this.dispatch('util/updateForceScanStatus', false)
+    this.dispatch('util/updateBarcodeIdentificationPref', "internalName")
+  },
+
   /**
    * Update user timeZone
    */
