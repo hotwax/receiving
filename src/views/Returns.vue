@@ -108,6 +108,7 @@ export default defineComponent({
     this.store.dispatch('return/fetchValidReturnStatuses');
   },
   ionViewDidEnter(){
+    this.selectedSegment = "open"
     this.getReturns();
   },
   methods: {

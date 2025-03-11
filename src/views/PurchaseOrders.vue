@@ -150,6 +150,7 @@ export default defineComponent({
     }
   },
   ionViewWillEnter () {
+    this.selectedSegment = 'open'
     this.getPurchaseOrders();
   },
   setup () {

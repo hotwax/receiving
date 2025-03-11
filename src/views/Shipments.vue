@@ -105,6 +105,7 @@ export default defineComponent({
     }
   },
   ionViewWillEnter () {
+    this.selectedSegment = "open"
     this.getShipments();
   },
   methods: {
