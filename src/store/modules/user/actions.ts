@@ -180,7 +180,6 @@ const actions: ActionTree<UserState, RootState> = {
     this.dispatch('util/updateForceScanStatus', false)
     this.dispatch('util/updateBarcodeIdentificationPref', "internalName")
   },
-
   /**
    * Update user timeZone
    */
