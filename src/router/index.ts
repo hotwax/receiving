@@ -25,8 +25,8 @@ declare module 'vue-router' {
 }
 
 const setSegmentQuery = async (to: any, from: any, next: any) => {
-  const completedRoutes = ['/shipments', '/purchase-orders', '/returns'];
-  if (completedRoutes.some(route => from.path.startsWith(route))) {
+  const segmentResetRoutes = ['/shipments', '/purchase-orders', '/returns'];
+  if (segmentResetRoutes.some(route => from.path.startsWith(route))) {
     to.query.segment = 'open';
   }  
   next();
