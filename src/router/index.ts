@@ -25,8 +25,13 @@ declare module 'vue-router' {
 }
 
 const setSegmentQuery = async (to: any, from: any, next: any) => {
-  const segmentResetRoutes = ['/shipments', '/purchase-orders', '/returns'];
-  if (segmentResetRoutes.some(route => from.path.startsWith(route))) {
+  const segmentResetRoutes = ['/shipments', '/purchase-orders', '/returns', '/settings']
+
+  //Extract the first word from from.path to determine whether the navigation 
+  // is returning from a child route of the current menu or a different menu's child route.
+  const fromChildRoute = from.path.split('/')[1]?.split('-')[0] || ''
+
+  if (segmentResetRoutes.some(route => from.path.startsWith(route)) || !to.path.includes(`/${fromChildRoute}`)) {
     to.query.segment = 'open';
   }  
   next();
