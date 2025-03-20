@@ -24,6 +24,19 @@ declare module 'vue-router' {
   }
 }
 
+const setSegmentQuery = async (to: any, from: any, next: any) => {
+  const segmentResetRoutes = ['/shipments', '/purchase-orders', '/returns', '/settings']
+
+  //Extract the first word from from.path to determine whether the navigation 
+  // is returning from a child route of the current menu or a different menu's child route.
+  const fromChildRoute = from.path.split('/')[1]?.split('-')[0] || ''
+
+  if (segmentResetRoutes.some(route => from.path.startsWith(route)) || !to.path.includes(`/${fromChildRoute}`)) {
+    to.query.segment = 'open';
+  }  
+  next();
+}
+
 const authGuard = async (to: any, from: any, next: any) => {
   const authStore = useAuthStore()
   if (!authStore.isAuthenticated || !store.getters['user/isAuthenticated']) {
@@ -53,7 +66,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/shipments',
     name: 'Shipments',
     component: Shipments,
-    beforeEnter: authGuard,
+    beforeEnter: [authGuard, setSegmentQuery],
     meta: {
       permissionId: "APP_SHIPMENTS_VIEW"
     }
@@ -83,7 +96,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/purchase-orders',
     name: 'PurchaseOrders',
     component: PurchaseOrders,
-    beforeEnter: authGuard,
+    beforeEnter: [authGuard, setSegmentQuery],
     meta: {
       permissionId: "APP_PURCHASEORDERS_VIEW"
     }
@@ -106,7 +119,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/returns',
     name: 'Returns',
     component: Returns,
-    beforeEnter: authGuard,
+    beforeEnter: [authGuard, setSegmentQuery],
     meta: {
       permissionId: "APP_RETURNS_VIEW"
     }

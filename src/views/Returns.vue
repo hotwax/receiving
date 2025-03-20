@@ -108,6 +108,9 @@ export default defineComponent({
     this.store.dispatch('return/fetchValidReturnStatuses');
   },
   ionViewDidEnter(){
+    if (this.$route.query.segment){
+      this.selectedSegment = this.$route.query.segment.toString();
+    }    
     this.getReturns();
   },
   methods: {
