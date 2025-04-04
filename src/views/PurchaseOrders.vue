@@ -150,6 +150,9 @@ export default defineComponent({
     }
   },
   ionViewWillEnter () {
+    if (this.$route.query.segment){
+      this.selectedSegment = this.$route.query.segment.toString();
+    }    
     this.getPurchaseOrders();
   },
   setup () {
