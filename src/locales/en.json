@@ -5,7 +5,7 @@
   "Add to Shipment": "Add to Shipment",
   "App": "App",
   "Authenticating": "Authenticating",
-  "The selected items won't be available for receiving later.": "The selected items won't be available for receiving later.",
+  "Are you sure you have received the purchase order for the selected items? Once closed, the shipments for the selected items wont be available for receiving later.": "Are you sure you have received the purchase order for the selected items? { space } Once closed, the shipments for the selected items won't be available for receiving later.",
   "Arrival date": "Arrival date",
   "Barcode Identifier": "Barcode Identifier",
   "Barcode identification preference updated successfully.": "Barcode identification preference updated successfully.",
