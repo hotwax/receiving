@@ -105,7 +105,7 @@ export default defineComponent({
     async confirmSave() {
       const alert = await alertController.create({
         header: translate('Close purchase order items'),
-        message: translate("The selected items won't be available for receiving later."),
+        message: translate('Are you sure you have received the purchase order for the selected items? Once closed, the shipments for the selected items wont be available for receiving later.', { space: '<br /><br />' }),
         buttons: [{
           text: translate('Cancel'),
           role: 'cancel'
