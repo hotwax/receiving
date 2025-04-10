@@ -67,7 +67,7 @@ import { mapGetters, useStore } from 'vuex'
 import { OrderService } from "@/services/OrderService";
 import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore } from '@hotwax/dxp-components';
 import { useRouter } from 'vue-router';
-import { hasError } from '@/utils';
+import { hasError, copyToClipboard } from '@/utils';
 
 export default defineComponent({
   name: "ClosePurchaseOrderModal",
@@ -116,7 +116,30 @@ export default defineComponent({
           handler: async() => {
             await this.updatePOItemStatus()
             modalController.dismiss()
-            this.router.push('/purchase-orders')
+          }
+        }]
+      });
+      return alert.present();
+    },
+    async serverErrorAlert(error: any) {
+      const message = error.response?.data?.error?.message || 'Failed to update the status of purchase order items.';
+
+      const alert = await alertController.create({
+        header: translate('Error while receiving'),
+        message,
+        buttons: [{
+          text: translate('Copy & Dismiss'),
+          role: 'copyAndDismiss',
+          handler: async() => {
+            copyToClipboard(message)
+            return;
+          }
+        },
+        {
+          text: translate('Dismiss'),
+          role: 'dismiss',
+          handler: async() => {
+          return;
           }
         }]
       });
@@ -178,6 +201,7 @@ export default defineComponent({
         }
       } catch(error: any) {
         hasFailedItems = true;
+        await this.serverErrorAlert(error);
       }
 
       if(hasFailedItems){
@@ -211,6 +235,7 @@ export default defineComponent({
         }
         this.store.dispatch("order/updatePurchaseOrders", { purchaseOrders })
       }
+      this.router.push('/purchase-orders');
     },
     isEligibleToClosePOItems() {
       return this.order.items.some((item: any) => item.isChecked && this.isPOItemStatusPending(item))
