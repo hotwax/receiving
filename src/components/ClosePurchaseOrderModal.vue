@@ -121,23 +121,25 @@ export default defineComponent({
       });
       return alert.present();
     },
-    async serverErrorAlert(message: string) {
+    async serverErrorAlert(error: any) {
+      const message = error.response?.data?.error?.message || 'Failed to update the status of purchase order items.';
+
       const alert = await alertController.create({
-        header: 'Error while receiving',
+        header: translate('Error while receiving'),
         message,
         buttons: [{
           text: translate('Copy & Dismiss'),
           role: 'copyAndDismiss',
           handler: async() => {
-            modalController.dismiss()
             copyToClipboard(message)
+            return;
           }
         },
         {
           text: translate('Dismiss'),
           role: 'dismiss',
           handler: async() => {
-            modalController.dismiss()
+          return;
           }
         }]
       });
@@ -199,7 +201,7 @@ export default defineComponent({
         }
       } catch(error: any) {
         hasFailedItems = true;
-        await this.serverErrorAlert(error.message || 'Failed to update the status of purchase order items.');
+        await this.serverErrorAlert(error);
       }
 
       if(hasFailedItems){
