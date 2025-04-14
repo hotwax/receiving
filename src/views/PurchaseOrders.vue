@@ -147,9 +147,13 @@ export default defineComponent({
     },
     segmentChanged() {
       this.getPurchaseOrders();
+    },
+    ionViewDidLeave() {
+      this.selectedSegment = this.selectedSegment === "completed" ? "completed" : "open";
     }
   },
   ionViewWillEnter () {
+    this.selectedSegment = "open"
     this.getPurchaseOrders();
   },
   setup () {
