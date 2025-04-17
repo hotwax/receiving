@@ -71,6 +71,7 @@ import { defineComponent, computed } from 'vue'
 import { mapGetters, useStore } from 'vuex'
 import ShipmentListItem from '@/components/ShipmentListItem.vue'
 import { translate, useUserStore } from "@hotwax/dxp-components"
+import { useRouter } from 'vue-router';
 
 export default defineComponent({
   name: "Shipments",
@@ -105,6 +106,9 @@ export default defineComponent({
     }
   },
   ionViewWillEnter () {
+    // Using forward instead of back property because when navigating back from a details page, the details page route is stored in forward property in router.
+    const forwardRoute = this.router.options.history.state.forward as any;
+    if(!forwardRoute?.startsWith('/shipment/')) this.selectedSegment = "open";
     this.getShipments();
   },
   methods: {
@@ -169,6 +173,7 @@ export default defineComponent({
     }
   },
   setup() {
+    const router = useRouter()
     const store = useStore();
     const userStore = useUserStore()
     let currentFacility: any = computed(() => userStore.getCurrentFacility) 
@@ -177,6 +182,7 @@ export default defineComponent({
       cloudDownloadOutline,
       currentFacility,
       reload,
+      router,
       store,
       translate
     }
