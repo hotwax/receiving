@@ -70,6 +70,7 @@ import { defineComponent, computed } from 'vue';
 import { mapGetters, useStore } from 'vuex';
 import PurchaseOrderItem from '@/components/PurchaseOrderItem.vue'
 import { translate, useUserStore } from "@hotwax/dxp-components"
+import { useRouter } from 'vue-router';
 
 export default defineComponent({
   name: 'PurchaseOrders',
@@ -150,9 +151,12 @@ export default defineComponent({
     }
   },
   ionViewWillEnter () {
+    const forwardRoute = this.router.options.history.state.forward as any;
+    if(!forwardRoute?.startsWith('/purchase-order-detail/')) this.selectedSegment = "open";
     this.getPurchaseOrders();
   },
   setup () {
+    const router = useRouter();
     const store = useStore();
     const userStore = useUserStore()
     let currentFacility: any = computed(() => userStore.getCurrentFacility) 
@@ -161,6 +165,7 @@ export default defineComponent({
       cloudDownloadOutline,
       currentFacility,
       reload,
+      router,
       store,
       translate
     }

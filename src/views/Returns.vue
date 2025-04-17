@@ -71,6 +71,7 @@ import { defineComponent, computed } from 'vue'
 import { mapGetters, useStore } from 'vuex'
 import ReturnListItem from '@/components/ReturnListItem.vue'
 import { translate, useUserStore } from "@hotwax/dxp-components"
+import { useRouter } from 'vue-router';
 
 export default defineComponent({
   name: "Returns",
@@ -108,6 +109,8 @@ export default defineComponent({
     this.store.dispatch('return/fetchValidReturnStatuses');
   },
   ionViewDidEnter(){
+    const forwardRoute = this.router.options.history.state.forward as any;
+    if(!forwardRoute?.startsWith('/return/')) this.selectedSegment = "open";
     this.getReturns();
   },
   methods: {
@@ -170,6 +173,7 @@ export default defineComponent({
     }
   },
   setup() {
+    const router = useRouter()
     const store = useStore();
     const userStore = useUserStore()
     let currentFacility: any = computed(() => userStore.getCurrentFacility) 
@@ -178,6 +182,7 @@ export default defineComponent({
       cloudDownloadOutline,
       currentFacility,
       reload,
+      router,
       store,
       translate
     }
