@@ -129,7 +129,6 @@ export default defineComponent({
         message,
         buttons: [{
           text: translate('Copy & Dismiss'),
-          role: 'copyAndDismiss',
           handler: async() => {
             copyToClipboard(message)
             return;
@@ -137,10 +136,7 @@ export default defineComponent({
         },
         {
           text: translate('Dismiss'),
-          role: 'dismiss',
-          handler: async() => {
-          return;
-          }
+          role: 'cancel',
         }]
       });
       return alert.present();
