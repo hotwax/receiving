@@ -108,7 +108,6 @@ export default defineComponent({
     this.store.dispatch('return/fetchValidReturnStatuses');
   },
   ionViewDidEnter(){
-    this.selectedSegment = "open"
     this.getReturns();
   },
   methods: {
@@ -168,9 +167,6 @@ export default defineComponent({
     },
     segmentChanged() {
       this.getReturns();
-    },
-    ionViewDidLeave() {
-      this.selectedSegment = this.selectedSegment === "completed" ? "completed" : "open";
     }
   },
   setup() {

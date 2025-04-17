@@ -105,7 +105,6 @@ export default defineComponent({
     }
   },
   ionViewWillEnter () {
-    this.selectedSegment = "open"
     this.getShipments();
   },
   methods: {
@@ -167,9 +166,6 @@ export default defineComponent({
     },
     segmentChanged() {
       this.getShipments()
-    },
-    ionViewDidLeave() {
-      this.selectedSegment = this.selectedSegment === "completed" ? "completed" : "open";
     }
   },
   setup() {
