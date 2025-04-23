@@ -283,7 +283,8 @@ export default defineComponent({
         this.lastScannedId = payload
         // Highlight specific element
         const scannedElement = document.getElementById(payload);
-        scannedElement && (scannedElement.scrollIntoView());
+        scannedElement && scannedElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        window.scrollBy(0, -40);
 
         // Scanned product should get un-highlighted after 3s for better experience hence adding setTimeOut
         setTimeout(() => {
