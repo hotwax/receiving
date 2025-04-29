@@ -20,7 +20,7 @@
     </ion-header>
     <ion-content>
       <main>
-        <TransferOrderItem v-for="(order, index) in orders" :key="index" :transferOrder="order.doclist.docs[0]" />
+        <TransferOrderItem v-for="(order, index) in orders.list" :key="index" :transferOrder="order" />
         
         <div v-if="orders.length" class="load-more-action ion-text-center">
           <ion-button fill="outline" color="dark" @click="loadMoreOrders()">
@@ -30,7 +30,7 @@
         </div>
 
         <!-- Empty state -->
-        <div class="empty-state" v-if="!orders.length && !fetchingOrders">
+        <div class="empty-state" v-if="!orders.total && !fetchingOrders">
           <p v-if="showErrorMessage">{{ translate("No results found")}}</p>
           <img src="../assets/images/empty-state.png" alt="empty state">
           <p>{{ translate("There are no transfer orders to receive")}}</p>
@@ -100,7 +100,7 @@ export default defineComponent({
   },
   computed: {
     ...mapGetters({
-      orders: 'order/getPurchaseOrders',
+      orders: 'transferorder/getTransferOrders',
       isScrollable: 'order/isScrollable',
     })
   },
@@ -149,8 +149,8 @@ export default defineComponent({
       this.getTransferOrders();
     }
   },
-  ionViewWillEnter () {
-    this.getTransferOrders();
+  async ionViewWillEnter () {
+    await this.store.dispatch('transferorder/fetchTransferOrders')
   },
   setup () {
     const store = useStore();
