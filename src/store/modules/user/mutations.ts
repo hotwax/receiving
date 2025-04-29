@@ -10,7 +10,11 @@ const mutations: MutationTree <UserState> = {
       state.token = ''
       state.current = {}
       state.facilityLocationsByFacilityId = {},
-      state.permissions = []
+      state.permissions = [],
+      state.omsRedirectionInfo = {
+        url: "",
+        token: ""
+      }
     },
     [types.USER_INFO_UPDATED] (state, payload) {
         state.current = payload
@@ -30,6 +34,9 @@ const mutations: MutationTree <UserState> = {
     [types.USER_PWA_STATE_UPDATED](state, payload) {
         state.pwaState.registration = payload.registration;
         state.pwaState.updateExists = payload.updateExists;
-    }
+    },
+    [types.USER_OMS_REDIRECTION_INFO_UPDATED](state, payload) {
+         state.omsRedirectionInfo = payload;
+     }
 }
 export default mutations;
