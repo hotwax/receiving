@@ -9,6 +9,8 @@ import store from '@/store'
 import Shopify from '@/views/Shopify.vue'
 import Returns from '@/views/Returns.vue'
 import ReturnDetails from '@/views/ReturnDetails.vue'
+import TransferOrders from '@/views/TransferOrders.vue';
+import TransferOrderDetail from '@/views/TransferOrderDetail.vue';
 
 import { hasPermission } from '@/authorization';
 import { showToast } from '@/utils'
@@ -119,7 +121,25 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       permissionId: "APP_RETURN_DETAIL_VIEW"
     }
-  }
+  },
+  {
+    path: '/transfer-orders',
+    name: 'TransferOrders',
+    component: TransferOrders,
+    beforeEnter: authGuard,
+    meta: {
+      permissionId: "APP_TRANSFERORDERS_VIEW"
+    }
+  },
+  {
+    path: "/transfer-order-detail/:slug",
+    name: "TransferOrderDetail",
+    component: TransferOrderDetail,
+    beforeEnter: authGuard,
+    meta: {
+      permissionId: "APP_TRANSFERORDER_DETAIL_VIEW"
+    }
+  },
 ]
 
 const router = createRouter({

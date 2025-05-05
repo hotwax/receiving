@@ -34,7 +34,7 @@ import {
 } from "@ionic/vue";
 import { computed, defineComponent } from "vue";
 import { mapGetters } from "vuex";
-import { calendar, download, gitPullRequestOutline, settings } from "ionicons/icons";
+import { calendar, download, gitPullRequestOutline, settings, arrowBackOutline } from "ionicons/icons";
 import { useStore } from "@/store";
 import { useUserStore } from "@hotwax/dxp-components"
 import { useRouter } from "vue-router";
@@ -85,6 +85,13 @@ export default defineComponent({
         childRoutes: ["/purchase-order-detail/"],
         iosIcon: calendar,
         mdIcon: calendar
+      },
+      {
+        title: "Transfer Orders",
+        url: "/transfer-orders",
+        childRoutes: ["/transfer-order-detail/"],
+        iosIcon: arrowBackOutline,
+        mdIcon: arrowBackOutline
       },
       {
         title: "Settings",
