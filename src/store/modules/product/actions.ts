@@ -54,9 +54,11 @@ const actions: ActionTree<ProductState, RootState> = {
         if (payload.viewIndex && payload.viewIndex > 0) products = state.list.items.concat(products)
         commit(types.PRODUCT_LIST_UPDATED, { products, total });
         commit(types.PRODUCT_ADD_TO_CACHED_MULTIPLE, { products });
+      } else {
+        throw resp.data.docs;
       }
     } catch (error) {
-      showToast(translate("Something went wrong"));
+      commit(types.PRODUCT_LIST_UPDATED, { products: [], total: 0 });
     }
     if (payload.viewIndex === 0) emitter.emit("dismissLoader");
     
@@ -74,7 +76,7 @@ const actions: ActionTree<ProductState, RootState> = {
     }
   },
   async clearSearchedProducts({ commit }) {
-    commit(types.PRODUCT_LIST_UPDATED, { products: {}, total: 0 })
+    commit(types.PRODUCT_LIST_UPDATED, { products: [], total: 0 })
   }
 }
 
