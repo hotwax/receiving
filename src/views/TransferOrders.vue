@@ -70,6 +70,7 @@ import { defineComponent, computed } from 'vue';
 import { mapGetters, useStore } from 'vuex';
 import TransferOrderItem from '@/components/TransferOrderItem.vue'
 import { translate, useUserStore } from "@hotwax/dxp-components"
+import emitter from '@/event-bus';
 
 export default defineComponent({
   name: 'TransferOrders',
@@ -108,37 +109,34 @@ export default defineComponent({
     async getTransferOrders(vSize?: any, vIndex?: any){
       this.queryString ? this.showErrorMessage = true : this.showErrorMessage = false;
       this.fetchingOrders = true;
-      const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
-      const viewIndex = vIndex ? vIndex : 0;
+      const limit = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
+      const pageIndex = vIndex ? vIndex : 0;
+
+      let orderStatusId;
+      if (this.selectedSegment === 'open') {
+        orderStatusId = 'ORDER_APPROVED';
+      } else {
+        orderStatusId = 'ORDER_COMPLETED';
+      }
+
       const payload = {
-        "json": {
-          "params": {
-            "rows": viewSize,
-            "start": viewSize * viewIndex,
-            "group": true,
-            "group.field": "orderId",
-            "group.limit": 10000,
-            "group.ngroups": true,
-          } as any,
-          "query": "*:*",
-          "filter": `docType: ORDER AND orderTypeId: PURCHASE_ORDER AND orderStatusId: ${this.selectedSegment === 'open' ? '(ORDER_APPROVED OR ORDER_CREATED)' : 'ORDER_COMPLETED'} AND facilityId: ${this.currentFacility?.facilityId}`
-        }
-      }
-      if(this.queryString) {
-        payload.json.query = this.queryString;
-        payload.json.params.defType = "edismax";
-        payload.json.params.qf = "orderId externalOrderId";
-        payload.json.params['q.op'] = "AND";
-      }
-      await this.store.dispatch('order/findPurchaseOrders', payload);
+        orderStatusId,
+        destinationFacilityId: this.currentFacility?.facilityId,
+        limit,
+        pageIndex,
+        queryString: this.queryString
+      };
+
+      emitter.emit('presentLoader');
+      await this.store.dispatch('transferorder/fetchTransferOrders', payload);
+      emitter.emit('dismissLoader');
       this.fetchingOrders = false;
       return Promise.resolve();
     },
     async loadMoreOrders() {
-      this.getTransferOrders(
-        undefined,
-        Math.ceil(this.orders.length / process.env.VUE_APP_VIEW_SIZE)
-      );
+      const limit = process.env.VUE_APP_VIEW_SIZE;
+      const pageIndex = Math.ceil(this.orders.list.length / limit);
+      await this.getTransferOrders(limit, pageIndex);
     },
     async refreshTransferOrders(event?: any) {
       this.getTransferOrders().then(() => {
@@ -150,7 +148,7 @@ export default defineComponent({
     }
   },
   async ionViewWillEnter () {
-    await this.store.dispatch('transferorder/fetchTransferOrders')
+    await this.getTransferOrders();
   },
   setup () {
     const store = useStore();

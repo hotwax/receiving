@@ -1,7 +1,7 @@
 <template>
   <ion-item button @click="getOrderDetail(transferOrder.orderId)">
     <ion-label>
-      <h3>{{ transferOrder.externalId }}</h3>
+      <h3>{{ transferOrder.orderExternalId }}</h3>
       <p>{{ transferOrder.orderName ? transferOrder.orderName : transferOrder.orderId }}</p>
     </ion-label>
     <ion-label class="ion-text-end" slot="end">
