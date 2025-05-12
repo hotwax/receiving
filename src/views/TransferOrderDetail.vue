@@ -4,14 +4,14 @@
       <ion-toolbar>
         <ion-back-button default-href="/transfer-orders" slot="start" />
         <ion-title> {{ translate("Transfer Order Details") }} </ion-title>
-        <ion-buttons slot="end">
+        <!-- <ion-buttons slot="end">
           <ion-button @click="receivingHistory()">
             <ion-icon slot="icon-only" :icon="timeOutline"/>
           </ion-button>
           <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_ADMIN) || isPOReceived()" @click="addProduct">
             <ion-icon slot="icon-only" :icon="addOutline"/>
           </ion-button>
-        </ion-buttons>
+        </ion-buttons> -->
       </ion-toolbar>
     </ion-header>
 
@@ -19,41 +19,42 @@
       <main>
         <div class="doc-id">
           <ion-label class="ion-padding">
-            <h1>{{ translate("Transfer Order")}}: {{ order.externalOrderId }}</h1>
-            <p>{{ translate("Item count") }}: {{ order.items.length }}</p>
+            <h1>{{ translate("Transfer Order")}}: {{ order.externalId }}</h1>
+            <p>{{ translate("Item count") }}: {{ order.items?.length || 0 }}</p>
           </ion-label>
 
           <div class="doc-meta">
             <ion-chip @click="copyToClipboard(order.orderId, 'Internal ID saved to clipboard')">{{ order.orderId }}<ion-icon :icon="copyOutline"/></ion-chip>
-            <ion-badge :color="order.orderStatusId === 'ORDER_CREATED' ? 'medium' : 'primary'">{{ order.orderStatusDesc }}</ion-badge>
+            <ion-badge :color="order.statusId === 'ORDER_APPROVED' ? 'primary' : ''">{{ order.status }}</ion-badge>
           </div>
         </div>
 
         <div class="scanner">
           <ion-item>
-            <ion-input :label="translate(isPOReceived() ? 'Search items' : 'Scan items')" label-placement="fixed" autofocus v-model="queryString" @keyup.enter="isPOReceived() ? searchProduct() : updateProductCount()" />
+            <ion-input :label="translate('Scan items')" label-placement="fixed" autofocus v-model="queryString" @keyup.enter="updateProductCount(null)" />
           </ion-item>
-          <ion-button expand="block" fill="outline" @click="scan" :disabled="isPOReceived()">
+          <ion-button expand="block" fill="outline" @click="scan">
             <ion-icon slot="start" :icon="cameraOutline" />
             {{ translate("Scan") }}
           </ion-button>
         </div>
 
-        <ion-item lines="none" v-if="!isPOReceived()">
-          <ion-label v-if="getPOItems('pending').length > 1" color="medium" class="ion-margin-end">
-            {{ translate("Pending: items", { itemsCount: getPOItems('pending').length }) }}
-          </ion-label>
-          <ion-label v-else color="medium" class="ion-margin-end">
-            {{ translate("Pending: item", { itemsCount: getPOItems('pending').length }) }}
-          </ion-label>
-        </ion-item>
+        <!-- <ion-item lines="none" v-if="!isPOReceived()"> -->
+          <!-- <ion-label v-if="getPOItems('pending').length > 1" color="medium" class="ion-margin-end"> -->
+            <!-- {{ translate("Pending: items", { itemsCount: getPOItems('pending').length }) }} -->
+          <!-- </ion-label> -->
+          <!-- <ion-label v-else color="medium" class="ion-margin-end"> -->
+            <!-- {{ translate("Pending: item", { itemsCount: getPOItems('pending').length }) }} -->
+          <!-- </ion-label> -->
+        <!-- </ion-item> -->
 
-        <template v-if="!isPOReceived()">
-          <ion-card v-for="(item, index) in getPOItems('pending')" v-show="item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED'" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+        <div>
+
+          <ion-card v-for="(item, index) in order.items" v-show="item.statusId !== 'ITEM_COMPLETED' && item.statusId !== 'ITEM_REJECTED'" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
             <div  class="product">
               <div class="product-info">
                 <ion-item lines="none">
-                  <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
+                  <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).itemDescription)">
                     <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
                   </ion-thumbnail>
                   <ion-label class="ion-text-wrap">
@@ -63,20 +64,18 @@
                 </ion-item>
               </div>
 
-              <div class="location">
-                <LocationPopover :item="item" type="order" :facilityId="currentFacility?.facilityId" />
-              </div>
-
               <div class="product-count">
                 <ion-item>
-                  <ion-input :label="translate('Qty')" label-placement="floating" type="number" value="0" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" />
+                  <!-- <ion-input :label="translate('Qty')" label-placement="floating" type="number" value="0" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" /> -->
+                  <ion-input :label="translate('Qty')" label-placement="floating" type="number" value="0" min="0" v-model="item.quantityAccepted" />                     
                 </ion-item>
               </div>
             </div>
 
             <div class="action border-top" v-if="item.quantity > 0">
               <div class="receive-all-qty">
-                <ion-button @click="receiveAll(item)" :disabled="isForceScanEnabled || isItemReceivedInFull(item)" slot="start" size="small" fill="outline">
+                <!-- <ion-button @click="receiveAll(item)" :disabled="isForceScanEnabled || isItemReceivedInFull(item)" slot="start" size="small" fill="outline"> -->
+  <ion-button @click="receiveAll(item)" slot="start" size="small" fill="outline">
                   {{ translate("Receive All") }}
                 </ion-button>
               </div>
@@ -89,7 +88,7 @@
               <div class="po-item-history">
                 <ion-chip outline @click="receivingHistory(item.productId)">
                   <ion-icon :icon="checkmarkDone"/>
-                  <ion-label> {{ getPOItemAccepted(item.productId) }} {{ translate("received") }} </ion-label>
+                  <ion-label> {{ item.totalIssuedQuantity }} {{ translate("received") }} </ion-label>
                 </ion-chip>
               </div>
 
@@ -98,21 +97,21 @@
               </div>
             </div>
           </ion-card>
-        </template>
+        </div>
 
-        <ion-item lines="none" v-if="!isPOReceived()">
-          <ion-text v-if="getPOItems('completed').length > 1" color="medium" class="ion-margin-end">
-            {{ translate("Completed: items", { itemsCount: getPOItems('completed').length }) }}
-          </ion-text>
-          <ion-text v-else color="medium" class="ion-margin-end">
-            {{ translate("Completed: item", { itemsCount: getPOItems('completed').length }) }}
-          </ion-text>
-          <ion-button v-if="getPOItems('completed').length" @click="showCompletedItems = !showCompletedItems" color="medium" fill="clear">
-            <ion-icon :icon="showCompletedItems ? eyeOutline : eyeOffOutline" slot="icon-only" />
-          </ion-button>
-        </ion-item>
+        <!-- <ion-item lines="none" v-if="!isPOReceived()"> -->
+          <!-- <ion-text v-if="getPOItems('completed').length > 1" color="medium" class="ion-margin-end"> -->
+            <!-- {{ translate("Completed: items", { itemsCount: getPOItems('completed').length }) }} -->
+          <!-- </ion-text> -->
+          <!-- <ion-text v-else color="medium" class="ion-margin-end"> -->
+            <!-- {{ translate("Completed: item", { itemsCount: getPOItems('completed').length }) }} -->
+          <!-- </ion-text> -->
+          <!-- <ion-button v-if="getPOItems('completed').length" @click="showCompletedItems = !showCompletedItems" color="medium" fill="clear"> -->
+            <!-- <ion-icon :icon="showCompletedItems ? eyeOutline : eyeOffOutline" slot="icon-only" /> -->
+          <!-- </ion-button> -->
+        <!-- </ion-item> -->
         
-        <ion-card v-for="(item, index) in getPOItems('completed')" v-show="showCompletedItems && item.orderItemStatusId === 'ITEM_COMPLETED'" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+        <!-- <ion-card v-for="(item, index) in getPOItems('completed')" v-show="showCompletedItems && item.orderItemStatusId === 'ITEM_COMPLETED'" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
           <div class="product">
             <div class="product-info">
               <ion-item lines="none">
@@ -140,15 +139,15 @@
               </ion-item>
             </div>
           </div>
-        </ion-card>
-      </main>  
+        </ion-card> -->
+      </main>   
     </ion-content>
 
     <ion-footer v-if="!isPOReceived()">
       <ion-toolbar>
         <ion-buttons slot="end">
           <ion-button fill="outline" size="small" color="primary" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE)" class="ion-margin-end" @click="closePO">{{ translate("Receive And Close") }}</ion-button>
-          <ion-button fill="solid" size="small" color="primary" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibileForCreatingShipment()" @click="savePODetails">{{ translate("Receive") }}</ion-button>
+          <ion-button fill="solid" size="small" color="primary" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) " @click="savePODetails">{{ translate("Receive") }}</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-footer>
@@ -188,7 +187,6 @@ import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue"
 import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
 import CloseTransferOrderModal from '@/components/CloseTransferOrderModal.vue';
-import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
 import { copyToClipboard, hasError, showToast, hasWebcamAccess } from '@/utils';
 import { Actions, hasPermission } from '@/authorization'
@@ -212,11 +210,10 @@ export default defineComponent({
     IonLabel,
     IonPage,
     IonProgressBar,
-    IonText,
+    // IonText,
     IonThumbnail,
     IonTitle,
-    IonToolbar,
-    LocationPopover
+    IonToolbar
   },
   data() {
     return {
@@ -227,11 +224,10 @@ export default defineComponent({
   },
   computed: {
     ...mapGetters({
-      order: 'order/getCurrent',
+      order: 'transferorder/getCurrent',
       getProduct: 'product/getProduct',
       getPOItemAccepted: 'order/getPOItemAccepted',
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
-      isForceScanEnabled: 'util/isForceScanEnabled',
       barcodeIdentifier: 'util/getBarcodeIdentificationPref',
     })
   },
@@ -358,7 +354,8 @@ export default defineComponent({
     async savePODetails() {
       const alert = await alertController.create({
         header: translate('Receive inventory'),
-        message: translate('Inventory can be received for purchase orders in multiple shipments. Proceeding will receive a new shipment for this purchase order but it will still be available for receiving later', { space: '<br /><br />' }),
+        // message: translate('Inventory can be received for purchase orders in multiple shipments. Proceeding will receive a new shipment for this purchase order but it will still be available for receiving later', { space: '<br /><br />' }),
+        message: translate('Confirmation message.', { space: '<br /><br />' }),
         buttons: [{
           text: translate('Cancel'),
           role: 'cancel'
@@ -377,7 +374,7 @@ export default defineComponent({
       const modal = await modalController.create({
         component: CloseTransferOrderModal,
         componentProps: {
-          isEligibileForCreatingShipment: this.isEligibileForCreatingShipment()
+          isEligibileForCreatingShipment: true
         }
       })
 
@@ -395,9 +392,9 @@ export default defineComponent({
         })
       }
     },
-    isEligibileForCreatingShipment() {
-      return this.order.items.some((item: any) => item.quantityAccepted > 0)
-    },
+    // isEligibileForCreatingShipment() {
+    //   return this.order.items.some((item: any) => item.quantityAccepted > 0)
+    // },
     receiveAll(item: any) {
       const qtyAlreadyAccepted = this.getPOItemAccepted(item.productId)
       this.order.items.find((ele: any) => {
@@ -413,7 +410,7 @@ export default defineComponent({
     }
   }, 
   ionViewWillEnter() {
-    this.store.dispatch("order/getOrderDetail", { orderId: this.$route.params.slug }).then(async () => {
+    this.store.dispatch("transferorder/fetchTransferOrderDetail", { orderId: this.$route.params.slug }).then(async () => {
       await this.store.dispatch('order/getPOHistory', { orderId: this.order.orderId })
       if(this.isPOReceived()) {
         this.showCompletedItems = true;

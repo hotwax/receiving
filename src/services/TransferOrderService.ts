@@ -20,6 +20,24 @@ const fetchTransferOrders = async (params: any): Promise<any> => {
   });
 }
 
+const fetchTransferOrderDetail = async (orderId: string): Promise<any> => {
+  const omsRedirectionInfo = store.getters['user/getOmsRedirectionInfo'];
+  const baseURL = store.getters['user/getMaargBaseUrl'];
+
+  const resp = client({
+    url: `/oms/transferOrders/${orderId}`,
+    method: "get",
+    baseURL,
+    headers: {
+      "api_key": omsRedirectionInfo.token,
+      "Content-Type": "application/json"
+    }
+  });
+
+  return resp;
+};
+
 export const TransferOrderService = {
-  fetchTransferOrders
+  fetchTransferOrders,
+  fetchTransferOrderDetail
 };

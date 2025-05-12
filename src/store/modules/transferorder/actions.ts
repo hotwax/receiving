@@ -7,11 +7,9 @@ import * as types from './mutation-types'
 
 const actions: ActionTree<TransferOrderState, RootState> = {
 
-  async fetchTransferOrders ({ commit, state }, params = {}) {
+  async fetchTransferOrders({ commit, state }, params = {}) {
     // clear the existing transfer orders
-    commit(types.ORDER_TRANSFER_UPDATED, { list: [], total: 0 });
-
-  
+    commit(types.ORDER_TRANSFER_LIST_CLEARED, {});
     let resp;
     let orders = [];
     let orderList = [];
@@ -34,9 +32,27 @@ const actions: ActionTree<TransferOrderState, RootState> = {
 
     return resp;
   },
+  async fetchTransferOrderDetail({ commit }, payload) {
+    let resp;
+    const orderId = payload.orderId;
 
-   async clearTransferOrders ({ commit }) {
-    commit(types.ORDER_TRANSFER_UPDATED, { list: [], total: 0 });
+    try {
+      resp = await TransferOrderService.fetchTransferOrderDetail(orderId);
+//orderName, status, statusId, orderId, items, externalId
+
+      if (resp.status === 200 && !hasError(resp) && resp.data.order) {
+        const order = resp.data.order
+        commit(types.ORDER_CURRENT_UPDATED, order)
+      }
+      else {
+        // showToast(translate("Something went wrong"));
+        commit(types.ORDER_CURRENT_UPDATED, {})
+      }
+    } catch (error) {
+      // showToast(translate("Something went wrong"));
+      commit(types.ORDER_CURRENT_UPDATED, {})
+    }
+    return resp;
   },
 
 }
