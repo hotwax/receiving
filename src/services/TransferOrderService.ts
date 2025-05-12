@@ -24,8 +24,8 @@ const fetchTransferOrderDetail = async (orderId: string): Promise<any> => {
   const omsRedirectionInfo = store.getters['user/getOmsRedirectionInfo'];
   const baseURL = store.getters['user/getMaargBaseUrl'];
 
-  const resp = client({
-    url: `/oms/transferOrders/${orderId}`,
+  return client({
+    url: `oms/transferOrders/${orderId}`,
     method: "get",
     baseURL,
     headers: {
@@ -33,11 +33,26 @@ const fetchTransferOrderDetail = async (orderId: string): Promise<any> => {
       "Content-Type": "application/json"
     }
   });
+};
 
-  return resp;
+const receiveTransferOrder = async (orderId: string, payload: any): Promise<any> => {
+  const omsRedirectionInfo = store.getters['user/getOmsRedirectionInfo'];
+  const baseURL = store.getters['user/getMaargBaseUrl'];
+
+  return client({
+    url: `poorti/transferOrders/${orderId}/receive`,
+    method: "post",
+    baseURL,
+    data: payload,
+    headers: {
+      "api_key": omsRedirectionInfo.token,
+      "Content-Type": "application/json"
+    }
+  });
 };
 
 export const TransferOrderService = {
   fetchTransferOrders,
-  fetchTransferOrderDetail
+  fetchTransferOrderDetail,
+  receiveTransferOrder
 };

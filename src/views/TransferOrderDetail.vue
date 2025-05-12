@@ -88,7 +88,7 @@
               <div class="po-item-history">
                 <ion-chip outline @click="receivingHistory(item.productId)">
                   <ion-icon :icon="checkmarkDone"/>
-                  <ion-label> {{ item.totalIssuedQuantity }} {{ translate("received") }} </ion-label>
+                  <ion-label> {{ item.totalReceivedQuantity ?? 0 }} {{ translate("received") }} </ion-label>
                 </ion-chip>
               </div>
 
@@ -147,7 +147,7 @@
       <ion-toolbar>
         <ion-buttons slot="end">
           <ion-button fill="outline" size="small" color="primary" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE)" class="ion-margin-end" @click="closePO">{{ translate("Receive And Close") }}</ion-button>
-          <ion-button fill="solid" size="small" color="primary" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) " @click="savePODetails">{{ translate("Receive") }}</ion-button>
+          <ion-button fill="solid" size="small" color="primary" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) " @click="receiveTO">{{ translate("Receive") }}</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-footer>
@@ -190,6 +190,7 @@ import CloseTransferOrderModal from '@/components/CloseTransferOrderModal.vue';
 import ImageModal from '@/components/ImageModal.vue';
 import { copyToClipboard, hasError, showToast, hasWebcamAccess } from '@/utils';
 import { Actions, hasPermission } from '@/authorization'
+import { TransferOrderService } from '@/services/TransferOrderService';
 
 export default defineComponent({
   name: "TransferOrderDetails",
@@ -351,7 +352,7 @@ export default defineComponent({
         })
       return modal.present();
     },
-    async savePODetails() {
+    async receiveTO() {
       const alert = await alertController.create({
         header: translate('Receive inventory'),
         // message: translate('Inventory can be received for purchase orders in multiple shipments. Proceeding will receive a new shipment for this purchase order but it will still be available for receiving later', { space: '<br /><br />' }),
@@ -364,7 +365,7 @@ export default defineComponent({
           text: translate('Proceed'),
           role: 'proceed',
           handler: () => {
-            this.createShipment();
+            this.receiveTransferOrder();
           }
         }]
       });
@@ -380,16 +381,26 @@ export default defineComponent({
 
       return modal.present();
     },
-    async createShipment() {
+    getCurrentFacilityId() {
+      const currentFacility: any = useUserStore().getCurrentFacility;
+      return currentFacility?.facilityId
+    },
+    async receiveTransferOrder() {
       const eligibleItems = this.order.items.filter((item: any) => item.quantityAccepted > 0)
-      const isShipmentReceived = await this.store.dispatch('order/createAndReceiveIncomingShipment', { items: eligibleItems, orderId: this.order.orderId })
+      const payload = {
+        facilityId: this.getCurrentFacilityId(),
+        orderItems: eligibleItems.map((item: any) => ({
+          orderItemSeqId: item.orderItemSeqId,
+          productId: item.productId,
+          quantityAccepted: item.quantityAccepted
+        }))
+      }
+      const isShipmentReceived = await TransferOrderService.receiveTransferOrder(this.order.orderId, payload)
       if (isShipmentReceived) {
-        showToast(translate("Purchase order received successfully", { orderId: this.order.orderId }))
-        this.router.push('/purchase-orders')
+        showToast(translate("Transfer order received successfully", { orderId: this.order.orderId }))
+        this.router.push('/transfer-orders')
       } else {
-        this.store.dispatch("order/getOrderDetail", { orderId: this.$route.params.slug }).then(() => {
-          this.store.dispatch('order/getPOHistory', { orderId: this.order.orderId })
-        })
+        showToast(translate("Error in receiving transfer order", { orderId: this.order.orderId }))
       }
     },
     // isEligibileForCreatingShipment() {
