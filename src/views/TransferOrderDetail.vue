@@ -230,9 +230,12 @@ export default defineComponent({
       const qtyAlreadyAccepted = this.getPOItemAccepted(item.productId)
       return this.order.items.some((ele: any) => ele.productId == item.productId && qtyAlreadyAccepted >= ele.quantity)
     },
-    getRcvdToOrderedFraction(item: any) {
-      return (parseInt(item.quantityAccepted || 0) + this.getPOItemAccepted(item.productId))/(item.quantity)
-    },
+    // getRcvdToOrderedFraction(item: any) {
+    //   return (parseInt(item.quantityAccepted || 0) + this.getPOItemAccepted(item.productId))/(item.quantity)
+    // },
+getRcvdToOrderedFraction(item: any) {
+  return ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) / (Number(item.quantity) || 1)
+},
     async openImage(imageUrl: string, productName: string) {
       const imageModal = await modalController.create({
         component: ImageModal,

@@ -4,11 +4,13 @@ import TransferOrderState from './TransferOrderState'
 import { TransferOrderService } from '@/services/TransferOrderService';
 import { hasError } from '@/adapter'
 import * as types from './mutation-types'
+import { showToast } from '@/utils'
+import { translate } from '@hotwax/dxp-components'
 
 const actions: ActionTree<TransferOrderState, RootState> = {
 
   async fetchTransferOrders({ commit, state }, params = {}) {
-    // clear the existing transfer orders
+    // clear the existing transfer orderss
     commit(types.ORDER_TRANSFER_LIST_CLEARED, {});
     let resp;
     let orders = [];
@@ -21,15 +23,17 @@ const actions: ActionTree<TransferOrderState, RootState> = {
         total = resp.data.ordersCount;
         orders = resp.data.orders;
         orderList = JSON.parse(JSON.stringify(state.transferOrder.list)).concat(orders);
+       // Only commit if there are orders to update
+        if ((orderList && orderList.length > 0) || (orders && orders.length > 0)) {
+          commit(types.ORDER_TRANSFER_UPDATED, { list: orderList.length > 0 ? orderList : orders, total });
+        }
       } else {
-        throw resp.data;
+          showToast(translate("Orders not found"));
       }
     } catch (err) {
       console.error('No transfer orders found', err);
+      showToast(translate("Something went wrong"));
     }
-
-    commit(types.ORDER_TRANSFER_UPDATED, { list: orderList.length > 0 ? orderList : orders, total });
-
     return resp;
   },
   async fetchTransferOrderDetail({ commit }, payload) {
