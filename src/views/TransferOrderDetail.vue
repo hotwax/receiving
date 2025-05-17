@@ -25,7 +25,7 @@
 
           <div class="doc-meta">
             <ion-chip @click="copyToClipboard(order.orderId, 'Internal ID saved to clipboard')">{{ order.orderId }}<ion-icon :icon="copyOutline"/></ion-chip>
-            <ion-badge :color="order.statusId === 'ORDER_APPROVED' ? 'primary' : ''">{{ order.status }}</ion-badge>
+            <ion-badge :color="order.statusId === 'ORDER_APPROVED' ? 'primary' : 'medium'">{{ order.status }}</ion-badge>
           </div>
         </div>
 
@@ -39,14 +39,14 @@
           </ion-button>
         </div>
 
-        <!-- <ion-item lines="none" v-if="!isPOReceived()"> -->
-          <!-- <ion-label v-if="getPOItems('pending').length > 1" color="medium" class="ion-margin-end"> -->
-            <!-- {{ translate("Pending: items", { itemsCount: getPOItems('pending').length }) }} -->
-          <!-- </ion-label> -->
-          <!-- <ion-label v-else color="medium" class="ion-margin-end"> -->
-            <!-- {{ translate("Pending: item", { itemsCount: getPOItems('pending').length }) }} -->
-          <!-- </ion-label> -->
-        <!-- </ion-item> -->
+        <ion-item lines="none" v-if="!isPOReceived()">
+          <ion-label v-if="getTOItems('pending').length > 1" color="medium" class="ion-margin-end">
+            {{ translate("Pending: items", { itemsCount: getTOItems('pending').length }) }}
+          </ion-label>
+          <ion-label v-else color="medium" class="ion-margin-end">
+            {{ translate("Pending: item", { itemsCount: getTOItems('pending').length }) }}
+          </ion-label>
+        </ion-item>
 
         <div>
 
@@ -75,7 +75,7 @@
             <div class="action border-top" v-if="item.quantity > 0">
               <div class="receive-all-qty">
                 <!-- <ion-button @click="receiveAll(item)" :disabled="isForceScanEnabled || isItemReceivedInFull(item)" slot="start" size="small" fill="outline"> -->
-  <ion-button @click="receiveAll(item)" slot="start" size="small" fill="outline">
+                <ion-button @click="receiveAll(item)" slot="start" size="small" fill="outline">
                   {{ translate("Receive All") }}
                 </ion-button>
               </div>
@@ -99,19 +99,19 @@
           </ion-card>
         </div>
 
-        <!-- <ion-item lines="none" v-if="!isPOReceived()"> -->
-          <!-- <ion-text v-if="getPOItems('completed').length > 1" color="medium" class="ion-margin-end"> -->
-            <!-- {{ translate("Completed: items", { itemsCount: getPOItems('completed').length }) }} -->
-          <!-- </ion-text> -->
-          <!-- <ion-text v-else color="medium" class="ion-margin-end"> -->
-            <!-- {{ translate("Completed: item", { itemsCount: getPOItems('completed').length }) }} -->
-          <!-- </ion-text> -->
-          <!-- <ion-button v-if="getPOItems('completed').length" @click="showCompletedItems = !showCompletedItems" color="medium" fill="clear"> -->
-            <!-- <ion-icon :icon="showCompletedItems ? eyeOutline : eyeOffOutline" slot="icon-only" /> -->
-          <!-- </ion-button> -->
-        <!-- </ion-item> -->
+        <ion-item lines="none" v-if="!isPOReceived()">
+          <ion-text v-if="getTOItems('completed').length > 1" color="medium" class="ion-margin-end">
+            {{ translate("Completed: items", { itemsCount: getTOItems('completed').length }) }}
+          </ion-text>
+          <ion-text v-else color="medium" class="ion-margin-end">
+            {{ translate("Completed: item", { itemsCount: getTOItems('completed').length }) }}
+          </ion-text>
+          <ion-button v-if="getTOItems('completed').length" @click="showCompletedItems = !showCompletedItems" color="medium" fill="clear">
+            <ion-icon :icon="showCompletedItems ? eyeOutline : eyeOffOutline" slot="icon-only" />
+          </ion-button>
+        </ion-item>
         
-        <!-- <ion-card v-for="(item, index) in getPOItems('completed')" v-show="showCompletedItems && item.orderItemStatusId === 'ITEM_COMPLETED'" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+        <ion-card v-for="(item, index) in getTOItems('completed')" v-show="showCompletedItems && item.orderItemStatusId === 'ITEM_COMPLETED'" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
           <div class="product">
             <div class="product-info">
               <ion-item lines="none">
@@ -125,13 +125,6 @@
               </ion-item>
             </div>
             
-            <div class="location">
-              <ion-chip :disabled="true" outline>
-                <ion-icon :icon="locationOutline"/>
-                <ion-label>{{ item.locationSeqId }}</ion-label>
-              </ion-chip>
-            </div>
-            
             <div>
               <ion-item lines="none">
                 <ion-label slot="end">{{ translate("/ received", { receivedCount: getPOItemAccepted(item.productId), orderedCount: item.quantity }) }}</ion-label>
@@ -139,15 +132,15 @@
               </ion-item>
             </div>
           </div>
-        </ion-card> -->
+        </ion-card>
       </main>   
     </ion-content>
 
     <ion-footer v-if="!isPOReceived()">
       <ion-toolbar>
         <ion-buttons slot="end">
-          <ion-button fill="outline" size="small" color="primary" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE)" class="ion-margin-end" @click="closePO">{{ translate("Receive And Close") }}</ion-button>
-          <ion-button fill="solid" size="small" color="primary" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) " @click="receiveTO">{{ translate("Receive") }}</ion-button>
+          <ion-button fill="outline" size="small" color="primary" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE)" class="ion-margin-end" @click="receiveAndCloseTO">{{ translate("Receive And Close") }}</ion-button>
+          <ion-button fill="solid" size="small" color="primary" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibileForCreatingShipment()" @click="receiveTO">{{ translate("Receive") }}</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-footer>
@@ -326,11 +319,19 @@ export default defineComponent({
       }
       this.queryString = ''
     },
-    getPOItems(orderType: string) {
-      if(orderType === 'completed'){
-        return this.order.items.filter((item: any) => item.orderItemStatusId === 'ITEM_COMPLETED')
+    // getTOItems(orderType: string) {
+    //   if(orderType === 'completed'){
+    //     return this.order.items.filter((item: any) => item.statusId === 'ITEM_COMPLETED')
+    //   } else {
+    //     return this.order.items.filter((item: any) => item.statusId !== 'ITEM_COMPLETED' && item.statusId !== 'ITEM_REJECTED')
+    //   }
+    // },
+    getTOItems(orderType: string) {
+      if (!this.order.items) return [];
+      if (orderType === 'completed') {
+        return this.order.items.filter((item: any) => item.statusId === 'ITEM_COMPLETED')
       } else {
-        return this.order.items.filter((item: any) => item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED')
+        return this.order.items.filter((item: any) => item.statusId !== 'ITEM_COMPLETED' && item.statusId !== 'ITEM_REJECTED')
       }
     },
     async addProduct() {
@@ -371,11 +372,11 @@ export default defineComponent({
       });
       return alert.present();
     },
-    async closePO() {
+    async receiveAndCloseTO() {
       const modal = await modalController.create({
         component: CloseTransferOrderModal,
         componentProps: {
-          isEligibileForCreatingShipment: true
+          isEligibileForCreatingShipment: this.isEligibileForCreatingShipment(),
         }
       })
 
@@ -404,8 +405,11 @@ export default defineComponent({
       }
     },
     // isEligibileForCreatingShipment() {
-    //   return this.order.items.some((item: any) => item.quantityAccepted > 0)
+    //   return this.order.items.some((item: any) => item.totalReceivedQuantity > 0)
     // },
+    isEligibileForCreatingShipment() {
+      return this.order.items?.some((item: any) => !!item.quantityAccepted && Number(item.quantityAccepted) > 0)
+    },
     receiveAll(item: any) {
       const qtyAlreadyAccepted = this.getPOItemAccepted(item.productId)
       this.order.items.find((ele: any) => {
@@ -417,7 +421,7 @@ export default defineComponent({
       })
     },
     isPOReceived() {
-      return this.order.orderStatusId === "ORDER_COMPLETED"
+      return this.order.statusId === "ORDER_COMPLETED"
     }
   }, 
   ionViewWillEnter() {
