@@ -18,7 +18,7 @@
       <ion-list-header>{{ translate("To close the transfer order, select all.") }}</ion-list-header>
     </ion-item>
     <ion-list>
-      <ion-item :button="isPOItemStatusPending(item)" v-for="(item, index) in getPOItems()" :key="index" @click="item.isChecked = !item.isChecked">
+      <ion-item :button="isTOItemStatusPending(item)" v-for="(item, index) in getTOItems()" :key="index" @click="item.isChecked = !item.isChecked">
         <ion-thumbnail slot="start">
           <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
         </ion-thumbnail>
@@ -27,14 +27,14 @@
           <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
         </ion-label>
         <ion-buttons>
-          <ion-checkbox aria-label="itemStatus" slot="end" :modelValue="isPOItemStatusPending(item) ? item.isChecked : true" :disabled="isPOItemStatusPending(item) ? false : true" />
+          <ion-checkbox aria-label="itemStatus" slot="end" :modelValue="isTOItemStatusPending(item) ? item.isChecked : true" :disabled="isTOItemStatusPending(item) ? false : true" />
         </ion-buttons>
       </ion-item>
     </ion-list>
   </ion-content>
 
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibleToClosePOItems()" @click="confirmSave">
+    <ion-fab-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibleToCloseTOItems()" @click="confirmSave">
       <ion-icon :icon="saveOutline" />
     </ion-fab-button>
   </ion-fab>
@@ -61,13 +61,11 @@ import {
   modalController
 } from '@ionic/vue';
 import { Actions, hasPermission } from '@/authorization'
-import { closeOutline, checkmarkCircle, arrowBackOutline, saveOutline } from 'ionicons/icons';
+import { arrowBackOutline, saveOutline } from 'ionicons/icons';
 import { defineComponent, computed } from 'vue';
 import { mapGetters, useStore } from 'vuex'
-import { OrderService } from "@/services/OrderService";
 import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore, useUserStore } from '@hotwax/dxp-components';
 import { useRouter } from 'vue-router';
-import { hasError } from '@/utils';
 import { TransferOrderService } from '@/services/TransferOrderService';
 
 export default defineComponent({
@@ -93,7 +91,7 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       getProduct: 'product/getProduct',
-      getPOItemAccepted: 'order/getPOItemAccepted',
+      // getPOItemAccepted: 'order/getPOItemAccepted',
       order: 'transferorder/getCurrent',
       purchaseOrders: 'order/getPurchaseOrders'
     })
@@ -115,7 +113,7 @@ export default defineComponent({
           text: translate('Proceed'),
           role: 'proceed',
           handler: async() => {
-            await this.updatePOItemStatus()
+            await this.updateTOItemStatus()
             modalController.dismiss()
             this.router.push('/transfer-orders')
           }
@@ -217,7 +215,7 @@ export default defineComponent({
       const currentFacility: any = useUserStore().getCurrentFacility;
       return currentFacility?.facilityId
     },
-async updatePOItemStatus() {
+async updateTOItemStatus() {
   // Shipment can only be created if quantity is specified for at least one PO item.
   // In some cases we don't need to create shipment instead directly need to close PO items.
   if (this.isEligibileForCreatingShipment) {
@@ -241,7 +239,7 @@ async updatePOItemStatus() {
       }
   }
 
-  const eligibleItems = this.order.items.filter((item: any) => item.isChecked && this.isPOItemStatusPending(item))
+  const eligibleItems = this.order.items.filter((item: any) => item.isChecked && this.isTOItemStatusPending(item))
   if (!eligibleItems.length) return;
 
   // Prepare payload for new API structure
@@ -282,26 +280,26 @@ async updatePOItemStatus() {
   if (this.purchaseOrders.length) {
     let purchaseOrders = JSON.parse(JSON.stringify(this.purchaseOrders))
     const currentOrder = purchaseOrders.find((purchaseOrder: any) => purchaseOrder.groupValue === this.order.orderId)
-    let isPOCompleted = true;
+    let isTOCompleted = true;
 
     currentOrder.doclist.docs.map((item: any) => {
       if (completedItems.includes(item.orderItemSeqId)) {
         item.orderItemStatusId = "ITEM_COMPLETED"
       } else if (item.orderItemStatusId !== "ITEM_COMPLETED" && item.orderItemStatusId !== "ITEM_REJECTED") {
-        isPOCompleted = false
+        isTOCompleted = false
       }
     })
 
-    if (isPOCompleted) {
+    if (isTOCompleted) {
       purchaseOrders = purchaseOrders.filter((purchaseOrder: any) => purchaseOrder.groupValue !== currentOrder.groupValue)
     }
     // this.store.dispatch("order/updatePurchaseOrders", { purchaseOrders })
   }
 },
-    isEligibleToClosePOItems() {
-      return this.order.items.some((item: any) => item.isChecked && this.isPOItemStatusPending(item))
+    isEligibleToCloseTOItems() {
+      return this.order.items.some((item: any) => item.isChecked && this.isTOItemStatusPending(item))
     },
-    isPOItemStatusPending(item: any) {
+    isTOItemStatusPending(item: any) {
       return item.statusId !== "ITEM_COMPLETED" && item.statusId !== "ITEM_REJECTED"
     },
     // selectAllItems() {
@@ -318,20 +316,20 @@ async updatePOItemStatus() {
           item.isChecked = true;
     })
     },
-    getPOItems() {
+    getTOItems() {
       return this.order.items.filter((item: any) => item.orderItemSeqId)
     },
-    checkAlreadyFulfilledItems() {
-      this.order.items.map((item: any) => {
-        if(this.isPOItemStatusPending(item) && this.getPOItemAccepted(item.productId) > 0) {
-          item.isChecked = true;
-        }
-      })
-    }
+    // checkAlreadyFulfilledItems() {
+    //   this.order.items.map((item: any) => {
+    //     if(this.isTOItemStatusPending(item) && this.getPOItemAccepted(item.productId) > 0) {
+    //       item.isChecked = true;
+    //     }
+    //   })
+    // }
   },
-  mounted() {
-    this.checkAlreadyFulfilledItems()
-  },
+  // mounted() {
+  //   this.checkAlreadyFulfilledItems()
+  // },
   setup() {
     const router = useRouter()
     const store = useStore()
@@ -342,10 +340,7 @@ async updatePOItemStatus() {
     return {
       arrowBackOutline,
       Actions,
-      closeOutline,
-      checkmarkCircle,
       hasPermission,
-      OrderService,
       router,
       saveOutline,
       store,
