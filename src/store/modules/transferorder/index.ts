@@ -19,12 +19,7 @@ const orderModule: Module<TransferOrderState, RootState> = {
         selectedStatuses: ['ORDER_APPROVED']
       }
     },
-    current: {},
-    shipment:{
-      current: {},
-      list: []
-    },
-    rejectReasons: []
+    current: {}
   },
   getters,
   actions,

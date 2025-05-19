@@ -10,52 +10,48 @@ import { translate } from '@hotwax/dxp-components'
 const actions: ActionTree<TransferOrderState, RootState> = {
 
   async fetchTransferOrders({ commit, state }, params = {}) {
-    // clear the existing transfer orderss
-    commit(types.ORDER_TRANSFER_LIST_CLEARED, {});
-    let resp;
-    let orders = [];
-    let orderList = [];
-    let total = 0;
+  let resp;
+  const transferOrderQuery = JSON.parse(JSON.stringify(state.transferOrder.query));
+  let orders = [];
+  let total = 0;
 
-    try {
-      resp = await TransferOrderService.fetchTransferOrders(params);
-      if (!hasError(resp) && resp.data.ordersCount > 0) {
-        total = resp.data.ordersCount;
-        orders = resp.data.orders;
-        orderList = JSON.parse(JSON.stringify(state.transferOrder.list)).concat(orders);
-       // Only commit if there are orders to update
-        if ((orderList && orderList.length > 0) || (orders && orders.length > 0)) {
-          commit(types.ORDER_TRANSFER_UPDATED, { list: orderList.length > 0 ? orderList : orders, total });
-        }
+  try {
+    resp = await TransferOrderService.fetchTransferOrders(params);
+    if (!hasError(resp) && resp.data.ordersCount > 0) {
+      total = resp.data.ordersCount;
+      if (transferOrderQuery.viewIndex > 0) {
+        orders = state.transferOrder.list.concat(resp.data.orders);
       } else {
-          showToast(translate("Orders not found"));
+        orders = resp.data.orders;
       }
-    } catch (err) {
-      console.error('No transfer orders found', err);
-      showToast(translate("Something went wrong"));
+    } else {
+      throw resp?.data;
     }
-    return resp;
+  } catch (err) {
+    console.error('No transfer orders found', err);
+  }
+
+  commit(types.ORDER_TRANSFER_QUERY_UPDATED, { ...transferOrderQuery });
+  commit(types.ORDER_TRANSFER_UPDATED, { list: orders, total });
+
+  return resp;
   },
   async fetchTransferOrderDetail({ commit }, payload) {
     let resp;
+    let order = {};
     const orderId = payload.orderId;
 
     try {
       resp = await TransferOrderService.fetchTransferOrderDetail(orderId);
-//orderName, status, statusId, orderId, items, externalId
 
       if (resp.status === 200 && !hasError(resp) && resp.data.order) {
-        const order = resp.data.order
-        commit(types.ORDER_CURRENT_UPDATED, order)
-      }
-      else {
-        // showToast(translate("Something went wrong"));
-        commit(types.ORDER_CURRENT_UPDATED, {})
+        order = resp.data.order;
       }
     } catch (error) {
-      // showToast(translate("Something went wrong"));
-      commit(types.ORDER_CURRENT_UPDATED, {})
+      console.error(error);
     }
+
+    commit(types.ORDER_CURRENT_UPDATED, order);
     return resp;
   },
 

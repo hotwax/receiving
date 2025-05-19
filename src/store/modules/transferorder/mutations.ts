@@ -26,17 +26,8 @@ const mutations: MutationTree <TransferOrderState> = {
       selectedStatuses: ['ORDER_APPROVED']
     }
   },
-  [types.ORDER_CURRENT_SHIPMENT_UPDATED](state, payload) {
-    state.shipment.current = payload
-  },
-  [types.ORDER_CURRENT_SHIPMENT_CLEARED](state) {
-    state.shipment.current = {}
-  },
   [types.ORDER_CURRENT_CLEARED](state) {
     state.current = {}
-  },
-  [types.ORDER_REJECT_REASONS_UPDATED](state, payload) {
-    state.rejectReasons = payload
   }
 }
 export default mutations;

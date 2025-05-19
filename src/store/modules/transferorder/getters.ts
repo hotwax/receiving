@@ -8,12 +8,6 @@ const getters: GetterTree<TransferOrderState, RootState> = {
   },
   getCurrent (state) {
     return state.current
-  },
-  getCurrentShipment (state) {
-    return state.shipment.current
-  },
-  getRejectReasons(state) {
-    return state.rejectReasons;
   }
 };
 export default getters;
