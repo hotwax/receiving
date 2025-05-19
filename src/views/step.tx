@@ -1,0 +1,18 @@
+identify store to store, if yes then fulfillmetnt app.
+
+
+114 mam, 254 ashu
+
+check facliity type, check parent type id
+if store to rstore- to fulfill and recieve type id
+moqui.basic.statusflow
+
+update the status id of order.
+
+go to orderItem
+change itempendingfulfill -> statusId, in orderItem.
+
+when satusId is ITEM_PENDING_FULFILL, 
+if yes its status will change to item_pending_receipt.
+
+check shpment data if working with fulfilmentapp.
