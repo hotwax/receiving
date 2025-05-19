@@ -38,7 +38,7 @@ const actions: ActionTree<TransferOrderState, RootState> = {
   },
   async fetchTransferOrderDetail({ commit }, payload) {
     let resp;
-    let order = {};
+    let order: any = {};
     const orderId = payload.orderId;
 
     try {
@@ -46,6 +46,9 @@ const actions: ActionTree<TransferOrderState, RootState> = {
 
       if (resp.status === 200 && !hasError(resp) && resp.data.order) {
         order = resp.data.order;
+        if (order.items && order.items.length) {
+          this.dispatch('product/fetchProductInformation', { order: order.items });
+        }
       }
     } catch (error) {
       console.error(error);
