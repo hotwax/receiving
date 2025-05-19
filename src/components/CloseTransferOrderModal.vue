@@ -91,8 +91,7 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       getProduct: 'product/getProduct',
-      order: 'transferorder/getCurrent',
-      transferOrders: 'order/getPurchaseOrders'
+      order: 'transferorder/getCurrent'
     })
   },
   props: ['isEligibileForCreatingShipment'],
@@ -125,84 +124,25 @@ export default defineComponent({
       return currentFacility?.facilityId
     },
     async updateTOItemStatus() {
-      // Shipment can only be created if quantity is specified for at least one PO item.
-      // In some cases we don't need to create shipment instead directly need to close PO items.
-      if (this.isEligibileForCreatingShipment) {
-          const eligibleItems = this.order.items.filter((item: any) => item.quantityAccepted > 0)
-          const payload = {
-            facilityId: this.getCurrentFacilityId(),
-            orderItems: eligibleItems.map((item: any) => ({
-              orderItemSeqId: item.orderItemSeqId,
-              productId: item.productId,
-              quantityAccepted: item.quantityAccepted,
-               statusId : "ITEM_COMPLETED"
-
-            }))
-          }
-          const isShipmentReceived = await TransferOrderService.receiveTransferOrder(this.order.orderId, payload)
-          if (isShipmentReceived) {
-            // showToast(translate("Transfer order received successfully", { orderId: this.order.orderId }))
-            // this.router.push('/transfer-orders')
-          } else {
-            // showToast(translate("Error in receiving transfer order", { orderId: this.order.orderId }))
-          }
-      }
-
-      const eligibleItems = this.order.items.filter((item: any) => item.isChecked && this.isTOItemStatusPending(item))
+      // Get only checked and pending items
+      const eligibleItems = this.order.items.filter((item: any) => item.isChecked && this.isTOItemStatusPending(item));
       if (!eligibleItems.length) return;
 
-      // Prepare payload for new API structure
+      // Prepare payload for API, always sending quantityAccepted (default 0)
       const payload = {
         facilityId: this.getCurrentFacilityId(),
         orderItems: eligibleItems.map((item: any) => ({
           orderItemSeqId: item.orderItemSeqId,
           productId: item.productId,
-          quantityAccepted: item.quantityAccepted || 0,
+          quantityAccepted: Number(item.quantityAccepted) || 0,
           statusId: "ITEM_COMPLETED"
         }))
-      }
-
-      let hasFailedItems = false;
-      let completedItems = [] as any;
+      };
 
       try {
-        // Use new API call (no response expected, just check for error)
-        await TransferOrderService.receiveTransferOrder(this.order.orderId, payload)
-        completedItems = eligibleItems.map((item: any) => item.orderItemSeqId)
+        await TransferOrderService.receiveTransferOrder(this.order.orderId, payload);
       } catch (error) {
-        hasFailedItems = true
-      }
-
-      if (hasFailedItems) {
-        console.error('Failed to update the status of transfer order items.')
-      }
-
-      if (!completedItems.length) return;
-
-      this.order.items.map((item: any) => {
-        if (completedItems.includes(item.orderItemSeqId)) {
-          item.orderItemStatusId = "ITEM_COMPLETED"
-        }
-      })
-      // this.store.dispatch("order/updateCurrentOrder", this.order)
-
-      if (this.transferOrders.length) {
-        let transferOrders = JSON.parse(JSON.stringify(this.transferOrders))
-        const currentOrder = transferOrders.find((purchaseOrder: any) => purchaseOrder.groupValue === this.order.orderId)
-        let isTOCompleted = true;
-
-        currentOrder.doclist.docs.map((item: any) => {
-          if (completedItems.includes(item.orderItemSeqId)) {
-            item.orderItemStatusId = "ITEM_COMPLETED"
-          } else if (item.orderItemStatusId !== "ITEM_COMPLETED" && item.orderItemStatusId !== "ITEM_REJECTED") {
-            isTOCompleted = false
-          }
-        })
-
-        if (isTOCompleted) {
-          transferOrders = transferOrders.filter((purchaseOrder: any) => purchaseOrder.groupValue !== currentOrder.groupValue)
-        }
-        // this.store.dispatch("order/updatePurchaseOrders", { purchaseOrders })
+        console.error('Failed to update the status of transfer order items.', error);
       }
     },
     isEligibleToCloseTOItems() {
