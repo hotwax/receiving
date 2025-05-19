@@ -132,7 +132,7 @@
             <div>
               <ion-item lines="none">
                 <ion-label slot="end">{{ translate("/ received", { receivedCount: item.totalReceivedQuantity, orderedCount: item.quantity }) }}</ion-label>
-                <ion-icon :icon="(getPOItemAccepted(item.productId) == item.quantity) ? checkmarkDoneCircleOutline : warningOutline" :color="(getPOItemAccepted(item.productId) == item.quantity) ? '' : 'warning'" slot="end" />
+                <ion-icon :icon="(getTOItemAccepted(item.productId) == item.quantity) ? checkmarkDoneCircleOutline : warningOutline" :color="(getTOItemAccepted(item.productId) == item.quantity) ? '' : 'warning'" slot="end" />
               </ion-item>
             </div>
           </div>
@@ -224,14 +224,14 @@ export default defineComponent({
     ...mapGetters({
       order: 'transferorder/getCurrent',
       getProduct: 'product/getProduct',
-      getPOItemAccepted: 'order/getPOItemAccepted',
+      getTOItemAccepted: 'transferorder/getTOItemAccepted',
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
       barcodeIdentifier: 'util/getBarcodeIdentificationPref',
     })
   },
   methods: {
     isItemReceivedInFull(item: any) {
-      const qtyAlreadyAccepted = this.getPOItemAccepted(item.productId)
+      const qtyAlreadyAccepted = this.getTOItemAccepted(item.productId)
       return this.order.items.some((ele: any) => ele.productId == item.productId && qtyAlreadyAccepted >= ele.quantity)
     },
     getRcvdToOrderedFraction(item: any) {
@@ -408,10 +408,10 @@ export default defineComponent({
       return this.order.items?.some((item: any) => !!item.quantityAccepted && Number(item.quantityAccepted) > 0)
     },
     receiveAll(item: any) {
-      const qtyAlreadyAccepted = this.getPOItemAccepted(item.productId)
+      const qtyAlreadyAccepted = this.getTOItemAccepted(item.productId)
       this.order.items.find((ele: any) => {
         if(ele.productId == item.productId) {
-          ele.quantityAccepted = ele.quantity - qtyAlreadyAccepted;
+          ele.quantityAccepted = Math.max(ele.quantity - qtyAlreadyAccepted, 0);
           ele.progress = ele.quantityAccepted / ele.quantity;
           return true;
         }
@@ -423,7 +423,6 @@ export default defineComponent({
   }, 
   ionViewWillEnter() {
     this.store.dispatch("transferorder/fetchTransferOrderDetail", { orderId: this.$route.params.slug }).then(async () => {
-      await this.store.dispatch('order/getPOHistory', { orderId: this.order.orderId })
       if(this.isTOReceived()) {
         this.showCompletedItems = true;
       }
