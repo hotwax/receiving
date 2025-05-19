@@ -108,7 +108,7 @@
           </ion-button>
         </ion-item>
         
-        <ion-card v-for="(item, index) in getTOItems('completed')" v-show="showCompletedItems && item.orderItemStatusId === 'ITEM_COMPLETED'" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+        <ion-card v-for="(item, index) in getTOItems('completed')" v-show="showCompletedItems && item.statusId === 'ITEM_COMPLETED'" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
           <div class="product">
             <div class="product-info">
               <ion-item lines="none">
@@ -122,9 +122,16 @@
               </ion-item>
             </div>
             
+            <div class="location">
+              <!-- <ion-chip :disabled="true" outline>
+                <ion-icon :icon="locationOutline"/>
+                <ion-label>{{ item.locationSeqId }}</ion-label>
+              </ion-chip> -->
+            </div>
+
             <div>
               <ion-item lines="none">
-                <ion-label slot="end">{{ translate("/ received", { receivedCount: getPOItemAccepted(item.productId), orderedCount: item.quantity }) }}</ion-label>
+                <ion-label slot="end">{{ translate("/ received", { receivedCount: item.totalReceivedQuantity, orderedCount: item.quantity }) }}</ion-label>
                 <ion-icon :icon="(getPOItemAccepted(item.productId) == item.quantity) ? checkmarkDoneCircleOutline : warningOutline" :color="(getPOItemAccepted(item.productId) == item.quantity) ? '' : 'warning'" slot="end" />
               </ion-item>
             </div>
@@ -227,12 +234,9 @@ export default defineComponent({
       const qtyAlreadyAccepted = this.getPOItemAccepted(item.productId)
       return this.order.items.some((ele: any) => ele.productId == item.productId && qtyAlreadyAccepted >= ele.quantity)
     },
-    // getRcvdToOrderedFraction(item: any) {
-    //   return (parseInt(item.quantityAccepted || 0) + this.getPOItemAccepted(item.productId))/(item.quantity)
-    // },
-getRcvdToOrderedFraction(item: any) {
-  return ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) / (Number(item.quantity) || 1)
-},
+    getRcvdToOrderedFraction(item: any) {
+      return ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) / (Number(item.quantity) || 1)
+    },
     async openImage(imageUrl: string, productName: string) {
       const imageModal = await modalController.create({
         component: ImageModal,
@@ -319,13 +323,6 @@ getRcvdToOrderedFraction(item: any) {
       }
       this.queryString = ''
     },
-    // getTOItems(orderType: string) {
-    //   if(orderType === 'completed'){
-    //     return this.order.items.filter((item: any) => item.statusId === 'ITEM_COMPLETED')
-    //   } else {
-    //     return this.order.items.filter((item: any) => item.statusId !== 'ITEM_COMPLETED' && item.statusId !== 'ITEM_REJECTED')
-    //   }
-    // },
     getTOItems(orderType: string) {
       if (!this.order.items) return [];
       if (orderType === 'completed') {
