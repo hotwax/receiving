@@ -4,14 +4,6 @@
       <ion-toolbar>
         <ion-back-button default-href="/transfer-orders" slot="start" />
         <ion-title> {{ translate("Transfer Order Details") }} </ion-title>
-        <!-- <ion-buttons slot="end">
-          <ion-button @click="receivingHistory()">
-            <ion-icon slot="icon-only" :icon="timeOutline"/>
-          </ion-button>
-          <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_ADMIN) || isPOReceived()" @click="addProduct">
-            <ion-icon slot="icon-only" :icon="addOutline"/>
-          </ion-button>
-        </ion-buttons> -->
       </ion-toolbar>
     </ion-header>
 
@@ -64,16 +56,14 @@
 
               <div class="product-count">
                 <ion-item>
-                  <!-- <ion-input :label="translate('Qty')" label-placement="floating" type="number" value="0" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" /> -->
-                  <ion-input :label="translate('Qty')" label-placement="floating" type="number" value="0" min="0" v-model="item.quantityAccepted" />                     
+                  <ion-input :label="translate('Qty')" label-placement="floating" type="number" value="0" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" />
                 </ion-item>
               </div>
             </div>
 
             <div class="action border-top" v-if="item.quantity > 0">
               <div class="receive-all-qty">
-                <!-- <ion-button @click="receiveAll(item)" :disabled="isForceScanEnabled || isItemReceivedInFull(item)" slot="start" size="small" fill="outline"> -->
-                <ion-button @click="receiveAll(item)" slot="start" size="small" fill="outline">
+                <ion-button @click="receiveAll(item)" :disabled="isForceScanEnabled || isItemReceivedInFull(item)" slot="start" size="small" fill="outline">
                   {{ translate("Receive All") }}
                 </ion-button>
               </div>
@@ -83,7 +73,7 @@
                 <ion-progress-bar :color="getRcvdToOrderedFraction(item) === 1 ? 'success' : getRcvdToOrderedFraction(item) > 1 ? 'danger' : 'primary'" :value="getRcvdToOrderedFraction(item)" />
               </div>
 
-              <div class="po-item-history">
+              <div class="to-item-history">
                 <ion-chip outline @click="receivingHistory(item.productId)">
                   <ion-icon :icon="checkmarkDone"/>
                   <ion-label> {{ item.totalReceivedQuantity ?? 0 }} {{ translate("received") }} </ion-label>
@@ -226,6 +216,7 @@ export default defineComponent({
       getProduct: 'product/getProduct',
       getTOItemAccepted: 'transferorder/getTOItemAccepted',
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
+      isForceScanEnabled: 'util/isForceScanEnabled',
       barcodeIdentifier: 'util/getBarcodeIdentificationPref',
     })
   },
@@ -353,7 +344,6 @@ export default defineComponent({
     async receiveTO() {
       const alert = await alertController.create({
         header: translate('Receive inventory'),
-        // message: translate('Inventory can be received for purchase orders in multiple shipments. Proceeding will receive a new shipment for this purchase order but it will still be available for receiving later', { space: '<br /><br />' }),
         message: translate('Confirmation message.', { space: '<br /><br />' }),
         buttons: [{
           text: translate('Cancel'),
@@ -401,9 +391,6 @@ export default defineComponent({
         showToast(translate("Error in receiving transfer order", { orderId: this.order.orderId }))
       }
     },
-    // isEligibileForCreatingShipment() {
-    //   return this.order.items.some((item: any) => item.totalReceivedQuantity > 0)
-    // },
     isEligibileForCreatingShipment() {
       return this.order.items?.some((item: any) => !!item.quantityAccepted && Number(item.quantityAccepted) > 0)
     },
@@ -482,7 +469,7 @@ export default defineComponent({
   grid-area: progressbar;
 }
 
-.po-item-history {
+.to-item-history {
   grid-area: history;
   justify-self: center;
 }
