@@ -123,7 +123,7 @@ export default defineComponent({
         destinationFacilityId: this.currentFacility?.facilityId,
         limit,
         pageIndex,
-        queryString: this.queryString
+        orderName: this.queryString
       };
 
       emitter.emit('presentLoader');
