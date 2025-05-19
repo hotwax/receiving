@@ -19,7 +19,7 @@
       <main>
         <div class="doc-id">
           <ion-label class="ion-padding">
-            <h1>{{ translate("Transfer Order")}}: {{ order.externalId }}</h1>
+            <h1>{{ translate("Transfer Order")}}: {{ order.externalId ? order.externalId : order.orderName ? order.orderName : order.orderId }}</h1>
             <p>{{ translate("Item count") }}: {{ order.items?.length || 0 }}</p>
           </ion-label>
 
@@ -39,7 +39,7 @@
           </ion-button>
         </div>
 
-        <ion-item lines="none" v-if="!isPOReceived()">
+        <ion-item lines="none" v-if="!isTOReceived()">
           <ion-label v-if="getTOItems('pending').length > 1" color="medium" class="ion-margin-end">
             {{ translate("Pending: items", { itemsCount: getTOItems('pending').length }) }}
           </ion-label>
@@ -47,8 +47,6 @@
             {{ translate("Pending: item", { itemsCount: getTOItems('pending').length }) }}
           </ion-label>
         </ion-item>
-
-        <div>
 
           <ion-card v-for="(item, index) in order.items" v-show="item.statusId !== 'ITEM_COMPLETED' && item.statusId !== 'ITEM_REJECTED'" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
             <div  class="product">
@@ -97,9 +95,8 @@
               </div>
             </div>
           </ion-card>
-        </div>
 
-        <ion-item lines="none" v-if="!isPOReceived()">
+        <ion-item lines="none" v-if="!isTOReceived()">
           <ion-text v-if="getTOItems('completed').length > 1" color="medium" class="ion-margin-end">
             {{ translate("Completed: items", { itemsCount: getTOItems('completed').length }) }}
           </ion-text>
@@ -136,7 +133,7 @@
       </main>   
     </ion-content>
 
-    <ion-footer v-if="!isPOReceived()">
+    <ion-footer v-if="!isTOReceived()">
       <ion-toolbar>
         <ion-buttons slot="end">
           <ion-button fill="outline" size="small" color="primary" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE)" class="ion-margin-end" @click="receiveAndCloseTO">{{ translate("Receive And Close") }}</ion-button>
@@ -423,14 +420,14 @@ getRcvdToOrderedFraction(item: any) {
         }
       })
     },
-    isPOReceived() {
+    isTOReceived() {
       return this.order.statusId === "ORDER_COMPLETED"
     }
   }, 
   ionViewWillEnter() {
     this.store.dispatch("transferorder/fetchTransferOrderDetail", { orderId: this.$route.params.slug }).then(async () => {
       await this.store.dispatch('order/getPOHistory', { orderId: this.order.orderId })
-      if(this.isPOReceived()) {
+      if(this.isTOReceived()) {
         this.showCompletedItems = true;
       }
     })
