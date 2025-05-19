@@ -89,8 +89,6 @@ const actions: ActionTree<UserState, RootState> = {
       useUserStore().currentEComStore = currentEComStore
       const productStoreId = currentEComStore?.productStoreId;
 
-      await useProductIdentificationStore().getIdentificationPref(productStoreId)
-        .catch((error) => console.error(error));
 
       setPermissions(appPermissions);
       if (userProfile.userTimeZone) {
@@ -117,6 +115,10 @@ const actions: ActionTree<UserState, RootState> = {
       commit(types.USER_CURRENT_ECOM_STORE_UPDATED, currentEComStore);
       commit(types.USER_PERMISSIONS_UPDATED, appPermissions);
       commit(types.USER_TOKEN_CHANGED, { newToken: token })
+
+      await useProductIdentificationStore().getIdentificationPref(productStoreId)
+        .catch((error) => console.error(error));
+
       // Get facility location of selected facility
       dispatch('getFacilityLocations', currentFacilityId);
       // TODO: fetch product identifications from enumeration instead of storing it in env
