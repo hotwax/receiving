@@ -67,6 +67,7 @@ import { mapGetters, useStore } from 'vuex'
 import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore, useUserStore } from '@hotwax/dxp-components';
 import { useRouter } from 'vue-router';
 import { TransferOrderService } from '@/services/TransferOrderService';
+import { showToast } from '@/utils';
 
 export default defineComponent({
   name: "CloseTransferOrderModal",
@@ -110,10 +111,12 @@ export default defineComponent({
         {
           text: translate('Proceed'),
           role: 'proceed',
-          handler: async() => {
-            await this.updateTOItemStatus()
-            modalController.dismiss()
-            this.router.push('/transfer-orders')
+          handler: async () => {
+            const success = await this.updateTOItemStatus();
+            if (success) {
+              modalController.dismiss();
+              this.router.push('/transfer-orders');
+            }
           }
         }]
       });
@@ -126,7 +129,7 @@ export default defineComponent({
     async updateTOItemStatus() {
       // Get only checked and pending items
       const eligibleItems = this.order.items.filter((item: any) => item.isChecked && this.isTOItemStatusPending(item));
-      if (!eligibleItems.length) return;
+      if (!eligibleItems.length) return false;
 
       // Prepare payload for API, always sending quantityAccepted (default 0)
       const payload = {
@@ -141,8 +144,10 @@ export default defineComponent({
 
       try {
         await TransferOrderService.receiveTransferOrder(this.order.orderId, payload);
+        return true;
       } catch (error) {
-        console.error('Failed to update the status of transfer order items.', error);
+        showToast(translate("Failed to update the status of transfer order items."));
+        return false;
       }
     },
     isEligibleToCloseTOItems() {
