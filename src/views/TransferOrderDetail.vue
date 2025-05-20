@@ -122,7 +122,7 @@
             <div>
               <ion-item lines="none">
                 <ion-label slot="end">{{ translate("/ received", { receivedCount: item.totalReceivedQuantity, orderedCount: item.quantity }) }}</ion-label>
-                <ion-icon :icon="(getTOItemAccepted(item.productId) == item.quantity) ? checkmarkDoneCircleOutline : warningOutline" :color="(getTOItemAccepted(item.productId) == item.quantity) ? '' : 'warning'" slot="end" />
+                <ion-icon :icon="(item.totalReceivedQuantity == item.quantity) ? checkmarkDoneCircleOutline : warningOutline" :color="(item.totalReceivedQuantity  == item.quantity) ? '' : 'warning'" slot="end" />
               </ion-item>
             </div>
           </div>
@@ -213,7 +213,6 @@ export default defineComponent({
     ...mapGetters({
       order: 'transferorder/getCurrent',
       getProduct: 'product/getProduct',
-      getTOItemAccepted: 'transferorder/getTOItemAccepted',
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
       isForceScanEnabled: 'util/isForceScanEnabled',
       barcodeIdentifier: 'util/getBarcodeIdentificationPref',
@@ -221,8 +220,7 @@ export default defineComponent({
   },
   methods: {
     isItemReceivedInFull(item: any) {
-      const qtyAlreadyAccepted = this.getTOItemAccepted(item.productId)
-      return this.order.items.some((ele: any) => ele.productId == item.productId && qtyAlreadyAccepted >= ele.quantity)
+      return (Number(item.totalReceivedQuantity) || 0) >= (Number(item.quantity) || 0)
     },
     getRcvdToOrderedFraction(item: any) {
       return ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) / (Number(item.quantity) || 1)
@@ -368,14 +366,9 @@ export default defineComponent({
       return this.order.items?.some((item: any) => !!item.quantityAccepted && Number(item.quantityAccepted) > 0)
     },
     receiveAll(item: any) {
-      const qtyAlreadyAccepted = this.getTOItemAccepted(item.productId)
-      this.order.items.find((ele: any) => {
-        if(ele.productId == item.productId) {
-          ele.quantityAccepted = Math.max(ele.quantity - qtyAlreadyAccepted, 0);
-          ele.progress = ele.quantityAccepted / ele.quantity;
-          return true;
-        }
-      })
+      const qtyAlreadyAccepted = Number(item.totalReceivedQuantity) || 0
+      item.quantityAccepted = Math.max(item.quantity - qtyAlreadyAccepted, 0);
+      item.progress = item.quantityAccepted / item.quantity;
     },
     isTOReceived() {
       return this.order.statusId === "ORDER_COMPLETED"

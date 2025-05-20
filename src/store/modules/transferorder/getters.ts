@@ -8,10 +8,6 @@ const getters: GetterTree<TransferOrderState, RootState> = {
   },
   getCurrent (state) {
     return state.current
-  },
-  getTOItemAccepted: (state) => (productId: string) => {
-    return state.current.items?.filter((item: any) => item.productId === productId)
-      .reduce((sum: number, item: any) => sum + (Number(item.totalReceivedQuantity) || 0), 0);
   }
 };
 export default getters;
