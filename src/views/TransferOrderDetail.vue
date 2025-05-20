@@ -346,7 +346,7 @@ export default defineComponent({
       const eligibleItems = this.order.items.filter((item: any) => item.quantityAccepted > 0)
       const payload = {
         facilityId: this.getCurrentFacilityId(),
-        orderItems: eligibleItems.map((item: any) => ({
+        items: eligibleItems.map((item: any) => ({
           orderItemSeqId: item.orderItemSeqId,
           productId: item.productId,
           quantityAccepted: item.quantityAccepted

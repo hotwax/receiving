@@ -134,7 +134,7 @@ export default defineComponent({
       // Prepare payload for API, always sending quantityAccepted (default 0)
       const payload = {
         facilityId: this.getCurrentFacilityId(),
-        orderItems: eligibleItems.map((item: any) => ({
+        items: eligibleItems.map((item: any) => ({
           orderItemSeqId: item.orderItemSeqId,
           productId: item.productId,
           quantityAccepted: Number(item.quantityAccepted) || 0,
