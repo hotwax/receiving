@@ -354,11 +354,13 @@ export default defineComponent({
           quantityAccepted: item.quantityAccepted
         }))
       }
-      const isShipmentReceived = await TransferOrderService.receiveTransferOrder(this.order.orderId, payload)
-      if (isShipmentReceived) {
-        showToast(translate("Transfer order received successfully", { orderId: this.order.orderId }))
-        this.router.push('/transfer-orders')
-      } else {
+      try {
+        const resp = await TransferOrderService.receiveTransferOrder(this.order.orderId, payload)
+        if (!hasError(resp)) {
+          showToast(translate("Transfer order received successfully", { orderId: this.order.orderId }))
+          this.router.push('/transfer-orders')
+        } 
+      } catch (error) {
         showToast(translate("Error in receiving transfer order", { orderId: this.order.orderId }))
       }
     },
