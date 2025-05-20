@@ -10,31 +10,31 @@ import { translate } from '@hotwax/dxp-components'
 const actions: ActionTree<TransferOrderState, RootState> = {
 
   async fetchTransferOrders({ commit, state }, params = {}) {
-  let resp;
-  const transferOrderQuery = JSON.parse(JSON.stringify(state.transferOrder.query));
-  let orders = [];
-  let total = 0;
+    let resp;
+    const transferOrderQuery = JSON.parse(JSON.stringify(state.transferOrder.query));
+    let orders = [];
+    let total = 0;
 
-  try {
-    resp = await TransferOrderService.fetchTransferOrders(params);
-    if (!hasError(resp) && resp.data.ordersCount > 0) {
-      total = resp.data.ordersCount;
-      if (transferOrderQuery.viewIndex > 0) {
-        orders = state.transferOrder.list.concat(resp.data.orders);
+    try {
+      resp = await TransferOrderService.fetchTransferOrders(params);
+      if (!hasError(resp) && resp.data.ordersCount > 0) {
+        total = resp.data.ordersCount;
+        if (transferOrderQuery.viewIndex > 0) {
+          orders = state.transferOrder.list.concat(resp.data.orders);
+        } else {
+          orders = resp.data.orders;
+        }
       } else {
-        orders = resp.data.orders;
+        throw resp?.data;
       }
-    } else {
-      throw resp?.data;
+    } catch (err) {
+      console.error('No transfer orders found', err);
     }
-  } catch (err) {
-    console.error('No transfer orders found', err);
-  }
 
-  commit(types.ORDER_TRANSFER_QUERY_UPDATED, { ...transferOrderQuery });
-  commit(types.ORDER_TRANSFER_UPDATED, { list: orders, total });
+    commit(types.ORDER_TRANSFER_QUERY_UPDATED, { ...transferOrderQuery });
+    commit(types.ORDER_TRANSFER_UPDATED, { list: orders, total });
 
-  return resp;
+    return resp;
   },
   async fetchTransferOrderDetail({ commit }, payload) {
     let resp;
