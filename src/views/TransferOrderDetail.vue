@@ -256,7 +256,7 @@ export default defineComponent({
         showToast(translate("Please provide a valid barcode identifier."))
         return;
       }
-      const result = await this.store.dispatch('order/updateProductCount', payload)
+      const result = await this.store.dispatch('transferorder/updateProductCount', payload)
 
       if(result.isCompleted) {
         showToast(translate("Product is already received:", { itemName: payload }))

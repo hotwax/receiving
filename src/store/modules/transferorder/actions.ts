@@ -4,8 +4,8 @@ import TransferOrderState from './TransferOrderState'
 import { TransferOrderService } from '@/services/TransferOrderService';
 import { hasError } from '@/adapter'
 import * as types from './mutation-types'
-import { showToast } from '@/utils'
-import { translate } from '@hotwax/dxp-components'
+import { getProductIdentificationValue } from '@hotwax/dxp-components'
+import store from "@/store";
 
 const actions: ActionTree<TransferOrderState, RootState> = {
 
@@ -57,7 +57,25 @@ const actions: ActionTree<TransferOrderState, RootState> = {
     commit(types.ORDER_CURRENT_UPDATED, order);
     return resp;
   },
+  async updateProductCount({ commit, state }, payload ) {
+  const barcodeIdentifier = store.getters['util/getBarcodeIdentificationPref'];
+  const getProduct = store.getters['product/getProduct'];
 
+  const item = state.current.items.find((item: any) => {
+    const itemVal = barcodeIdentifier ? getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) : item.internalName;
+    return itemVal === payload;
+  });
+
+  if (item) {
+    if(item.statusId === 'ITEM_COMPLETED') return { isCompleted: true }
+
+    item.totalIssuedQuantity = item.totalIssuedQuantity ? parseInt(item.totalIssuedQuantity) + 1 : 1;
+    commit(types.ORDER_CURRENT_UPDATED, state.current )
+    return { isProductFound: true }
+  }
+
+  return { isProductFound: false }
+  },
 }
 
 export default actions;
