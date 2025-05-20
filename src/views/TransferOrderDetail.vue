@@ -172,7 +172,6 @@ import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIden
 import { useStore, mapGetters } from 'vuex';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue"
-import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
 import CloseTransferOrderModal from '@/components/CloseTransferOrderModal.vue';
 import ImageModal from '@/components/ImageModal.vue';
 import { copyToClipboard, hasError, showToast, hasWebcamAccess } from '@/utils';
@@ -275,24 +274,7 @@ export default defineComponent({
           this.lastScannedId = ''
         }, 3000)
       } else {
-        showToast(translate("Scanned item is not present within the shipment:", { itemName: payload }), {
-          buttons: [{
-            text: translate('Add'),
-            handler: async() => {
-              const modal = await modalController.create({
-                component: AddProductToPOModal,
-                componentProps: { selectedSKU: payload }
-              })
-
-              modal.onDidDismiss().then(() => {
-                this.store.dispatch('product/clearSearchedProducts');
-              })
-
-              return modal.present();
-            }
-          }],
-          duration: 5000
-        })
+        showToast(translate("Scanned item is not present within the shipment:", { itemName: payload }))
       }
       this.queryString = ''
     },
@@ -321,17 +303,6 @@ export default defineComponent({
       } else {
         return this.order.items.filter((item: any) => item.statusId !== 'ITEM_COMPLETED' && item.statusId !== 'ITEM_REJECTED')
       }
-    },
-    async addProduct() {
-      const modal = await modalController
-        .create({
-          component: AddProductToPOModal
-        })
-      modal.onDidDismiss()
-      .then(() => {
-        this.store.dispatch('product/clearSearchedProducts');
-      })  
-      return modal.present();
     },
     async receivingHistory(productId?: string) {
       const modal = await modalController
