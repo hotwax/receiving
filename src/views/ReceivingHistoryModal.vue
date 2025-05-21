@@ -17,7 +17,7 @@
         </ion-thumbnail>
         <ion-label>
           {{ item.receiversFullName }}
-          <p>{{ translate("Shipment ID") }}: {{ item.shipmentId }}</p>
+          <p>{{ translate("Shipment ID") }}: {{ item.receiptId }}</p>
         </ion-label>
         <ion-label>
           <ion-note>{{ item.quantityAccepted }} {{ translate("received") }} | {{ item.quantityRejected }} {{ translate("rejected") }}</ion-note>
@@ -81,11 +81,11 @@ export default defineComponent({
   },
   props: ["productId"],
   mounted() {
-    this.items = this.productId ? this.poHistory.items.filter(item => item.productId === this.productId) : this.poHistory.items;
+    this.items = this.productId ? this.toHistory.items.filter(item => item.productId === this.productId) : this.toHistory.items;
   },
   computed: {
     ...mapGetters({
-      poHistory: 'order/getPOHistory',
+      toHistory: 'transferorder/getTOHistory',
       getProduct: 'product/getProduct'
     })
   },
