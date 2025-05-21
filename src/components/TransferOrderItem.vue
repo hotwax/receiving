@@ -20,8 +20,7 @@ import {
   IonLabel
 } from '@ionic/vue'
 import { DateTime } from 'luxon';
-import { useRouter } from 'vue-router'
-import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
 
 export default defineComponent({
   name: "TransferOrderItem",
@@ -43,8 +42,7 @@ export default defineComponent({
   },
   methods: {
     async getOrderDetail(orderId?: any) {
-      await this.store.dispatch("order/getOrderDetail", {orderId})
-      .then(() => this.router.push({ path: `/transfer-order-detail/${orderId}` }))
+      this.router.push({ path: `/transfer-order-detail/${orderId}` })
     },
     getTime(time: any) {
       return DateTime.fromMillis(time).toFormat("dd MMMM yyyy t a")
@@ -52,11 +50,9 @@ export default defineComponent({
   },
   setup() {
     const router = useRouter();
-    const store = useStore();
     
     return {
-      router,
-      store
+      router
     }
   },
 })
