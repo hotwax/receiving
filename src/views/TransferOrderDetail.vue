@@ -313,7 +313,7 @@ export default defineComponent({
     async receiveTO() {
       const alert = await alertController.create({
         header: translate('Receive inventory'),
-        message: translate('Confirmation message.', { space: '<br /><br />' }),
+        message: translate('Inventory can be received for purchase orders in multiple shipments. Proceeding will receive a new shipment for this purchase order but it will still be available for receiving later', { space: '<br /><br />' }),
         buttons: [{
           text: translate('Cancel'),
           role: 'cancel'
