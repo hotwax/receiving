@@ -76,6 +76,31 @@ const actions: ActionTree<TransferOrderState, RootState> = {
 
   return { isProductFound: false }
   },
+  async fetchTOHistory({ commit, state }, { orderId, payload = {} }) {
+    let resp;
+    const current = state.current as any;
+    try {
+      resp = await TransferOrderService.fetchTransferOrderHistory(orderId, payload);
+      if (resp.status === 200 && !hasError(resp) && resp.data.length > 0) {
+        const toHistory = resp.data;
+        const receiversLoginIds = [...new Set(toHistory.map((item: any) => item.receivedByUserLoginId))];
+        const receiversDetails = await this.dispatch('party/getReceiversDetails', receiversLoginIds);
+        toHistory.forEach((item: any) => {
+          item.receiversFullName = receiversDetails[item.receivedByUserLoginId]?.fullName || item.receivedByUserLoginId;
+        });
+        current.toHistory = { items: toHistory };
+        commit(types.ORDER_CURRENT_UPDATED, current);
+        return toHistory;
+      } else {
+        current.toHistory = { items: [] };
+      }
+    } catch (error) {
+      console.error(error);
+      current.toHistory = { items: [] };
+    }
+    commit(types.ORDER_CURRENT_UPDATED, current);
+    return resp;
+  }
 }
 
 export default actions;
