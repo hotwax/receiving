@@ -95,7 +95,8 @@ export default defineComponent({
       queryString: '',
       fetchingOrders: false,
       showErrorMessage: false,
-      selectedSegment: "open"
+      selectedSegment: "open",
+      currentPageIndex: 0
     }
   },
   computed: {
@@ -109,7 +110,7 @@ export default defineComponent({
       this.queryString ? this.showErrorMessage = true : this.showErrorMessage = false;
       this.fetchingOrders = true;
       const limit = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
-      const pageIndex = vIndex ? vIndex : 0;
+      const pageIndex = vIndex ? vIndex : this.currentPageIndex;
 
       let orderStatusId;
       if (this.selectedSegment === 'open') {
@@ -130,19 +131,21 @@ export default defineComponent({
       await this.store.dispatch('transferorder/fetchTransferOrders', payload);
       emitter.emit('dismissLoader');
       this.fetchingOrders = false;
+      if (vIndex !== undefined) this.currentPageIndex = pageIndex;
       return Promise.resolve();
     },
     async loadMoreOrders() {
       const limit = process.env.VUE_APP_VIEW_SIZE;
-      const pageIndex = Math.ceil(this.orders.list.length / limit);
-      await this.getTransferOrders(limit, pageIndex);
+      await this.getTransferOrders(limit, this.currentPageIndex + 1);
     },
     async refreshTransferOrders(event?: any) {
+      this.currentPageIndex = 0;
       this.getTransferOrders().then(() => {
         if (event) event.target.complete();
       })
     },
     segmentChanged() {
+      this.currentPageIndex = 0;
       this.getTransferOrders();
     }
   },

@@ -4,7 +4,8 @@ import TransferOrderState from './TransferOrderState'
 import { TransferOrderService } from '@/services/TransferOrderService';
 import { hasError } from '@/adapter'
 import * as types from './mutation-types'
-import { getProductIdentificationValue } from '@hotwax/dxp-components'
+import { showToast } from '@/utils'
+import { getProductIdentificationValue, translate } from '@hotwax/dxp-components'
 import store from "@/store";
 
 const actions: ActionTree<TransferOrderState, RootState> = {
@@ -17,23 +18,28 @@ const actions: ActionTree<TransferOrderState, RootState> = {
 
     try {
       resp = await TransferOrderService.fetchTransferOrders(params);
-      if (!hasError(resp) && resp.data.ordersCount > 0) {
+      if (resp.status === 200 && !hasError(resp) && resp.data.orders?.length > 0) {
         total = resp.data.ordersCount;
-        if (transferOrderQuery.viewIndex > 0) {
+        if (params.pageIndex && params.pageIndex > 0) {
           orders = state.transferOrder.list.concat(resp.data.orders);
         } else {
           orders = resp.data.orders;
         }
+        commit(types.ORDER_TRANSFER_UPDATED, { list: orders, total });
       } else {
-        throw resp?.data;
+        if (params.pageIndex && params.pageIndex > 0) {
+          showToast(translate("Transfer orders not found"));
+        } else {
+          commit(types.ORDER_TRANSFER_UPDATED, { list: [], total: 0 });
+        }
       }
-    } catch (err) {
-      console.error('No transfer orders found', err);
-    }
-
+        } catch (err) {
+          console.error('No transfer orders found', err);
+          showToast(translate("Something went wrong"));
+          commit(types.ORDER_TRANSFER_UPDATED, { list: [], total: 0 });
+        }
+  
     commit(types.ORDER_TRANSFER_QUERY_UPDATED, { ...transferOrderQuery });
-    commit(types.ORDER_TRANSFER_UPDATED, { list: orders, total });
-
     return resp;
   },
   async fetchTransferOrderDetail({ commit }, payload) {
