@@ -17,7 +17,7 @@
         </ion-thumbnail>
         <ion-label>
           {{ item.receiversFullName }}
-          <p>{{ translate("Shipment ID") }}: {{ item.receiptId }}</p>
+          <p>{{ translate("Receipt ID") }}: {{ item.receiptId }}</p>
         </ion-label>
         <ion-label>
           <ion-note>{{ item.quantityAccepted }} {{ translate("received") }} | {{ item.quantityRejected }} {{ translate("rejected") }}</ion-note>
