@@ -33,12 +33,11 @@ const actions: ActionTree<TransferOrderState, RootState> = {
           commit(types.ORDER_TRANSFER_UPDATED, { list: [], total: 0 });
         }
       }
-        } catch (err) {
-          console.error('No transfer orders found', err);
-          showToast(translate("Something went wrong"));
-          commit(types.ORDER_TRANSFER_UPDATED, { list: [], total: 0 });
-        }
-  
+    } catch (err) {
+      console.error('No transfer orders found', err);
+      showToast(translate("Something went wrong"));
+      commit(types.ORDER_TRANSFER_UPDATED, { list: [], total: 0 });
+    }
     commit(types.ORDER_TRANSFER_QUERY_UPDATED, { ...transferOrderQuery });
     return resp;
   },
