@@ -8,6 +8,9 @@ const getters: GetterTree<TransferOrderState, RootState> = {
   },
   getCurrent (state) {
     return state.current
+  },
+  getTOHistory(state) {
+    return state.current.toHistory;
   }
 };
 export default getters;

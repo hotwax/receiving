@@ -17,7 +17,10 @@
         </ion-thumbnail>
         <ion-label>
           {{ item.receiversFullName }}
-          <p>{{ translate("Shipment ID") }}: {{ item.shipmentId }}</p>
+          <p>
+            {{ orderType === 'transferOrder' ? translate("Receipt ID") : translate("Shipment ID") }}:
+            {{ orderType === 'transferOrder' ? item.receiptId : item.shipmentId }}
+          </p>
         </ion-label>
         <ion-label>
           <ion-note>{{ item.quantityAccepted }} {{ translate("received") }} | {{ item.quantityRejected }} {{ translate("rejected") }}</ion-note>
@@ -75,19 +78,30 @@ export default defineComponent({
   },
   data() {
     return {
-      items: [],
       emptyStateMessage: translate("No shipments have been received against this purchase order yet", {lineBreak: '<br />'})
     }
   },
-  props: ["productId"],
-  mounted() {
-    this.items = this.productId ? this.poHistory.items.filter(item => item.productId === this.productId) : this.poHistory.items;
+  props: {
+    productId: String,
+    orderType: {
+      type: String,
+      default: 'purchaseOrder',
+      validator: val => ['transferOrder', 'purchaseOrder'].includes(val)
+    }
   },
   computed: {
     ...mapGetters({
       poHistory: 'order/getPOHistory',
+      toHistory: 'transferorder/getTOHistory',
       getProduct: 'product/getProduct'
-    })
+    }),
+    items() {
+      const history = this.orderType === 'purchaseOrder' ? this.poHistory : this.toHistory;
+      if (!history?.items) return [];
+      return this.productId
+        ? history.items.filter(item => item.productId === this.productId)
+        : history.items;
+    }
   },
   methods: {
     closeModal() {
