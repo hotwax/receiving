@@ -160,6 +160,7 @@
   "Transfer Order": "Transfer Order",
   "Transfer Orders": "Transfer Orders",
   "Transfer Order Details": "Transfer Order Details",
+  "Transfer orders not found": "Transfer orders not found",
   "Unable to update barcode identification preference since no product store config found.": "Unable to update barcode identification preference since no product store config found.",
   "Unable to update force scan preference since no product store config found.": "Unable to update force scan preference since no product store config found.",
   "Unable to update product identifier preference": "Unable to update product identifier preference",
