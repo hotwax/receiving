@@ -8,6 +8,9 @@ const getters: GetterTree<TransferOrderState, RootState> = {
   },
   getCurrent (state) {
     return state.current
-  }
+  },
+  isProductAvailableInOrder: (state) => (productId: string) => {
+    return state.current.items.some((item: any) => item.productId === productId);
+  },
 };
 export default getters;
