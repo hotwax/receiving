@@ -18,7 +18,7 @@
             <DxpShopifyImg :src="product.mainImageUrl" />
           </ion-thumbnail>
           <ion-label>
-            <!-- Honouring the identifications set by the user on the settings page -->
+            <!-- Honouring the identificcomponents/AddProductToTOModal.vueations set by the user on the settings page -->
             <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(product.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(product.productId)) : getProduct(product.productId).productName }}</h2>
             <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(product.productId)) }}</p>
           </ion-label>
@@ -67,7 +67,7 @@ import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIden
 import { showToast } from '@/utils'
 
 export default defineComponent({
-  name: "Modal",
+  name: "AddProductToTOModal",
   components: {
     IonButton,
     IonButtons,
