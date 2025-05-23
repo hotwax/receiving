@@ -54,9 +54,8 @@ const actions: ActionTree<UtilState, RootState> = {
         "productStoreId": eComStoreId,
         "settingTypeEnumId": "RECEIVE_FORCE_SCAN"
       },
-      "filterByDate": 'Y',
       "entityName": "ProductStoreSetting",
-      "fieldList": ["settingValue", "fromDate"],
+      "fieldList": ["settingValue", "settingTypeEnumId"],
       "viewSize": 1
     }
 
@@ -76,7 +75,7 @@ const actions: ActionTree<UtilState, RootState> = {
 
   async createForceScanSetting({ commit }) {
     const ecomStore = store.getters['user/getCurrentEComStore'];
-    const fromDate = Date.now()
+    let isSettingExists = false;
 
     try {
       if(!await UtilService.isEnumExists("RECEIVE_FORCE_SCAN")) {
@@ -94,13 +93,13 @@ const actions: ActionTree<UtilState, RootState> = {
       }
 
       const params = {
-        fromDate,
         "productStoreId": ecomStore.productStoreId,
         "settingTypeEnumId": "RECEIVE_FORCE_SCAN",
         "settingValue": "false"
       }
 
       await UtilService.createForceScanSetting(params) as any
+      isSettingExists = true
     } catch(err) {
       console.error(err)
     }
@@ -108,7 +107,7 @@ const actions: ActionTree<UtilState, RootState> = {
     // not checking for resp success and fail case as every time we need to update the state with the
     // default value when creating a scan setting
     commit(types.UTIL_FORCE_SCAN_STATUS_UPDATED, false)
-    return fromDate;
+    return isSettingExists;
   },
 
   async setForceScanSetting({ commit, dispatch, state }, value) {
@@ -122,7 +121,7 @@ const actions: ActionTree<UtilState, RootState> = {
       return;
     }
 
-    let fromDate;
+    let isSettingExists = false;
 
     try {
       const resp = await UtilService.getProductStoreSetting({
@@ -130,24 +129,28 @@ const actions: ActionTree<UtilState, RootState> = {
           "productStoreId": eComStoreId,
           "settingTypeEnumId": "RECEIVE_FORCE_SCAN"
         },
-        "filterByDate": 'Y',
         "entityName": "ProductStoreSetting",
-        "fieldList": ["fromDate"],
+        "fieldList": ["settingTypeEnumId"],
         "viewSize": 1
       }) as any
-      if(!hasError(resp)) {
-        fromDate = resp.data.docs[0]?.fromDate
+      if(!hasError(resp) && resp.data.docs[0]?.settingTypeEnumId) {
+        isSettingExists = true;
       }
     } catch(err) {
       console.error(err)
     }
 
-    if(!fromDate) {
-      fromDate = await dispatch("createForceScanSetting");
+    if(!isSettingExists) {
+      isSettingExists = await dispatch("createForceScanSetting");
+    }
+
+    if(!isSettingExists) {
+      showToast(translate("Failed to update force scan preference."))
+      commit(types.UTIL_FORCE_SCAN_STATUS_UPDATED, prefValue)
+      return;
     }
 
     const params = {
-      "fromDate": fromDate,
       "productStoreId": eComStoreId,
       "settingTypeEnumId": "RECEIVE_FORCE_SCAN",
       "settingValue": `${value}`
@@ -175,9 +178,8 @@ const actions: ActionTree<UtilState, RootState> = {
         "productStoreId": eComStoreId,
         "settingTypeEnumId": "BARCODE_IDEN_PREF"
       },
-      "filterByDate": 'Y',
       "entityName": "ProductStoreSetting",
-      "fieldList": ["settingValue", "fromDate"],
+      "fieldList": ["settingValue", "settingTypeEnumId"],
       "viewSize": 1
     }
 
@@ -197,7 +199,7 @@ const actions: ActionTree<UtilState, RootState> = {
 
   async cretaBarcodeIdentificationPref({ commit }) {
     const ecomStore = store.getters['user/getCurrentEComStore'];
-    const fromDate = Date.now()
+    let isSettingExists = false
 
     try {
       if(!await UtilService.isEnumExists("BARCODE_IDEN_PREF")) {
@@ -215,13 +217,13 @@ const actions: ActionTree<UtilState, RootState> = {
       }
 
       const params = {
-        fromDate,
         "productStoreId": ecomStore.productStoreId,
         "settingTypeEnumId": "BARCODE_IDEN_PREF",
         "settingValue": "internalName"
       }  
 
       await UtilService.createBarcodeIdentificationPref(params) as any
+      isSettingExists = true
     } catch(err) {
       console.error(err)
     }
@@ -229,7 +231,7 @@ const actions: ActionTree<UtilState, RootState> = {
     // not checking for resp success and fail case as every time we need to update the state with the
     // default value when creating a scan setting
     commit(types.UTIL_BARCODE_IDENTIFICATION_PREF_UPDATED, "internalName")
-    return fromDate;
+    return isSettingExists;
   },
 
   async setBarcodeIdentificationPref({ commit, dispatch, state }, value) {
@@ -243,7 +245,7 @@ const actions: ActionTree<UtilState, RootState> = {
       return;
     }
 
-    let fromDate;
+    let isSettingExists = false;
 
     try {
       const resp = await UtilService.getProductStoreSetting({
@@ -251,24 +253,28 @@ const actions: ActionTree<UtilState, RootState> = {
           "productStoreId": eComStoreId,
           "settingTypeEnumId": "BARCODE_IDEN_PREF"
         },
-        "filterByDate": 'Y',
         "entityName": "ProductStoreSetting",
-        "fieldList": ["fromDate"],
+        "fieldList": ["settingTypeEnumId"],
         "viewSize": 1
       }) as any
-      if(!hasError(resp)) {
-        fromDate = resp.data.docs[0]?.fromDate
+      if(!hasError(resp) && resp.data.docs[0]?.settingTypeEnumId) {
+        isSettingExists = true
       }
     } catch(err) {
       console.error(err)
     }
 
-    if(!fromDate) {
-      fromDate = await dispatch("createBarcodeIdentificationPref");
+    if(!isSettingExists) {
+      isSettingExists = await dispatch("createBarcodeIdentificationPref");
+    }
+
+    if(!isSettingExists) {
+      showToast(translate("Failed to update barcode identification preference."))
+      commit(types.UTIL_BARCODE_IDENTIFICATION_PREF_UPDATED, prefValue)
+      return;
     }
 
     const params = {
-      "fromDate": fromDate,
       "productStoreId": eComStoreId,
       "settingTypeEnumId": "BARCODE_IDEN_PREF",
       "settingValue": value
