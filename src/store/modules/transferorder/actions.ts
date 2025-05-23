@@ -58,21 +58,23 @@ const actions: ActionTree<TransferOrderState, RootState> = {
     return resp;
   },
   async updateProductCount({ commit, state }, payload ) {
-  const barcodeIdentifier = store.getters['util/getBarcodeIdentificationPref'];
-  const getProduct = store.getters['product/getProduct'];
+    const barcodeIdentifier = store.getters['util/getBarcodeIdentificationPref'];
+    const getProduct = store.getters['product/getProduct'];
 
-  const item = state.current.items.find((item: any) => {
-    const itemVal = barcodeIdentifier ? getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) : item.internalName;
-    return itemVal === payload;
-  });
+    const item = state.current.items.find((item: any) => {
+      const itemVal = barcodeIdentifier
+        ? getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))
+        : item.internalName;
+      return itemVal === payload;
+    });
 
-  if (item) {
-    if(item.statusId === 'ITEM_COMPLETED') return { isCompleted: true }
+    if (item) {
+      if(item.statusId === 'ITEM_COMPLETED') return { isCompleted: true }
 
-    item.totalIssuedQuantity = item.totalIssuedQuantity ? parseInt(item.totalIssuedQuantity) + 1 : 1;
-    commit(types.ORDER_CURRENT_UPDATED, state.current )
-    return { isProductFound: true }
-  }
+      item.quantityAccepted = Number(item.quantityAccepted) ? Number(item.quantityAccepted) + 1 : 1;
+      commit(types.ORDER_CURRENT_UPDATED, state.current)
+      return { isProductFound: true }
+    }
 
   return { isProductFound: false }
   },
