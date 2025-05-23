@@ -75,19 +75,32 @@ export default defineComponent({
   },
   data() {
     return {
-      items: [],
       emptyStateMessage: translate("No shipments have been received against this purchase order yet", {lineBreak: '<br />'})
     }
   },
-  props: ["productId"],
-  mounted() {
-    this.items = this.productId ? this.toHistory.items.filter(item => item.productId === this.productId) : this.toHistory.items;
+  props: {
+    productId: String,
+    historyType: {
+      type: String,
+      default: 'poHistory',
+      validator: val => ['toHistory', 'poHistory'].includes(val)
+    }
   },
   computed: {
     ...mapGetters({
+      poHistory: 'order/getPOHistory',
       toHistory: 'transferorder/getTOHistory',
       getProduct: 'product/getProduct'
-    })
+    }),
+    history() {
+      return this.historyType === 'poHistory' ? this.poHistory : this.toHistory
+    },
+    items() {
+      if (!this.history?.items) return []
+      return this.productId
+        ? this.history.items.filter(item => item.productId === this.productId)
+        : this.history.items
+    }
   },
   methods: {
     closeModal() {

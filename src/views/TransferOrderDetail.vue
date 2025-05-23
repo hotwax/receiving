@@ -306,7 +306,10 @@ export default defineComponent({
       const modal = await modalController
         .create({
           component: ReceivingHistoryModal,
-          componentProps: {productId}
+          componentProps: {
+            productId,
+            historyType: 'toHistory'
+          }
         })
       return modal.present();
     },
