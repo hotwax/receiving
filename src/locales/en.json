@@ -46,7 +46,7 @@
   "History": "History",
   "Internal ID saved to clipboard": "Internal ID saved to clipboard",
   "Inventory can be received for purchase orders in multiple shipments. Proceeding will receive a new shipment for this purchase order but it will still be available for receiving later": "Inventory can be received for purchase orders in multiple shipments. { space } Proceeding will receive a new shipment for this purchase order but it will still be available for receiving later",
-  "Inventory can be received for transfer orders in multiple receipts. Proceeding will receive the item of the transfer order but it will still be available for receiving later.": "Inventory can be received for transfer orders in multiple shipments. { space } Proceeding will receive a new shipment for this transfer order but it will still be available for receiving later.",
+  "Inventory can be received for transfer orders in multiple receipts. Proceeding will receive the item of the transfer order but it will still be available for receiving later.": "Inventory can be received for transfer orders in multiple shipments. { space } Proceeding will receive the item of the transfer order but it will still be available for receiving later.",
   "item": "item",
   "Item count": "Item count",
   "Item count:": "Item count: {count}",
