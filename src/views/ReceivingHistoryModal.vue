@@ -17,7 +17,10 @@
         </ion-thumbnail>
         <ion-label>
           {{ item.receiversFullName }}
-          <p>{{ translate("Receipt ID") }}: {{ item.receiptId }}</p>
+          <p>
+            {{ orderType === 'transferOrder' ? translate("Receipt ID") : translate("Shipment ID") }}:
+            {{ orderType === 'transferOrder' ? item.receiptId : item.shipmentId }}
+          </p>
         </ion-label>
         <ion-label>
           <ion-note>{{ item.quantityAccepted }} {{ translate("received") }} | {{ item.quantityRejected }} {{ translate("rejected") }}</ion-note>
@@ -80,10 +83,10 @@ export default defineComponent({
   },
   props: {
     productId: String,
-    historyType: {
+    orderType: {
       type: String,
-      default: 'poHistory',
-      validator: val => ['toHistory', 'poHistory'].includes(val)
+      default: 'purchaseOrder',
+      validator: val => ['transferOrder', 'purchaseOrder'].includes(val)
     }
   },
   computed: {
@@ -92,14 +95,12 @@ export default defineComponent({
       toHistory: 'transferorder/getTOHistory',
       getProduct: 'product/getProduct'
     }),
-    history() {
-      return this.historyType === 'poHistory' ? this.poHistory : this.toHistory
-    },
     items() {
-      if (!this.history?.items) return []
+      const history = this.orderType === 'purchaseOrder' ? this.poHistory : this.toHistory;
+      if (!history?.items) return [];
       return this.productId
-        ? this.history.items.filter(item => item.productId === this.productId)
-        : this.history.items
+        ? history.items.filter(item => item.productId === this.productId)
+        : history.items;
     }
   },
   methods: {

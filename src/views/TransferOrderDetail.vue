@@ -308,7 +308,7 @@ export default defineComponent({
           component: ReceivingHistoryModal,
           componentProps: {
             productId,
-            historyType: 'toHistory'
+            orderType: 'transferOrder'
           }
         })
       return modal.present();
