@@ -25,6 +25,7 @@
         <ion-label>
           <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
           <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+          <p>{{ getFeatures(getProduct(item.productId).productFeatures) }}</p>
         </ion-label>
         <ion-buttons>
           <ion-checkbox aria-label="itemStatus" slot="end" :modelValue="isPOItemStatusPending(item) ? item.isChecked : true" :disabled="isPOItemStatusPending(item) ? false : true" />
@@ -67,7 +68,7 @@ import { mapGetters, useStore } from 'vuex'
 import { OrderService } from "@/services/OrderService";
 import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore } from '@hotwax/dxp-components';
 import { useRouter } from 'vue-router';
-import { hasError } from '@/utils';
+import { getFeatures, hasError } from '@/utils';
 
 export default defineComponent({
   name: "ClosePurchaseOrderModal",
@@ -252,6 +253,7 @@ export default defineComponent({
       Actions,
       closeOutline,
       checkmarkCircle,
+      getFeatures,
       hasPermission,
       OrderService,
       router,
