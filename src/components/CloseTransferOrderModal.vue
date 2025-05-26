@@ -25,6 +25,7 @@
         <ion-label>
           <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
           <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+          <p>{{ getFeatures(getProduct(item.productId).productFeatures) }}</p>
         </ion-label>
         <ion-buttons>
           <ion-checkbox aria-label="itemStatus" slot="end" :modelValue="isTOItemStatusPending(item) ? item.isChecked : true" :disabled="isTOItemStatusPending(item) ? false : true" />
@@ -67,7 +68,7 @@ import { mapGetters, useStore } from 'vuex'
 import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore, useUserStore } from '@hotwax/dxp-components';
 import { useRouter } from 'vue-router';
 import { TransferOrderService } from '@/services/TransferOrderService';
-import { showToast } from '@/utils';
+import { getFeatures, showToast } from '@/utils';
 
 export default defineComponent({
   name: "CloseTransferOrderModal",
@@ -175,6 +176,7 @@ export default defineComponent({
     return {
       arrowBackOutline,
       Actions,
+      getFeatures,
       hasPermission,
       router,
       saveOutline,
