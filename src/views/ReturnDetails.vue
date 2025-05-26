@@ -43,6 +43,7 @@
                 <ion-label class="ion-text-wrap">
                   <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
                   <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                  <p>{{ getFeatures(getProduct(item.productId).productFeatures)}}</p>
                 </ion-label>
               </ion-item>
             </div>
@@ -117,8 +118,7 @@ import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIden
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import ImageModal from '@/components/ImageModal.vue';
-import { hasError } from '@/utils';
-import { showToast, hasWebcamAccess } from '@/utils'
+import { getFeatures, showToast, hasWebcamAccess } from '@/utils'
 import { Actions, hasPermission } from '@/authorization'
 import { ProductService } from '@/services/ProductService';
 
@@ -347,6 +347,7 @@ export default defineComponent({
       barcodeOutline,
       checkmarkDone,
       cubeOutline,
+      getFeatures,
       hasPermission,
       locationOutline,
       store,
