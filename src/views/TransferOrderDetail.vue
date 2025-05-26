@@ -50,6 +50,7 @@
                   <ion-label class="ion-text-wrap">
                     <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
                     <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                    <p>{{ getFeatures(getProduct(item.productId).productFeatures)}}</p>
                   </ion-label>
                 </ion-item>
               </div>
@@ -108,6 +109,7 @@
                 <ion-label class="ion-text-wrap">
                   <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
                   <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                  <p>{{ getFeatures(getProduct(item.productId).productFeatures)}}</p>
                 </ion-label>
               </ion-item>
             </div>
@@ -174,7 +176,7 @@ import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue"
 import CloseTransferOrderModal from '@/components/CloseTransferOrderModal.vue';
 import ImageModal from '@/components/ImageModal.vue';
-import { copyToClipboard, hasError, showToast, hasWebcamAccess } from '@/utils';
+import { copyToClipboard, getFeatures, hasError, showToast, hasWebcamAccess } from '@/utils';
 import { Actions, hasPermission } from '@/authorization'
 import { TransferOrderService } from '@/services/TransferOrderService';
 
@@ -400,6 +402,7 @@ export default defineComponent({
       currentFacility,
       eyeOffOutline,
       eyeOutline,
+      getFeatures,
       hasPermission,
       locationOutline,
       router,
