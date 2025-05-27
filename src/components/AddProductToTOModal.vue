@@ -21,6 +21,7 @@
             <!-- Honouring the identificcomponents/AddProductToTOModal.vueations set by the user on the settings page -->
             <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(product.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(product.productId)) : getProduct(product.productId).productName }}</h2>
             <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(product.productId)) }}</p>
+            <p>{{ getFeatures(getProduct(product.productId).productFeatures) }}</p>
           </ion-label>
           <ion-icon v-if="isProductAvailableInOrder(product.productId)" color="success" :icon="checkmarkCircle" />
           <ion-button v-else fill="outline" @click="addtoOrder(product)">{{ translate("Add to Transfer Order") }}</ion-button>
@@ -64,7 +65,7 @@ import { closeOutline, checkmarkCircle } from 'ionicons/icons';
 import { mapGetters } from 'vuex'
 import { useStore } from "@/store";
 import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore, useUserStore } from '@hotwax/dxp-components';
-import { showToast } from '@/utils'
+import { getFeatures, showToast } from '@/utils'
 
 export default defineComponent({
   name: "AddProductToTOModal",
@@ -185,7 +186,8 @@ export default defineComponent({
       store,
       translate,
       getProductIdentificationValue,
-      productIdentificationPref
+      productIdentificationPref,
+      getFeatures
     };
   },
 });
