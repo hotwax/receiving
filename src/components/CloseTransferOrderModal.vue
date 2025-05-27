@@ -165,6 +165,15 @@ export default defineComponent({
     getTOItems() {
       return this.order.items.filter((item: any) => item.orderItemSeqId)
     },
+    checkAlreadyFulfilledItems() {
+      this.order.items.forEach((item: any) => {
+        item.isChecked = this.isTOItemStatusPending(item) &&
+          (Number(item.totalReceivedQuantity) > 0 || Number(item.quantityAccepted) > 0);
+      });
+    }
+  },
+  mounted() {
+    this.checkAlreadyFulfilledItems();
   },
   setup() {
     const router = useRouter()
