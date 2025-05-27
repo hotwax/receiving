@@ -80,9 +80,10 @@ const actions: ActionTree<TransferOrderState, RootState> = {
       commit(types.ORDER_CURRENT_UPDATED, state.current)
       return { isProductFound: true }
     }
-
-  return { isProductFound: false }
+    
+    return { isProductFound: false }
   },
+  
   async addOrderItem ({ commit }, payload) {
     const product = { 
       ...payload,
@@ -92,6 +93,44 @@ const actions: ActionTree<TransferOrderState, RootState> = {
     }
     commit(types.ORDER_CURRENT_PRODUCT_ADDED, product)
   },
+
+  async fetchTOHistory({ commit, state }, { payload }) {
+    const current = state.current as any;
+    const pageSize = Number(process.env.VUE_APP_VIEW_SIZE) ;
+    let pageIndex = 0;
+    let allHistory: any[] = [];
+    let resp;
+  
+    try {
+      do {
+        resp = await TransferOrderService.fetchTransferOrderHistory({
+          ...payload,
+          pageSize,
+          pageIndex
+        });
+        if (!hasError(resp) && resp.data.length > 0) {
+          allHistory = allHistory.concat(resp.data);
+          pageIndex++;
+        }
+      } while (resp.data.length >= pageSize);
+  
+      if (allHistory.length > 0) {
+        const receiversLoginIds = [...new Set(allHistory.map((item: any) => item.receivedByUserLoginId))];
+        const receiversDetails = await this.dispatch('party/getReceiversDetails', receiversLoginIds);
+        allHistory.forEach((item: any) => {
+          item.receiversFullName = receiversDetails[item.receivedByUserLoginId]?.fullName || item.receivedByUserLoginId;
+        });
+        current.toHistory = { items: allHistory };
+      } else {
+        current.toHistory = { items: [] };
+      }
+    } catch (error) {
+      console.error(error);
+      current.toHistory = { items: [] };
+    }
+    commit(types.ORDER_CURRENT_UPDATED, current);
+    return allHistory;
+  }
 }
 
 export default actions;

@@ -326,7 +326,10 @@ export default defineComponent({
       const modal = await modalController
         .create({
           component: ReceivingHistoryModal,
-          componentProps: {productId}
+          componentProps: {
+            productId,
+            orderType: 'transferOrder'
+          }
         })
       return modal.present();
     },
@@ -396,6 +399,12 @@ export default defineComponent({
   }, 
   ionViewWillEnter() {
     this.store.dispatch("transferorder/fetchTransferOrderDetail", { orderId: this.$route.params.slug }).then(async () => {
+      await this.store.dispatch('transferorder/fetchTOHistory', {
+        payload: { 
+          orderId: this.order.orderId,
+          orderByField: "-datetimeReceived"
+        }
+    })
       if(this.isTOReceived()) {
         this.showCompletedItems = true;
       }
