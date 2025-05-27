@@ -81,8 +81,17 @@ const actions: ActionTree<TransferOrderState, RootState> = {
       return { isProductFound: true }
     }
 
-    return { isProductFound: false }
-  }
+  return { isProductFound: false }
+  },
+  async addOrderItem ({ commit }, payload) {
+    const product = { 
+      ...payload,
+      quantityAccepted: 0,
+      quantity: 0
+
+    }
+    commit(types.ORDER_CURRENT_PRODUCT_ADDED, product)
+  },
 }
 
 export default actions;

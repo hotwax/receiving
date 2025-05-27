@@ -179,6 +179,7 @@ import ImageModal from '@/components/ImageModal.vue';
 import { copyToClipboard, getFeatures, hasError, showToast, hasWebcamAccess } from '@/utils';
 import { Actions, hasPermission } from '@/authorization'
 import { TransferOrderService } from '@/services/TransferOrderService';
+import AddProductToTOModal from '@/components/AddProductToTOModal.vue';
 
 export default defineComponent({
   name: "TransferOrderDetails",
@@ -274,7 +275,24 @@ export default defineComponent({
           this.lastScannedId = ''
         }, 3000)
       } else {
-        showToast(translate("Scanned item is not present within the shipment:", { itemName: payload }))
+        showToast(translate("Scanned item is not present within the shipment:", { itemName: payload }), {
+          buttons: [{
+            text: translate('Add'),
+            handler: async() => {
+              const modal = await modalController.create({
+                component: AddProductToTOModal,
+                componentProps: { selectedSKU: payload }
+              })
+
+              modal.onDidDismiss().then(() => {
+                this.store.dispatch('product/clearSearchedProducts');
+              })
+
+              return modal.present();
+            }
+          }],
+          duration: 5000
+        })
       }
       this.queryString = ''
     },
