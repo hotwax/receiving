@@ -4,7 +4,8 @@ import TransferOrderState from './TransferOrderState'
 import { TransferOrderService } from '@/services/TransferOrderService';
 import { hasError } from '@/adapter'
 import * as types from './mutation-types'
-import { getProductIdentificationValue } from '@hotwax/dxp-components'
+import { showToast } from '@/utils'
+import { getProductIdentificationValue, translate } from '@hotwax/dxp-components'
 import store from "@/store";
 
 const actions: ActionTree<TransferOrderState, RootState> = {
@@ -19,21 +20,25 @@ const actions: ActionTree<TransferOrderState, RootState> = {
       resp = await TransferOrderService.fetchTransferOrders(params);
       if (!hasError(resp) && resp.data.ordersCount > 0) {
         total = resp.data.ordersCount;
-        if (transferOrderQuery.viewIndex > 0) {
+        if (params.pageIndex && params.pageIndex > 0) {
           orders = state.transferOrder.list.concat(resp.data.orders);
         } else {
           orders = resp.data.orders;
         }
+        commit(types.ORDER_TRANSFER_UPDATED, { list: orders, total });
       } else {
-        throw resp?.data;
+        if (params.pageIndex && params.pageIndex > 0) {
+          showToast(translate("Transfer orders not found"));
+        } else {
+          commit(types.ORDER_TRANSFER_UPDATED, { list: [], total: 0 });
+        }
       }
     } catch (err) {
       console.error('No transfer orders found', err);
+      showToast(translate("Something went wrong"));
+      commit(types.ORDER_TRANSFER_UPDATED, { list: [], total: 0 });
     }
-
     commit(types.ORDER_TRANSFER_QUERY_UPDATED, { ...transferOrderQuery });
-    commit(types.ORDER_TRANSFER_UPDATED, { list: orders, total });
-
     return resp;
   },
   async fetchTransferOrderDetail({ commit }, payload) {
@@ -78,44 +83,54 @@ const actions: ActionTree<TransferOrderState, RootState> = {
     
     return { isProductFound: false }
   },
+  
+  async addOrderItem ({ commit }, payload) {
+    const product = { 
+      ...payload,
+      quantityAccepted: 0,
+      quantity: 0
 
-async fetchTOHistory({ commit, state }, { payload }) {
-  const current = state.current as any;
-  const pageSize = Number(process.env.VUE_APP_VIEW_SIZE) ;
-  let pageIndex = 0;
-  let allHistory: any[] = [];
-  let resp;
+    }
+    commit(types.ORDER_CURRENT_PRODUCT_ADDED, product)
+  },
 
-  try {
-    do {
-      resp = await TransferOrderService.fetchTransferOrderHistory({
-        ...payload,
-        pageSize,
-        pageIndex
-      });
-      if (!hasError(resp) && resp.data.length > 0) {
-        allHistory = allHistory.concat(resp.data);
-        pageIndex++;
+  async fetchTOHistory({ commit, state }, { payload }) {
+    const current = state.current as any;
+    const pageSize = Number(process.env.VUE_APP_VIEW_SIZE) ;
+    let pageIndex = 0;
+    let allHistory: any[] = [];
+    let resp;
+  
+    try {
+      do {
+        resp = await TransferOrderService.fetchTransferOrderHistory({
+          ...payload,
+          pageSize,
+          pageIndex
+        });
+        if (!hasError(resp) && resp.data.length > 0) {
+          allHistory = allHistory.concat(resp.data);
+          pageIndex++;
+        }
+      } while (resp.data.length >= pageSize);
+  
+      if (allHistory.length > 0) {
+        const receiversLoginIds = [...new Set(allHistory.map((item: any) => item.receivedByUserLoginId))];
+        const receiversDetails = await this.dispatch('party/getReceiversDetails', receiversLoginIds);
+        allHistory.forEach((item: any) => {
+          item.receiversFullName = receiversDetails[item.receivedByUserLoginId]?.fullName || item.receivedByUserLoginId;
+        });
+        current.toHistory = { items: allHistory };
+      } else {
+        current.toHistory = { items: [] };
       }
-    } while (resp.data.length >= pageSize);
-
-    if (allHistory.length > 0) {
-      const receiversLoginIds = [...new Set(allHistory.map((item: any) => item.receivedByUserLoginId))];
-      const receiversDetails = await this.dispatch('party/getReceiversDetails', receiversLoginIds);
-      allHistory.forEach((item: any) => {
-        item.receiversFullName = receiversDetails[item.receivedByUserLoginId]?.fullName || item.receivedByUserLoginId;
-      });
-      current.toHistory = { items: allHistory };
-    } else {
+    } catch (error) {
+      console.error(error);
       current.toHistory = { items: [] };
     }
-  } catch (error) {
-    console.error(error);
-    current.toHistory = { items: [] };
+    commit(types.ORDER_CURRENT_UPDATED, current);
+    return allHistory;
   }
-  commit(types.ORDER_CURRENT_UPDATED, current);
-  return allHistory;
-}
 }
 
 export default actions;

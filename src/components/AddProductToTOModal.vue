@@ -18,13 +18,13 @@
             <DxpShopifyImg :src="product.mainImageUrl" />
           </ion-thumbnail>
           <ion-label>
-            <!-- Honouring the identifications set by the user on the settings page -->
+            <!-- Honouring the identificcomponents/AddProductToTOModal.vueations set by the user on the settings page -->
             <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(product.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(product.productId)) : getProduct(product.productId).productName }}</h2>
             <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(product.productId)) }}</p>
             <p>{{ getFeatures(getProduct(product.productId).productFeatures) }}</p>
           </ion-label>
           <ion-icon v-if="isProductAvailableInOrder(product.productId)" color="success" :icon="checkmarkCircle" />
-          <ion-button v-else fill="outline" @click="addtoOrder(product)">{{ translate("Add to Purchase Order") }}</ion-button>
+          <ion-button v-else fill="outline" @click="addtoOrder(product)">{{ translate("Add to Transfer Order") }}</ion-button>
         </ion-item>
       </ion-list>
 
@@ -68,7 +68,7 @@ import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIden
 import { getFeatures, showToast } from '@/utils'
 
 export default defineComponent({
-  name: "Modal",
+  name: "AddProductToTOModal",
   components: {
     IonButton,
     IonButtons,
@@ -99,7 +99,7 @@ export default defineComponent({
       products: 'product/getProducts',
       getProduct: 'product/getProduct',
       isScrollable: 'product/isScrollable',
-      isProductAvailableInOrder: 'order/isProductAvailableInOrder',
+      isProductAvailableInOrder: 'transferorder/isProductAvailableInOrder',
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId'
     })
   },
@@ -161,7 +161,7 @@ export default defineComponent({
     },
     async addtoOrder (product: any) {
       product.locationSeqId = this.facilityLocationsByFacilityId(this.currentFacility.facilityId) ? this.facilityLocationsByFacilityId(this.currentFacility.facilityId)[0]?.locationSeqId : ''
-      this.store.dispatch('order/addOrderItem', product)
+      this.store.dispatch('transferorder/addOrderItem', product)
     },
     closeModal() {
       modalController.dismiss({ dismissed: true });
@@ -183,11 +183,11 @@ export default defineComponent({
       currentFacility,
       closeOutline,
       checkmarkCircle,
-      getFeatures,
       store,
       translate,
       getProductIdentificationValue,
-      productIdentificationPref
+      productIdentificationPref,
+      getFeatures
     };
   },
 });

@@ -50,6 +50,7 @@
                   <ion-label class="ion-text-wrap">
                     <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
                     <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                    <p>{{ getFeatures(getProduct(item.productId).productFeatures) }}</p>
                   </ion-label>
                 </ion-item>
               </div>
@@ -108,6 +109,7 @@
                 <ion-label class="ion-text-wrap">
                   <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
                   <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                  <p>{{ getFeatures(getProduct(item.productId).productFeatures) }}</p>
                 </ion-label>
               </ion-item>
             </div>
@@ -174,9 +176,10 @@ import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue"
 import CloseTransferOrderModal from '@/components/CloseTransferOrderModal.vue';
 import ImageModal from '@/components/ImageModal.vue';
-import { copyToClipboard, hasError, showToast, hasWebcamAccess } from '@/utils';
+import { copyToClipboard, getFeatures, hasError, showToast, hasWebcamAccess } from '@/utils';
 import { Actions, hasPermission } from '@/authorization'
 import { TransferOrderService } from '@/services/TransferOrderService';
+import AddProductToTOModal from '@/components/AddProductToTOModal.vue';
 
 export default defineComponent({
   name: "TransferOrderDetails",
@@ -272,7 +275,24 @@ export default defineComponent({
           this.lastScannedId = ''
         }, 3000)
       } else {
-        showToast(translate("Scanned item is not present within the shipment:", { itemName: payload }))
+        showToast(translate("Scanned item is not present within the shipment:", { itemName: payload }), {
+          buttons: [{
+            text: translate('Add'),
+            handler: async() => {
+              const modal = await modalController.create({
+                component: AddProductToTOModal,
+                componentProps: { selectedSKU: payload }
+              })
+
+              modal.onDidDismiss().then(() => {
+                this.store.dispatch('product/clearSearchedProducts');
+              })
+
+              return modal.present();
+            }
+          }],
+          duration: 5000
+        })
       }
       this.queryString = ''
     },
@@ -316,7 +336,7 @@ export default defineComponent({
     async receiveTO() {
       const alert = await alertController.create({
         header: translate('Receive inventory'),
-        message: translate('Inventory can be received for transfer orders in multiple shipments. Proceeding will receive a new shipment for this transfer order but it will still be available for receiving later', { space: '<br /><br />' }),
+        message: translate('Inventory can be received for transfer orders in multiple receipts. Proceeding will receive the item of the transfer order but it will still be available for receiving later.', { space: '<br /><br />' }),
         buttons: [{
           text: translate('Cancel'),
           role: 'cancel'
@@ -409,6 +429,7 @@ export default defineComponent({
       currentFacility,
       eyeOffOutline,
       eyeOutline,
+      getFeatures,
       hasPermission,
       locationOutline,
       router,
