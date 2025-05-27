@@ -78,21 +78,43 @@ const actions: ActionTree<TransferOrderState, RootState> = {
     
     return { isProductFound: false }
   },
-  async fetchTOHistory({ commit, state }, { orderId, payload = {} }) {
+  async fetchTOHistory({ commit, state }, { orderId, payload = { orderByField: "-datetimeReceived" } }) {
     let resp;
     const current = state.current as any;
+    const pageSize = process.env.VUE_APP_VIEW_SIZE || 10;
+    let pageIndex = 0;
+    let allHistory: any[] = [];
+    let keepFetching = true;
+  
     try {
-      resp = await TransferOrderService.fetchTransferOrderHistory(orderId, payload);
-      if (resp.status === 200 && !hasError(resp) && resp.data.length > 0) {
-        const toHistory = resp.data;
-        const receiversLoginIds = [...new Set(toHistory.map((item: any) => item.receivedByUserLoginId))];
+      do {
+        const paginatedPayload = {
+          ...payload,
+          pageSize,
+          pageIndex
+        };
+        resp = await TransferOrderService.fetchTransferOrderHistory(orderId, paginatedPayload);
+        if (resp.status === 200 && !hasError(resp) && Array.isArray(resp.data) && resp.data.length > 0) {
+          allHistory = allHistory.concat(resp.data);
+          if (resp.data.length < pageSize) {
+            keepFetching = false;
+          } else {
+            pageIndex++;
+          }
+        } else {
+          keepFetching = false;
+        }
+      } while (keepFetching);
+  
+      if (allHistory.length > 0) {
+        const receiversLoginIds = [...new Set(allHistory.map((item: any) => item.receivedByUserLoginId))];
         const receiversDetails = await this.dispatch('party/getReceiversDetails', receiversLoginIds);
-        toHistory.forEach((item: any) => {
+        allHistory.forEach((item: any) => {
           item.receiversFullName = receiversDetails[item.receivedByUserLoginId]?.fullName || item.receivedByUserLoginId;
         });
-        current.toHistory = { items: toHistory };
+        current.toHistory = { items: allHistory };
         commit(types.ORDER_CURRENT_UPDATED, current);
-        return toHistory;
+        return allHistory;
       } else {
         current.toHistory = { items: [] };
       }
