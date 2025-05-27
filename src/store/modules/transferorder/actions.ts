@@ -18,7 +18,7 @@ const actions: ActionTree<TransferOrderState, RootState> = {
 
     try {
       resp = await TransferOrderService.fetchTransferOrders(params);
-      if (!hasError(resp) && resp.data.ordersCount > 0) {
+      if (!hasError(resp) && resp.data.orders.length > 0) {
         total = resp.data.ordersCount;
         if (params.pageIndex && params.pageIndex > 0) {
           orders = state.transferOrder.list.concat(resp.data.orders);
