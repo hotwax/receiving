@@ -11,7 +11,7 @@ const getters: GetterTree<TransferOrderState, RootState> = {
   },
   getTOHistory(state) {
     return state.current.toHistory;
-  }
+  },
   isProductAvailableInOrder: (state) => (productId: string) => {
     return state.current.items.some((item: any) => item.productId === productId);
   }
