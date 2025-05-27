@@ -78,53 +78,44 @@ const actions: ActionTree<TransferOrderState, RootState> = {
     
     return { isProductFound: false }
   },
-  async fetchTOHistory({ commit, state }, { orderId, payload = { orderByField: "-datetimeReceived" } }) {
-    let resp;
-    const current = state.current as any;
-    const pageSize = process.env.VUE_APP_VIEW_SIZE || 10;
-    let pageIndex = 0;
-    let allHistory: any[] = [];
-    let keepFetching = true;
-  
-    try {
-      do {
-        const paginatedPayload = {
-          ...payload,
-          pageSize,
-          pageIndex
-        };
-        resp = await TransferOrderService.fetchTransferOrderHistory(orderId, paginatedPayload);
-        if (resp.status === 200 && !hasError(resp) && Array.isArray(resp.data) && resp.data.length > 0) {
-          allHistory = allHistory.concat(resp.data);
-          if (resp.data.length < pageSize) {
-            keepFetching = false;
-          } else {
-            pageIndex++;
-          }
-        } else {
-          keepFetching = false;
-        }
-      } while (keepFetching);
-  
-      if (allHistory.length > 0) {
-        const receiversLoginIds = [...new Set(allHistory.map((item: any) => item.receivedByUserLoginId))];
-        const receiversDetails = await this.dispatch('party/getReceiversDetails', receiversLoginIds);
-        allHistory.forEach((item: any) => {
-          item.receiversFullName = receiversDetails[item.receivedByUserLoginId]?.fullName || item.receivedByUserLoginId;
-        });
-        current.toHistory = { items: allHistory };
-        commit(types.ORDER_CURRENT_UPDATED, current);
-        return allHistory;
-      } else {
-        current.toHistory = { items: [] };
+
+async fetchTOHistory({ commit, state }, { payload }) {
+  const current = state.current as any;
+  const pageSize = Number(process.env.VUE_APP_VIEW_SIZE) ;
+  let pageIndex = 0;
+  let allHistory: any[] = [];
+  let resp;
+
+  try {
+    do {
+      resp = await TransferOrderService.fetchTransferOrderHistory({
+        ...payload,
+        pageSize,
+        pageIndex
+      });
+      if (!hasError(resp) && resp.data.length > 0) {
+        allHistory = allHistory.concat(resp.data);
+        pageIndex++;
       }
-    } catch (error) {
-      console.error(error);
+    } while (resp.data.length >= pageSize);
+
+    if (allHistory.length > 0) {
+      const receiversLoginIds = [...new Set(allHistory.map((item: any) => item.receivedByUserLoginId))];
+      const receiversDetails = await this.dispatch('party/getReceiversDetails', receiversLoginIds);
+      allHistory.forEach((item: any) => {
+        item.receiversFullName = receiversDetails[item.receivedByUserLoginId]?.fullName || item.receivedByUserLoginId;
+      });
+      current.toHistory = { items: allHistory };
+    } else {
       current.toHistory = { items: [] };
     }
-    commit(types.ORDER_CURRENT_UPDATED, current);
-    return resp;
+  } catch (error) {
+    console.error(error);
+    current.toHistory = { items: [] };
   }
+  commit(types.ORDER_CURRENT_UPDATED, current);
+  return allHistory;
+}
 }
 
 export default actions;

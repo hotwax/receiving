@@ -379,7 +379,12 @@ export default defineComponent({
   }, 
   ionViewWillEnter() {
     this.store.dispatch("transferorder/fetchTransferOrderDetail", { orderId: this.$route.params.slug }).then(async () => {
-      await this.store.dispatch('transferorder/fetchTOHistory', { orderId: this.order.orderId })
+      await this.store.dispatch('transferorder/fetchTOHistory', {
+        payload: { 
+          orderId: this.order.orderId,
+          orderByField: "-datetimeReceived"
+        }
+    })
       if(this.isTOReceived()) {
         this.showCompletedItems = true;
       }

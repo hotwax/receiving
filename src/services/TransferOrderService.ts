@@ -48,15 +48,15 @@ const receiveTransferOrder = async (orderId: string, payload: any): Promise<any>
   });
 };
 
-const fetchTransferOrderHistory = async (orderId: string, params: any): Promise<any> => {
+const fetchTransferOrderHistory = async (payload: any): Promise<any> => {
   const omsRedirectionInfo = store.getters['user/getOmsRedirectionInfo'];
   const baseURL = store.getters['user/getMaargBaseUrl'];
 
   return client({
-    url: `poorti/transferOrders/${orderId}/receipts`,
+    url: `poorti/transferOrders/${payload.orderId}/receipts`,
     method: "get",
     baseURL,
-    params,
+    params: payload,
     headers: {
       "api_key": omsRedirectionInfo.token,
       "Content-Type": "application/json"
