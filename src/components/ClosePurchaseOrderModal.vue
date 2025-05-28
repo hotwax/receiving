@@ -25,6 +25,7 @@
         <ion-label>
           <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
           <p>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+          <p>{{ getFeatures(getProduct(item.productId).productFeatures) }}</p>
         </ion-label>
         <ion-buttons>
           <ion-checkbox slot="end" :modelValue="isPOItemStatusPending(item) ? item.isChecked : true" :disabled="isPOItemStatusPending(item) ? false : true" />
@@ -65,7 +66,7 @@ import { closeOutline, checkmarkCircle, arrowBackOutline, saveOutline } from 'io
 import { defineComponent } from 'vue';
 import { mapGetters, useStore } from 'vuex'
 import { OrderService } from "@/services/OrderService";
-import { productHelpers } from '@/utils';
+import { getFeatures, productHelpers } from '@/utils';
 import { ShopifyImg } from '@hotwax/dxp-components';
 import { useRouter } from 'vue-router';
 
@@ -181,6 +182,7 @@ export default defineComponent({
       Actions,
       closeOutline,
       checkmarkCircle,
+      getFeatures,
       hasPermission,
       OrderService,
       productHelpers,

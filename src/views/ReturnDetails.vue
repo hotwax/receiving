@@ -44,6 +44,7 @@
                 <ion-label class="ion-text-wrap">
                   <h2>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) }}</h2>
                   <p>{{ productHelpers.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                  <p>{{ getFeatures(getProduct(item.productId).productFeatures) }}</p>
                 </ion-label>
               </ion-item>
             </div>
@@ -117,7 +118,7 @@ import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import ImageModal from '@/components/ImageModal.vue';
 import { hasError } from '@/utils';
-import { showToast, productHelpers } from '@/utils'
+import { getFeatures, showToast, productHelpers } from '@/utils'
 import { translate } from '@/i18n'
 import { Actions, hasPermission } from '@/authorization'
 
@@ -273,6 +274,7 @@ export default defineComponent({
       Actions,
       barcodeOutline,
       checkmarkDone,
+      getFeatures,
       hasPermission,
       locationOutline,
       store,
