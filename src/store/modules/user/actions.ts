@@ -202,11 +202,15 @@ const actions: ActionTree<UserState, RootState> = {
       useUserStore().currentEComStore = {}
       commit(types.USER_CURRENT_ECOM_STORE_UPDATED, '');
       await dispatch('updateSettingsToDefault')
+      await useProductIdentificationStore().getIdentificationPref("")
+        .catch((error) => console.error(error));
     } else if(previousEComStore.productStoreId !== eComStore.productStoreId) {
       await useUserStore().setEComStorePreference(eComStore);
       commit(types.USER_CURRENT_ECOM_STORE_UPDATED, eComStore);
       this.dispatch('util/getForceScanSetting', eComStore.productStoreId)
       this.dispatch('util/getBarcodeIdentificationPref', eComStore.productStoreId)
+      await useProductIdentificationStore().getIdentificationPref(eComStore.productStoreId)
+        .catch((error) => console.error(error));
     }
   },
   
