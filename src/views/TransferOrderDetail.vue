@@ -123,7 +123,7 @@
 
             <div>
               <ion-item lines="none">
-                <ion-label slot="end">{{ translate("/ received", { receivedCount: item.totalReceivedQuantity, orderedCount: item.quantity }) }}</ion-label>
+                <ion-label slot="end">{{ translate("/ received", { receivedCount: Number(item.totalReceivedQuantity), orderedCount: item.quantity }) }}</ion-label>
                 <ion-icon :icon="(item.totalReceivedQuantity == item.quantity) ? checkmarkDoneCircleOutline : warningOutline" :color="(item.totalReceivedQuantity  == item.quantity) ? '' : 'warning'" slot="end" />
               </ion-item>
             </div>
