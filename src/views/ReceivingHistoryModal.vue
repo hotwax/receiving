@@ -18,8 +18,8 @@
         <ion-label>
           {{ item.receiversFullName }}
           <p>
-            {{ orderType === 'transferOrder' ? translate("Receipt ID") : translate("Shipment ID") }}:
-            {{ orderType === 'transferOrder' ? item.receiptId : item.shipmentId }}
+            {{ orderType === 'transferOrder' ? null : translate("Shipment ID") }}:
+            {{ orderType === 'transferOrder' ? null : item.shipmentId }}
           </p>
         </ion-label>
         <ion-label>
