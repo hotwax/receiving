@@ -180,6 +180,7 @@ import { copyToClipboard, getFeatures, hasError, showToast, hasWebcamAccess } fr
 import { Actions, hasPermission } from '@/authorization'
 import { TransferOrderService } from '@/services/TransferOrderService';
 import AddProductToTOModal from '@/components/AddProductToTOModal.vue';
+import { DateTime } from 'luxon';
 
 export default defineComponent({
   name: "TransferOrderDetails",
@@ -369,6 +370,7 @@ export default defineComponent({
       const eligibleItems = this.order.items.filter((item: any) => item.quantityAccepted > 0)
       const payload = {
         facilityId: this.getCurrentFacilityId(),
+        receivedDateTime: DateTime.now().toFormat("yyyy-MM-dd HH:mm:ss.SSS"),
         items: eligibleItems.map((item: any) => ({
           orderItemSeqId: item.orderItemSeqId,
           productId: item.productId,
