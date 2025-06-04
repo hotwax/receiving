@@ -4,6 +4,11 @@
       <ion-toolbar>
         <ion-back-button default-href="/transfer-orders" slot="start" />
         <ion-title> {{ translate("Transfer Order Details") }} </ion-title>
+        <ion-buttons slot="end">
+          <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_ADMIN) || isTOReceived()" @click="addProduct">
+            <ion-icon slot="icon-only" :icon="addOutline"/>
+          </ion-button>
+        </ion-buttons>
       </ion-toolbar>
     </ion-header>
 
@@ -321,6 +326,17 @@ export default defineComponent({
       } else {
         return this.order.items.filter((item: any) => item.statusId !== 'ITEM_COMPLETED' && item.statusId !== 'ITEM_REJECTED')
       }
+    },
+    async addProduct() {
+      const modal = await modalController
+        .create({
+          component: AddProductToTOModal
+        })
+      modal.onDidDismiss()
+      .then(() => {
+        this.store.dispatch('product/clearSearchedProducts');
+      })  
+      return modal.present();
     },
     async receivingHistory(productId?: string) {
       const modal = await modalController
