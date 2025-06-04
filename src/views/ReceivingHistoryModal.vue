@@ -17,9 +17,8 @@
         </ion-thumbnail>
         <ion-label>
           {{ item.receiversFullName }}
-          <p>
-            {{ orderType === 'transferOrder' ? translate("Receipt ID") : translate("Shipment ID") }}:
-            {{ orderType === 'transferOrder' ? item.receiptId : item.shipmentId }}
+          <p v-if="orderType !== 'transferOrder'">
+            {{ translate("Shipment ID") }}: {{ item.shipmentId }}
           </p>
         </ion-label>
         <ion-label>
