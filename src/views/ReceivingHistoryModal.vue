@@ -53,9 +53,9 @@ import {
   IonToolbar,
   modalController,
 } from '@ionic/vue';
-import { defineComponent } from 'vue';
+import { defineComponent, computed } from 'vue';
 import { closeOutline } from 'ionicons/icons';
-import { DxpShopifyImg, translate } from '@hotwax/dxp-components';
+import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore } from '@hotwax/dxp-components';
 import { mapGetters, useStore } from "vuex";
 import { DateTime } from 'luxon';
 
@@ -75,11 +75,6 @@ export default defineComponent({
     IonThumbnail,
     IonTitle,
     IonToolbar,
-  },
-  data() {
-    return {
-      emptyStateMessage: translate("No shipments have been received against this purchase order yet", {lineBreak: '<br />'})
-    }
   },
   props: {
     productId: String,
@@ -101,6 +96,17 @@ export default defineComponent({
       return this.productId
         ? history.items.filter(item => item.productId === this.productId)
         : history.items;
+    },
+    productIdentifier() {
+      const product = this.getProduct(this.productId);
+      return (
+        this.getProductIdentificationValue(this.productIdentificationPref.primaryId, product) ||
+        this.getProductIdentificationValue(this.productIdentificationPref.secondaryId, product) ||
+        product?.productName || ''
+      );
+    },
+    emptyStateMessage() {
+      return this.translate("No receipts have been created against yet", { lineBreak: '<br />', productIdentifier: this.productIdentifier });
     }
   },
   methods: {
@@ -113,11 +119,15 @@ export default defineComponent({
   },
   setup() {
     const store = useStore();
+    const productIdentificationStore = useProductIdentificationStore();
+    let productIdentificationPref = computed(() => productIdentificationStore.getProductIdentificationPref);
 
     return {
       closeOutline,
       store,
-      translate
+      translate,
+      getProductIdentificationValue,
+      productIdentificationPref
     };
   },
 });
