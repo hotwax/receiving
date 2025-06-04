@@ -4,6 +4,11 @@
       <ion-toolbar>
         <ion-back-button default-href="/transfer-orders" slot="start" />
         <ion-title> {{ translate("Transfer Order Details") }} </ion-title>
+        <ion-buttons slot="end">
+          <ion-button @click="receivingHistory()">
+            <ion-icon slot="icon-only" :icon="timeOutline"/>
+          </ion-button>
+        </ion-buttons>
       </ion-toolbar>
     </ion-header>
 

@@ -102,7 +102,7 @@ export default defineComponent({
       return (
         this.getProductIdentificationValue(this.productIdentificationPref.primaryId, product) ||
         this.getProductIdentificationValue(this.productIdentificationPref.secondaryId, product) ||
-        product?.productName || ''
+        product?.productName || this.translate("this transfer order")
       );
     },
     emptyStateMessage() {
