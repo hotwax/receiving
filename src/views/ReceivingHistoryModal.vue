@@ -97,16 +97,19 @@ export default defineComponent({
         ? history.items.filter(item => item.productId === this.productId)
         : history.items;
     },
-    productIdentifier() {
-      const product = this.getProduct(this.productId);
-      return (
-        this.getProductIdentificationValue(this.productIdentificationPref.primaryId, product) ||
-        this.getProductIdentificationValue(this.productIdentificationPref.secondaryId, product) ||
-        product?.productName || this.translate("this transfer order")
-      );
-    },
     emptyStateMessage() {
-      return this.translate("No receipts have been created against yet", { lineBreak: '<br />', productIdentifier: this.productIdentifier });
+      if (this.orderType === 'transferOrder') {
+        if (this.productId) {
+          const product = this.getProduct(this.productId);
+          const identifier =
+            this.getProductIdentificationValue(this.productIdentificationPref.primaryId, product) ||
+            this.getProductIdentificationValue(this.productIdentificationPref.secondaryId, product) ||
+            product?.productName || '';
+          return this.translate("No receipts have been created against yet", { lineBreak: '<br />', productIdentifier: identifier });
+        }
+        return this.translate("No receipts have been created against this transfer order yet", { lineBreak: '<br />' });
+      }
+      return this.translate("No shipments have been received against this purchase order yet", { lineBreak: '<br />' });
     }
   },
   methods: {
