@@ -337,5 +337,15 @@ main {
   
   .scanner {
     padding-inline-end: var(--spacer-xs);
+    padding-block-start: var(--spacer-sm);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--background);
+  }
+
+  main:has(.scanner) {
+    height: 100%;
+    overflow-y: scroll;
   }
 }
