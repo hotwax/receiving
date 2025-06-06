@@ -68,6 +68,8 @@
   "No results found": "No results found",
   "No time zone found": "No time zone found",
   "No shipments have been received against this purchase order yet": "No shipments have been received against {lineBreak} this purchase order yet",
+  "No receipts have been created against this transfer order yet": "No receipts have been created against {lineBreak} this transfer order yet",
+  "No receipts have been created against yet": "No receipts have been created against {lineBreak} {productIdentifier} yet",
   "OMS": "OMS",
   "OMS instance": "OMS instance",
   "on hand": "{ qoh } on hand",

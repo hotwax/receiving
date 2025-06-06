@@ -69,6 +69,7 @@ import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIden
 import { useRouter } from 'vue-router';
 import { TransferOrderService } from '@/services/TransferOrderService';
 import { getFeatures, showToast } from '@/utils';
+import { DateTime } from 'luxon';
 
 export default defineComponent({
   name: "CloseTransferOrderModal",
@@ -135,6 +136,7 @@ export default defineComponent({
       // Prepare payload for API, always sending quantityAccepted (default 0)
       const payload = {
         facilityId: this.getCurrentFacilityId(),
+        receivedDateTime: DateTime.now().toFormat("yyyy-MM-dd HH:mm:ss.SSS"),
         items: eligibleItems.map((item: any) => ({
           orderItemSeqId: item.orderItemSeqId,
           productId: item.productId,

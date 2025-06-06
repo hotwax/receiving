@@ -17,9 +17,8 @@
         </ion-thumbnail>
         <ion-label>
           {{ item.receiversFullName }}
-          <p>
-            {{ orderType === 'transferOrder' ? translate("Receipt ID") : translate("Shipment ID") }}:
-            {{ orderType === 'transferOrder' ? item.receiptId : item.shipmentId }}
+          <p v-if="orderType !== 'transferOrder'">
+            {{ translate("Shipment ID") }}: {{ item.shipmentId }}
           </p>
         </ion-label>
         <ion-label>
@@ -53,9 +52,9 @@ import {
   IonToolbar,
   modalController,
 } from '@ionic/vue';
-import { defineComponent } from 'vue';
+import { defineComponent, computed } from 'vue';
 import { closeOutline } from 'ionicons/icons';
-import { DxpShopifyImg, translate } from '@hotwax/dxp-components';
+import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore } from '@hotwax/dxp-components';
 import { mapGetters, useStore } from "vuex";
 import { DateTime } from 'luxon';
 
@@ -75,11 +74,6 @@ export default defineComponent({
     IonThumbnail,
     IonTitle,
     IonToolbar,
-  },
-  data() {
-    return {
-      emptyStateMessage: translate("No shipments have been received against this purchase order yet", {lineBreak: '<br />'})
-    }
   },
   props: {
     productId: String,
@@ -101,6 +95,21 @@ export default defineComponent({
       return this.productId
         ? history.items.filter(item => item.productId === this.productId)
         : history.items;
+    },
+    emptyStateMessage() {
+      if (this.productId) {
+        const product = this.getProduct(this.productId);
+        const identifier =
+          this.getProductIdentificationValue(this.productIdentificationPref.primaryId, product) ||
+          this.getProductIdentificationValue(this.productIdentificationPref.secondaryId, product) ||
+          product?.productName ||
+          product.productId;
+        return this.translate("No receipts have been created against yet", { lineBreak: '<br />', productIdentifier: identifier });
+      }
+      if (this.orderType === 'transferOrder') {
+        return this.translate("No receipts have been created against this transfer order yet", { lineBreak: '<br />' });
+      }
+      return this.translate("No shipments have been received against this purchase order yet", { lineBreak: '<br />' });
     }
   },
   methods: {
@@ -113,11 +122,15 @@ export default defineComponent({
   },
   setup() {
     const store = useStore();
+    const productIdentificationStore = useProductIdentificationStore();
+    let productIdentificationPref = computed(() => productIdentificationStore.getProductIdentificationPref);
 
     return {
       closeOutline,
       store,
-      translate
+      translate,
+      getProductIdentificationValue,
+      productIdentificationPref
     };
   },
 });

@@ -5,7 +5,10 @@
         <ion-back-button default-href="/transfer-orders" slot="start" />
         <ion-title> {{ translate("Transfer Order Details") }} </ion-title>
         <ion-buttons slot="end">
-          <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_ADMIN) || isTOReceived()" @click="addProduct">
+          <ion-button @click="receivingHistory()">
+            <ion-icon slot="icon-only" :icon="timeOutline"/>
+          </ion-button>
+          <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_ADMIN) || isPOReceived()" @click="addProduct">
             <ion-icon slot="icon-only" :icon="addOutline"/>
           </ion-button>
         </ion-buttons>
@@ -185,6 +188,7 @@ import { copyToClipboard, getFeatures, hasError, showToast, hasWebcamAccess } fr
 import { Actions, hasPermission } from '@/authorization'
 import { TransferOrderService } from '@/services/TransferOrderService';
 import AddProductToTOModal from '@/components/AddProductToTOModal.vue';
+import { DateTime } from 'luxon';
 
 export default defineComponent({
   name: "TransferOrderDetails",
@@ -385,6 +389,7 @@ export default defineComponent({
       const eligibleItems = this.order.items.filter((item: any) => item.quantityAccepted > 0)
       const payload = {
         facilityId: this.getCurrentFacilityId(),
+        receivedDateTime: DateTime.now().toFormat("yyyy-MM-dd HH:mm:ss.SSS"),
         items: eligibleItems.map((item: any) => ({
           orderItemSeqId: item.orderItemSeqId,
           productId: item.productId,
