@@ -8,6 +8,9 @@
           <ion-button @click="receivingHistory()">
             <ion-icon slot="icon-only" :icon="timeOutline"/>
           </ion-button>
+          <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_ADMIN) || isPOReceived()" @click="addProduct">
+            <ion-icon slot="icon-only" :icon="addOutline"/>
+          </ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
@@ -327,6 +330,17 @@ export default defineComponent({
       } else {
         return this.order.items.filter((item: any) => item.statusId !== 'ITEM_COMPLETED' && item.statusId !== 'ITEM_REJECTED')
       }
+    },
+    async addProduct() {
+      const modal = await modalController
+        .create({
+          component: AddProductToTOModal
+        })
+      modal.onDidDismiss()
+      .then(() => {
+        this.store.dispatch('product/clearSearchedProducts');
+      })  
+      return modal.present();
     },
     async receivingHistory(productId?: string) {
       const modal = await modalController
