@@ -8,7 +8,7 @@
           <ion-button @click="receivingHistory()">
             <ion-icon slot="icon-only" :icon="timeOutline"/>
           </ion-button>
-          <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_ADMIN) || isPOReceived()" @click="addProduct">
+          <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_ADMIN) || isTOReceived()" @click="addProduct">
             <ion-icon slot="icon-only" :icon="addOutline"/>
           </ion-button>
         </ion-buttons>
@@ -49,7 +49,7 @@
         </ion-item>
 
           <ion-card v-for="(item, index) in order.items" v-show="item.statusId !== 'ITEM_COMPLETED' && item.statusId !== 'ITEM_REJECTED'" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
-            <div  class="product">
+            <div class="product" :data-product-id="item.productId">
               <div class="product-info">
                 <ion-item lines="none">
                   <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).itemDescription)">
@@ -61,6 +61,16 @@
                     <p>{{ getFeatures(getProduct(item.productId).productFeatures) }}</p>
                   </ion-label>
                 </ion-item>
+              </div>
+
+              <div class="location">
+                <ion-button v-if="productQoh[item.productId] === ''" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
+                  <ion-icon color="medium" slot="icon-only" :icon="cubeOutline" />
+                </ion-button>
+                <ion-chip v-else outline>
+                  {{ translate("on hand", { qoh: productQoh[item.productId] }) }}
+                  <ion-icon color="medium" :icon="cubeOutline"/>
+                </ion-chip>
               </div>
 
               <div class="product-count">
@@ -108,7 +118,7 @@
         </ion-item>
         
         <ion-card v-for="(item, index) in getTOItems('completed')" v-show="showCompletedItems && item.statusId === 'ITEM_COMPLETED'" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
-          <div class="product">
+          <div class="product" :data-product-id="item.productId">
             <div class="product-info">
               <ion-item lines="none">
                 <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
@@ -127,6 +137,13 @@
                 <ion-icon :icon="locationOutline"/>
                 <ion-label>{{ item.locationSeqId }}</ion-label>
               </ion-chip> -->
+              <ion-button v-if="productQoh[item.productId] === ''" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
+                <ion-icon color="medium" slot="icon-only" :icon="cubeOutline" />
+              </ion-button>
+              <ion-chip v-else outline>
+                {{ translate("on hand", { qoh: productQoh[item.productId] }) }}
+                <ion-icon color="medium" :icon="cubeOutline"/>
+              </ion-chip>
             </div>
 
             <div>
@@ -176,7 +193,7 @@ import {
   modalController
 } from '@ionic/vue';
 import { defineComponent, computed } from 'vue';
-import { addOutline, cameraOutline, checkmarkDone, checkmarkDoneCircleOutline, copyOutline, eyeOffOutline, eyeOutline, locationOutline, saveOutline, timeOutline, warningOutline } from 'ionicons/icons';
+import { addOutline, cameraOutline, checkmarkDone, checkmarkDoneCircleOutline, copyOutline, cubeOutline, eyeOffOutline, eyeOutline, locationOutline, saveOutline, timeOutline, warningOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore, useUserStore } from '@hotwax/dxp-components';
 import { useStore, mapGetters } from 'vuex';
@@ -189,6 +206,7 @@ import { Actions, hasPermission } from '@/authorization'
 import { TransferOrderService } from '@/services/TransferOrderService';
 import AddProductToTOModal from '@/components/AddProductToTOModal.vue';
 import { DateTime } from 'luxon';
+import { ProductService } from '@/services/ProductService';
 
 export default defineComponent({
   name: "TransferOrderDetails",
@@ -209,7 +227,7 @@ export default defineComponent({
     IonLabel,
     IonPage,
     IonProgressBar,
-    // IonText,
+    IonText,
     IonThumbnail,
     IonTitle,
     IonToolbar
@@ -218,7 +236,8 @@ export default defineComponent({
     return {
       queryString: '',
       showCompletedItems: false,
-      lastScannedId: ''
+      lastScannedId: '',
+      productQoh: {} as any
     }
   },
   computed: {
@@ -416,7 +435,32 @@ export default defineComponent({
     },
     isTOReceived() {
       return this.order.statusId === "ORDER_COMPLETED"
-    }
+    },
+    observeProductVisibility() {
+      const observer = new IntersectionObserver((entries: any) => {
+        entries.forEach((entry: any) => {
+          if (entry.isIntersecting) {
+            const productId = entry.target.getAttribute('data-product-id');
+            if (productId && (!this.productQoh[productId] && this.productQoh[productId] !== 0)) {
+              this.fetchQuantityOnHand(productId);
+            }
+          }
+        });
+      }, {
+        root: null,
+        threshold: 0.4
+      });
+
+      const products = document.querySelectorAll('.product');
+      if (products) {
+        products.forEach((product: any) => {
+          observer.observe(product);
+        });
+      }
+    },
+    async fetchQuantityOnHand(productId: any) {
+      this.productQoh[productId] = await ProductService.getInventoryAvailableByFacility(productId);
+    },
   }, 
   ionViewWillEnter() {
     this.store.dispatch("transferorder/fetchTransferOrderDetail", { orderId: this.$route.params.slug }).then(async () => {
@@ -425,11 +469,15 @@ export default defineComponent({
           orderId: this.order.orderId,
           orderByField: "-datetimeReceived"
         }
-    })
+      })
       if(this.isTOReceived()) {
         this.showCompletedItems = true;
       }
+      this.observeProductVisibility();
     })
+  },
+  ionViewDidLeave() {
+    this.productQoh = {};
   },
   setup() {
     const store = useStore();
@@ -447,6 +495,7 @@ export default defineComponent({
       checkmarkDoneCircleOutline,
       copyOutline,
       copyToClipboard,
+      cubeOutline,
       currentFacility,
       eyeOffOutline,
       eyeOutline,
