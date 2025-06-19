@@ -64,7 +64,7 @@
               </div>
 
               <div class="location">
-                <ion-button v-if="productQoh[item.productId] === ''" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
+                <ion-button v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
                   <ion-icon color="medium" slot="icon-only" :icon="cubeOutline" />
                 </ion-button>
                 <ion-chip v-else outline>
@@ -137,7 +137,7 @@
                 <ion-icon :icon="locationOutline"/>
                 <ion-label>{{ item.locationSeqId }}</ion-label>
               </ion-chip> -->
-              <ion-button v-if="productQoh[item.productId] === ''" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
+              <ion-button v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
                 <ion-icon color="medium" slot="icon-only" :icon="cubeOutline" />
               </ion-button>
               <ion-chip v-else outline>
@@ -237,7 +237,8 @@ export default defineComponent({
       queryString: '',
       showCompletedItems: false,
       lastScannedId: '',
-      productQoh: {} as any
+      productQoh: {} as any,
+      observer: {} as IntersectionObserver
     }
   },
   computed: {
@@ -358,7 +359,8 @@ export default defineComponent({
       modal.onDidDismiss()
       .then(() => {
         this.store.dispatch('product/clearSearchedProducts');
-      })  
+        this.observeProductVisibility();
+      })
       return modal.present();
     },
     async receivingHistory(productId?: string) {
@@ -437,7 +439,11 @@ export default defineComponent({
       return this.order.statusId === "ORDER_COMPLETED"
     },
     observeProductVisibility() {
-      const observer = new IntersectionObserver((entries: any) => {
+      if(this.observer.root) {
+        this.observer.disconnect();
+      }
+
+      this.observer = new IntersectionObserver((entries: any) => {
         entries.forEach((entry: any) => {
           if (entry.isIntersecting) {
             const productId = entry.target.getAttribute('data-product-id');
@@ -454,7 +460,7 @@ export default defineComponent({
       const products = document.querySelectorAll('.product');
       if (products) {
         products.forEach((product: any) => {
-          observer.observe(product);
+          this.observer.observe(product);
         });
       }
     },
