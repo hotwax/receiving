@@ -65,13 +65,13 @@ export default defineComponent({
     let currentFacility: any = computed(() => userStore.getCurrentFacility) 
 
     const appPages = [
-      {
+      /* TODO: Need to make it permission driven {
         title: "Shipments",
         url: "/shipments",
         childRoutes: ["/shipment/"],
         iosIcon: download,
         mdIcon: download,
-      },
+      },*/
       {
         title: "Returns",
         url: "/returns",
