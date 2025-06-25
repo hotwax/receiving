@@ -8,7 +8,7 @@
 
     <ion-content>
       <ion-list id="receiving-list">
-        <ion-menu-toggle auto-hide="false" v-for="(p, i) in appPages" :key="i">
+        <ion-menu-toggle auto-hide="false" v-for="(p, i) in getValidMenuItems(appPages)" :key="i">
           <ion-item button router-direction="root" :router-link="p.url" class="hydrated" :class="{ selected: selectedIndex === i }">
             <ion-icon slot="start" :ios="p.iosIcon" :md="p.mdIcon" />
             <ion-label>{{ p.title }}</ion-label>
@@ -38,6 +38,7 @@ import { calendar, download, gitPullRequestOutline, settings, arrowBackOutline }
 import { useStore } from "@/store";
 import { useUserStore } from "@hotwax/dxp-components"
 import { useRouter } from "vue-router";
+import { hasPermission } from "@/authorization";
 
 export default defineComponent({
   name: "Menu",
@@ -58,6 +59,11 @@ export default defineComponent({
       isUserAuthenticated: 'user/isUserAuthenticated',
     })
   },
+  methods: {
+    getValidMenuItems(appPages: any) {
+      return appPages.filter((appPage: any) => (!appPage.meta || !appPage.meta.permissionId) || hasPermission(appPage.meta.permissionId));
+    }
+  },
   setup() {
     const store = useStore();
     const router = useRouter();
@@ -71,6 +77,9 @@ export default defineComponent({
         childRoutes: ["/shipment/"],
         iosIcon: download,
         mdIcon: download,
+        meta: {
+          permissionId: "APP_SHIPMENTS_VIEW"
+        }
       },
       {
         title: "Returns",
@@ -78,20 +87,29 @@ export default defineComponent({
         childRoutes: ["/return/"],
         iosIcon: gitPullRequestOutline,
         mdIcon: gitPullRequestOutline,
+        meta: {
+          permissionId: "APP_RETURNS_VIEW"
+        }
       },
       {
         title: "Purchase Orders",
         url: "/purchase-orders",
         childRoutes: ["/purchase-order-detail/"],
         iosIcon: calendar,
-        mdIcon: calendar
+        mdIcon: calendar,
+        meta: {
+          permissionId: "APP_PURCHASEORDERS_VIEW"
+        }
       },
       {
         title: "Transfer Orders",
         url: "/transfer-orders",
         childRoutes: ["/transfer-order-detail/"],
         iosIcon: arrowBackOutline,
-        mdIcon: arrowBackOutline
+        mdIcon: arrowBackOutline,
+        meta: {
+          permissionId: "APP_TRANSFERORDERS_VIEW"
+        }
       },
       {
         title: "Settings",
@@ -103,7 +121,8 @@ export default defineComponent({
 
     const selectedIndex = computed(() => {
       const path = router.currentRoute.value.path
-      return appPages.findIndex((screen) => screen.url === path || screen.childRoutes?.includes(path) || screen.childRoutes?.some((route) => path.includes(route)))
+      const validPages = appPages.filter((appPage: any) => (!appPage.meta || !appPage.meta.permissionId) || hasPermission(appPage.meta.permissionId))
+      return validPages.findIndex((screen) => screen.url === path || screen.childRoutes?.includes(path) || screen.childRoutes?.some((route) => path.includes(route)))
     })
 
     return {
