@@ -157,7 +157,7 @@ export default defineComponent({
       return this.order.items.some((item: any) => item.isChecked && this.isTOItemStatusPending(item))
     },
     isTOItemStatusPending(item: any) {
-      return item.statusId !== "ITEM_COMPLETED" && item.statusId !== "ITEM_REJECTED"
+      return item.statusId === "ITEM_PENDING_RECEIPT"
     },
     selectAllItems() {
       this.order.items.map((item:any) => {
