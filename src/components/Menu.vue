@@ -8,7 +8,7 @@
 
     <ion-content>
       <ion-list id="receiving-list">
-        <ion-menu-toggle auto-hide="false" v-for="(p, i) in getValidMenuItems(appPages)" :key="i">
+        <ion-menu-toggle auto-hide="false" v-for="(p, i) in getValidMenuItems()" :key="i">
           <ion-item button router-direction="root" :router-link="p.url" class="hydrated" :class="{ selected: selectedIndex === i }">
             <ion-icon slot="start" :ios="p.iosIcon" :md="p.mdIcon" />
             <ion-label>{{ p.title }}</ion-label>
@@ -58,11 +58,6 @@ export default defineComponent({
     ...mapGetters({
       isUserAuthenticated: 'user/isUserAuthenticated',
     })
-  },
-  methods: {
-    getValidMenuItems(appPages: any) {
-      return appPages.filter((appPage: any) => (!appPage.meta || !appPage.meta.permissionId) || hasPermission(appPage.meta.permissionId));
-    }
   },
   setup() {
     const store = useStore();
@@ -119,9 +114,22 @@ export default defineComponent({
       }
     ];
 
+    function getValidMenuItems() {
+      return appPages.filter((appPage: any) => {
+        // Handling the case to hide TO page dynamically and not added generic code,
+        // as this is not something that needs to be handled for all the pages  and this might need to be removed in future
+        if(hasPermission("APP_SHIPMENTS_VIEW") && hasPermission("APP_TRANSFERORDERS_VIEW") && appPage.title === "Transfer Orders") {
+          return false;
+        } else if(!hasPermission("APP_SHIPMENTS_VIEW") && !hasPermission("APP_TRANSFERORDERS_VIEW") && appPage.title === "Shipments") {
+          return true;
+        }
+        return (!appPage.meta || !appPage.meta.permissionId) || hasPermission(appPage.meta.permissionId)
+      });
+    }
+
     const selectedIndex = computed(() => {
       const path = router.currentRoute.value.path
-      const validPages = appPages.filter((appPage: any) => (!appPage.meta || !appPage.meta.permissionId) || hasPermission(appPage.meta.permissionId))
+      const validPages = getValidMenuItems();
       return validPages.findIndex((screen) => screen.url === path || screen.childRoutes?.includes(path) || screen.childRoutes?.some((route) => path.includes(route)))
     })
 
@@ -132,7 +140,8 @@ export default defineComponent({
       download,
       settings,
       store,
-      calendar
+      calendar,
+      getValidMenuItems
     };
   }
 });
