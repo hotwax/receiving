@@ -163,6 +163,10 @@ router.beforeEach((to, from) => {
     }
   } else if(!hasPermission("APP_SHIPMENTS_VIEW") && !hasPermission("APP_TRANSFERORDERS_VIEW") && (to.name === "Shipments" || to.name === "ShipmentDetails")) {
     return true;
+  } else if(!hasPermission("APP_SHIPMENTS_VIEW") && hasPermission("APP_TRANSFERORDERS_VIEW") && (to.name === "Shipments" || to.name === "ShipmentDetails")) {
+    return {
+      path: "/transfer-orders",
+    };
   }
 
   if (to.meta.permissionId && !hasPermission(to.meta.permissionId)) {

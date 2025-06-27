@@ -77,6 +77,16 @@ export default defineComponent({
         }
       },
       {
+        title: "Transfer Orders",
+        url: "/transfer-orders",
+        childRoutes: ["/transfer-order-detail/"],
+        iosIcon: arrowBackOutline,
+        mdIcon: arrowBackOutline,
+        meta: {
+          permissionId: "APP_TRANSFERORDERS_VIEW"
+        }
+      },
+      {
         title: "Returns",
         url: "/returns",
         childRoutes: ["/return/"],
@@ -94,16 +104,6 @@ export default defineComponent({
         mdIcon: calendar,
         meta: {
           permissionId: "APP_PURCHASEORDERS_VIEW"
-        }
-      },
-      {
-        title: "Transfer Orders",
-        url: "/transfer-orders",
-        childRoutes: ["/transfer-order-detail/"],
-        iosIcon: arrowBackOutline,
-        mdIcon: arrowBackOutline,
-        meta: {
-          permissionId: "APP_TRANSFERORDERS_VIEW"
         }
       },
       {
