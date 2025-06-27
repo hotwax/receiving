@@ -66,7 +66,7 @@ const routes: Array<RouteRecordRaw> = [
     component: ShipmentDetails,
     beforeEnter: authGuard,
     meta: {
-      permissionId: "APP_SHIPMENT_DETAIL_VIEW"
+      permissionId: "APP_SHIPMENTS_VIEW"
     }
   },
   {
@@ -137,7 +137,7 @@ const routes: Array<RouteRecordRaw> = [
     component: TransferOrderDetail,
     beforeEnter: authGuard,
     meta: {
-      permissionId: "APP_TRANSFERORDER_DETAIL_VIEW"
+      permissionId: "APP_TRANSFERORDERS_VIEW"
     }
   },
 ]
@@ -149,6 +149,26 @@ const router = createRouter({
 
 
 router.beforeEach((to, from) => {
+  // Handling the case to hide TO or shipment page dynamically and not added generic code,
+  // as this is not something that needs to be handled for all the pages and this might need to be removed in future
+  if(hasPermission("APP_SHIPMENTS_VIEW") && hasPermission("APP_TRANSFERORDERS_VIEW") && (to.name === "TransferOrders" || to.name === "TransferOrderDetail")) {
+    let redirectToPath = from.path;
+    // If the user has navigated from Login page or if it is page load, redirect user to settings page without showing any toast
+    if (redirectToPath == "/login" || redirectToPath == "/") redirectToPath = "/settings";
+    else {
+      showToast(translate('You do not have permission to access this page'));
+    }
+    return {
+      path: redirectToPath,
+    }
+  } else if(!hasPermission("APP_SHIPMENTS_VIEW") && !hasPermission("APP_TRANSFERORDERS_VIEW") && (to.name === "Shipments" || to.name === "ShipmentDetails")) {
+    return true;
+  } else if(!hasPermission("APP_SHIPMENTS_VIEW") && hasPermission("APP_TRANSFERORDERS_VIEW") && (to.name === "Shipments" || to.name === "ShipmentDetails")) {
+    return {
+      path: "/transfer-orders",
+    };
+  }
+
   if (to.meta.permissionId && !hasPermission(to.meta.permissionId)) {
     let redirectToPath = from.path;
     // If the user has navigated from Login page or if it is page load, redirect user to settings page without showing any toast
