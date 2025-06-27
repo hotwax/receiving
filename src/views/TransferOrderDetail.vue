@@ -48,7 +48,7 @@
           </ion-label>
         </ion-item>
 
-          <ion-card v-for="(item, index) in order.items" v-show="item.statusId !== 'ITEM_COMPLETED' && item.statusId !== 'ITEM_REJECTED'" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+          <ion-card v-for="(item, index) in order.items" v-show="!['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId)" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
             <div class="product" :data-product-id="item.productId">
               <div class="product-info">
                 <ion-item lines="none">
@@ -348,7 +348,7 @@ export default defineComponent({
       if (orderType === 'completed') {
         return this.order.items.filter((item: any) => item.statusId === 'ITEM_COMPLETED')
       } else {
-        return this.order.items.filter((item: any) => item.statusId !== 'ITEM_COMPLETED' && item.statusId !== 'ITEM_REJECTED')
+        return this.order.items.filter((item: any) => !['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId))
       }
     },
     async addProduct() {

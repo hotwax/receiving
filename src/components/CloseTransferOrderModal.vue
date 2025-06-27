@@ -165,7 +165,7 @@ export default defineComponent({
     })
     },
     getTOItems() {
-      return this.order.items.filter((item: any) => item.orderItemSeqId)
+      return this.order.items.filter((item: any) => item.orderItemSeqId && !['ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId))
     },
     checkAlreadyFulfilledItems() {
       this.order.items.forEach((item: any) => {
