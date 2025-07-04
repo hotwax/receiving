@@ -77,6 +77,7 @@ export default defineComponent({
   },
   props: {
     productId: String,
+    orderItemSeqId: String,
     orderType: {
       type: String,
       default: 'purchaseOrder',
@@ -92,9 +93,14 @@ export default defineComponent({
     items() {
       const history = this.orderType === 'purchaseOrder' ? this.poHistory : this.toHistory;
       if (!history?.items) return [];
-      return this.productId
-        ? history.items.filter(item => item.productId === this.productId)
-        : history.items;
+      
+      if (this.orderItemSeqId) {
+        return history.items.filter(item => item.orderItemSeqId === this.orderItemSeqId)
+      } else if (this.productId) {
+        return history.items.filter(item => item.productId === this.productId)
+      } else {
+        return history.items;
+      }
     },
     emptyStateMessage() {
       if (this.productId) {
