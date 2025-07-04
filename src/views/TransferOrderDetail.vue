@@ -93,7 +93,7 @@
               </div>
 
               <div class="to-item-history">
-                <ion-chip outline @click="receivingHistory(item.productId)">
+                <ion-chip outline @click="receivingHistory(item.productId, item.orderItemSeqId)">
                   <ion-icon :icon="checkmarkDone"/>
                   <ion-label> {{ item.totalReceivedQuantity ?? 0 }} {{ translate("received") }} </ion-label>
                 </ion-chip>
@@ -363,12 +363,13 @@ export default defineComponent({
       })
       return modal.present();
     },
-    async receivingHistory(productId?: string) {
+    async receivingHistory(productId?: string, orderItemSeqId?: string) {
       const modal = await modalController
         .create({
           component: ReceivingHistoryModal,
           componentProps: {
             productId,
+            orderItemSeqId,
             orderType: 'transferOrder'
           }
         })
