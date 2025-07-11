@@ -121,6 +121,7 @@ export default defineComponent({
       const payload = {
         orderStatusId,
         destinationFacilityId: this.currentFacility?.facilityId,
+        excludeOriginFacilityIds: "REJECTED_ITM_PARKING",
         limit,
         pageIndex,
         orderName: this.queryString
