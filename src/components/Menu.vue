@@ -34,7 +34,7 @@ import {
 } from "@ionic/vue";
 import { computed, defineComponent } from "vue";
 import { mapGetters } from "vuex";
-import { calendar, download, gitPullRequestOutline, settings, arrowBackOutline } from "ionicons/icons";
+import { businessOutline, calendar, download, gitPullRequestOutline, settings } from "ionicons/icons";
 import { useStore } from "@/store";
 import { useUserStore } from "@hotwax/dxp-components"
 import { useRouter } from "vue-router";
@@ -80,8 +80,8 @@ export default defineComponent({
         title: "Transfer Orders",
         url: "/transfer-orders",
         childRoutes: ["/transfer-order-detail/"],
-        iosIcon: arrowBackOutline,
-        mdIcon: arrowBackOutline,
+        iosIcon: businessOutline,
+        mdIcon: businessOutline,
         meta: {
           permissionId: "APP_TRANSFERORDERS_VIEW"
         }
@@ -134,6 +134,7 @@ export default defineComponent({
     })
 
     return {
+      businessOutline,
       currentFacility,
       selectedIndex,
       appPages,
