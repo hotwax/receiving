@@ -22,7 +22,7 @@ const userModule: Module<UserState, RootState> = {
          url: "",
          token: ""
       },
-      isExternal: false
+      isEmbedded: false
     },
     getters,
     actions,

@@ -39,7 +39,7 @@ export default defineComponent({
       userProfile: 'user/getUserProfile',
       userToken: 'user/getUserToken',
       instanceUrl: 'user/getInstanceUrl',
-      isExternal: 'user/isUserEmbedded'
+      isEmbedded: 'user/isEmbedded'
     })
   },
   methods: {

@@ -22,7 +22,7 @@
               <ion-card-title>{{ userProfile.partyName }}</ion-card-title>
             </ion-card-header>
           </ion-item>
-          <ion-button color="danger" v-if="!isUserEmbedded == true" @click="logout()">{{ translate("Logout") }}</ion-button>
+          <ion-button color="danger" v-if="!isEmbedded == true" @click="logout()">{{ translate("Logout") }}</ion-button>
           <ion-button fill="outline" @click="goToLaunchpad()">
             {{ translate("Go to Launchpad") }}
             <ion-icon slot="end" :icon="openOutline" />
@@ -117,7 +117,7 @@ export default defineComponent({
       currentEComStore: 'user/getCurrentEComStore',
       isForceScanEnabled: 'util/isForceScanEnabled',
       barcodeIdentificationPref: 'util/getBarcodeIdentificationPref',
-      isUserEmbedded: 'user/isUserEmbedded'
+      isEmbedded: 'user/isEmbedded'
     })
   },
   mounted() {
@@ -169,7 +169,7 @@ export default defineComponent({
       })
     },
     goToLaunchpad() {
-      if (this.isUserEmbedded) {
+      if (this.isEmbedded) {
         window.location.href = `${process.env.VUE_APP_EMBEDDED_LAUNCHPAD_URL}`
       } else {
         window.location.href = `${process.env.VUE_APP_LOGIN_URL}`
