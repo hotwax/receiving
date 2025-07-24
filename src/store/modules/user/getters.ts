@@ -43,5 +43,8 @@ const getters: GetterTree <UserState, RootState> = {
     getOmsRedirectionInfo(state) {
         return state.omsRedirectionInfo
     },
+    isEmbedded: (state) => {
+        return state.isEmbedded;
+    },
 }
 export default getters;
