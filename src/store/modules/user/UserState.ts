@@ -10,4 +10,5 @@ export default interface UserState {
     }
     permissions: any;
     pwaState: any;
+    isExternal: boolean;
 }

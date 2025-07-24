@@ -38,7 +38,8 @@ export default defineComponent({
       currentEComStore: 'user/getCurrentEComStore',
       userProfile: 'user/getUserProfile',
       userToken: 'user/getUserToken',
-      instanceUrl: 'user/getInstanceUrl'
+      instanceUrl: 'user/getInstanceUrl',
+      isExternal: 'user/isUserEmbedded'
     })
   },
   methods: {
