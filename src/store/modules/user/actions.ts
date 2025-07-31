@@ -26,7 +26,6 @@ const actions: ActionTree<UserState, RootState> = {
     try {
       const {token, oms, omsRedirectionUrl} = payload;
       dispatch("setUserInstanceUrl", oms);
-
       // Getting the permissions list from server
       const permissionId = process.env.VUE_APP_PERMISSION_ID;
       // Prepare permissions list
