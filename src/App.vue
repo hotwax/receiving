@@ -17,7 +17,7 @@ import { mapGetters, useStore } from "vuex";
 import { Settings } from 'luxon';
 import { initialise, resetConfig } from '@/adapter'
 import { useRouter } from 'vue-router';
-import { translate , useProductIdentificationStore } from "@hotwax/dxp-components"
+import { getAppLoginUrl, translate , useAuthStore, useProductIdentificationStore } from "@hotwax/dxp-components"
 
 export default defineComponent({
   name: 'App',
@@ -38,8 +38,7 @@ export default defineComponent({
       currentEComStore: 'user/getCurrentEComStore',
       userProfile: 'user/getUserProfile',
       userToken: 'user/getUserToken',
-      instanceUrl: 'user/getInstanceUrl',
-      isEmbedded: 'user/isEmbedded'
+      instanceUrl: 'user/getInstanceUrl'
     })
   },
   methods: {
@@ -74,10 +73,13 @@ export default defineComponent({
       }
     },
     async unauthorized() {
+      // Getting the referer launchpad URL and isEmbedded flag here, in case of embedded launchpad the auth state will be reset and isEmbedded will reset to false and we'll end up with regular launchpad url.
+      const appLoginUrl = getAppLoginUrl();
+      const isEmbedded = this.authStore.isEmbedded;
       // Mark the user as unauthorised, this will help in not making the logout api call in actions
       this.store.dispatch("user/logout", { isUserUnauthorised: true });
       const redirectUrl = window.location.origin + '/login';
-      window.location.href = `${process.env.VUE_APP_LOGIN_URL}?redirectUrl=${redirectUrl}`;
+      window.location.href = isEmbedded? appLoginUrl : `${appLoginUrl}?redirectUrl=${redirectUrl}`;
     }
   },
   created() {
@@ -121,10 +123,12 @@ export default defineComponent({
   setup() {
     const store = useStore();
     const router = useRouter();
+    const authStore = useAuthStore();
 
     return {
       router,
-      store
+      store,
+      authStore
     }
   }
 });

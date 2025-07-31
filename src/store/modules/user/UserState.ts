@@ -10,5 +10,4 @@ export default interface UserState {
     }
     permissions: any;
     pwaState: any;
-    isEmbedded: boolean;
 }

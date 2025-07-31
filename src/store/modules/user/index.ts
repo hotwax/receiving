@@ -21,8 +21,7 @@ const userModule: Module<UserState, RootState> = {
       omsRedirectionInfo: {
          url: "",
          token: ""
-      },
-      isEmbedded: false
+      }
     },
     getters,
     actions,

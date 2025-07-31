@@ -24,9 +24,8 @@ const actions: ActionTree<UserState, RootState> = {
  */
   async login ({ commit, dispatch }, payload) {
     try {
-      const {token, oms, omsRedirectionUrl, isEmbedded} = payload;
+      const {token, oms, omsRedirectionUrl} = payload;
       dispatch("setUserInstanceUrl", oms);
-      dispatch("setIsEmbedded", isEmbedded);
       // Getting the permissions list from server
       const permissionId = process.env.VUE_APP_PERMISSION_ID;
       // Prepare permissions list
@@ -281,12 +280,6 @@ const actions: ActionTree<UserState, RootState> = {
 
   setOmsRedirectionInfo({ commit }, payload) {
     commit(types.USER_OMS_REDIRECTION_INFO_UPDATED, payload)
-  },
-  async setIsEmbedded ({ commit }, isEmbedded) {
-    if (isEmbedded) {
-      const isEmbeddedFlag = isEmbedded === 'true' ? true : false;
-      commit(types.USER_IS_EMBEDDED_UPDATED, isEmbeddedFlag);
-    } 
   },
 }
 

@@ -14,8 +14,7 @@ const mutations: MutationTree <UserState> = {
       state.omsRedirectionInfo = {
         url: "",
         token: ""
-      },
-      state.isEmbedded = false
+      }
     },
     [types.USER_INFO_UPDATED] (state, payload) {
         state.current = payload
@@ -38,9 +37,6 @@ const mutations: MutationTree <UserState> = {
     },
     [types.USER_OMS_REDIRECTION_INFO_UPDATED](state, payload) {
          state.omsRedirectionInfo = payload;
-     },
-     [types.USER_IS_EMBEDDED_UPDATED] (state, payload) {
-         state.isEmbedded = payload;
      }
 }
 export default mutations;
