@@ -21,6 +21,13 @@
           <ion-label class="ion-padding">
             <h1>{{ translate("Transfer Order")}}: {{ order.externalId ? order.externalId : order.orderName ? order.orderName : order.orderId }}</h1>
             <p>{{ translate("Item count") }}: {{ order.items?.length || 0 }}</p>
+            <p>
+              <ion-row>
+                <ion-col v-for="(pkg, index) in order.shipmentPackages" :key="index" size="auto" class="ion-padding-end">
+                  {{ pkg.trackingCode }}
+                </ion-col>
+              </ion-row>
+            </p>
           </ion-label>
 
           <div class="doc-meta">
