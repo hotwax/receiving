@@ -51,6 +51,13 @@ const actions: ActionTree<TransferOrderState, RootState> = {
 
       if (resp.status === 200 && !hasError(resp) && resp.data.order) {
         order = resp.data.order;
+        const trackingResp = await TransferOrderService.fetchOrderTrackingDetails(orderId);
+        if (!hasError(trackingResp) && trackingResp.data) {
+          order.shipmentPackages = trackingResp.data.shipmentPackages;
+        } else {
+          order.shipmentPackages = [];
+        }
+
         if (order.items && order.items.length) {
           this.dispatch('product/fetchProductInformation', { order: order.items });
         }
