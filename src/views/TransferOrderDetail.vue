@@ -18,10 +18,17 @@
     <ion-content>
       <main>
         <div class="doc-id">
-          <ion-label class="ion-padding">
-            <h1>{{ translate("Transfer Order")}}: {{ order.externalId ? order.externalId : order.orderName ? order.orderName : order.orderId }}</h1>
-            <p>{{ translate("Item count") }}: {{ order.items?.length || 0 }}</p>
-          </ion-label>
+          <div>
+            <ion-label class="ion-padding">
+              <h1>{{ translate("Transfer Order")}}: {{ order.externalId ? order.externalId : order.orderName ? order.orderName : order.orderId }}</h1>
+              <p>{{ translate("Item count") }}: {{ order.items?.length || 0 }}</p>
+            </ion-label>
+            <ion-row>
+              <ion-chip v-for="(pkg, index) in order.shipmentPackages" :key="index">
+                <ion-label>{{ pkg.trackingCode }}</ion-label>
+              </ion-chip>
+            </ion-row>
+          </div>
 
           <div class="doc-meta">
             <ion-chip @click="copyToClipboard(order.orderId, 'Internal ID saved to clipboard')">{{ order.orderId }}<ion-icon :icon="copyOutline"/></ion-chip>
