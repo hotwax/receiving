@@ -24,7 +24,7 @@
               <p>{{ translate("Item count") }}: {{ order.items?.length || 0 }}</p>
             </ion-label>
             <ion-row>
-              <ion-chip v-for="(pkg, index) in order.shipmentPackages" :key="index">
+              <ion-chip v-for="(pkg, index) in trackedPackages" :key="index">
                 <ion-label>{{ pkg.trackingCode }}</ion-label>
               </ion-chip>
             </ion-row>
@@ -255,7 +255,10 @@ export default defineComponent({
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
       isForceScanEnabled: 'util/isForceScanEnabled',
       barcodeIdentifier: 'util/getBarcodeIdentificationPref',
-    })
+    }),
+    trackedPackages(): any[] {
+    return this.order?.shipmentPackages?.filter((pkg: any) => pkg.trackingCode) || [];
+  }
   },
   methods: {
     isItemReceivedInFull(item: any) {
