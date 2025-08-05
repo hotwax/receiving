@@ -21,7 +21,7 @@
           <div>
             <ion-label class="ion-padding">
               <h1>{{ translate("Transfer Order")}}: {{ order.orderName ? order.orderName : order.externalId ? order.externalId : order.orderId }}</h1>
-              <p>{{ translate("Item count") }}: {{ order.items?.length || 0 }}</p>
+              <p>{{ translate('Item count') }}: {{ getItemCount()}}</p>
             </ion-label>
             <ion-row>
               <ion-chip v-for="(pkg, index) in trackedPackages" :key="index">
@@ -477,6 +477,9 @@ export default defineComponent({
     },
     async fetchQuantityOnHand(productId: any) {
       this.productQoh[productId] = await ProductService.getInventoryAvailableByFacility(productId);
+    },
+    getItemCount() {
+      return this.order?.items?.reduce((totalItems: any, item: any) => totalItems + (item.quantity || 0), 0);
     },
   }, 
   ionViewWillEnter() {
