@@ -25,7 +25,7 @@
             </ion-label>
             <ion-row>
               <ion-chip v-for="(pkg, index) in trackedPackages" :key="index">
-                <ion-label>{{ pkg.trackingCode }}</ion-label>
+                {{ pkg.trackingCode }}
               </ion-chip>
             </ion-row>
           </div>
@@ -192,6 +192,7 @@ import {
   IonLabel,
   IonPage,
   IonProgressBar,
+  IonRow,
   IonText,
   IonThumbnail,
   IonTitle,
@@ -234,6 +235,7 @@ export default defineComponent({
     IonLabel,
     IonPage,
     IonProgressBar,
+    IonRow,
     IonText,
     IonThumbnail,
     IonTitle,
