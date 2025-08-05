@@ -20,7 +20,7 @@
         <div class="doc-id">
           <div>
             <ion-label class="ion-padding">
-              <h1>{{ translate("Transfer Order")}}: {{ order.externalId ? order.externalId : order.orderName ? order.orderName : order.orderId }}</h1>
+              <h1>{{ translate("Transfer Order")}}: {{ order.orderName ? order.orderName : order.externalId ? order.externalId : order.orderId }}</h1>
               <p>{{ translate("Item count") }}: {{ order.items?.length || 0 }}</p>
             </ion-label>
             <ion-row>
