@@ -140,7 +140,10 @@ export default defineComponent({
           role: 'cancel',
         }]
       });
-      return alert.present();
+      await alert.present();
+      await alert.onDidDismiss()
+      this.router.push('/purchase-orders');
+
     },
     async updatePOItemStatus() {
       // Shipment can only be created if quantity is specified for atleast one PO item.
@@ -193,16 +196,19 @@ export default defineComponent({
 
         if(!hasError(resp)) {
           completedItems.push(lastItem.orderItemSeqId)
+          this.router.push('/purchase-orders');
         } else {
           throw resp.data;
         }
       } catch(error: any) {
         hasFailedItems = true;
         await this.serverErrorAlert(error);
+        return;
       }
 
       if(hasFailedItems){
         console.error('Failed to update the status of purchase order items.')
+        return;
       }
 
       if(!completedItems.length) return;
@@ -232,7 +238,6 @@ export default defineComponent({
         }
         this.store.dispatch("order/updatePurchaseOrders", { purchaseOrders })
       }
-      this.router.push('/purchase-orders');
     },
     isEligibleToClosePOItems() {
       return this.order.items.some((item: any) => item.isChecked && this.isPOItemStatusPending(item))
