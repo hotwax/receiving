@@ -68,7 +68,7 @@ import { mapGetters, useStore } from 'vuex'
 import { OrderService } from "@/services/OrderService";
 import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore } from '@hotwax/dxp-components';
 import { useRouter } from 'vue-router';
-import { getFeatures, hasError } from '@/utils';
+import { copyToClipboard, getFeatures, hasError } from '@/utils';
 
 export default defineComponent({
   name: "ClosePurchaseOrderModal",
@@ -123,6 +123,28 @@ export default defineComponent({
       });
       return alert.present();
     },
+    async serverErrorAlert(error: any) {
+      const message = error.response?.data?.error?.message || 'Failed to update the status of purchase order items.';
+      const alert = await alertController.create({
+        header: translate('Error while receiving'),
+        message,
+        buttons: [{
+          text: translate('Copy & Dismiss'),
+          handler: async() => {
+            copyToClipboard(message)
+            return;
+          }
+        },
+        {
+          text: translate('Dismiss'),
+          role: 'cancel',
+        }]
+      });
+      await alert.present();
+      await alert.onDidDismiss()
+      this.router.push('/purchase-orders');
+
+    },
     async updatePOItemStatus() {
       // Shipment can only be created if quantity is specified for atleast one PO item.
       // In some cases we don't need to create shipment instead directly need to close PO items.
@@ -174,15 +196,19 @@ export default defineComponent({
 
         if(!hasError(resp)) {
           completedItems.push(lastItem.orderItemSeqId)
+          this.router.push('/purchase-orders');
         } else {
           throw resp.data;
         }
       } catch(error: any) {
         hasFailedItems = true;
+        await this.serverErrorAlert(error);
+        return;
       }
 
       if(hasFailedItems){
         console.error('Failed to update the status of purchase order items.')
+        return;
       }
 
       if(!completedItems.length) return;
