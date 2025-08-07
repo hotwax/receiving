@@ -49,7 +49,7 @@
             </div>
 
             <div class="location">
-              <ion-button v-if="productQoh[item.productId] === ''" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
+              <ion-button v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
                 <ion-icon color="medium" slot="icon-only" :icon="cubeOutline" />
               </ion-button>
               <ion-chip v-else outline>
@@ -157,7 +157,8 @@ export default defineComponent({
         'Created': 'medium'
       } as any,
       lastScannedId: '',
-      productQoh: {} as any
+      productQoh: {} as any,
+      observer: {} as IntersectionObserver
     }
   },
   async ionViewWillEnter() {
@@ -198,6 +199,7 @@ export default defineComponent({
         modal.onDidDismiss()
         .then( () => {
           this.store.dispatch('product/clearSearchedProducts')
+          this.observeProductVisibility()
         })
       return modal.present();
     },
@@ -211,7 +213,11 @@ export default defineComponent({
       await this.store.dispatch("product/fetchProducts", payload);
     },
     observeProductVisibility() {
-      const observer = new IntersectionObserver((entries: any) => {
+      if(this.observer.root) {
+        this.observer.disconnect();
+      }
+      
+      this.observer = new IntersectionObserver((entries: any) => {
         entries.forEach((entry: any) => {
           if (entry.isIntersecting) {
             const productId = entry.target.getAttribute('data-product-id');
@@ -228,7 +234,7 @@ export default defineComponent({
       const products = document.querySelectorAll('.product');
       if (products) {
         products.forEach((product: any) => {
-          observer.observe(product);
+          this.observer.observe(product);
         });
       }
     },
