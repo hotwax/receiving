@@ -248,7 +248,7 @@ const actions: ActionTree<UserState, RootState> = {
     let prefValue = JSON.parse(JSON.stringify(state.productIdentificationPref))
     const eComStoreId = (state.currentEComStore as any).productStoreId
 
-    let fromDate;
+    let isSettingExists = false;
 
     try {
       const resp = await UserService.getProductIdentificationPref({
@@ -256,20 +256,19 @@ const actions: ActionTree<UserState, RootState> = {
           "productStoreId": eComStoreId,
           "settingTypeEnumId": "PRDT_IDEN_PREF"
         },
-        "filterByDate": 'Y',
         "entityName": "ProductStoreSetting",
-        "fieldList": ["fromDate"],
+        "fieldList": ["settingTypeEnumId"],
         "viewSize": 1
       }) as any
-      if(resp.status == 200 && resp.data.count > 0) {
-        fromDate = resp.data.docs[0].fromDate
+      if(!hasError(resp) && resp.data.docs[0]?.settingTypeEnumId) {
+        isSettingExists = true
       }
     } catch(err) {
       console.error(err)
     }
 
     // when selecting none as ecom store, not updating the pref as it's not possible to save pref with empty productStoreId
-    if(!(state.currentEComStore as any).productStoreId || !fromDate) {
+    if(!(state.currentEComStore as any).productStoreId || !isSettingExists) {
       showToast(translate('Unable to update product identifier preference'))
       commit(types.USER_PREF_PRODUCT_IDENT_CHANGED, prefValue)
       return;
@@ -278,7 +277,6 @@ const actions: ActionTree<UserState, RootState> = {
     prefValue[payload.id] = payload.value
 
     const params = {
-      "fromDate": fromDate,
       "productStoreId": eComStoreId,
       "settingTypeEnumId": "PRDT_IDEN_PREF",
       "settingValue": JSON.stringify(prefValue)
@@ -308,7 +306,6 @@ const actions: ActionTree<UserState, RootState> = {
     }
 
     const params = {
-      "fromDate": Date.now(),
       "productStoreId": (state.currentEComStore as any).productStoreId,
       "settingTypeEnumId": "PRDT_IDEN_PREF",
       "settingValue": JSON.stringify(prefValue)
@@ -338,9 +335,8 @@ const actions: ActionTree<UserState, RootState> = {
         "productStoreId": eComStoreId,
         "settingTypeEnumId": "PRDT_IDEN_PREF"
       },
-      "filterByDate": 'Y',
       "entityName": "ProductStoreSetting",
-      "fieldList": ["settingValue", "fromDate"],
+      "fieldList": ["settingValue"],
       "viewSize": 1
     }
 
