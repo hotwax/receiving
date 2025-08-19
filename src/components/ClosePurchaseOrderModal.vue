@@ -123,7 +123,7 @@ export default defineComponent({
       });
       return alert.present();
     },
-    async serverErrorAlert(error: any) {
+    async itemStatusChangeErrorAlert(error: any) {
       const message = error.response?.data?.error?.message || 'Failed to update the status of purchase order items.';
       const alert = await alertController.create({
         header: translate('Error while receiving'),
@@ -202,7 +202,7 @@ export default defineComponent({
         }
       } catch(error: any) {
         hasFailedItems = true;
-        await this.serverErrorAlert(error);
+        await this.itemStatusChangeErrorAlert(error);
         return;
       }
 
