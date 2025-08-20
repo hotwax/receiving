@@ -140,8 +140,6 @@ export default defineComponent({
         }]
       });
       await alert.present();
-      await alert.onDidDismiss()
-
     },
     async updatePOItemStatus() {
       // Shipment can only be created if quantity is specified for atleast one PO item.
