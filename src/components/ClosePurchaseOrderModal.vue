@@ -117,6 +117,7 @@ export default defineComponent({
           handler: async() => {
             await this.updatePOItemStatus()
             modalController.dismiss()
+            this.router.push('/purchase-orders');
           }
         }]
       });
@@ -199,12 +200,10 @@ export default defineComponent({
       } catch(error: any) {
         hasFailedItems = true;
         await this.itemStatusChangeErrorAlert(error);
-        return;
       }
 
       if(hasFailedItems){
         console.error('Failed to update the status of purchase order items.')
-        return;
       }
 
       if(!completedItems.length) return;
