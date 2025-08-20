@@ -117,7 +117,6 @@ export default defineComponent({
           handler: async() => {
             await this.updatePOItemStatus()
             modalController.dismiss()
-            this.router.push('/purchase-orders')
           }
         }]
       });
@@ -142,7 +141,6 @@ export default defineComponent({
       });
       await alert.present();
       await alert.onDidDismiss()
-      this.router.push('/purchase-orders');
 
     },
     async updatePOItemStatus() {
