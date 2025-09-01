@@ -193,7 +193,6 @@ export default defineComponent({
 
         if(!hasError(resp)) {
           completedItems.push(lastItem.orderItemSeqId)
-          this.router.push('/purchase-orders');
         } else {
           throw resp.data;
         }
