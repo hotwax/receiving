@@ -114,7 +114,7 @@ import { defineComponent, computed } from 'vue';
 import { checkmarkDone, cubeOutline, barcodeOutline, locationOutline } from 'ionicons/icons';
 import { mapGetters, useStore } from "vuex";
 import AddProductModal from '@/views/AddProductModal.vue'
-import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore } from '@hotwax/dxp-components';
+import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore, useAuthStore } from '@hotwax/dxp-components';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import ImageModal from '@/components/ImageModal.vue';
@@ -307,6 +307,15 @@ export default defineComponent({
       this.queryString = ''
     },
     async scanCode () {
+      if (useAuthStore().isEmbedded) {
+        const scanData = await openPosScanner();
+        if(scanData) {
+          this.updateProductCount(scanData);
+        } else {
+          showToast(translate("No data received from scanner"));
+        }
+        return;
+      }
       if (!(await hasWebcamAccess())) {
         showToast(translate("Camera access not allowed, please check permissons."));
         return;
