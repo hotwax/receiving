@@ -30,7 +30,7 @@ const actions: ActionTree<PartyState, RootState> = {
         const receiversDetails = resp.data.docs;
 
         const receiversDetailsByLoginId = receiversDetails.reduce((receiversDetailByLoginId: any, receiverDetails: any) => {
-          receiverDetails.fullName = receiverDetails.firstName + ' ' + receiverDetails.lastName;
+          receiverDetails.fullName = [receiverDetails.firstName, receiverDetails.lastName].filter(Boolean).join(' ');
           receiversDetailByLoginId[receiverDetails.userLoginId] = receiverDetails;
           return receiversDetailByLoginId;
         }, {});
