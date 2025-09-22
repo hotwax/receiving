@@ -35,7 +35,7 @@ export default defineComponent({
   },
   computed: {
     ...mapGetters({
-      currentEComStore: 'user/getCurrentEComStore',
+      currentProductStore: 'user/getCurrentProductStore',
       userProfile: 'user/getUserProfile',
       userToken: 'user/getUserToken',
       instanceUrl: 'user/getInstanceUrl'
@@ -105,7 +105,7 @@ export default defineComponent({
   async mounted(){
     if(this.userToken) {
       // Get product identification from api using dxp-component
-      await useProductIdentificationStore().getIdentificationPref(this.currentEComStore?.productStoreId)
+      await useProductIdentificationStore().getIdentificationPref(this.currentProductStore?.productStoreId)
         .catch((error) => console.error(error));
     }
 

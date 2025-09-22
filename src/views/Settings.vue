@@ -114,7 +114,6 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       userProfile: 'user/getUserProfile',
-      currentEComStore: 'user/getCurrentEComStore',
       isForceScanEnabled: 'util/isForceScanEnabled',
       barcodeIdentificationPref: 'util/getBarcodeIdentificationPref'
     })

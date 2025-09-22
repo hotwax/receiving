@@ -79,7 +79,7 @@ const getFacilityLocations = async (payload: any): Promise<any> => {
   })
 }
   
-const getEComStores = async (token: any, facilityId: any): Promise<any> => {
+const getProductStores = async (token: any, facilityId: any): Promise<any> => {
   if (!facilityId) {
     return Promise.resolve({});
   }
@@ -221,7 +221,7 @@ export const UserService = {
     getUserProfile,
     getUserPermissions,
     getFacilityLocations,
-    getEComStores,
+    getProductStores,
     setUserPreference,
     checkPermission,
     moquiLogin
