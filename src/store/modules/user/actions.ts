@@ -147,7 +147,7 @@ const actions: ActionTree<UserState, RootState> = {
     // Calling the logout api to flag the user as logged out, only when user is authorised
     // if the user is already unauthorised then not calling the logout api as it returns 401 again that results in a loop, thus there is no need to call logout api if the user is unauthorised
     if(!payload?.isUserUnauthorised) {
-      emitter.emit('presentLoader', { message: 'Logging out', backdropDismiss: false })
+      emitter.emit('presentLoader', { message: 'Logging out' })
 
       let resp;
 
