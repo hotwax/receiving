@@ -38,7 +38,8 @@ export default defineComponent({
       currentEComStore: 'user/getCurrentEComStore',
       userProfile: 'user/getUserProfile',
       userToken: 'user/getUserToken',
-      instanceUrl: 'user/getInstanceUrl'
+      instanceUrl: 'user/getInstanceUrl',
+      maarg: "user/getMaarg"
     })
   },
   methods: {
@@ -85,7 +86,8 @@ export default defineComponent({
   created() {
     initialise({
       token: this.userToken,
-      instanceUrl: this.instanceUrl,
+      oms: this.instanceUrl,
+      maarg: this.maarg,
       cacheMaxAge: this.maxAge,
       events: {
         unauthorised: this.unauthorized,
