@@ -1,81 +1,45 @@
-import { client } from "@/adapter";
-import store from "@/store";
+import { api } from "@/adapter";
 
 const fetchTransferOrders = async (params: any): Promise<any> => {
-  const omsRedirectionInfo = store.getters['user/getOmsRedirectionInfo'];
-  const baseURL = store.getters['user/getMaargBaseUrl'];
-
-  return client({
-    url: "oms/transferOrders/",
+  return api({
+    url: "oms/transferOrders",
     method: "get",
-    baseURL,
     params,
-    headers: {
-      "api_key": omsRedirectionInfo.token,
-      "Content-Type": "application/json"
-    }
+    systemType: "MOQUI"
   });
 }
 
 const fetchTransferOrderDetail = async (orderId: string): Promise<any> => {
-  const omsRedirectionInfo = store.getters['user/getOmsRedirectionInfo'];
-  const baseURL = store.getters['user/getMaargBaseUrl'];
-
-  return client({
+  return api({
     url: `oms/transferOrders/${orderId}`,
     method: "get",
-    baseURL,
-    headers: {
-      "api_key": omsRedirectionInfo.token,
-      "Content-Type": "application/json"
-    }
+    systemType: "MOQUI"
   });
 };
 
 const fetchOrderTrackingDetails = async (orderId: string): Promise<any> => {
-  const omsRedirectionInfo = store.getters['user/getOmsRedirectionInfo'];
-  const baseURL = store.getters['user/getMaargBaseUrl'];
-
-  return client({
+  return api({
     url: `poorti/transferShipments/packages?orderId=${orderId}`,
     method: "get",
-    baseURL,
-    headers: {
-      "api_key": omsRedirectionInfo.token,
-      "Content-Type": "application/json"
-    }
+    systemType: "MOQUI"
   });
 };
 
 const receiveTransferOrder = async (orderId: string, payload: any): Promise<any> => {
-  const omsRedirectionInfo = store.getters['user/getOmsRedirectionInfo'];
-  const baseURL = store.getters['user/getMaargBaseUrl'];
-
-  return client({
+  return api({
     url: `poorti/transferOrders/${orderId}/receipts`,
     method: "post",
-    baseURL,
     data: payload,
-    headers: {
-      "api_key": omsRedirectionInfo.token,
-      "Content-Type": "application/json"
-    }
+    systemType: "MOQUI"
   });
 };
 
 const fetchTransferOrderHistory = async (payload: any): Promise<any> => {
-  const omsRedirectionInfo = store.getters['user/getOmsRedirectionInfo'];
-  const baseURL = store.getters['user/getMaargBaseUrl'];
-
-  return client({
+  return api({
     url: `poorti/transferOrders/${payload.orderId}/receipts`,
     method: "get",
-    baseURL,
     params: payload,
-    headers: {
-      "api_key": omsRedirectionInfo.token,
-      "Content-Type": "application/json"
-    }
+    systemType: "MOQUI"
   });
 };
 

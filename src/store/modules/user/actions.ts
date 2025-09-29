@@ -5,7 +5,7 @@ import UserState from './UserState'
 import * as types from './mutation-types'
 import { getCurrentFacilityId, hasError, showToast } from '@/utils'
 import { Settings } from 'luxon';
-import { logout, updateInstanceUrl, updateToken, resetConfig } from '@/adapter'
+import { logout, updateUrls, updateToken, resetConfig } from '@/adapter'
 import {
   getServerPermissionsFromRules,
   prepareAppPermissions,
@@ -24,8 +24,8 @@ const actions: ActionTree<UserState, RootState> = {
  */
   async login ({ commit, dispatch }, payload) {
     try {
-      const {token, oms, omsRedirectionUrl} = payload;
-      dispatch("setUserInstanceUrl", oms);
+      const {token, oms, maarg} = payload;
+      dispatch("setOmsUrls", { oms, maarg });
       // Getting the permissions list from server
       const permissionId = process.env.VUE_APP_PERMISSION_ID;
       // Prepare permissions list
@@ -92,19 +92,6 @@ const actions: ActionTree<UserState, RootState> = {
       setPermissions(appPermissions);
       if (userProfile.userTimeZone) {
         Settings.defaultZone = userProfile.userTimeZone;
-      }
-
-      if(omsRedirectionUrl) {
-        const api_key = await UserService.moquiLogin(omsRedirectionUrl, token)
-        if(api_key) {
-          dispatch("setOmsRedirectionInfo", { url: omsRedirectionUrl, token: api_key })
-        } else {
-          showToast(translate("Some of the app functionality will not work due to missing configuration."))
-          console.error("Some of the app functionality will not work due to missing configuration.");
-        }
-      } else {
-        showToast(translate("Some of the app functionality will not work due to missing configuration."))
-        console.error("Some of the app functionality will not work due to missing configuration.")
       }
 
       updateToken(token)
@@ -230,7 +217,13 @@ const actions: ActionTree<UserState, RootState> = {
   // Set User Instance Url
   setUserInstanceUrl ({ commit }, payload){
     commit(types.USER_INSTANCE_URL_UPDATED, payload)
-    updateInstanceUrl(payload)
+  },
+
+  // Set User Instance Url
+  setOmsUrls ({ commit }, payload) {
+    commit(types.USER_INSTANCE_URL_UPDATED, payload.oms)
+    commit(types.USER_MAARG_UPDATED, payload.maarg)
+    updateUrls(payload.oms, payload.maarg)
   },
 
   async getFacilityLocations( { commit }, facilityId ) {
@@ -276,10 +269,6 @@ const actions: ActionTree<UserState, RootState> = {
 
   updatePwaState({ commit }, payload) {
     commit(types.USER_PWA_STATE_UPDATED, payload);
-  },
-
-  setOmsRedirectionInfo({ commit }, payload) {
-    commit(types.USER_OMS_REDIRECTION_INFO_UPDATED, payload)
   },
 }
 

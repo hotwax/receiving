@@ -4,10 +4,7 @@ export default interface UserState {
     currentEComStore: object;
     instanceUrl: string;
     facilityLocationsByFacilityId: any;
-    omsRedirectionInfo: {
-        url: string;
-        token: string;
-    }
+    maarg: string;
     permissions: any;
     pwaState: any;
 }
