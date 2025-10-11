@@ -24,7 +24,8 @@ const actions: ActionTree<UserState, RootState> = {
  */
   async login ({ commit, dispatch }, payload) {
     try {
-      const {token, oms, omsRedirectionUrl} = payload;
+      const {token, oms} = payload;
+      const omsRedirectionUrl = "hackteboerfest-maarg"
       dispatch("setUserInstanceUrl", oms);
       // Getting the permissions list from server
       const permissionId = process.env.VUE_APP_PERMISSION_ID;
