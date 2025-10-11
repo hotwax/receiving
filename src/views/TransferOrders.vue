@@ -6,7 +6,8 @@
         <ion-title>{{ translate("Transfer Orders") }}</ion-title>
       </ion-toolbar>
       <div>
-        <ion-searchbar :placeholder="translate('Search transfer orders')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getTransferOrders()" />
+        <ion-searchbar :placeholder="translate('Search transfer orders')" v-model="queryString"
+          @keyup.enter="queryString = $event.target.value; getTransferOrders()" />
 
         <ion-segment v-model="selectedSegment" @ionChange="segmentChanged()">
           <ion-segment-button value="open">
@@ -21,7 +22,7 @@
     <ion-content>
       <main>
         <TransferOrderItem v-for="(order, index) in orders.list" :key="index" :transferOrder="order" />
-        <div v-if="orders.list.length" class="load-more-action ion-text-center">
+        <div v-if="orders.list.length < orders.ordersCount" class="load-more-action ion-text-center">
           <ion-button fill="outline" color="dark" @click="loadMoreOrders()">
             <ion-icon :icon="cloudDownloadOutline" slot="start" />
             {{ translate("Load more transfer order") }}
@@ -30,9 +31,9 @@
 
         <!-- Empty state -->
         <div class="empty-state" v-if="!orders.total && !fetchingOrders">
-          <p v-if="showErrorMessage">{{ translate("No results found")}}</p>
+          <p v-if="showErrorMessage">{{ translate("No results found") }}</p>
           <img src="../assets/images/empty-state.png" alt="empty state">
-          <p>{{ translate("There are no transfer orders to receive")}}</p>
+          <p>{{ translate("There are no transfer orders to receive") }}</p>
           <ion-button fill="outline" color="dark" @click="refreshTransferOrders()">
             <ion-icon :icon="reload" slot="start" />
             {{ translate("Refresh") }}
@@ -77,7 +78,7 @@ export default defineComponent({
     IonButton,
     IonContent,
     IonHeader,
-    IonIcon, 
+    IonIcon,
     IonLabel,
     IonMenuButton,
     IonPage,
@@ -95,7 +96,8 @@ export default defineComponent({
       queryString: '',
       fetchingOrders: false,
       showErrorMessage: false,
-      selectedSegment: "open"
+      selectedSegment: "open",
+      // allLoaded: false
     }
   },
   computed: {
@@ -105,11 +107,14 @@ export default defineComponent({
     })
   },
   methods: {
-    async getTransferOrders(vSize?: any, vIndex?: any){
+    async getTransferOrders(vSize?: any, vIndex?: any) {
       this.queryString ? this.showErrorMessage = true : this.showErrorMessage = false;
       this.fetchingOrders = true;
       const limit = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
       const pageIndex = vIndex ? vIndex : 0;
+
+      // 3) save previous length - used in fallback when orders.total is not provided
+      // const previousLength = this.orders.list ? this.orders.list.length : 0;
 
       let orderStatusId;
       if (this.selectedSegment === 'open') {
@@ -130,6 +135,19 @@ export default defineComponent({
       emitter.emit('presentLoader');
       await this.store.dispatch('transferorder/fetchTransferOrders', payload);
       emitter.emit('dismissLoader');
+
+      // 5) compute if all data loaded:
+      //    - if backend provides total: compare lengths
+      //    - else: fallback — if no new records were appended, consider allLoaded true
+      // const newLength = this.orders.list ? this.orders.list.length : 0;
+
+      // if (this.orders.ordersCount !== undefined && this.orders.ordersCount !== null) {
+      //   this.allLoaded = newLength >= this.orders.ordersCount;
+      // } else {
+      //   this.allLoaded = newLength === previousLength;
+      // }
+
+
       this.fetchingOrders = false;
       return Promise.resolve();
     },
@@ -139,21 +157,23 @@ export default defineComponent({
       await this.getTransferOrders(limit, pageIndex);
     },
     async refreshTransferOrders(event?: any) {
+      // this.allLoaded = false;
       this.getTransferOrders().then(() => {
         if (event) event.target.complete();
       })
     },
     segmentChanged() {
+      // this.allLoaded = false;
       this.getTransferOrders();
     }
   },
-  async ionViewWillEnter () {
+  async ionViewWillEnter() {
     await this.getTransferOrders();
   },
-  setup () {
+  setup() {
     const store = useStore();
     const userStore = useUserStore()
-    let currentFacility: any = computed(() => userStore.getCurrentFacility) 
+    let currentFacility: any = computed(() => userStore.getCurrentFacility)
 
     return {
       cloudDownloadOutline,
@@ -168,7 +188,7 @@ export default defineComponent({
 
 <style scoped>
 @media (min-width: 991px) {
-  ion-header > div {
+  ion-header>div {
     display: flex;
   }
 }
