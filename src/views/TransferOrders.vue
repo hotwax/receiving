@@ -97,7 +97,6 @@ export default defineComponent({
       fetchingOrders: false,
       showErrorMessage: false,
       selectedSegment: "open",
-      // allLoaded: false
     }
   },
   computed: {
@@ -113,8 +112,6 @@ export default defineComponent({
       const limit = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
       const pageIndex = vIndex ? vIndex : 0;
 
-      // 3) save previous length - used in fallback when orders.total is not provided
-      // const previousLength = this.orders.list ? this.orders.list.length : 0;
 
       let orderStatusId;
       if (this.selectedSegment === 'open') {
@@ -136,17 +133,6 @@ export default defineComponent({
       await this.store.dispatch('transferorder/fetchTransferOrders', payload);
       emitter.emit('dismissLoader');
 
-      // 5) compute if all data loaded:
-      //    - if backend provides total: compare lengths
-      //    - else: fallback — if no new records were appended, consider allLoaded true
-      // const newLength = this.orders.list ? this.orders.list.length : 0;
-
-      // if (this.orders.ordersCount !== undefined && this.orders.ordersCount !== null) {
-      //   this.allLoaded = newLength >= this.orders.ordersCount;
-      // } else {
-      //   this.allLoaded = newLength === previousLength;
-      // }
-
 
       this.fetchingOrders = false;
       return Promise.resolve();
@@ -157,13 +143,11 @@ export default defineComponent({
       await this.getTransferOrders(limit, pageIndex);
     },
     async refreshTransferOrders(event?: any) {
-      // this.allLoaded = false;
       this.getTransferOrders().then(() => {
         if (event) event.target.complete();
       })
     },
     segmentChanged() {
-      // this.allLoaded = false;
       this.getTransferOrders();
     }
   },
