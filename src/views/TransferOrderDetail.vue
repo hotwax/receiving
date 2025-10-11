@@ -16,7 +16,7 @@
     </ion-header>
 
     <ion-content>
-      <main>
+      <main v-if="!isLoading">
         <div class="doc-id">
           <div>
             <ion-label class="ion-padding">
@@ -161,10 +161,15 @@
             </div>
           </div>
         </ion-card>
-      </main>   
+      </main>
+      
+      <div v-if="isLoading" class="loading-container">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>{{ translate("Loading transfer order details...") }}</p>
+      </div>
     </ion-content>
 
-    <ion-footer v-if="!isTOReceived()">
+    <ion-footer v-if="!isLoading && !isTOReceived()">
       <ion-toolbar>
         <ion-buttons slot="end">
           <ion-button fill="outline" size="small" color="primary" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE)" class="ion-margin-end" @click="receiveAndCloseTO">{{ translate("Receive And Close") }}</ion-button>
@@ -193,6 +198,7 @@ import {
   IonPage,
   IonProgressBar,
   IonRow,
+  IonSpinner,
   IonText,
   IonThumbnail,
   IonTitle,
@@ -236,6 +242,7 @@ export default defineComponent({
     IonPage,
     IonProgressBar,
     IonRow,
+    IonSpinner,
     IonText,
     IonThumbnail,
     IonTitle,
@@ -247,7 +254,8 @@ export default defineComponent({
       showCompletedItems: false,
       lastScannedId: '',
       productQoh: {} as any,
-      observer: {} as IntersectionObserver
+      observer: {} as IntersectionObserver,
+      isLoading: false
     }
   },
   computed: {
@@ -485,6 +493,8 @@ export default defineComponent({
     },
   }, 
   ionViewWillEnter() {
+    this.isLoading = true;
+    this.store.dispatch("transferorder/clearCurrentOrder");
     this.store.dispatch("transferorder/fetchTransferOrderDetail", { orderId: this.$route.params.slug }).then(async () => {
       await this.store.dispatch('transferorder/fetchTOHistory', {
         payload: { 
@@ -496,6 +506,7 @@ export default defineComponent({
         this.showCompletedItems = true;
       }
       this.observeProductVisibility();
+      this.isLoading = false;
     })
   },
   ionViewDidLeave() {
@@ -578,6 +589,19 @@ ion-thumbnail {
     Done this because currently ion-item inside ion-card is not inheriting highlighted background property.
   */
   outline: 2px solid var( --ion-color-medium-tint);
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+.loading-container ion-spinner {
+  margin-bottom: 1rem;
 }
 
 @media (min-width: 720px) {
