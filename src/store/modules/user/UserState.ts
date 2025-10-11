@@ -1,7 +1,7 @@
 export default interface UserState {
     token: string;
     current: any;
-    currentEComStore: object;
+    currentProductStore: object;
     instanceUrl: string;
     facilityLocationsByFacilityId: any;
     omsRedirectionInfo: {
