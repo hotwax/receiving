@@ -20,7 +20,8 @@
     </ion-header>
     <ion-content>
       <main>
-        <PurchaseOrderItem v-for="(order, index) in orders" :key="index" :purchaseOrder="order.doclist.docs[0]" />
+        <PurchaseOrderItem v-for="(order, index) in orders" :key="index" :purchaseOrder="order" />
+
         
         <div v-if="orders.length" class="load-more-action ion-text-center">
           <ion-button fill="outline" color="dark" @click="loadMoreOrders()">
