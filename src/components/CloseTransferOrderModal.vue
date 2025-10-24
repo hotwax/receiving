@@ -119,12 +119,15 @@ export default defineComponent({
             alert.dismiss();
             emitter.emit("presentLoader", { message: "Loading...", backdropDismiss: false });
 
-            const success = await this.updateTOItemStatus();
-            if (success) {
-              modalController.dismiss();
-              this.router.push('/transfer-orders');
+            try {
+              const success = await this.updateTOItemStatus();
+              if (success) {
+                modalController.dismiss();
+                this.router.push('/transfer-orders');
+              }
+            } finally {
+              emitter.emit("dismissLoader");
             }
-            emitter.emit("dismissLoader");
           }
         }]
       });
