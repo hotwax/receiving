@@ -403,8 +403,11 @@ export default defineComponent({
             // Dismiss alert before showing loader to prevent overlay stacking
             alert.dismiss();
             emitter.emit("presentLoader", { message: "Loading...", backdropDismiss: false });
-            await this.receiveTransferOrder();
-            emitter.emit("dismissLoader");
+            try {
+              await this.receiveTransferOrder();
+            } finally {
+              emitter.emit("dismissLoader");
+            }
           }
         }]
       });
