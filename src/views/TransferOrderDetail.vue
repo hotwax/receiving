@@ -215,6 +215,7 @@ import { TransferOrderService } from '@/services/TransferOrderService';
 import AddProductToTOModal from '@/components/AddProductToTOModal.vue';
 import { DateTime } from 'luxon';
 import { ProductService } from '@/services/ProductService';
+import emitter from "@/event-bus";
 
 export default defineComponent({
   name: "TransferOrderDetails",
@@ -398,8 +399,12 @@ export default defineComponent({
         {
           text: translate('Proceed'),
           role: 'proceed',
-          handler: () => {
-            this.receiveTransferOrder();
+          handler: async () => {
+            // Dismiss alert before showing loader to prevent overlay stacking
+            alert.dismiss();
+            emitter.emit("presentLoader", { message: "Loading...", backdropDismiss: false });
+            await this.receiveTransferOrder();
+            emitter.emit("dismissLoader");
           }
         }]
       });
