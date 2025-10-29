@@ -119,7 +119,7 @@
           <ion-text v-else color="medium" class="ion-margin-end">
             {{ translate("Completed: item", { itemsCount: getTOItems('completed').length }) }}
           </ion-text>
-          <ion-button v-if="getTOItems('completed').length" @click="showCompletedItems = !showCompletedItems" color="medium" fill="clear">
+          <ion-button size="default" v-if="getTOItems('completed').length" @click="showCompletedItems = !showCompletedItems" color="medium" fill="clear">
             <ion-icon :icon="showCompletedItems ? eyeOutline : eyeOffOutline" slot="icon-only" />
           </ion-button>
         </ion-item>
@@ -215,6 +215,7 @@ import { TransferOrderService } from '@/services/TransferOrderService';
 import AddProductToTOModal from '@/components/AddProductToTOModal.vue';
 import { DateTime } from 'luxon';
 import { ProductService } from '@/services/ProductService';
+import emitter from "@/event-bus";
 
 export default defineComponent({
   name: "TransferOrderDetails",
@@ -407,8 +408,15 @@ export default defineComponent({
         {
           text: translate('Proceed'),
           role: 'proceed',
-          handler: () => {
-            this.receiveTransferOrder();
+          handler: async () => {
+            // Dismiss alert before showing loader to prevent overlay stacking
+            alert.dismiss();
+            emitter.emit("presentLoader", { message: "Loading...", backdropDismiss: false });
+            try {
+              await this.receiveTransferOrder();
+            } finally {
+              emitter.emit("dismissLoader");
+            }
           }
         }]
       });

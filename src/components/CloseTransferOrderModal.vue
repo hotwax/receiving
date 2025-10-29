@@ -70,6 +70,7 @@ import { useRouter } from 'vue-router';
 import { TransferOrderService } from '@/services/TransferOrderService';
 import { getFeatures, showToast } from '@/utils';
 import { DateTime } from 'luxon';
+import emitter from "@/event-bus";
 
 export default defineComponent({
   name: "CloseTransferOrderModal",
@@ -114,10 +115,18 @@ export default defineComponent({
           text: translate('Proceed'),
           role: 'proceed',
           handler: async () => {
-            const success = await this.updateTOItemStatus();
-            if (success) {
-              modalController.dismiss();
-              this.router.push('/transfer-orders');
+            // Dismiss the alert immediately when proceed is clicked
+            alert.dismiss();
+            emitter.emit("presentLoader", { message: "Loading...", backdropDismiss: false });
+
+            try {
+              const success = await this.updateTOItemStatus();
+              if (success) {
+                modalController.dismiss();
+                this.router.push('/transfer-orders');
+              }
+            } finally {
+              emitter.emit("dismissLoader");
             }
           }
         }]
