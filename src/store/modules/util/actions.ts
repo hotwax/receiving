@@ -48,10 +48,10 @@ const actions: ActionTree<UtilState, RootState> = {
     return cachedStatus;
   },
 
-  async getForceScanSetting({ commit, dispatch }, eComStoreId) {
+  async getForceScanSetting({ commit, dispatch }, productStoreId) {
     const payload = {
       "inputFields": {
-        "productStoreId": eComStoreId,
+        "productStoreId": productStoreId,
         "settingTypeEnumId": "RECEIVE_FORCE_SCAN"
       },
       "entityName": "ProductStoreSetting",
@@ -74,7 +74,7 @@ const actions: ActionTree<UtilState, RootState> = {
   },
 
   async createForceScanSetting({ commit }) {
-    const ecomStore = store.getters['user/getCurrentEComStore'];
+    const productStore = store.getters['user/getCurrentProductStore'];
     let isSettingExists = false;
 
     try {
@@ -93,7 +93,7 @@ const actions: ActionTree<UtilState, RootState> = {
       }
 
       const params = {
-        "productStoreId": ecomStore.productStoreId,
+        "productStoreId": productStore.productStoreId,
         "settingTypeEnumId": "RECEIVE_FORCE_SCAN",
         "settingValue": "false"
       }
@@ -112,10 +112,10 @@ const actions: ActionTree<UtilState, RootState> = {
 
   async setForceScanSetting({ commit, dispatch, state }, value) {
     let prefValue = state.isForceScanEnabled
-    const eComStoreId = store.getters['user/getCurrentEComStore'].productStoreId;
+    const productStoreId = store.getters['user/getCurrentProductStore'].productStoreId;
 
     // when selecting none as ecom store, not updating the pref as it's not possible to save pref with empty productStoreId
-    if(!eComStoreId) {
+    if(!productStoreId) {
       showToast(translate("Unable to update force scan preference since no product store config found."))
       commit(types.UTIL_FORCE_SCAN_STATUS_UPDATED, prefValue)
       return;
@@ -126,7 +126,7 @@ const actions: ActionTree<UtilState, RootState> = {
     try {
       const resp = await UtilService.getProductStoreSetting({
         "inputFields": {
-          "productStoreId": eComStoreId,
+          "productStoreId": productStoreId,
           "settingTypeEnumId": "RECEIVE_FORCE_SCAN"
         },
         "entityName": "ProductStoreSetting",
@@ -151,7 +151,7 @@ const actions: ActionTree<UtilState, RootState> = {
     }
 
     const params = {
-      "productStoreId": eComStoreId,
+      "productStoreId": productStoreId,
       "settingTypeEnumId": "RECEIVE_FORCE_SCAN",
       "settingValue": `${value}`
     }
@@ -172,10 +172,10 @@ const actions: ActionTree<UtilState, RootState> = {
     commit(types.UTIL_FORCE_SCAN_STATUS_UPDATED, prefValue)
   },
 
-  async getBarcodeIdentificationPref({ commit, dispatch }, eComStoreId) {
+  async getBarcodeIdentificationPref({ commit, dispatch }, productStoreId) {
     const payload = {
       "inputFields": {
-        "productStoreId": eComStoreId,
+        "productStoreId": productStoreId,
         "settingTypeEnumId": "BARCODE_IDEN_PREF"
       },
       "entityName": "ProductStoreSetting",
@@ -198,7 +198,7 @@ const actions: ActionTree<UtilState, RootState> = {
   },
 
   async cretaBarcodeIdentificationPref({ commit }) {
-    const ecomStore = store.getters['user/getCurrentEComStore'];
+    const productStore = store.getters['user/getCurrentProductStore'];
     let isSettingExists = false
 
     try {
@@ -217,7 +217,7 @@ const actions: ActionTree<UtilState, RootState> = {
       }
 
       const params = {
-        "productStoreId": ecomStore.productStoreId,
+        "productStoreId": productStore.productStoreId,
         "settingTypeEnumId": "BARCODE_IDEN_PREF",
         "settingValue": "internalName"
       }  
@@ -236,10 +236,10 @@ const actions: ActionTree<UtilState, RootState> = {
 
   async setBarcodeIdentificationPref({ commit, dispatch, state }, value) {
     let prefValue = state.barcodeIdentificationPref
-    const eComStoreId = store.getters['user/getCurrentEComStore'].productStoreId;
+    const productStoreId = store.getters['user/getCurrentProductStore'].productStoreId;
 
     // when selecting none as ecom store, not updating the pref as it's not possible to save pref with empty productStoreId
-    if(!eComStoreId) {
+    if(!productStoreId) {
       showToast(translate("Unable to update barcode identification preference since no product store config found."))
       commit(types.UTIL_BARCODE_IDENTIFICATION_PREF_UPDATED, prefValue)
       return;
@@ -250,7 +250,7 @@ const actions: ActionTree<UtilState, RootState> = {
     try {
       const resp = await UtilService.getProductStoreSetting({
         "inputFields": {
-          "productStoreId": eComStoreId,
+          "productStoreId": productStoreId,
           "settingTypeEnumId": "BARCODE_IDEN_PREF"
         },
         "entityName": "ProductStoreSetting",
@@ -275,7 +275,7 @@ const actions: ActionTree<UtilState, RootState> = {
     }
 
     const params = {
-      "productStoreId": eComStoreId,
+      "productStoreId": productStoreId,
       "settingTypeEnumId": "BARCODE_IDEN_PREF",
       "settingValue": value
     }

@@ -84,9 +84,9 @@ const actions: ActionTree<UserState, RootState> = {
       }
 
       const currentFacilityId: any = getCurrentFacilityId();
-      const currentEComStore = await UserService.getEComStores(token, currentFacilityId);
-      useUserStore().currentEComStore = currentEComStore
-      const productStoreId = currentEComStore?.productStoreId;
+      const currentProductStore = await UserService.getProductStores(token, currentFacilityId);
+      useUserStore().currentEComStore = currentProductStore
+      const productStoreId = currentProductStore?.productStoreId;
 
 
       setPermissions(appPermissions);
@@ -111,7 +111,7 @@ const actions: ActionTree<UserState, RootState> = {
 
       // TODO user single mutation
       commit(types.USER_INFO_UPDATED, userProfile);
-      commit(types.USER_CURRENT_ECOM_STORE_UPDATED, currentEComStore);
+      commit(types.USER_CURRENT_PRODUCT_STORE_UPDATED, currentProductStore);
       commit(types.USER_PERMISSIONS_UPDATED, appPermissions);
       commit(types.USER_TOKEN_CHANGED, { newToken: token })
 
@@ -121,8 +121,8 @@ const actions: ActionTree<UserState, RootState> = {
       // Get facility location of selected facility
       dispatch('getFacilityLocations', currentFacilityId);
       // TODO: fetch product identifications from enumeration instead of storing it in env
-      this.dispatch('util/getForceScanSetting', currentEComStore?.productStoreId);
-      this.dispatch('util/getBarcodeIdentificationPref', currentEComStore?.productStoreId);
+      this.dispatch('util/getForceScanSetting', currentProductStore?.productStoreId);
+      this.dispatch('util/getBarcodeIdentificationPref', currentProductStore?.productStoreId);
 
       const shipmentId = router.currentRoute.value.query.shipmentId
       if (isQueryFacilityFound && shipmentId) {
@@ -193,22 +193,22 @@ const actions: ActionTree<UserState, RootState> = {
    */
   async setFacility ({ commit, dispatch }, facilityId) {
     const token = store.getters['user/getUserToken'];
-    const previousEComStore = await useUserStore().getCurrentEComStore as any
-    const eComStore = await UserService.getEComStores(token, facilityId);
+    const previousProductStore = await useUserStore().getCurrentEComStore as any
+    const productStore = await UserService.getProductStores(token, facilityId);
     await dispatch('getFacilityLocations', facilityId)
-    // Initialize or update eComStore based on productStoreId changes
-    if(!Object.keys(eComStore).length) {
+    // Initialize or update ProductStore based on productStoreId changes
+    if(!Object.keys(productStore).length) {
       useUserStore().currentEComStore = {}
-      commit(types.USER_CURRENT_ECOM_STORE_UPDATED, '');
+      commit(types.USER_CURRENT_PRODUCT_STORE_UPDATED, '');
       await dispatch('updateSettingsToDefault')
       await useProductIdentificationStore().getIdentificationPref("")
         .catch((error) => console.error(error));
-    } else if(previousEComStore.productStoreId !== eComStore.productStoreId) {
-      await useUserStore().setEComStorePreference(eComStore);
-      commit(types.USER_CURRENT_ECOM_STORE_UPDATED, eComStore);
-      this.dispatch('util/getForceScanSetting', eComStore.productStoreId)
-      this.dispatch('util/getBarcodeIdentificationPref', eComStore.productStoreId)
-      await useProductIdentificationStore().getIdentificationPref(eComStore.productStoreId)
+    } else if(previousProductStore.productStoreId !== productStore.productStoreId) {
+      await useUserStore().setEComStorePreference(productStore);
+      commit(types.USER_CURRENT_PRODUCT_STORE_UPDATED, productStore);
+      this.dispatch('util/getForceScanSetting', productStore.productStoreId)
+      this.dispatch('util/getBarcodeIdentificationPref', productStore.productStoreId)
+      await useProductIdentificationStore().getIdentificationPref(productStore.productStoreId)
         .catch((error) => console.error(error));
     }
   },

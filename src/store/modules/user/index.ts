@@ -10,7 +10,7 @@ const userModule: Module<UserState, RootState> = {
     state: {
       token: '',
       current: {},
-      currentEComStore: {},
+      currentProductStore: {},
       permissions: [],
       instanceUrl: '',
       facilityLocationsByFacilityId: {},

@@ -27,8 +27,8 @@ const getters: GetterTree <UserState, RootState> = {
     getUserPermissions (state) {
         return state.permissions;
     },
-    getCurrentEComStore(state) {
-        return state.currentEComStore
+    getCurrentProductStore(state) {
+        return state.currentProductStore
     },
     getFacilityLocationsByFacilityId: (state) => (facilityId: string) => {
         return state.facilityLocationsByFacilityId[facilityId];
