@@ -124,9 +124,9 @@ const actions: ActionTree<UserState, RootState> = {
       this.dispatch('util/getForceScanSetting', currentEComStore?.productStoreId);
       this.dispatch('util/getBarcodeIdentificationPref', currentEComStore?.productStoreId);
 
-      const shipmentId = router.currentRoute.value.query.shipmentId
-      if (isQueryFacilityFound && shipmentId) {
-        return `/shipment/${shipmentId}`;
+      const orderId = router.currentRoute.value.query.orderId
+      if (isQueryFacilityFound && orderId) {
+        return `/transfer-order-detail/${orderId}`;
       }
     } catch (err: any) {
       // If any of the API call in try block has status code other than 2xx it will be handled in common catch block.
