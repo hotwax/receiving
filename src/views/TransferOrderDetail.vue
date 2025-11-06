@@ -18,8 +18,8 @@
     <ion-content>
       <main>
         <div class="doc-id">
-          <div>
-            <ion-label class="ion-padding">
+          <div class="ion-padding">
+            <ion-label>
               <h1>{{ translate("Transfer Order")}}: {{ order.orderName ? order.orderName : order.externalId ? order.externalId : order.orderId }}</h1>
               <p>{{ translate('Item count') }}: {{ getItemCount()}}</p>
             </ion-label>
@@ -288,7 +288,7 @@ export default defineComponent({
         return;
       }
       if (!(await hasWebcamAccess())) {
-        showToast(translate("Camera access not allowed, please check permissons."));
+        showToast(translate("Camera access not allowed, please check permissions."));
         return;
       } 
       const modal = await modalController

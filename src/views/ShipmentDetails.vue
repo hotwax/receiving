@@ -337,7 +337,7 @@ export default defineComponent({
         return;
       }
       if (!(await hasWebcamAccess())) {
-        showToast(translate("Camera access not allowed, please check permissons."));
+        showToast(translate("Camera access not allowed, please check permissions."));
         return;
       } 
       const modal = await modalController
