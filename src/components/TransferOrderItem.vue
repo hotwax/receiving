@@ -6,7 +6,7 @@
       <p>{{ transferOrder.orderExternalId }}</p>
     </ion-label>
     <ion-label class="ion-text-end" slot="end">
-      <p>{{ getTime(transferOrder.orderDate) }}</p>
+      <p v-if="transferOrder.orderDate">{{ getTime(transferOrder.orderDate) }}</p>
       <ion-badge :color="orderStatusColor[transferOrder.orderStatusId]">{{ transferOrder.orderStatusDesc }}</ion-badge>
     </ion-label>
   </ion-item>
