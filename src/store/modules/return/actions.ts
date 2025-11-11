@@ -24,7 +24,7 @@ const actions: ActionTree<ReturnState, RootState> = {
         if (payload.viewIndex && payload.viewIndex > 0) returns = state.returns.list.concat(returns);
         commit(types.RETURN_LIST_UPDATED, returns )
       } else {
-        payload.viewIndex ? showToast(translate("Returns not found")) : commit(types.RETURN_LIST_UPDATED, []);
+        payload.viewIndex ? showToast(translate("Return orders not found")) : commit(types.RETURN_LIST_UPDATED, []);
       }
     } catch(error){
       console.error(error)

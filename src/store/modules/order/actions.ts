@@ -32,7 +32,7 @@ const actions: ActionTree<OrderState, RootState> = {
           total: orders.ngroups
         })
       } else {
-        payload.json.params.start ? showToast(translate("Orders not found")) : commit(types.ORDER_PRCHS_ORDRS_UPDATED, { list: [], total: 0 });
+        payload.json.params.start ? showToast(translate("Purchase orders not found")) : commit(types.ORDER_PRCHS_ORDRS_UPDATED, { list: [], total: 0 });
       }
     } catch(error){
       console.error(error)
