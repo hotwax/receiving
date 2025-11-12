@@ -25,7 +25,8 @@
             </ion-label>
             <ion-row>
               <ion-chip v-for="(pkg, index) in trackedPackages" :key="index" @click="copyToClipboard(pkg.trackingCode, 'Tracking code copied to clipboard')">
-                {{ pkg.trackingCode }}<ion-icon :icon="copyOutline"/>
+                {{ pkg.trackingCode }}
+                <ion-icon :icon="copyOutline"/>
               </ion-chip>
             </ion-row>
           </div>
