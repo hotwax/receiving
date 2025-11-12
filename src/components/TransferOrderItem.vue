@@ -45,7 +45,7 @@ export default defineComponent({
       this.router.push({ path: `/transfer-order-detail/${orderId}` })
     },
     getTime(time: any) {
-      return DateTime.fromMillis(time).toFormat("dd MMMM yyyy t a")
+      return time ? DateTime.fromMillis(time).toFormat("dd MMMM yyyy t a") : ""
     },
   },
   setup() {
