@@ -231,9 +231,9 @@ const actions: ActionTree<OrderState, RootState> = {
 
     current.poHistory.items = currentPOHistory;
     if(current.poHistory.items.length) {
-      const receiversLoginIds = [...new Set(currentPOHistory.map((item: any) => item.receivedByUserLoginId))]
+      const receiversLoginIds = [...new Set(current.poHistory.items.map((item: any) => item.receivedByUserLoginId))]
       const receiversDetails = await this.dispatch('party/getReceiversDetails', receiversLoginIds);
-      currentPOHistory.map((item: any) => {
+      current.poHistory.items.map((item: any) => {
         item.receiversFullName = receiversDetails[item.receivedByUserLoginId]?.fullName || item.receivedByUserLoginId;
       })
     }
