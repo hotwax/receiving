@@ -196,8 +196,16 @@ const actions: ActionTree<OrderState, RootState> = {
 
   async getPOHistory({ commit, state }, payload) {
     let resp;
+    let viewIndex = 0;
+    const viewSize = 250;
+    let currentPOHistory = [] as Array<any>;
     const current = state.current as any;
+    let locationSeqId = "";
     try {
+      const facilityLocations = await this.dispatch('user/getFacilityLocations', getCurrentFacilityId());
+      locationSeqId = facilityLocations.length > 0 ? facilityLocations[0].locationSeqId : "";
+
+      do {
       const params = {
         "inputFields":{
           "orderId": [payload.orderId],
@@ -206,40 +214,46 @@ const actions: ActionTree<OrderState, RootState> = {
         "entityName": "ShipmentReceiptAndItem",
         "fieldList": ["datetimeReceived", "productId", "quantityAccepted", "quantityRejected", "receivedByUserLoginId", "shipmentId", 'locationSeqId'],
         "orderBy": 'datetimeReceived DESC',
-        "viewSize": "250"
+        viewSize,
+        viewIndex
       }
-      const facilityLocations = await this.dispatch('user/getFacilityLocations', getCurrentFacilityId());
-      const locationSeqId = facilityLocations.length > 0 ? facilityLocations[0].locationSeqId : "";
       resp = await OrderService.fetchPOHistory(params)
       if (resp.status === 200 && !hasError(resp) && resp.data?.count > 0) {
         const poHistory = resp.data.docs;
-        current.poHistory.items = poHistory;
-        const facilityLocationByProduct = poHistory.reduce((products: any, item: any) => {
-          products[item.productId] = item.locationSeqId
-          return products
-        }, {});
 
-        const receiversLoginIds = [...new Set(current.poHistory.items.map((item: any) => item.receivedByUserLoginId))]
+        const receiversLoginIds = [...new Set(poHistory.map((item: any) => item.receivedByUserLoginId))]
         const receiversDetails = await this.dispatch('party/getReceiversDetails', receiversLoginIds);
+<<<<<<< Updated upstream
         current.poHistory.items.map((item: any) => {
           item.receiversFullName = receiversDetails[item.receivedByUserLoginId]?.fullName|| item.receivedByUserLoginId;
+=======
+        poHistory.map((item: any) => {
+          item.receiversFullName = receiversDetails[item.receivedByUserLoginId].fullName;
+>>>>>>> Stashed changes
         })
-        current.items.map((item: any) => {
-          item.locationSeqId = facilityLocationByProduct[item.productId] ? facilityLocationByProduct[item.productId] : locationSeqId;
-        });
 
-        commit(types.ORDER_CURRENT_UPDATED, current);
-        return poHistory;
+        currentPOHistory = [...currentPOHistory, ...poHistory]
       } else {
-        current.items.map((item: any) => {
-          item.locationSeqId = locationSeqId;
-        });
-        current.poHistory.items = [];
+        throw resp.data;
       }
-    } catch(error){
+      viewIndex++
+      } while (resp.data.docs.length >= viewSize);
+
+      current.poHistory.items = currentPOHistory;
+    } catch(error) {
       console.error(error)
       current.poHistory.items = [];
     }
+
+    const facilityLocationByProduct = current.poHistory.items.reduce((products: any, item: any) => {
+      products[item.productId] = item.locationSeqId
+      return products
+    }, {});
+
+    current.items.map((item: any) => {
+      item.locationSeqId = facilityLocationByProduct[item.productId] ? facilityLocationByProduct[item.productId] : locationSeqId;
+    });
+
     commit(types.ORDER_CURRENT_UPDATED, current);
     return resp;
   },
