@@ -218,13 +218,13 @@ const actions: ActionTree<OrderState, RootState> = {
         viewIndex
       }
       resp = await OrderService.fetchPOHistory(params)
-      if (resp.status === 200 && !hasError(resp) && resp.data?.count > 0) {
+      if (resp.status === 200 && !hasError(resp) && resp.data?.docs.length > 0) {
         const poHistory = resp.data.docs;
 
         const receiversLoginIds = [...new Set(poHistory.map((item: any) => item.receivedByUserLoginId))]
         const receiversDetails = await this.dispatch('party/getReceiversDetails', receiversLoginIds);
         poHistory.map((item: any) => {
-          item.receiversFullName = receiversDetails[item.receivedByUserLoginId].fullName || item.receivedByUserLoginId;
+          item.receiversFullName = receiversDetails[item.receivedByUserLoginId]?.fullName || item.receivedByUserLoginId;
         })
 
         currentPOHistory = [...currentPOHistory, ...poHistory]
