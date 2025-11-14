@@ -1,6 +1,6 @@
 {
   "name": "receiving",
-  "version": "3.3.2",
+  "version": "3.3.5",
   "private": true,
   "description": "HotWax Commerce Receiving App",
   "scripts": {
