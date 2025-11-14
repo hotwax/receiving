@@ -219,25 +219,23 @@ const actions: ActionTree<OrderState, RootState> = {
       }
       resp = await OrderService.fetchPOHistory(params)
       if (resp.status === 200 && !hasError(resp) && resp.data?.docs.length > 0) {
-        const poHistory = resp.data.docs;
-
-        const receiversLoginIds = [...new Set(poHistory.map((item: any) => item.receivedByUserLoginId))]
-        const receiversDetails = await this.dispatch('party/getReceiversDetails', receiversLoginIds);
-        poHistory.map((item: any) => {
-          item.receiversFullName = receiversDetails[item.receivedByUserLoginId]?.fullName || item.receivedByUserLoginId;
-        })
-
-        currentPOHistory = [...currentPOHistory, ...poHistory]
-      } else {
-        throw resp.data;
+        currentPOHistory = [...currentPOHistory, ...resp.data.docs]
       }
       viewIndex++
-      } while (resp.data.docs.length >= viewSize);
-
-      current.poHistory.items = currentPOHistory;
+      } while (resp?.data?.docs?.length >= viewSize);
     } catch(error) {
       console.error(error)
+      currentPOHistory = []
       current.poHistory.items = [];
+    }
+
+    if(currentPOHistory.length) {
+      const receiversLoginIds = [...new Set(currentPOHistory.map((item: any) => item.receivedByUserLoginId))]
+      const receiversDetails = await this.dispatch('party/getReceiversDetails', receiversLoginIds);
+      currentPOHistory.map((item: any) => {
+        item.receiversFullName = receiversDetails[item.receivedByUserLoginId]?.fullName || item.receivedByUserLoginId;
+      })
+      current.poHistory.items = currentPOHistory;
     }
 
     const facilityLocationByProduct = current.poHistory.items.reduce((products: any, item: any) => {
