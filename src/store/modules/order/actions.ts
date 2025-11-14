@@ -223,13 +223,8 @@ const actions: ActionTree<OrderState, RootState> = {
 
         const receiversLoginIds = [...new Set(poHistory.map((item: any) => item.receivedByUserLoginId))]
         const receiversDetails = await this.dispatch('party/getReceiversDetails', receiversLoginIds);
-<<<<<<< Updated upstream
-        current.poHistory.items.map((item: any) => {
-          item.receiversFullName = receiversDetails[item.receivedByUserLoginId]?.fullName|| item.receivedByUserLoginId;
-=======
         poHistory.map((item: any) => {
-          item.receiversFullName = receiversDetails[item.receivedByUserLoginId].fullName;
->>>>>>> Stashed changes
+          item.receiversFullName = receiversDetails[item.receivedByUserLoginId].fullName || item.receivedByUserLoginId;
         })
 
         currentPOHistory = [...currentPOHistory, ...poHistory]
