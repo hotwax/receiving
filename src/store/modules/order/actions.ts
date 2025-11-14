@@ -229,13 +229,13 @@ const actions: ActionTree<OrderState, RootState> = {
       current.poHistory.items = [];
     }
 
-    if(currentPOHistory.length) {
+    current.poHistory.items = currentPOHistory;
+    if(current.poHistory.items.length) {
       const receiversLoginIds = [...new Set(currentPOHistory.map((item: any) => item.receivedByUserLoginId))]
       const receiversDetails = await this.dispatch('party/getReceiversDetails', receiversLoginIds);
       currentPOHistory.map((item: any) => {
         item.receiversFullName = receiversDetails[item.receivedByUserLoginId]?.fullName || item.receivedByUserLoginId;
       })
-      current.poHistory.items = currentPOHistory;
     }
 
     const facilityLocationByProduct = current.poHistory.items.reduce((products: any, item: any) => {
@@ -243,7 +243,7 @@ const actions: ActionTree<OrderState, RootState> = {
       return products
     }, {});
 
-    current.items.map((item: any) => {
+    current.items.forEach((item: any) => {
       item.locationSeqId = facilityLocationByProduct[item.productId] ? facilityLocationByProduct[item.productId] : locationSeqId;
     });
 
