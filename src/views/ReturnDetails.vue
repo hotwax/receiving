@@ -111,9 +111,8 @@ import {
   alertController,
 } from '@ionic/vue';
 import { defineComponent, computed } from 'vue';
-import { checkmarkDone, cubeOutline, barcodeOutline, locationOutline } from 'ionicons/icons';
+import { checkmarkDone, cubeOutline, barcodeOutline } from 'ionicons/icons';
 import { mapGetters, useStore } from "vuex";
-import AddProductModal from '@/views/AddProductModal.vue'
 import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore } from '@hotwax/dxp-components';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
@@ -190,27 +189,6 @@ export default defineComponent({
         componentProps: { imageUrl , productName }
       });
       return imageModal.present();
-    },
-    async addProduct() {
-      const modal = await modalController
-        .create({
-          component: AddProductModal
-        })
-        modal.onDidDismiss()
-        .then( () => {
-          this.store.dispatch('product/clearSearchedProducts')
-          this.observeProductVisibility()
-        })
-      return modal.present();
-    },
-    async fetchProducts(vSize: any, vIndex: any) {
-      const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
-      const viewIndex = vIndex ? vIndex : 0;
-      const payload = {
-        viewSize,
-        viewIndex,
-      }
-      await this.store.dispatch("product/fetchProducts", payload);
     },
     observeProductVisibility() {
       if(this.observer.root) {
@@ -355,7 +333,6 @@ export default defineComponent({
       cubeOutline,
       getFeatures,
       hasPermission,
-      locationOutline,
       store,
       router,
       translate,

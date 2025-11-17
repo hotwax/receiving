@@ -71,7 +71,7 @@
 <script lang="ts">
 import { alertController, IonAvatar, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader,IonIcon, IonItem, IonMenuButton, IonPage, IonSelect, IonSelectOption, IonTitle, IonToggle, IonToolbar } from '@ionic/vue';
 import { computed, defineComponent } from 'vue';
-import { codeWorkingOutline, ellipsisVertical, openOutline, saveOutline, globeOutline, personCircleOutline, storefrontOutline} from 'ionicons/icons'
+import { openOutline } from 'ionicons/icons'
 import { mapGetters, useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import Image from '@/components/Image.vue'
@@ -130,30 +130,6 @@ export default defineComponent({
       this.store.dispatch('shipment/clearShipments');
       await this.store.dispatch('user/setFacility', facility?.facilityId);
     },
-    async presentAlert () {
-      const alert = await alertController.create({
-        header: translate('Logout'),
-        message: translate('The products in the upload list will be removed.'),
-        buttons: [{
-          text: translate('Cancel')
-        },
-        {
-          text: translate('Ok'),
-          handler: () => {
-            this.store.dispatch('user/logout', { isUserUnauthorised: false }).then((redirectionUrl) => {
-              this.store.dispatch('product/clearUploadProducts');
-
-              // if not having redirection url then redirect the user to launchpad
-              if (!redirectionUrl) {
-                const redirectUrl = window.location.origin + '/login'
-                window.location.href = `${getAppLoginUrl()}?isLoggedOut=true&redirectUrl=${redirectUrl}`
-              }
-            })
-          }
-        }]
-      });
-      await alert.present();
-    },
     logout() {
       this.store.dispatch('user/logout', { isUserUnauthorised: false }).then((redirectionUrl) => {
         this.store.dispatch('shipment/clearShipments');
@@ -173,9 +149,6 @@ export default defineComponent({
     setBarcodeIdentificationPref(value: string) {
       this.store.dispatch('util/setBarcodeIdentificationPref', value)
     },
-    getDateTime(time: any) {
-      return DateTime.fromMillis(time).toLocaleString(DateTime.DATETIME_MED);
-    },
     async updateForceScanStatus(event: any) {
       event.stopImmediatePropagation();
       this.store.dispatch("util/setForceScanSetting", !this.isForceScanEnabled)
@@ -190,14 +163,8 @@ export default defineComponent({
     return {
       Actions,
       barcodeIdentificationOptions,
-      codeWorkingOutline,
-      ellipsisVertical,
-      globeOutline,
       hasPermission,
-      personCircleOutline,
       openOutline,
-      saveOutline,
-      storefrontOutline,
       store,
       router,
       translate,
