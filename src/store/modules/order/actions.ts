@@ -68,7 +68,7 @@ const actions: ActionTree<OrderState, RootState> = {
     }
     commit(types.ORDER_CURRENT_PRODUCT_ADDED, product)
   },
-  async getOrderDetail({ commit, state }, { orderId }) {
+  async getOrderDetail({ commit }, { orderId }) {
     let resp;
 
     try {
@@ -106,7 +106,7 @@ const actions: ActionTree<OrderState, RootState> = {
     }
     return resp;
   },
-  async createPurchaseShipment({ commit }, payload) {
+  async createPurchaseShipment(_, payload) {
     let resp;
     try {
       const params = {
@@ -150,7 +150,7 @@ const actions: ActionTree<OrderState, RootState> = {
     return resp;
   },
 
-  async createAndReceiveIncomingShipment({ commit }, payload) {
+  async createAndReceiveIncomingShipment(_, payload) {
     let resp;
     try {
       payload.items.map((item: any, index: number) => {

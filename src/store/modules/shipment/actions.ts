@@ -4,12 +4,11 @@ import RootState from '@/store/RootState'
 import ShipmentState from './ShipmentState'
 import * as types from './mutation-types'
 import { hasError, showToast, getCurrentFacilityId } from '@/utils'
-import { getProductIdentificationValue, translate, useUserStore } from '@hotwax/dxp-components'
+import { getProductIdentificationValue, translate } from '@hotwax/dxp-components'
 import emitter from '@/event-bus'
 import store from "@/store";
 import { DateTime } from 'luxon';
 import { UploadService } from "@/services/UploadService";
-import { toHandlerKey } from "vue";
 
 const actions: ActionTree<ShipmentState, RootState> = {
   async findShipment ({ commit, state }, payload) {
@@ -108,7 +107,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
       return Promise.reject(new Error(err))
     }
   },
-  async receiveShipmentItem ({ commit }, payload) {
+  async receiveShipmentItem(_, payload) {
     let areAllSuccess = true;
 
     for (const item of payload.items) {
@@ -144,7 +143,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
 
     return areAllSuccess;
   },
-  async receiveShipmentJson ({ dispatch }, payload) {
+  async receiveShipmentJson (_, payload) {
     emitter.emit("presentLoader");
     const fileName = `ReceiveShipment_${payload.shipmentId}_${DateTime.now().toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS)}.json`;
     const params = {

@@ -77,7 +77,7 @@ import { useRouter } from 'vue-router';
 import Image from '@/components/Image.vue'
 import { DateTime } from 'luxon';
 import { Actions, hasPermission } from '@/authorization';
-import { DxpProductIdentifier, getAppLoginUrl, translate, useAuthStore, useProductIdentificationStore } from "@hotwax/dxp-components"
+import { getAppLoginUrl, translate, useAuthStore, useProductIdentificationStore } from "@hotwax/dxp-components"
 
 export default defineComponent({
   name: 'Settings',

@@ -162,7 +162,7 @@ export default defineComponent({
     }
   },
   async ionViewWillEnter() {
-    const current = await this.store.dispatch('return/setCurrent', { shipmentId: this.$route.params.id })
+    await this.store.dispatch('return/setCurrent', { shipmentId: this.$route.params.id })
     this.observeProductVisibility();
   },
   ionViewDidLeave() {
