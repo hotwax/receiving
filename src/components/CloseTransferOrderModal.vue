@@ -189,7 +189,6 @@ export default defineComponent({
   setup() {
     const router = useRouter()
     const store = useStore()
-    const userStore = useUserStore()
     const productIdentificationStore = useProductIdentificationStore();
     let productIdentificationPref = computed(() => productIdentificationStore.getProductIdentificationPref)
 

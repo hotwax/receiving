@@ -3,9 +3,8 @@ import { ActionTree } from 'vuex'
 import RootState from '@/store/RootState'
 import ProductState from './ProductState'
 import * as types from './mutation-types'
-import { hasError, showToast } from '@/utils'
+import { hasError } from '@/utils'
 import emitter from '@/event-bus'
-import { translate } from '@hotwax/dxp-components'
 
 const actions: ActionTree<ProductState, RootState> = {
   async fetchProducts ({commit, state}, { productIds }) {
@@ -64,7 +63,7 @@ const actions: ActionTree<ProductState, RootState> = {
     
     return resp;
   },
-  async fetchProductInformation( { commit }, payload) {
+  async fetchProductInformation(_, payload) {
     let productIds: any = new Set();
 
     payload.order.map((item: any) => {
