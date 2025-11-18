@@ -317,7 +317,7 @@ export default defineComponent({
         setTimeout(() => {
           this.lastScannedId = ''
         }, 3000)
-        } else {
+      } else {
         showToast(translate("Scanned item is not present within the shipment:", { itemName: payload }), {
           buttons: [{
             text: translate('Add'),
