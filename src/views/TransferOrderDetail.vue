@@ -289,7 +289,7 @@ export default defineComponent({
       });
       modal.onDidDismiss()
       .then((result) => {
-        if (result.role) {
+        if (result.role && result.role !=='backdrop') {
           this.updateProductCount(result.role);
         }
       })
@@ -317,6 +317,25 @@ export default defineComponent({
         setTimeout(() => {
           this.lastScannedId = ''
         }, 3000)
+        } else {
+        showToast(translate("Scanned item is not present within the shipment:", { itemName: payload }), {
+          buttons: [{
+            text: translate('Add'),
+            handler: async() => {
+              const modal = await modalController.create({
+                component: AddProductToTOModal,
+                componentProps: { selectedSKU: payload }
+              })
+
+              modal.onDidDismiss().then(() => {
+                this.store.dispatch('product/clearSearchedProducts');
+              })
+
+              return modal.present();
+            }
+          }],
+          duration: 5000
+        })
       }
       this.queryString = ''
     },
