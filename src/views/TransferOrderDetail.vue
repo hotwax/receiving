@@ -289,7 +289,7 @@ export default defineComponent({
       });
       modal.onDidDismiss()
       .then((result) => {
-        if (result.role) {
+        if (result.role && result.role !=='backdrop') {
           this.updateProductCount(result.role);
         }
       })
