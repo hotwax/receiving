@@ -16,7 +16,7 @@
     </ion-header>
 
     <ion-content>
-      <main>
+      <main v-if="Object.keys(order).length">
         <div class="doc-id">
           <div>
             <ion-label class="ion-padding">
@@ -162,7 +162,14 @@
             </div>
           </div>
         </ion-card>
-      </main>   
+      </main>
+      <div v-else-if="order" class="empty-state">
+        <ion-spinner name="crescent" />
+        <ion-label>{{ translate("Loading...") }}</ion-label>
+      </div>
+      <div v-else class="empty-state">
+        <p>{{ translate("Unable to fetch the order details. Please try again after some time.")}}</p>
+      </div>   
     </ion-content>
 
     <ion-footer v-if="!isTOReceived()">

@@ -45,6 +45,7 @@ const actions: ActionTree<TransferOrderState, RootState> = {
     let resp;
     let order: any = {};
     const orderId = payload.orderId;
+    commit(types.ORDER_CURRENT_CLEARED);
 
     try {
       resp = await TransferOrderService.fetchTransferOrderDetail(orderId);
