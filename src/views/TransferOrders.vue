@@ -122,6 +122,7 @@ export default defineComponent({
         orderStatusId,
         destinationFacilityId: this.currentFacility?.facilityId,
         excludeOriginFacilityIds: "REJECTED_ITM_PARKING",
+        statusFlowId: ["TO_Fulfill_And_Receive", "TO_Receive_Only"],
         limit,
         pageIndex,
         orderName: this.queryString
