@@ -16,7 +16,7 @@
     </ion-header>
 
     <ion-content>
-      <main v-if="Object.keys(order).length">
+      <main>
         <div class="doc-id">
           <div>
             <ion-label class="ion-padding">
@@ -163,13 +163,6 @@
           </div>
         </ion-card>
       </main>
-      <div v-else-if="order" class="empty-state">
-        <ion-spinner name="crescent" />
-        <ion-label>{{ translate("Loading...") }}</ion-label>
-      </div>
-      <div v-else class="empty-state">
-        <p>{{ translate("Unable to fetch the order details. Please try again after some time.")}}</p>
-      </div>   
     </ion-content>
 
     <ion-footer v-if="!isTOReceived()">
@@ -500,8 +493,11 @@ export default defineComponent({
       return this.order?.items?.reduce((totalItems: any, item: any) => totalItems + (item.quantity || 0), 0);
     },
   }, 
-  ionViewWillEnter() {
-    this.store.dispatch("transferorder/fetchTransferOrderDetail", { orderId: this.$route.params.slug }).then(async () => {
+  async ionViewWillEnter() {
+    emitter.emit('presentLoader',{ backdropDismiss : false });
+    this.store.dispatch("transferorder/clearTransferOrderDetail");
+
+    await this.store.dispatch("transferorder/fetchTransferOrderDetail", { orderId: this.$route.params.slug }).then(async () => {
       await this.store.dispatch('transferorder/fetchTOHistory', {
         payload: { 
           orderId: this.order.orderId,
@@ -513,6 +509,7 @@ export default defineComponent({
       }
       this.observeProductVisibility();
     })
+    emitter.emit('dismissLoader');
   },
   ionViewDidLeave() {
     this.productQoh = {};
