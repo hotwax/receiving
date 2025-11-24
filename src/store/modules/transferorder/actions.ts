@@ -7,6 +7,7 @@ import * as types from './mutation-types'
 import { showToast } from '@/utils'
 import { getProductIdentificationValue, translate } from '@hotwax/dxp-components'
 import store from "@/store";
+import { getOrder, saveOrder } from '@/utils/dexie';
 
 const actions: ActionTree<TransferOrderState, RootState> = {
 
@@ -47,19 +48,29 @@ const actions: ActionTree<TransferOrderState, RootState> = {
     const orderId = payload.orderId;
 
     try {
-      resp = await TransferOrderService.fetchTransferOrderDetail(orderId);
+      // Check for cached order
+      const cachedOrder = await getOrder(orderId);
 
-      if (resp.status === 200 && !hasError(resp) && resp.data.order) {
-        order = resp.data.order;
-        const trackingResp = await TransferOrderService.fetchOrderTrackingDetails(orderId);
-        if (!hasError(trackingResp) && trackingResp.data) {
-          order.shipmentPackages = trackingResp.data.shipmentPackages;
-        } else {
-          order.shipmentPackages = [];
-        }
+      if (cachedOrder) {
+        order = cachedOrder.data;
+      } else {
+        // No cache found, proceed with API call
+        resp = await TransferOrderService.fetchTransferOrderDetail(orderId);
 
-        if (order.items && order.items.length) {
-          this.dispatch('product/fetchProductInformation', { order: order.items });
+        if (resp.status === 200 && !hasError(resp) && resp.data.order) {
+          order = resp.data.order;
+          const trackingResp = await TransferOrderService.fetchOrderTrackingDetails(orderId);
+          if (!hasError(trackingResp) && trackingResp.data) {
+            order.shipmentPackages = trackingResp.data.shipmentPackages;
+          } else {
+            order.shipmentPackages = [];
+          }
+
+          if (order.items && order.items.length) {
+            this.dispatch('product/fetchProductInformation', { order: order.items });
+          }
+          // Save to Dexie for future use
+          await saveOrder(orderId, order);
         }
       }
     } catch (error) {
