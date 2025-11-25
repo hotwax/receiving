@@ -494,7 +494,7 @@ export default defineComponent({
     },
   }, 
   async ionViewWillEnter() {
-    emitter.emit('presentLoader',{ backdropDismiss : false });
+    emitter.emit('presentLoader',{ backdropDismiss : false ,message:"Fetching details..."});
     this.store.dispatch("transferorder/clearTransferOrderDetail");
 
     await this.store.dispatch("transferorder/fetchTransferOrderDetail", { orderId: this.$route.params.slug }).then(async () => {
