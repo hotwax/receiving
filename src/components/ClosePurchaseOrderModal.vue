@@ -115,9 +115,14 @@ export default defineComponent({
           text: translate('Proceed'),
           role: 'proceed',
           handler: async() => {
+          // const success = await this.updatePOItemStatus();
+
+          // if (success) {
+          //   await modalController.dismiss();
+          //   this.router.push('/purchase-orders');
+          // }
             await this.updatePOItemStatus()
             modalController.dismiss()
-            this.router.push('/purchase-orders');
           }
         }]
       });
@@ -232,6 +237,8 @@ export default defineComponent({
         }
         this.store.dispatch("order/updatePurchaseOrders", { purchaseOrders })
       }
+      this.router.push('/purchase-orders');
+
     },
     isEligibleToClosePOItems() {
       return this.order.items.some((item: any) => item.isChecked && this.isPOItemStatusPending(item))
