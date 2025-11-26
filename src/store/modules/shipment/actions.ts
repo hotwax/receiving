@@ -213,7 +213,6 @@ const actions: ActionTree<ShipmentState, RootState> = {
   },
 
   async receiveShipment ({ dispatch }, payload) {
-    emitter.emit("presentLoader", {message: 'Receiving in-progress.', backdropDismiss: false});
     const areAllSuccess = await dispatch("receiveShipmentItem", payload);
     if(areAllSuccess) {
       try {
@@ -233,7 +232,6 @@ const actions: ActionTree<ShipmentState, RootState> = {
         console.error(error);
       }
     }
-    emitter.emit("dismissLoader");
     return false;
   },
   async addShipmentItem ({ state, commit, dispatch }, payload) {
