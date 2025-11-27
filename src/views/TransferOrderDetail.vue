@@ -156,8 +156,7 @@
 
             <div>
               <ion-item lines="none">
-                <ion-label slot="end">{{ translate("/ received", { receivedCount: Number(item.totalReceivedQuantity), orderedCount: item.quantity }) }}</ion-label>
-                <ion-icon :icon="(item.totalReceivedQuantity == item.quantity) ? checkmarkDoneCircleOutline : warningOutline" :color="(item.totalReceivedQuantity  == item.quantity) ? '' : 'warning'" slot="end" />
+                <ion-label slot="end">{{ translate(' Received | Shipped | Ordered',{ received: item.totalReceivedQuantity ?? 0, shipped:item.totalIssuedQuantity ?? 0 , ordered: item.quantity }) }}</ion-label>
               </ion-item>
             </div>
           </div>
@@ -202,7 +201,7 @@ import {
   modalController
 } from '@ionic/vue';
 import { defineComponent, computed } from 'vue';
-import { addOutline, cameraOutline, checkmarkDone, checkmarkDoneCircleOutline, copyOutline, cubeOutline, eyeOffOutline, eyeOutline, locationOutline, saveOutline, timeOutline, warningOutline } from 'ionicons/icons';
+import { addOutline, cameraOutline, checkmarkDone, copyOutline, cubeOutline, eyeOffOutline, eyeOutline, locationOutline, saveOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore, useUserStore } from '@hotwax/dxp-components';
 import { useStore, mapGetters } from 'vuex';
@@ -523,7 +522,6 @@ export default defineComponent({
       addOutline,
       cameraOutline,
       checkmarkDone,
-      checkmarkDoneCircleOutline,
       copyOutline,
       copyToClipboard,
       cubeOutline,
@@ -540,7 +538,6 @@ export default defineComponent({
       translate,
       getProductIdentificationValue,
       productIdentificationPref,
-      warningOutline
     };
   },
 });
