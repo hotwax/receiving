@@ -82,8 +82,8 @@
               </div>
 
               <div class="product-count">
-                <ion-item>
-                  <ion-input :label="translate('Qty')" label-placement="floating" type="number" value="0" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" />
+                <ion-item lines="none">
+                  <ion-input ref="input" :label="translate('Accepted Qty')" label-placement="floating" type="number" value="0" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" clear-input  :helper-text="`${item.totalReceivedQuantity ?? 0} ${translate('received')}`" />
                 </ion-item>
               </div>
             </div>
@@ -101,9 +101,9 @@
               </div>
 
               <div class="to-item-history">
-                <ion-chip outline @click="receivingHistory(item.productId, item.orderItemSeqId)">
+                <ion-chip outline @click="shippingHistory(item.productId, item.orderItemSeqId)">
                   <ion-icon :icon="checkmarkDone"/>
-                  <ion-label> {{ item.totalReceivedQuantity ?? 0 }} {{ translate("received") }} </ion-label>
+                  <ion-label> {{ item.totalIssuedQuantity ?? 0 }} {{ translate("Shipped") }} </ion-label>
                 </ion-chip>
               </div>
 
@@ -203,6 +203,7 @@ import {
 import { defineComponent, computed } from 'vue';
 import { addOutline, cameraOutline, checkmarkDone, copyOutline, cubeOutline, eyeOffOutline, eyeOutline, locationOutline, saveOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
+import ShippingHistoryModal from '@/views/ShippingHistoryModal.vue'
 import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore, useUserStore } from '@hotwax/dxp-components';
 import { useStore, mapGetters } from 'vuex';
 import { useRouter } from 'vue-router';
@@ -264,6 +265,19 @@ export default defineComponent({
   }
   },
   methods: {
+    async shippingHistory(productId?: string, orderItemSeqId?: string) {
+          const modal = await modalController
+        .create({
+          component: ShippingHistoryModal,
+          componentProps: {
+            productId,
+            orderItemSeqId,
+            orderId:this.order.orderId,
+            orderType: 'transferOrder'
+          }
+        })
+      return modal.present();
+    },
     isItemReceivedInFull(item: any) {
       return (Number(item.totalReceivedQuantity) || 0) >= (Number(item.quantity) || 0)
     },

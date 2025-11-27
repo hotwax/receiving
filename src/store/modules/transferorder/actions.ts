@@ -137,6 +137,38 @@ const actions: ActionTree<TransferOrderState, RootState> = {
     }
     commit(types.ORDER_CURRENT_UPDATED, current);
     return allHistory;
+  },
+  async fetchShippedTransferShipments ({ commit },params ){
+    let resp;
+    params.shipmentStatusId= "SHIPMENT_SHIPPED" ;
+    try {
+      resp = await TransferOrderService.fetchShippedTransferShipments(params);
+      if (!hasError(resp)) {
+        const shipmentData = resp.data.shipments || {};
+    
+        const shipmentDetails = shipmentData.flatMap((shipment:any) => {
+        return shipment.packages.flatMap((pkg:any) => {
+          return pkg.items.map((item:any) => ({
+            statusDate:shipment.statusDate,
+            shipmentId: shipment.shipmentId,
+            orderId: shipment.orderId,
+            shipmentStatus: shipment.shipmentStatusId,
+            packageSeqId: pkg.shipmentPackageSeqId,
+            trackingCode: pkg.trackingCode,
+            ...item
+          }));
+          });
+        });
+        commit(types.ORDER_CURRENT_SHIPPED_TRANSFER,shipmentDetails );
+      }
+      else{
+        throw resp.data;
+      }
+    } catch (err) {
+      console.error('No transfer Shipment found', err);
+      commit(types.ORDER_CURRENT_SHIPPED_TRANSFER, []);
+    }
+    return resp;
   }
 }
 
