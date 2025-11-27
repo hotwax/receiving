@@ -87,12 +87,12 @@ const emptyStateMessage= computed(()=>{
       getProductIdentificationValue(productIdentificationPref.value.secondaryId, product) ||
       product?.productName ||
       product.productId;
-    return translate("No  have been created against yet", { lineBreak: '<br />', productIdentifier: identifier });
+    return translate("No Shipment have been created against yet", { lineBreak: '<br />', productIdentifier: identifier });
   }
-  return translate("No Shippment have been created against this transfer order yet", { lineBreak: '<br />' });
+  return translate("No Shipment have been created against this transfer order yet", { lineBreak: '<br />' });
 })
 
-function getTime(time:any) {
+function getTime(time:number) {
   return DateTime.fromMillis(time).toFormat("H:mm a dd/MM/yyyy")
 }
 onMounted(async() => {

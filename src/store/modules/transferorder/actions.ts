@@ -140,11 +140,11 @@ const actions: ActionTree<TransferOrderState, RootState> = {
   },
   async fetchShippedTransferShipments ({ commit },params ){
     let resp;
-    params.shipmentStatusId= "SHIPMENT_SHIPPED" ;
+    const payload = { ...params, shipmentStatusId: "SHIPMENT_SHIPPED" };
     try {
-      resp = await TransferOrderService.fetchShippedTransferShipments(params);
+      resp = await TransferOrderService.fetchShippedTransferShipments(payload);
       if (!hasError(resp)) {
-        const shipmentData = resp.data.shipments || {};
+        const shipmentData = resp.data.shipments || [];
     
         const shipmentDetails = shipmentData.flatMap((shipment:any) => {
         return shipment.packages.flatMap((pkg:any) => {
