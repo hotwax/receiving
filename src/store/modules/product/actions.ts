@@ -14,14 +14,14 @@ const actions: ActionTree<ProductState, RootState> = {
     if (!viewSize) return;
 
     const resp = await searchProducts({
-        filters: { 
-          "productId": {
-            value: productIdFilter,
-            op: 'OR'
-          }
-        },
-        viewSize
-      })
+      filters: { 
+        "productId": {
+          value: productIdFilter,
+          op: 'OR'
+        }
+      },
+      viewSize
+    })
     if (resp.total) {
       const products = resp.products;
       commit(types.PRODUCT_ADD_TO_CACHED_MULTIPLE, { products });
