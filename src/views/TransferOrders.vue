@@ -21,7 +21,7 @@
     <ion-content>
       <main>
         <TransferOrderItem v-for="(order, index) in orders.list" :key="index" :transferOrder="order" />
-        <div v-if="orders.list.length" class="load-more-action ion-text-center">
+        <div v-if="orders.list.length < orders.total" class="load-more-action ion-text-center">
           <ion-button fill="outline" color="dark" @click="loadMoreOrders()">
             <ion-icon :icon="cloudDownloadOutline" slot="start" />
             {{ translate("Load more transfer order") }}
