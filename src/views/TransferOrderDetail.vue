@@ -161,7 +161,7 @@
             </div>
           </div>
         </ion-card>
-      </main>   
+      </main>
     </ion-content>
 
     <ion-footer v-if="!isTOReceived()">
@@ -506,8 +506,11 @@ export default defineComponent({
       return this.order?.items?.reduce((totalItems: any, item: any) => totalItems + (item.quantity || 0), 0);
     },
   }, 
-  ionViewWillEnter() {
-    this.store.dispatch("transferorder/fetchTransferOrderDetail", { orderId: this.$route.params.slug }).then(async () => {
+  async ionViewWillEnter() {
+    emitter.emit('presentLoader',{ backdropDismiss : false ,message:"Fetching details..."});
+    this.store.dispatch("transferorder/clearTransferOrderDetail");
+
+    await this.store.dispatch("transferorder/fetchTransferOrderDetail", { orderId: this.$route.params.slug }).then(async () => {
       await this.store.dispatch('transferorder/fetchTOHistory', {
         payload: { 
           orderId: this.order.orderId,
@@ -519,6 +522,7 @@ export default defineComponent({
       }
       this.observeProductVisibility();
     })
+    emitter.emit('dismissLoader');
   },
   ionViewDidLeave() {
     this.productQoh = {};

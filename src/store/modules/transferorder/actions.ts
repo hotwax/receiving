@@ -172,6 +172,10 @@ const actions: ActionTree<TransferOrderState, RootState> = {
       commit(types.ORDER_CURRENT_UPDATED, current );
     }
     return resp;
+  },
+
+  clearTransferOrderDetail({commit}){
+    commit(types.ORDER_CURRENT_CLEARED);
   }
 }
 
