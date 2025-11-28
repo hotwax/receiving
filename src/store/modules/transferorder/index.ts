@@ -29,7 +29,9 @@ const orderModule: Module<TransferOrderState, RootState> = {
       toHistory: {
         items: []
       },
-      shippedTransfer:[],
+      shipmentHistory:{
+        items:[]
+      }
     }
   },
   getters,

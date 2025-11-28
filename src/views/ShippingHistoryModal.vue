@@ -1,5 +1,5 @@
 <template>
-	<ion-header>
+  <ion-header>
     <ion-toolbar>
       <ion-buttons slot="start">
         <ion-button @click="closeModal">
@@ -11,8 +11,7 @@
   </ion-header>
   <ion-content>
     <ion-list>
-      <template  v-for="(item, index) in items" :key="index">
-        <ion-item  v-if="item.productId === productId">
+        <ion-item v-for="(item, index) in items" :key="index">
           <ion-thumbnail slot="start">
             <DxpShopifyImg :src="getProduct(item.productId).mainImageUrl" />
           </ion-thumbnail>
@@ -28,7 +27,6 @@
             <ion-note>{{ item.statusDate ? getTime(item.statusDate) : "-" }}</ion-note>
           </ion-label>
         </ion-item>
-      </template>
     </ion-list>
 
     <!-- Empty state -->
@@ -77,16 +75,15 @@ const props = defineProps({
 
 const productIdentificationStore = useProductIdentificationStore();
 let productIdentificationPref = computed(() => productIdentificationStore.getProductIdentificationPref);
-const items = computed(() => store.getters["transferorder/getShippedTransfer"]);
+const shipmentHistory = computed(() => store.getters["transferorder/getShipmentHistory"]);
 const getProduct = computed(() => (id: any) => store.getters["product/getProduct"](id));
-
+const items = computed(() => {
+  return shipmentHistory.value?.items.filter((item:any) => item.productId == props.productId);
+})
 const emptyStateMessage= computed(()=>{
   if (props.productId) {
     const product = getProduct.value(props.productId);
-    const identifier = getProductIdentificationValue(productIdentificationPref.value.primaryId, product) ||
-      getProductIdentificationValue(productIdentificationPref.value.secondaryId, product) ||
-      product?.productName ||
-      product.productId;
+    const identifier = getProductIdentificationValue(productIdentificationPref.value.primaryId, product) || getProductIdentificationValue(productIdentificationPref.value.secondaryId, product) ||product?.productName || product.productId;
     return translate("No Shipment have been created against yet", { lineBreak: '<br />', productIdentifier: identifier });
   }
   return translate("No Shipment have been created against this transfer order yet", { lineBreak: '<br />' });
@@ -96,11 +93,11 @@ function getTime(time:number) {
   return DateTime.fromMillis(time).toFormat("H:mm a dd/MM/yyyy")
 }
 onMounted(async() => {
-  await store.dispatch('transferorder/fetchShippedTransferShipments',{ orderId: props.orderId });
+  await store.dispatch('transferorder/fetchOutboundShipmentsHistory',{ orderId: props.orderId });
 })
 
 const closeModal= ()=>{
-    modalController.dismiss({ dismissed: true });
+  modalController.dismiss({ dismissed: true });
 }
 
 </script>

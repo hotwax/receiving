@@ -78,7 +78,7 @@ const fetchTransferOrderHistory = async (payload: any): Promise<any> => {
     }
   });
 };
-const fetchShippedTransferShipments = async (params: any): Promise<any> => {
+const fetchOutboundShipmentsHistory = async (params: any): Promise<any> => {
   const omsRedirectionInfo = store.getters['user/getOmsRedirectionInfo'];
   const baseURL = store.getters['user/getMaargBaseUrl'];
   
@@ -100,5 +100,5 @@ export const TransferOrderService = {
   receiveTransferOrder,
   fetchTransferOrderHistory,
   fetchOrderTrackingDetails,
-  fetchShippedTransferShipments
+  fetchOutboundShipmentsHistory
 };

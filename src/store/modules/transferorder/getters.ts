@@ -15,8 +15,8 @@ const getters: GetterTree<TransferOrderState, RootState> = {
   isProductAvailableInOrder: (state) => (productId: string) => {
     return state.current.items.some((item: any) => item.productId === productId);
   },
-  getShippedTransfer(state){
-    return state.current.shippedTransfer;
+  getShipmentHistory(state){
+    return state.current.shipmentHistory;
   }
 };
 export default getters;
