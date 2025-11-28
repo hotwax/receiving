@@ -27,8 +27,6 @@ const actions: ActionTree<ProductState, RootState> = {
       commit(types.PRODUCT_ADD_TO_CACHED_MULTIPLE, { products });
     }
     
-    if (productIds.viewIndex === 0) emitter.emit("dismissLoader");
-    // TODO Handle specific error
     return resp;
   },
   async findProduct({ commit, state }, payload) {
