@@ -1,4 +1,5 @@
 {
+  "Accepted Qty": "Accepted Qty",
   "Add": "Add",
   "Add a product": "Add a product",
   "Add to Purchase Order": "Add to Purchase Order",
@@ -70,6 +71,8 @@
   "None": "None",
   "No results found": "No results found",
   "No time zone found": "No time zone found",
+  "No Shipment have been created against this transfer order yet":"No Shipment have been created against this transfer order yet",
+  "No Shipment have been created against yet": "No Shipment have been created against yet",
   "No shipments have been received against this purchase order yet": "No shipments have been received against {lineBreak} this purchase order yet",
   "No receipts have been created against this transfer order yet": "No receipts have been created against {lineBreak} this transfer order yet",
   "No receipts have been created against yet": "No receipts have been created against {lineBreak} {productIdentifier} yet",
@@ -80,6 +83,7 @@
   "Open": "Open",
   "ordered": "ordered",
   "/ received": "{receivedCount} / {orderedCount} received",
+  " Received | Shipped | Ordered": "{received} Received {'|'} {shipped} Shipped {'|'} {ordered} Ordered",
   "Password": "Password",
   "Pending: item": "Pending: {itemsCount} item",
   "Pending: items": "Pending: {itemsCount} items",
@@ -174,5 +178,7 @@
   "Username": "Username",
   "Version: ": "Version: {appVersion}",
   "You do not have permission to access this page": "You do not have permission to access this page",
-  "ZeroQuantity": "ZeroQuantity"
+  "ZeroQuantity": "ZeroQuantity",
+  "Ordered": "Ordered",
+  "Received": "Received"
 }
