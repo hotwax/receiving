@@ -137,6 +137,9 @@ const actions: ActionTree<TransferOrderState, RootState> = {
     }
     commit(types.ORDER_CURRENT_UPDATED, current);
     return allHistory;
+  },
+  clearTransferOrderDetail({commit}){
+    commit(types.ORDER_CURRENT_CLEARED);
   }
 }
 
