@@ -223,7 +223,6 @@ const actions: ActionTree<ShipmentState, RootState> = {
 
         if (resp.status == 200 && !hasError(resp)) {
           showToast(translate("Shipment received successfully", { shipmentId: payload.shipmentId }))
-          emitter.emit("dismissLoader");
           return true;
         } else {
           throw resp.data;

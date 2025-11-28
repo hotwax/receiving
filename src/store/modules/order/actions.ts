@@ -138,9 +138,7 @@ const actions: ActionTree<OrderState, RootState> = {
             items: payload.items,
             isMultiReceivingEnabled: true
           }
-          emitter.emit("presentLoader", {message: 'Receiving in-progress.', backdropDismiss: false});
           await this.dispatch('shipment/receiveShipment', poShipment).catch((err) => console.error(err))
-          emitter.emit("dismissLoader");
         })
       } else {
         showToast(translate("Something went wrong"));
