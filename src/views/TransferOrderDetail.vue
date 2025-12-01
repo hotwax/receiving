@@ -83,7 +83,7 @@
 
               <div class="product-count">
                 <ion-item lines="none">
-                  <ion-input ref="input" :label="translate('Accepted Qty')" label-placement="floating" type="number" value="0" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" clear-input  :helper-text="`${item.totalReceivedQuantity ?? 0} ${translate('received')}`" />
+                  <ion-input :label="translate('Qty')" label-placement="floating" type="number" value="0" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" :helper-text="`${item.totalReceivedQuantity ?? 0} ${translate('received')}`" />
                 </ion-item>
               </div>
             </div>
@@ -266,7 +266,7 @@ export default defineComponent({
   },
   methods: {
     async shippingHistory(productId?: string, orderItemSeqId?: string) {
-          const modal = await modalController
+      const modal = await modalController
         .create({
           component: ShippingHistoryModal,
           componentProps: {

@@ -1,5 +1,4 @@
 {
-  "Accepted Qty": "Accepted Qty",
   "Add": "Add",
   "Add a product": "Add a product",
   "Add to Purchase Order": "Add to Purchase Order",
@@ -71,8 +70,8 @@
   "None": "None",
   "No results found": "No results found",
   "No time zone found": "No time zone found",
-  "No Shipment have been created against this transfer order yet":"No Shipment have been created against this transfer order yet",
-  "No Shipment have been created against yet": "No Shipment have been created against yet",
+  "No Shipment have been created against this transfer order yet":"No Shipment have been created against {lineBreak} this transfer order yet",
+  "No Shipment have been created against yet": "No Shipment have been created against {lineBreak} {productIdentifier} yet",
   "No shipments have been received against this purchase order yet": "No shipments have been received against {lineBreak} this purchase order yet",
   "No receipts have been created against this transfer order yet": "No receipts have been created against {lineBreak} this transfer order yet",
   "No receipts have been created against yet": "No receipts have been created against {lineBreak} {productIdentifier} yet",
