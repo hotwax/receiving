@@ -136,6 +136,8 @@ export default defineComponent({
       return Promise.resolve();
     },
     async loadMoreOrders() {
+      // Prevent multiple API calls while one is in progress
+      if (this.fetchingOrders) return;
       this.getPurchaseOrders(
         undefined,
         Math.ceil(this.orders.length / process.env.VUE_APP_VIEW_SIZE)

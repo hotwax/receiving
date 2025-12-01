@@ -37,13 +37,19 @@ export default defineComponent({
         ORDER_APPROVED: 'primary',
         ORDER_REJECTED: 'danger',
         ORDER_COMPLETED: 'success'
-      }
+      },
+      isLoading: false
     }
   },
   methods: {
     async getOrderDetail(orderId?: any) {
+      // Prevent multiple clicks while loading
+      if (this.isLoading) return;
+      
+      this.isLoading = true;
       await this.store.dispatch("order/getOrderDetail", {orderId})
       .then(() => this.router.push({ path: `/purchase-order-detail/${orderId}` }))
+      this.isLoading = false;
     }
   },
   setup() {
