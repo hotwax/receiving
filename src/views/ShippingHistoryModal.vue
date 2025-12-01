@@ -84,9 +84,9 @@ const emptyStateMessage= computed(()=>{
   if (props.productId) {
     const product = getProduct.value(props.productId);
     const identifier = getProductIdentificationValue(productIdentificationPref.value.primaryId, product) || getProductIdentificationValue(productIdentificationPref.value.secondaryId, product) ||product?.productName || product.productId;
-    return translate("No Shipment have been created against yet", { lineBreak: '<br />', productIdentifier: identifier });
+    return translate("No Shipments have been created against yet", { lineBreak: '<br />', productIdentifier: identifier });
   }
-  return translate("No Shipment have been created against this transfer order yet", { lineBreak: '<br />' });
+  return translate("No Shipments have been created against this transfer order yet");
 })
 
 function getTime(time:number) {
