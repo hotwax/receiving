@@ -11,22 +11,22 @@
   </ion-header>
   <ion-content>
     <ion-list>
-        <ion-item v-for="(item, index) in items" :key="index">
-          <ion-thumbnail slot="start">
-            <DxpShopifyImg :src="getProduct(item.productId).mainImageUrl" />
-          </ion-thumbnail>
-          <ion-label>
-            {{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}
-            <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
-            <p v-if="orderType !== 'transferOrder'">
-              {{ translate("Shipment ID") }}: {{ item.shipmentId }}
-            </p>
-          </ion-label>
-          <ion-label>
-            <ion-note> {{ item.quantity }} {{ translate('Shipped') }} | {{ item.totalIssuedQuantity }} {{ translate("Ordered") }}</ion-note>
-            <ion-note>{{ item.statusDate ? getTime(item.statusDate) : "-" }}</ion-note>
-          </ion-label>
-        </ion-item>
+      <ion-item v-for="(item, index) in items" :key="index">
+        <ion-thumbnail slot="start">
+          <DxpShopifyImg :src="getProduct(item.productId).mainImageUrl" />
+        </ion-thumbnail>
+        <ion-label>
+          {{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}
+          <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+          <p v-if="orderType !== 'transferOrder'">
+            {{ translate("Shipment ID") }}: {{ item.shipmentId }}
+          </p>
+        </ion-label>
+        <ion-label>
+          <ion-note> {{ item.quantity }} {{ translate('Shipped') }} | {{ item.totalIssuedQuantity }} {{ translate("Ordered") }}</ion-note>
+          <ion-note>{{ item.statusDate ? getTime(item.statusDate) : "-" }}</ion-note>
+        </ion-label>
+      </ion-item>
     </ion-list>
 
     <!-- Empty state -->
@@ -84,9 +84,9 @@ const emptyStateMessage= computed(()=>{
   if (props.productId) {
     const product = getProduct.value(props.productId);
     const identifier = getProductIdentificationValue(productIdentificationPref.value.primaryId, product) || getProductIdentificationValue(productIdentificationPref.value.secondaryId, product) ||product?.productName || product.productId;
-    return translate("No Shipments have been created against yet", { lineBreak: '<br />', productIdentifier: identifier });
+    return translate("No shipments have been created against yet", { lineBreak: '<br />', productIdentifier: identifier });
   }
-  return translate("No Shipments have been created against this transfer order yet");
+  return translate("No shipments have been created against this transfer order yet");
 })
 
 function getTime(time:number) {

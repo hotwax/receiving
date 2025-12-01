@@ -70,8 +70,8 @@
   "None": "None",
   "No results found": "No results found",
   "No time zone found": "No time zone found",
-  "No Shipments have been created against this transfer order yet":"No Shipments have been created against this transfer order yet",
-  "No Shipments have been created against yet": "No Shipments have been created against {lineBreak} {productIdentifier} yet",
+  "No shipments have been created against this transfer order yet":"No Shipments have been created against this transfer order yet",
+  "No shipments have been created against yet": "No Shipments have been created against {lineBreak} {productIdentifier} yet",
   "No shipments have been received against this purchase order yet": "No shipments have been received against {lineBreak} this purchase order yet",
   "No receipts have been created against this transfer order yet": "No receipts have been created against {lineBreak} this transfer order yet",
   "No receipts have been created against yet": "No receipts have been created against {lineBreak} {productIdentifier} yet",
@@ -177,7 +177,5 @@
   "Username": "Username",
   "Version: ": "Version: {appVersion}",
   "You do not have permission to access this page": "You do not have permission to access this page",
-  "ZeroQuantity": "ZeroQuantity",
-  "Ordered": "Ordered",
-  "Received": "Received"
+  "ZeroQuantity": "ZeroQuantity"
 }
