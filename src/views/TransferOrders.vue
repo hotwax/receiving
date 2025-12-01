@@ -135,6 +135,9 @@ export default defineComponent({
       return Promise.resolve();
     },
     async loadMoreOrders() {
+      // Prevent multiple API calls while one is in progress
+      if (this.fetchingOrders) return;
+
       const limit = process.env.VUE_APP_VIEW_SIZE;
       const pageIndex = Math.ceil(this.orders.list.length / limit);
       await this.getTransferOrders(limit, pageIndex);

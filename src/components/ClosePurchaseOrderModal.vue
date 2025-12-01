@@ -104,6 +104,7 @@ export default defineComponent({
       modalController.dismiss({ dismissed: true });
     },
     async confirmSave() {
+      let isUpdating = false;
       const alert = await alertController.create({
         header: translate('Close purchase order items'),
         message: translate("The selected items won't be available for receiving later."),
@@ -115,9 +116,14 @@ export default defineComponent({
           text: translate('Proceed'),
           role: 'proceed',
           handler: async() => {
+            // Prevent multiple API calls while one is in progress
+            if (isUpdating) return false;
+            
+            isUpdating = true;
             await this.updatePOItemStatus()
             modalController.dismiss()
             this.router.push('/purchase-orders');
+            isUpdating = false;
           }
         }]
       });

@@ -161,6 +161,8 @@ export default defineComponent({
       return Promise.resolve();
     },
     loadMoreShipments() {
+      // Prevent multiple API calls while one is in progress
+      if (this.fetchingShipments) return;
       this.getShipments(process.env.VUE_APP_VIEW_SIZE, Math.ceil(this.shipments.length / process.env.VUE_APP_VIEW_SIZE));
     },
     async refreshShipments(event?: any) {
