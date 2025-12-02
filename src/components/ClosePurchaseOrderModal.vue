@@ -69,6 +69,7 @@ import { OrderService } from "@/services/OrderService";
 import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore } from '@hotwax/dxp-components';
 import { useRouter } from 'vue-router';
 import { copyToClipboard, getFeatures, hasError } from '@/utils';
+import emitter from '@/event-bus';
 
 export default defineComponent({
   name: "ClosePurchaseOrderModal",
@@ -115,8 +116,10 @@ export default defineComponent({
           text: translate('Proceed'),
           role: 'proceed',
           handler: async() => {
+            emitter.emit("presentLoader", {message: 'Receiving in-progress.', backdropDismiss: false});
             await this.updatePOItemStatus()
             modalController.dismiss()
+            emitter.emit("dismissLoader");
             this.router.push('/purchase-orders');
           }
         }]
