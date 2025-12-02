@@ -78,11 +78,27 @@ const fetchTransferOrderHistory = async (payload: any): Promise<any> => {
     }
   });
 };
+const fetchOutboundShipmentsHistory = async (params: any): Promise<any> => {
+  const omsRedirectionInfo = store.getters['user/getOmsRedirectionInfo'];
+  const baseURL = store.getters['user/getMaargBaseUrl'];
+  
+  return client({
+    url: "poorti/transferShipments",
+    method: "get",
+    baseURL,
+    params,
+    headers: {
+      "api_key": omsRedirectionInfo.token,
+      "Content-Type": "application/json"
+    }
+  });
+}
 
 export const TransferOrderService = {
   fetchTransferOrders,
   fetchTransferOrderDetail,
   receiveTransferOrder,
   fetchTransferOrderHistory,
-  fetchOrderTrackingDetails
+  fetchOrderTrackingDetails,
+  fetchOutboundShipmentsHistory
 };

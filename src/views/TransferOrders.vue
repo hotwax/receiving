@@ -125,7 +125,8 @@ export default defineComponent({
         statusFlowId: ["TO_Fulfill_And_Receive", "TO_Receive_Only"],
         limit,
         pageIndex,
-        orderName: this.queryString
+        orderName: this.queryString?.trim() || undefined,  // Kept this for backward compatibility, can be removed once the changes are pushed on oms
+        keyword: this.queryString?.trim() || undefined
       };
 
       emitter.emit('presentLoader');
