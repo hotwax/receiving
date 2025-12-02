@@ -6,6 +6,9 @@ const getters: GetterTree<ShipmentState, RootState> = {
   getShipments(state) {
     return state.shipments.list;
   },
+  getTotalShipments(state){
+    return state.shipments.total;
+  },
   getCurrent (state) {
     return state.current;
   }

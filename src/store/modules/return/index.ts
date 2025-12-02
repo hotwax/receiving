@@ -13,7 +13,8 @@ const returnModule: Module<ReturnState, RootState> = {
       items: []
     },
     returns: {
-      list: []
+      list: [],
+      total: 0,
     },
     validStatusChange: {}
   },

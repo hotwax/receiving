@@ -6,6 +6,9 @@ const getters: GetterTree<OrderState, RootState> = {
   getPurchaseOrders(state) {
     return state.purchaseOrders.list;
   },
+  getPurchaseOrdersTotal(state){
+    return state.purchaseOrders.total;
+	},
   isScrollable(state) {
     return state.purchaseOrders.list.length > 0 && state.purchaseOrders.list.length < state.purchaseOrders.total
   },

@@ -23,7 +23,7 @@
       <main>
         <ReturnListItem v-for="returnShipment in returns" :key="returnShipment.shipmentId" :returnShipment="returnShipment" />
 
-        <div v-if="returns.length" class="load-more-action ion-text-center">
+        <div v-if="returns.length < returnsTotal" class="load-more-action ion-text-center">
           <ion-button fill="outline" color="dark" @click="loadMoreReturns()">
             <ion-icon :icon="cloudDownloadOutline" slot="start" />
             {{ translate("Load more returns") }}
@@ -95,6 +95,7 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       returns: 'return/getReturns',
+      returnsTotal:'return/getReturnsTotal'
     })
   },
   data () {
