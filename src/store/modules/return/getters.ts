@@ -6,6 +6,9 @@ const getters: GetterTree<ReturnState, RootState> = {
   getReturns(state) {
     return state.returns.list;
   },
+  getReturnsTotal(state) {
+    return state.returns.total;
+  },
   getCurrent (state) {
     return state.current;
   },
