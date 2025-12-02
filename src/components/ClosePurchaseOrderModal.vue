@@ -118,8 +118,8 @@ export default defineComponent({
           handler: async() => {
             emitter.emit("presentLoader", {message: 'Receiving in-progress.', backdropDismiss: false});
             await this.updatePOItemStatus()
-            emitter.emit("dismissLoader");
             modalController.dismiss()
+            emitter.emit("dismissLoader");
             this.router.push('/purchase-orders');
           }
         }]
