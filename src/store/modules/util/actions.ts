@@ -296,8 +296,93 @@ const actions: ActionTree<UtilState, RootState> = {
     commit(types.UTIL_BARCODE_IDENTIFICATION_PREF_UPDATED, prefValue)
   },
 
+  async getReceivingByFulfillmentSetting({ commit }, eComStoreId) {
+    const payload = {
+      "inputFields": {
+        "productStoreId": eComStoreId,
+        "settingTypeEnumId": "RECEIVE_BY_FULFILL"
+      },
+      "entityName": "ProductStoreSetting",
+      "fieldList": ["settingValue", "settingTypeEnumId"],
+      "viewSize": 1
+    }
+
+    try {
+      const resp = await UtilService.getProductStoreSetting(payload) as any
+      if(!hasError(resp)) {
+        const respValue = resp.data.docs[0].settingValue
+        commit(types.UTIL_RECEIVE_BY_FULFILLMENT_UPDATED, respValue === "true")
+      }
+    } catch(err) {
+      console.error(err)
+      commit(types.UTIL_RECEIVE_BY_FULFILLMENT_UPDATED, "false")
+    }
+  },
+
+  async setReceivingByFulfillmentSetting({ commit, state }, value) {
+    let prefValue = state.isReceivingByFulfillment
+    const eComStoreId = store.getters['user/getCurrentEComStore'].productStoreId;
+
+    // when selecting none as ecom store, not updating the pref as it's not possible to save pref with empty productStoreId
+    if(!eComStoreId) {
+      showToast(translate("Unable to update receiving flow type preference since no product store config found."))
+      commit(types.UTIL_RECEIVE_BY_FULFILLMENT_UPDATED, prefValue)
+      return;
+    }
+
+    let isSettingExists = false;
+
+    try {
+      const resp = await UtilService.getProductStoreSetting({
+        "inputFields": {
+          "productStoreId": eComStoreId,
+          "settingTypeEnumId": "RECEIVE_BY_FULFILL"
+        },
+        "entityName": "ProductStoreSetting",
+        "fieldList": ["settingTypeEnumId"],
+        "viewSize": 1
+      }) as any
+      if(!hasError(resp) && resp.data.docs[0]?.settingTypeEnumId) {
+        isSettingExists = true;
+      }
+    } catch(err) {
+      console.error(err)
+    }
+
+    if(!isSettingExists) {
+      showToast(translate("Failed to update receiving flow preference."))
+      commit(types.UTIL_RECEIVE_BY_FULFILLMENT_UPDATED, prefValue)
+      return;
+    }
+
+    const params = {
+      "productStoreId": eComStoreId,
+      "settingTypeEnumId": "RECEIVE_BY_FULFILL",
+      "settingValue": `${value}`
+    }
+
+    try {
+      const resp = await UtilService.updateForceScanSetting(params) as any
+
+      if((!hasError(resp))) {
+        showToast(translate("Receiving flow preference updated successfully."))
+        prefValue = value
+      } else {
+        throw resp.data;
+      }
+    } catch(err) {
+      showToast(translate("Failed to update receiving flow preference."))
+      console.error(err)
+    }
+    commit(types.UTIL_RECEIVE_BY_FULFILLMENT_UPDATED, prefValue)
+  },
+
   async updateForceScanStatus({ commit }, payload) { 
     commit(types.UTIL_FORCE_SCAN_STATUS_UPDATED, payload)
+  },
+
+  async updateReceiveTOFlowSetting({ commit }, payload) {
+    commit(types.UTIL_RECEIVE_BY_FULFILLMENT_UPDATED, payload)
   },
 
   async updateBarcodeIdentificationPref({ commit }, payload) { 
