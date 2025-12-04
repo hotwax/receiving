@@ -62,6 +62,7 @@
           </ion-segment-button>
         </ion-segment>
 
+        <!-- TODO: create a common component for the item card -->
         <ion-segment-view>
           <ion-segment-content id="all">
             <ion-card v-for="(item, index) in getTOItems('all')" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
@@ -91,8 +92,8 @@
 
                 <template v-if="!['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId)">
                   <div class="product-count">
-                    <ion-item lines="none">
-                      <ion-input :label="translate('Qty')" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" :helper-text="`${item.totalReceivedQuantity ?? 0} ${translate('received')}`" />
+                    <ion-item>
+                      <ion-input :label="translate('Qty')" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" />
                     </ion-item>
                   </div>
                 </template>
@@ -119,9 +120,13 @@
                   </div>
 
                   <div class="to-item-history">
-                    <ion-chip outline @click="shippingHistory(item.productId, item.orderItemSeqId)">
+                    <ion-chip v-if="isReceivingByFulfillment" outline @click="shippingHistory(item.productId, item.orderItemSeqId)">
                       <ion-icon :icon="checkmarkDone"/>
                       <ion-label> {{ item.totalIssuedQuantity ?? 0 }} {{ translate("Shipped") }} </ion-label>
+                    </ion-chip>
+                    <ion-chip v-else outline @click="receivingHistory(item.productId, item.orderItemSeqId)">
+                      <ion-icon :icon="checkmarkDone"/>
+                      <ion-label> {{ item.totalReceivedQuantity ?? 0 }} {{ translate("received") }} </ion-label>
                     </ion-chip>
                   </div>
 
@@ -378,7 +383,7 @@ export default defineComponent({
       lastScannedId: '',
       productQoh: {} as any,
       observer: {} as IntersectionObserver,
-      selectedSegment: "received"
+      selectedSegment: "not-started"
     }
   },
   computed: {
@@ -386,6 +391,7 @@ export default defineComponent({
       order: 'transferorder/getCurrent',
       getProduct: 'product/getProduct',
       isForceScanEnabled: 'util/isForceScanEnabled',
+      isReceivingByFulfillment: 'util/isReceivingByFulfillment',
       barcodeIdentifier: 'util/getBarcodeIdentificationPref',
     }),
     trackedPackages(): any[] {

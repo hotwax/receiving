@@ -63,6 +63,20 @@
             </ion-select>
           </ion-item>
         </ion-card>
+
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>
+              {{ translate("Receive flow type") }}
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            {{ translate("Define the receiving flow for TO items") }}
+          </ion-card-content>
+          <ion-item :disabled="!hasPermission(Actions.APP_UPDT_RECEIVE_FLOW_CONFIG)">
+            <ion-toggle label-placement="start" :checked="isReceivingByFulfillment" @click.prevent="updateReceiveFlowType($event)">{{ translate("Receive by fulfillment") }}</ion-toggle>
+          </ion-item>
+        </ion-card>
       </section>
     </ion-content>
   </ion-page>
@@ -116,6 +130,7 @@ export default defineComponent({
       userProfile: 'user/getUserProfile',
       currentEComStore: 'user/getCurrentEComStore',
       isForceScanEnabled: 'util/isForceScanEnabled',
+      isReceivingByFulfillment: 'util/isReceivingByFulfillment',
       barcodeIdentificationPref: 'util/getBarcodeIdentificationPref'
     })
   },
@@ -152,6 +167,10 @@ export default defineComponent({
     async updateForceScanStatus(event: any) {
       event.stopImmediatePropagation();
       this.store.dispatch("util/setForceScanSetting", !this.isForceScanEnabled)
+    },
+    async updateReceiveFlowType(event: any) {
+      event.stopImmediatePropagation();
+      this.store.dispatch("util/setReceivingByFulfillmentSetting", !this.isReceivingByFulfillment)
     },
   },
   setup(){
