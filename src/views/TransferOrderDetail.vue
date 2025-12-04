@@ -457,13 +457,13 @@ export default defineComponent({
         // Identify the scanned value belongs to which segment and change the segment
         const item = this.order.items.find((item: any) => getProductIdentificationValue(this.barcodeIdentifier, this.getProduct(item.productId)) === payload)
         if(item.statusId === "ITEM_COMPLETED") {
-          this.selectedSegment = "received"
+          this.segmentChanged("received")
         } else if(Number(item.totalReceivedQuantity)) {
-          this.selectedSegment = "in-progress"
+          this.segmentChanged("in-progress")
         } else if(!Number(item.totalReceivedQuantity)) {
-          this.selectedSegment = "not-started"
+          this.segmentChanged("not-started")
         } else {
-          this.selectedSegment = "all"
+          this.segmentChanged("all")
         }
 
         // Highlight specific element
