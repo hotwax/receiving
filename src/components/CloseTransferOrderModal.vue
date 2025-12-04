@@ -28,7 +28,7 @@
           <p>{{ getFeatures(getProduct(item.productId).productFeatures) }}</p>
           <ion-note v-if="getItemReceivingError(item).message" :color="getItemReceivingError(item).color">{{ getItemReceivingError(item).message }}</ion-note>
         </ion-label>
-        <ion-checkbox aria-label="itemStatus" slot="end" :modelValue="isTOItemStatusPending(item) ? item.isChecked : true" :disabled="!isItemQtyAccepted(item)"/>
+        <ion-checkbox aria-label="itemStatus" slot="end" :modelValue="item.isChecked" :disabled="!isItemQtyAccepted(item)"/>
       </ion-item>
     </ion-list>
   </ion-content>
@@ -99,7 +99,7 @@ export default defineComponent({
       order: 'transferorder/getCurrent'
     }),
     isItemQtyAccepted() {
-      return (item: any) => (!!Number(item.quantityAccepted) && Number(item.quantityAccepted) >= 0)
+      return (item: any) => (item.quantityAccepted && Number(item.quantityAccepted) >= 0)
     },
     getItemReceivingError() {
       return (item: any) => {
@@ -110,18 +110,17 @@ export default defineComponent({
           }
         }
 
-        const overReceivedQty = ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) - (Number(item.quantity) || 0)
-
-        if(overReceivedQty > 0) {
+        const receivedQty = ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) - (Number(item.quantity) || 0)
+        if(receivedQty <= 0) {
           return {
-            message: `Over received: ${overReceivedQty}`,
+            message: `Under received: ${receivedQty}`,
             color: "warning"
           }
-        }
-
-        return {
-          message: "",
-          color: ""
+        } else {
+          return {
+            message: `Over received: ${receivedQty}`,
+            color: "warning"
+          }
         }
       }
     }
@@ -204,16 +203,8 @@ export default defineComponent({
       })
     },
     getTOItems() {
-      return this.order.items.filter((item: any) => item.orderItemSeqId && this.isTOItemStatusPending(item))
-    },
-    checkAlreadyFulfilledItems() {
-      this.order.items.forEach((item: any) => {
-        item.isChecked = this.isTOItemStatusPending(item) && Number(item.quantityAccepted) > 0;
-      });
+      return this.order.items.filter((item: any) => item.orderItemSeqId && !['ITEM_REJECTED', 'ITEM_CANCELLED', 'ITEM_COMPLETED'].includes(item.statusId))
     }
-  },
-  mounted() {
-    this.checkAlreadyFulfilledItems();
   },
   setup() {
     const router = useRouter()

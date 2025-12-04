@@ -21,7 +21,8 @@
           <div>
             <ion-label class="ion-padding">
               <h1>{{ translate("Transfer Order")}}: {{ order.orderName ? order.orderName : order.externalId ? order.externalId : order.orderId }}</h1>
-              <p>{{ translate('Item count') }}: {{ getItemCount()}}</p>
+              <p>{{ translate("Item count") }}: {{ order.items?.length }}</p>
+              <p v-if="isReceivingByFulfillment && !isTOReceived()">{{ translate("Unfulfilled items") }}: {{ order.items?.length - getTOItems("all").length }}</p>
             </ion-label>
             <ion-row>
               <ion-chip v-for="(pkg, index) in trackedPackages" :key="index" @click="copyToClipboard(pkg.trackingCode, 'Tracking code copied to clipboard')">
@@ -47,7 +48,7 @@
           </ion-button>
         </div>
 
-        <ion-segment :value="selectedSegment" @ionChange="segmentChanged($event.detail.value)">
+        <ion-segment v-if="!isTOReceived()" :value="selectedSegment" @ionChange="segmentChanged($event.detail.value)">
           <ion-segment-button value="all" content-id="all">
             <ion-label>{{ translate("All") }}</ion-label>
           </ion-segment-button>
@@ -63,7 +64,7 @@
         </ion-segment>
 
         <!-- TODO: create a common component for the item card -->
-        <ion-segment-view>
+        <ion-segment-view v-if="!isTOReceived()">
           <ion-segment-content id="all">
             <ion-card v-for="(item, index) in getTOItems('all')" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
               <div class="product" :data-product-id="item.productId">
@@ -120,18 +121,15 @@
                   </div>
 
                   <div class="to-item-history">
-                    <ion-chip v-if="isReceivingByFulfillment" outline @click="shippingHistory(item.productId, item.orderItemSeqId)">
-                      <ion-icon :icon="checkmarkDone"/>
-                      <ion-label> {{ item.totalIssuedQuantity ?? 0 }} {{ translate("Shipped") }} </ion-label>
-                    </ion-chip>
-                    <ion-chip v-else outline @click="receivingHistory(item.productId, item.orderItemSeqId)">
+                    <ion-chip outline @click="receivingHistory(item.productId, item.orderItemSeqId)">
                       <ion-icon :icon="checkmarkDone"/>
                       <ion-label> {{ item.totalReceivedQuantity ?? 0 }} {{ translate("received") }} </ion-label>
                     </ion-chip>
                   </div>
 
                   <div class="qty-ordered">
-                    <ion-label>{{ item.quantity }} {{ translate("ordered") }}</ion-label>
+                    <ion-label v-if="isReceivingByFulfillment">{{ item.totalIssuedQuantity }} {{ translate("shipped") }}</ion-label>
+                    <ion-label v-else>{{ item.quantity }} {{ translate("ordered") }}</ion-label>
                   </div>
                 </div>
               </template>
@@ -164,7 +162,7 @@
                 </div>
 
                 <div class="product-count">
-                  <ion-item lines="none">
+                  <ion-item>
                     <ion-input :label="translate('Qty')" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" />
                   </ion-item>
                 </div>
@@ -183,21 +181,26 @@
                 </div>
 
                 <div class="to-item-history">
-                  <ion-chip v-if="isReceivingByFulfillment" outline @click="shippingHistory(item.productId, item.orderItemSeqId)">
-                    <ion-icon :icon="checkmarkDone"/>
-                    <ion-label> {{ item.totalIssuedQuantity ?? 0 }} {{ translate("Shipped") }} </ion-label>
-                  </ion-chip>
-                  <ion-chip v-else outline @click="receivingHistory(item.productId, item.orderItemSeqId)">
+                  <ion-chip outline @click="receivingHistory(item.productId, item.orderItemSeqId)">
                     <ion-icon :icon="checkmarkDone"/>
                     <ion-label> {{ item.totalReceivedQuantity ?? 0 }} {{ translate("received") }} </ion-label>
                   </ion-chip>
                 </div>
 
                 <div class="qty-ordered">
-                  <ion-label>{{ item.quantity }} {{ translate("ordered") }}</ion-label>
+                  <ion-label v-if="isReceivingByFulfillment">{{ item.totalIssuedQuantity }} {{ translate("shipped") }}</ion-label>
+                  <ion-label v-else>{{ item.quantity }} {{ translate("ordered") }}</ion-label>
                 </div>
               </div>
             </ion-card>
+            <div v-if="!getTOItems('not-started')?.length" class="empty-state">
+              <ion-label>
+                {{ "No items available to start receiving, check in-progress tab" }}
+              </ion-label>
+              <ion-button fill="clear" @click="segmentChanged('in-progress')">
+                <ion-icon slot="icon-only" :icon="openOutline" />
+              </ion-button>
+            </div>
           </ion-segment-content>
           <ion-segment-content id="in-progress">
             <ion-card v-for="(item, index) in getTOItems('in-progress')" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
@@ -226,7 +229,7 @@
                 </div>
 
                 <div class="product-count">
-                  <ion-item lines="none">
+                  <ion-item>
                     <ion-input :label="translate('Qty')" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" />
                   </ion-item>
                 </div>
@@ -245,21 +248,26 @@
                 </div>
 
                 <div class="to-item-history">
-                  <ion-chip v-if="isReceivingByFulfillment" outline @click="shippingHistory(item.productId, item.orderItemSeqId)">
-                    <ion-icon :icon="checkmarkDone"/>
-                    <ion-label> {{ item.totalIssuedQuantity ?? 0 }} {{ translate("Shipped") }} </ion-label>
-                  </ion-chip>
-                  <ion-chip v-else outline @click="receivingHistory(item.productId, item.orderItemSeqId)">
+                  <ion-chip outline @click="receivingHistory(item.productId, item.orderItemSeqId)">
                     <ion-icon :icon="checkmarkDone"/>
                     <ion-label> {{ item.totalReceivedQuantity ?? 0 }} {{ translate("received") }} </ion-label>
                   </ion-chip>
                 </div>
 
                 <div class="qty-ordered">
-                  <ion-label>{{ item.quantity }} {{ translate("ordered") }}</ion-label>
+                  <ion-label v-if="isReceivingByFulfillment">{{ item.totalIssuedQuantity }} {{ translate("shipped") }}</ion-label>
+                  <ion-label v-else>{{ item.quantity }} {{ translate("ordered") }}</ion-label>
                 </div>
               </div>
             </ion-card>
+            <div v-if="!getTOItems('in-progress')?.length" class="empty-state">
+              <ion-label>
+                {{ "No in-progress items available for receiving, check Not Started tab" }}
+              </ion-label>
+              <ion-button fill="clear" @click="segmentChanged('not-started')">
+                <ion-icon slot="icon-only" :icon="openOutline" />
+              </ion-button>
+            </div>
           </ion-segment-content>
           <ion-segment-content id="received">
             <ion-card v-for="(item, index) in getTOItems('received')" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
@@ -294,16 +302,60 @@
                 </div>
               </div>
             </ion-card>
+            <div v-if="!getTOItems('received')?.length" class="empty-state">
+              <ion-label>
+                {{ "No items are marked as completed, check Not Started tab" }}
+              </ion-label>
+              <ion-button fill="clear" @click="segmentChanged('not-started')">
+                <ion-icon slot="icon-only" :icon="openOutline" />
+              </ion-button>
+            </div>
           </ion-segment-content>
         </ion-segment-view>
+
+        <!-- TODO: update UI to have this information in the by using the segment view -->
+        <template v-if="isTOReceived()">
+          <ion-card v-for="(item, index) in getTOItems('received')" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+            <div class="product" :data-product-id="item.productId">
+              <div class="product-info">
+                <ion-item lines="none">
+                  <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
+                    <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
+                  </ion-thumbnail>
+                  <ion-label class="ion-text-wrap">
+                    <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
+                    <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                    <p>{{ getFeatures(getProduct(item.productId).productFeatures) }}</p>
+                  </ion-label>
+                </ion-item>
+              </div>
+
+              <div class="location">
+                <ion-button v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
+                  <ion-icon color="medium" slot="icon-only" :icon="cubeOutline" />
+                </ion-button>
+                <ion-chip v-else outline>
+                  {{ translate("on hand", { qoh: productQoh[item.productId] }) }}
+                  <ion-icon color="medium" :icon="cubeOutline"/>
+                </ion-chip>
+              </div>
+
+              <div>
+                <ion-item lines="none">
+                  <ion-label slot="end">{{ translate(' Received | Shipped | Ordered',{ received: item.totalReceivedQuantity ?? 0, shipped:item.totalIssuedQuantity ?? 0 , ordered: item.quantity }) }}</ion-label>
+                </ion-item>
+              </div>
+            </div>
+          </ion-card>
+        </template>
       </main>
     </ion-content>
 
-    <ion-footer v-if="!isTOReceived()">
+    <ion-footer v-if="!isTOReceived() && getTOItems(selectedSegment)?.length && selectedSegment !== 'received'">
       <ion-toolbar>
         <ion-buttons slot="end">
-          <ion-button fill="outline" size="small" color="primary" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE)" class="ion-margin-end" @click="receiveAndCloseTO">{{ translate("Receive And Close") }}</ion-button>
-          <ion-button fill="solid" size="small" color="primary" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibileForCreatingShipment()" @click="receiveTO">{{ translate("Receive") }}</ion-button>
+          <ion-button fill="outline" size="small" color="primary" class="ion-margin-end" @click="receiveAndCloseTO">{{ translate("Complete Transfer Order") }}</ion-button>
+          <ion-button fill="solid" size="small" color="primary" @click="receiveTO">{{ translate("Receive") }} {{ getReceivedUnits() }}</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-footer>
@@ -339,7 +391,7 @@ import {
   modalController
 } from '@ionic/vue';
 import { defineComponent, computed } from 'vue';
-import { addOutline, cameraOutline, checkmarkDone, copyOutline, cubeOutline, eyeOffOutline, eyeOutline, locationOutline, saveOutline, timeOutline } from 'ionicons/icons';
+import { addOutline, cameraOutline, checkmarkDone, copyOutline, cubeOutline, eyeOffOutline, eyeOutline, locationOutline, openOutline, saveOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import ShippingHistoryModal from '@/views/ShippingHistoryModal.vue'
 import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore, useUserStore } from '@hotwax/dxp-components';
@@ -404,9 +456,32 @@ export default defineComponent({
     }),
     trackedPackages(): any[] {
       return this.order?.shipmentPackages?.filter((pkg: any) => pkg.trackingCode) || [];
-    }
+    },
+    getTOItems() {
+      return (orderType: string) => {
+        let items: Array<any> = [];
+        if (!this.order.items) return items;
+        if (orderType === "received") {
+          items = this.order.items.filter((item: any) => item.statusId === 'ITEM_COMPLETED')
+        } else if(orderType === "in-progress") {
+          items = this.order.items.filter((item: any) => !['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId) && Number(item.totalReceivedQuantity))
+        } else if(orderType === "not-started") {
+          items = this.order.items.filter((item: any) => !['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId) && !Number(item.totalReceivedQuantity))
+        } else {
+          items = this.order.items
+        }
+
+        // Only display items those are fulfilled
+        return this.isReceivingByFulfillment ? items.filter((item: any) => item.totalIssuedQuantity) : items
+      }
+    },
   },
   methods: {
+    getReceivedUnits() {
+      const totalReceived = this.order.items.reduce((qty: any, item: any) => qty + (Number(item.quantityAccepted) || 0), 0)
+      const totalUnits = this.order.items.reduce((qty: any, item: any) => qty + ((this.isReceivingByFulfillment ? item.totalIssuedQuantity : item.quantity) || 0), 0)
+      return `${totalReceived} / ${totalUnits} units`
+    },
     segmentChanged(value: string) {
       this.selectedSegment = value
     },
@@ -528,22 +603,6 @@ export default defineComponent({
       }
       this.queryString = ''
     },
-    getTOItems(orderType: string) {
-      let items: Array<any> = [];
-      if (!this.order.items) return items;
-      if (orderType === "received") {
-        items = this.order.items.filter((item: any) => item.statusId === 'ITEM_COMPLETED')
-      } else if(orderType === "in-progress") {
-        items = this.order.items.filter((item: any) => !['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId) && Number(item.totalReceivedQuantity))
-      } else if(orderType === "not-started") {
-        items = this.order.items.filter((item: any) => !['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId) && !Number(item.totalReceivedQuantity))
-      } else {
-        items = this.order.items
-      }
-
-      // Only display items those are fulfilled
-      return this.isReceivingByFulfillment ? items.filter((item: any) => item.totalReceivedQuantity) : items
-    },
     async addProduct() {
       const modal = await modalController
         .create({
@@ -568,7 +627,29 @@ export default defineComponent({
         })
       return modal.present();
     },
+    async receivingAlert() {
+      let message = "Specify quantity for at least one of the items to receive"
+
+      if(!hasPermission(Actions.APP_SHIPMENT_UPDATE)) {
+        message = "You do not have permission to receive items"
+      }
+
+      const alert = await alertController.create({
+        header: translate("Receiving"),
+        message: translate(message),
+        buttons: [{
+          text: translate("Ok"),
+          role: "cancel"
+        }]
+      });
+
+      return alert.present();
+    },
     async receiveTO() {
+      if(!this.isEligibileForCreatingShipment() || !hasPermission(Actions.APP_SHIPMENT_UPDATE)) {
+        return await this.receivingAlert();
+      }
+
       const alert = await alertController.create({
         header: translate('Receive inventory'),
         message: translate('Inventory can be received for transfer orders in multiple receipts. Proceeding will receive the item of the transfer order but it will still be available for receiving later.', { space: '<br /><br />' }),
@@ -594,11 +675,21 @@ export default defineComponent({
       return alert.present();
     },
     async receiveAndCloseTO() {
+
+      if(!this.isEligibileForCreatingShipment() || !hasPermission(Actions.APP_SHIPMENT_UPDATE)) {
+        return await this.receivingAlert();
+      }
+
       const modal = await modalController.create({
         component: CloseTransferOrderModal,
         componentProps: {
           isEligibileForCreatingShipment: this.isEligibileForCreatingShipment(),
         }
+      })
+
+      // Mark as the items as unchecked
+      modal.onDidDismiss().then(() => {
+        this.order.items.forEach((item: any) => item.isChecked = false)
       })
 
       return modal.present();
@@ -629,7 +720,7 @@ export default defineComponent({
       }
     },
     isEligibileForCreatingShipment() {
-      return this.order.items?.some((item: any) => !!item.quantityAccepted && Number(item.quantityAccepted) > 0)
+      return this.order.items?.some((item: any) => (item.quantityAccepted && Number(item.quantityAccepted) >= 0))
     },
     receiveAll(item: any) {
       const qtyAlreadyAccepted = Number(item.totalReceivedQuantity) || 0
@@ -716,6 +807,7 @@ export default defineComponent({
       hasPermission,
       locationOutline,
       router,
+      openOutline,
       saveOutline,
       store,
       timeOutline,
