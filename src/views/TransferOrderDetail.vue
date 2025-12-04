@@ -165,7 +165,7 @@
 
                 <div class="product-count">
                   <ion-item lines="none">
-                    <ion-input :label="translate('Qty')" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" :helper-text="`${item.totalReceivedQuantity ?? 0} ${translate('received')}`" />
+                    <ion-input :label="translate('Qty')" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" />
                   </ion-item>
                 </div>
               </div>
@@ -183,9 +183,13 @@
                 </div>
 
                 <div class="to-item-history">
-                  <ion-chip outline @click="shippingHistory(item.productId, item.orderItemSeqId)">
+                  <ion-chip v-if="isReceivingByFulfillment" outline @click="shippingHistory(item.productId, item.orderItemSeqId)">
                     <ion-icon :icon="checkmarkDone"/>
                     <ion-label> {{ item.totalIssuedQuantity ?? 0 }} {{ translate("Shipped") }} </ion-label>
+                  </ion-chip>
+                  <ion-chip v-else outline @click="receivingHistory(item.productId, item.orderItemSeqId)">
+                    <ion-icon :icon="checkmarkDone"/>
+                    <ion-label> {{ item.totalReceivedQuantity ?? 0 }} {{ translate("received") }} </ion-label>
                   </ion-chip>
                 </div>
 
@@ -223,7 +227,7 @@
 
                 <div class="product-count">
                   <ion-item lines="none">
-                    <ion-input :label="translate('Qty')" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" :helper-text="`${item.totalReceivedQuantity ?? 0} ${translate('received')}`" />
+                    <ion-input :label="translate('Qty')" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" />
                   </ion-item>
                 </div>
               </div>
@@ -241,9 +245,13 @@
                 </div>
 
                 <div class="to-item-history">
-                  <ion-chip outline @click="shippingHistory(item.productId, item.orderItemSeqId)">
+                  <ion-chip v-if="isReceivingByFulfillment" outline @click="shippingHistory(item.productId, item.orderItemSeqId)">
                     <ion-icon :icon="checkmarkDone"/>
                     <ion-label> {{ item.totalIssuedQuantity ?? 0 }} {{ translate("Shipped") }} </ion-label>
+                  </ion-chip>
+                  <ion-chip v-else outline @click="receivingHistory(item.productId, item.orderItemSeqId)">
+                    <ion-icon :icon="checkmarkDone"/>
+                    <ion-label> {{ item.totalReceivedQuantity ?? 0 }} {{ translate("received") }} </ion-label>
                   </ion-chip>
                 </div>
 
@@ -521,16 +529,20 @@ export default defineComponent({
       this.queryString = ''
     },
     getTOItems(orderType: string) {
-      if (!this.order.items) return [];
+      let items: Array<any> = [];
+      if (!this.order.items) return items;
       if (orderType === "received") {
-        return this.order.items.filter((item: any) => item.statusId === 'ITEM_COMPLETED')
+        items = this.order.items.filter((item: any) => item.statusId === 'ITEM_COMPLETED')
       } else if(orderType === "in-progress") {
-        return this.order.items.filter((item: any) => !['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId) && Number(item.totalReceivedQuantity))
+        items = this.order.items.filter((item: any) => !['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId) && Number(item.totalReceivedQuantity))
       } else if(orderType === "not-started") {
-        return this.order.items.filter((item: any) => !['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId) && !Number(item.totalReceivedQuantity))
+        items = this.order.items.filter((item: any) => !['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId) && !Number(item.totalReceivedQuantity))
       } else {
-        return this.order.items
+        items = this.order.items
       }
+
+      // Only display items those are fulfilled
+      return this.isReceivingByFulfillment ? items.filter((item: any) => item.totalReceivedQuantity) : items
     },
     async addProduct() {
       const modal = await modalController
