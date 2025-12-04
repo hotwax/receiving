@@ -83,7 +83,7 @@
 
               <div class="product-count">
                 <ion-item lines="none">
-                  <ion-input :label="translate('Qty')" label-placement="floating" type="number" value="0" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" :helper-text="`${item.totalReceivedQuantity ?? 0} ${translate('received')}`" />
+                  <ion-input :label="translate('Qty')" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" :helper-text="`${item.totalReceivedQuantity ?? 0} ${translate('received')}`" />
                 </ion-item>
               </div>
             </div>
@@ -141,10 +141,6 @@
             </div>
             
             <div class="location">
-              <!-- <ion-chip :disabled="true" outline>
-                <ion-icon :icon="locationOutline"/>
-                <ion-label>{{ item.locationSeqId }}</ion-label>
-              </ion-chip> -->
               <ion-button v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
                 <ion-icon color="medium" slot="icon-only" :icon="cubeOutline" />
               </ion-button>
