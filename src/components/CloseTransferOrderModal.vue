@@ -18,7 +18,7 @@
       <ion-list-header>{{ translate("To close the transfer order, select all.") }}</ion-list-header>
     </ion-item>
     <ion-list>
-      <ion-item :button="isTOItemStatusPending(item)" v-for="(item, index) in getTOItems()" :key="index" @click="item.isChecked = !item.isChecked">
+      <ion-item :button="isItemQtyAccepted(item)" v-for="(item, index) in getTOItems()" :key="index" @click="isItemQtyAccepted(item) && (item.isChecked = !item.isChecked)">
         <ion-thumbnail slot="start">
           <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
         </ion-thumbnail>
@@ -26,10 +26,9 @@
           <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
           <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
           <p>{{ getFeatures(getProduct(item.productId).productFeatures) }}</p>
+          <ion-note v-if="getItemReceivingError(item).message" :color="getItemReceivingError(item).color">{{ getItemReceivingError(item).message }}</ion-note>
         </ion-label>
-        <ion-buttons>
-          <ion-checkbox aria-label="itemStatus" slot="end" :modelValue="isTOItemStatusPending(item) ? item.isChecked : true" :disabled="isTOItemStatusPending(item) ? false : true" />
-        </ion-buttons>
+        <ion-checkbox aria-label="itemStatus" slot="end" :modelValue="isTOItemStatusPending(item) ? item.isChecked : true" :disabled="!isItemQtyAccepted(item)"/>
       </ion-item>
     </ion-list>
   </ion-content>
@@ -55,6 +54,7 @@ import {
   IonLabel,
   IonList,
   IonListHeader,
+  IonNote,
   IonTitle,
   IonToolbar,
   IonThumbnail,
@@ -87,6 +87,7 @@ export default defineComponent({
     IonLabel,
     IonList,
     IonListHeader,
+    IonNote,
     IonTitle,
     IonThumbnail,
     IonToolbar,
@@ -96,7 +97,34 @@ export default defineComponent({
     ...mapGetters({
       getProduct: 'product/getProduct',
       order: 'transferorder/getCurrent'
-    })
+    }),
+    isItemQtyAccepted() {
+      return (item: any) => (!!Number(item.quantityAccepted) && Number(item.quantityAccepted) >= 0)
+    },
+    getItemReceivingError() {
+      return (item: any) => {
+        if(!this.isItemQtyAccepted(item)) {
+          return {
+            message: "Specify quantity to close item",
+            color: "danger"
+          }
+        }
+
+        const overReceivedQty = ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) - (Number(item.quantity) || 0)
+
+        if(overReceivedQty > 0) {
+          return {
+            message: `Over received: ${overReceivedQty}`,
+            color: "warning"
+          }
+        }
+
+        return {
+          message: "",
+          color: ""
+        }
+      }
+    }
   },
   props: ['isEligibileForCreatingShipment'],
   methods: {
@@ -169,17 +197,18 @@ export default defineComponent({
       return item.statusId === "ITEM_PENDING_RECEIPT"
     },
     selectAllItems() {
-      this.order.items.map((item:any) => {
-          item.isChecked = true;
-    })
+      this.order.items.forEach((item: any) => {
+        if(this.isItemQtyAccepted(item)) {
+          item.isChecked = true
+        }
+      })
     },
     getTOItems() {
-      return this.order.items.filter((item: any) => item.orderItemSeqId && !['ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId))
+      return this.order.items.filter((item: any) => item.orderItemSeqId && this.isTOItemStatusPending(item))
     },
     checkAlreadyFulfilledItems() {
       this.order.items.forEach((item: any) => {
-        item.isChecked = this.isTOItemStatusPending(item) &&
-          (Number(item.totalReceivedQuantity) > 0 || Number(item.quantityAccepted) > 0);
+        item.isChecked = this.isTOItemStatusPending(item) && Number(item.quantityAccepted) > 0;
       });
     }
   },
