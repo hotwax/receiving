@@ -20,6 +20,7 @@
         <div class="doc-id">
           <div>
             <ion-label class="ion-padding">
+              <p class="overline">{{ order.orderId }}</p>
               <h1>{{ translate("Transfer Order")}}: {{ order.orderName ? order.orderName : order.externalId ? order.externalId : order.orderId }}</h1>
               <p>{{ translate("Item count") }}: {{ order.items?.length }}</p>
               <p v-if="isReceivingByFulfillment && !isTOReceived()">{{ translate("Unfulfilled items") }}: {{ order.items?.length - getTOItems("all").length }}</p>
@@ -33,8 +34,13 @@
           </div>
 
           <div class="doc-meta">
-            <ion-chip @click="copyToClipboard(order.orderId, 'Internal ID saved to clipboard')">{{ order.orderId }}<ion-icon :icon="copyOutline"/></ion-chip>
-            <ion-badge :color="order.statusId === 'ORDER_APPROVED' ? 'primary' : 'medium'">{{ order.status }}</ion-badge>
+            <ion-item button lines="none" @click="openTOReceivingInstructions">
+              <ion-icon :icon="informationCircleOutline" />
+              <ion-label slot="end">
+                {{ translate("Finish receiving the open items to complete this complete transfer order", { items: getTOItems("open").length }) }}
+                <p>{{ translate("Tap to learn more") }}</p>
+              </ion-label>
+            </ion-item>
           </div>
         </div>
 
@@ -52,11 +58,8 @@
           <ion-segment-button value="all" content-id="all">
             <ion-label>{{ translate("All") }}</ion-label>
           </ion-segment-button>
-          <ion-segment-button value="not-started" content-id="not-started">
-            <ion-label>{{ getTOItems("not-started")?.length }} {{ translate("Not Started") }}</ion-label>
-          </ion-segment-button>
-          <ion-segment-button value="in-progress" content-id="in-progress">
-            <ion-label>{{ getTOItems("in-progress")?.length }} {{ translate("In Progress") }}</ion-label>
+          <ion-segment-button value="open" content-id="open">
+            <ion-label>{{ getTOItems("open")?.length }} {{ translate("Open") }}</ion-label>
           </ion-segment-button>
           <ion-segment-button value="received" content-id="received">
             <ion-label>{{ getTOItems("received")?.length }} {{ translate("Received and closed") }}</ion-label>
@@ -135,8 +138,8 @@
               </template>
             </ion-card>
           </ion-segment-content>
-          <ion-segment-content id="not-started">
-            <ion-card v-for="(item, index) in getTOItems('not-started')" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+          <ion-segment-content id="open">
+            <ion-card v-for="(item, index) in getTOItems('open')" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
               <div class="product" :data-product-id="item.productId">
                 <div class="product-info">
                   <ion-item lines="none">
@@ -193,78 +196,11 @@
                 </div>
               </div>
             </ion-card>
-            <div v-if="!getTOItems('not-started')?.length" class="empty-state">
+            <div v-if="!getTOItems('open')?.length" class="empty-state">
               <ion-label>
-                {{ "No items available to start receiving, check in-progress tab" }}
+                {{ "No items available for receiving, check completed tab" }}
               </ion-label>
-              <ion-button fill="clear" @click="segmentChanged('in-progress')">
-                <ion-icon slot="icon-only" :icon="openOutline" />
-              </ion-button>
-            </div>
-          </ion-segment-content>
-          <ion-segment-content id="in-progress">
-            <ion-card v-for="(item, index) in getTOItems('in-progress')" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
-              <div class="product" :data-product-id="item.productId">
-                <div class="product-info">
-                  <ion-item lines="none">
-                    <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).itemDescription)">
-                      <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
-                    </ion-thumbnail>
-                    <ion-label class="ion-text-wrap">
-                      <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
-                      <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
-                      <p>{{ getFeatures(getProduct(item.productId).productFeatures) }}</p>
-                    </ion-label>
-                  </ion-item>
-                </div>
-
-                <div class="location">
-                  <ion-button v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
-                    <ion-icon color="medium" slot="icon-only" :icon="cubeOutline" />
-                  </ion-button>
-                  <ion-chip v-else outline>
-                    {{ translate("on hand", { qoh: productQoh[item.productId] }) }}
-                    <ion-icon color="medium" :icon="cubeOutline"/>
-                  </ion-chip>
-                </div>
-
-                <div class="product-count">
-                  <ion-item>
-                    <ion-input :label="translate('Qty')" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" />
-                  </ion-item>
-                </div>
-              </div>
-
-              <div class="action border-top" v-if="item.quantity > 0">
-                <div class="receive-all-qty">
-                  <ion-button @click="receiveAll(item)" :disabled="isForceScanEnabled || isItemReceivedInFull(item)" slot="start" size="small" fill="outline">
-                    {{ translate("Receive All") }}
-                  </ion-button>
-                </div>
-
-                <div class="qty-progress">
-                  <!-- TODO: improve the handling of quantityAccepted -->
-                  <ion-progress-bar :color="getRcvdToOrderedFraction(item) === 1 ? 'success' : getRcvdToOrderedFraction(item) > 1 ? 'danger' : 'primary'" :value="getRcvdToOrderedFraction(item)" />
-                </div>
-
-                <div class="to-item-history">
-                  <ion-chip outline @click="receivingHistory(item.productId, item.orderItemSeqId)">
-                    <ion-icon :icon="checkmarkDone"/>
-                    <ion-label> {{ item.totalReceivedQuantity ?? 0 }} {{ translate("received") }} </ion-label>
-                  </ion-chip>
-                </div>
-
-                <div class="qty-ordered">
-                  <ion-label v-if="isReceivingByFulfillment">{{ item.totalIssuedQuantity }} {{ translate("shipped") }}</ion-label>
-                  <ion-label v-else>{{ item.quantity }} {{ translate("ordered") }}</ion-label>
-                </div>
-              </div>
-            </ion-card>
-            <div v-if="!getTOItems('in-progress')?.length" class="empty-state">
-              <ion-label>
-                {{ "No in-progress items available for receiving, check Not Started tab" }}
-              </ion-label>
-              <ion-button fill="clear" @click="segmentChanged('not-started')">
+              <ion-button fill="clear" @click="segmentChanged('received')">
                 <ion-icon slot="icon-only" :icon="openOutline" />
               </ion-button>
             </div>
@@ -304,9 +240,9 @@
             </ion-card>
             <div v-if="!getTOItems('received')?.length" class="empty-state">
               <ion-label>
-                {{ "No items are marked as completed, check Not Started tab" }}
+                {{ "No items are marked as completed, check Open tab" }}
               </ion-label>
-              <ion-button fill="clear" @click="segmentChanged('not-started')">
+              <ion-button fill="clear" @click="segmentChanged('open')">
                 <ion-icon slot="icon-only" :icon="openOutline" />
               </ion-button>
             </div>
@@ -354,8 +290,8 @@
     <ion-footer v-if="!isTOReceived() && getTOItems(selectedSegment)?.length && selectedSegment !== 'received'">
       <ion-toolbar>
         <ion-buttons slot="end">
-          <ion-button fill="outline" size="small" color="primary" class="ion-margin-end" @click="receiveAndCloseTO">{{ translate("Complete Transfer Order") }}</ion-button>
-          <ion-button fill="solid" size="small" color="primary" @click="receiveTO">{{ translate("Receive") }} {{ getReceivedUnits() }}</ion-button>
+          <ion-button class="ion-margin-end" fill="solid" size="small" color="primary" @click="receiveTO">{{ translate("Save progress:") }} {{ getReceivedUnits() }}</ion-button>
+          <ion-button fill="outline" size="small" color="primary" @click="receiveAndCloseTO">{{ translate("Receive and complete") }}</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-footer>
@@ -365,7 +301,6 @@
 <script lang="ts">
 import {
   IonBackButton,
-  IonBadge,
   IonButton,
   IonButtons,
   IonCard,
@@ -391,7 +326,7 @@ import {
   modalController
 } from '@ionic/vue';
 import { defineComponent, computed } from 'vue';
-import { addOutline, cameraOutline, checkmarkDone, copyOutline, cubeOutline, eyeOffOutline, eyeOutline, locationOutline, openOutline, saveOutline, timeOutline } from 'ionicons/icons';
+import { addOutline, cameraOutline, checkmarkDone, copyOutline, cubeOutline, eyeOffOutline, eyeOutline, informationCircleOutline, locationOutline, openOutline, saveOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import ShippingHistoryModal from '@/views/ShippingHistoryModal.vue'
 import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore, useUserStore } from '@hotwax/dxp-components';
@@ -407,13 +342,13 @@ import AddProductToTOModal from '@/components/AddProductToTOModal.vue';
 import { DateTime } from 'luxon';
 import { ProductService } from '@/services/ProductService';
 import emitter from "@/event-bus";
+import ReceivingInstructions from '@/components/ReceivingInstructions.vue';
 
 export default defineComponent({
   name: "TransferOrderDetails",
   components: {
     DxpShopifyImg,
     IonBackButton,
-    IonBadge,
     IonButton,
     IonButtons,
     IonCard,
@@ -443,7 +378,7 @@ export default defineComponent({
       lastScannedId: '',
       productQoh: {} as any,
       observer: {} as IntersectionObserver,
-      selectedSegment: "not-started"
+      selectedSegment: "open"
     }
   },
   computed: {
@@ -463,10 +398,8 @@ export default defineComponent({
         if (!this.order.items) return items;
         if (orderType === "received") {
           items = this.order.items.filter((item: any) => item.statusId === 'ITEM_COMPLETED')
-        } else if(orderType === "in-progress") {
-          items = this.order.items.filter((item: any) => !['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId) && Number(item.totalReceivedQuantity))
-        } else if(orderType === "not-started") {
-          items = this.order.items.filter((item: any) => !['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId) && !Number(item.totalReceivedQuantity))
+        } else if(orderType === "open") {
+          items = this.order.items.filter((item: any) => !['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId))
         } else {
           items = this.order.items
         }
@@ -479,7 +412,7 @@ export default defineComponent({
   methods: {
     getReceivedUnits() {
       const totalReceived = this.order.items.reduce((qty: any, item: any) => qty + (Number(item.quantityAccepted) || 0), 0)
-      const totalUnits = this.order.items.reduce((qty: any, item: any) => qty + ((this.isReceivingByFulfillment ? item.totalIssuedQuantity : item.quantity) || 0), 0)
+      const totalUnits = this.order.items.reduce((qty: any, item: any) => qty + ((this.isReceivingByFulfillment ? item.totalIssuedQuantity : item.quantity) - item.totalReceivedQuantity || 0), 0)
       return `${totalReceived} / ${totalUnits} units`
     },
     segmentChanged(value: string) {
@@ -547,12 +480,8 @@ export default defineComponent({
         const item = this.order.items.find((item: any) => getProductIdentificationValue(this.barcodeIdentifier, this.getProduct(item.productId)) === payload)
         if(item.statusId === "ITEM_COMPLETED") {
           this.segmentChanged("received")
-        } else if(Number(item.totalReceivedQuantity)) {
-          this.segmentChanged("in-progress")
-        } else if(!Number(item.totalReceivedQuantity)) {
-          this.segmentChanged("not-started")
         } else {
-          this.segmentChanged("all")
+          this.segmentChanged("open")
         }
 
         // Highlight specific element
@@ -650,29 +579,44 @@ export default defineComponent({
         return await this.receivingAlert();
       }
 
-      const alert = await alertController.create({
-        header: translate('Receive inventory'),
-        message: translate('Inventory can be received for transfer orders in multiple receipts. Proceeding will receive the item of the transfer order but it will still be available for receiving later.', { space: '<br /><br />' }),
-        buttons: [{
-          text: translate('Cancel'),
-          role: 'cancel'
-        },
-        {
-          text: translate('Proceed'),
-          role: 'proceed',
-          handler: async () => {
-            // Dismiss alert before showing loader to prevent overlay stacking
-            alert.dismiss();
-            emitter.emit("presentLoader", { message: "Loading...", backdropDismiss: false });
-            try {
-              await this.receiveTransferOrder();
-            } finally {
-              emitter.emit("dismissLoader");
+      const isAnyItemOverReceived = this.order.items.some((item: any) => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) - (Number(item.quantity) || 0))
+
+      if(!isAnyItemOverReceived) {
+        const alert = await alertController.create({
+          header: translate('Save progress and receive more later'),
+          message: translate('Inventory can be received for transfer orders in multiple receipts. Proceeding will receive the item of the transfer order but it will still be available for receiving later.', { space: '<br /><br />' }),
+          buttons: [{
+            text: translate('Cancel'),
+            role: 'cancel'
+          },
+          {
+            text: translate('Proceed'),
+            role: 'proceed',
+            handler: async () => {
+              // Dismiss alert before showing loader to prevent overlay stacking
+              alert.dismiss();
+              emitter.emit("presentLoader", { message: "Loading...", backdropDismiss: false });
+              try {
+                await this.receiveTransferOrder();
+              } finally {
+                emitter.emit("dismissLoader");
+              }
             }
-          }
-        }]
-      });
-      return alert.present();
+          }]
+        });
+        return alert.present();
+      } else {
+        const modal = await modalController
+          .create({
+            component: ReceivingInstructions,
+            componentProps: {
+              openItems: this.getTOItems("open").length,
+              items: this.order.items.length
+            }
+          });
+        
+        return modal.present();
+      }
     },
     async receiveAndCloseTO() {
 
@@ -762,6 +706,18 @@ export default defineComponent({
     getItemCount() {
       return this.order?.items?.reduce((totalItems: any, item: any) => totalItems + (item.quantity || 0), 0);
     },
+    async openTOReceivingInstructions() {
+      const modal = await modalController
+        .create({
+          component: ReceivingInstructions,
+          componentProps: {
+            openItems: this.getTOItems("open").length,
+            items: this.order.items.length
+          }
+        });
+      
+      return modal.present();
+    }
   }, 
   async ionViewWillEnter() {
     emitter.emit('presentLoader',{ backdropDismiss : false ,message:"Fetching details..."});
@@ -805,6 +761,7 @@ export default defineComponent({
       eyeOutline,
       getFeatures,
       hasPermission,
+      informationCircleOutline,
       locationOutline,
       router,
       openOutline,
@@ -820,6 +777,12 @@ export default defineComponent({
 </script>
 
 <style scoped>
+
+.doc-meta > ion-item {
+  --border-color: var(--ion-color-medium);
+  --border-radius: 8px;
+  --border-width: 1px;
+}
 
 .action {
   display: grid;

@@ -7,15 +7,12 @@
         </ion-button>
       </ion-buttons>
       <ion-title>{{ translate("Close transfer order items") }}</ion-title>
-      <ion-buttons slot="end" @click="selectAllItems">
-        <ion-button color="primary">{{ translate("Select all") }}</ion-button>
-      </ion-buttons>
     </ion-toolbar>
   </ion-header>
 
   <ion-content>
     <ion-item lines="none">
-      <ion-list-header>{{ translate("To close the transfer order, select all.") }}</ion-list-header>
+      <ion-list-header>{{ translate("out of items were not received as expected. Please verify them before closing the transfer order", { totalItems: order.items.length, items: getTOItems().length }) }}</ion-list-header>
     </ion-item>
     <ion-list>
       <ion-item :button="isItemQtyAccepted(item)" v-for="(item, index) in getTOItems()" :key="index" @click="isItemQtyAccepted(item) && (item.isChecked = !item.isChecked)">
@@ -26,18 +23,21 @@
           <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
           <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
           <p>{{ getFeatures(getProduct(item.productId).productFeatures) }}</p>
-          <ion-note v-if="getItemReceivingError(item).message" :color="getItemReceivingError(item).color">{{ getItemReceivingError(item).message }}</ion-note>
+          <ion-note v-if="getItemReceivingError(item)" color="danger">{{ getItemReceivingError(item) }}</ion-note>
         </ion-label>
         <ion-checkbox aria-label="itemStatus" slot="end" :modelValue="item.isChecked" :disabled="!isItemQtyAccepted(item)"/>
       </ion-item>
     </ion-list>
   </ion-content>
 
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibleToCloseTOItems()" @click="confirmSave">
-      <ion-icon :icon="saveOutline" />
-    </ion-fab-button>
-  </ion-fab>
+  <ion-footer>
+    <ion-toolbar class="ion-padding-start">
+      <ion-label slot="start">{{ translate("Select all items to proceed") }}</ion-label>
+      <ion-buttons slot="end">
+        <ion-button fill="solid" color="primary" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibleToCloseTOItems()" @click="confirmSave">{{ translate("Complete transfer order") }}</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-footer>
 </template>
 
 <script lang="ts">
@@ -46,8 +46,6 @@ import {
   IonButtons,
   IonCheckbox,
   IonContent,
-  IonFab,
-  IonFabButton,
   IonHeader,
   IonIcon,
   IonItem,
@@ -62,7 +60,7 @@ import {
   modalController
 } from '@ionic/vue';
 import { Actions, hasPermission } from '@/authorization'
-import { arrowBackOutline, saveOutline } from 'ionicons/icons';
+import { arrowBackOutline } from 'ionicons/icons';
 import { defineComponent, computed } from 'vue';
 import { mapGetters, useStore } from 'vuex'
 import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore, useUserStore } from '@hotwax/dxp-components';
@@ -79,8 +77,6 @@ export default defineComponent({
     IonButtons,
     IonCheckbox,
     IonContent,
-    IonFab,
-    IonFabButton,
     IonHeader,
     IonIcon,
     IonItem,
@@ -101,26 +97,13 @@ export default defineComponent({
     isItemQtyAccepted() {
       return (item: any) => (item.quantityAccepted && Number(item.quantityAccepted) >= 0)
     },
-    getItemReceivingError() {
-      return (item: any) => {
-        if(!this.isItemQtyAccepted(item)) {
-          return {
-            message: "Specify quantity to close item",
-            color: "danger"
-          }
-        }
-
+    getItemReceivingError(): (item: any) => string {
+      return (item: any): string => {
         const receivedQty = ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) - (Number(item.quantity) || 0)
         if(receivedQty <= 0) {
-          return {
-            message: `Under received: ${receivedQty}`,
-            color: "warning"
-          }
+          return `Under received: ${receivedQty}`
         } else {
-          return {
-            message: `Over received: ${receivedQty}`,
-            color: "warning"
-          }
+          return `Over received: ${receivedQty}`
         }
       }
     }
@@ -133,7 +116,7 @@ export default defineComponent({
     async confirmSave() {
       const alert = await alertController.create({
         header: translate('Close transfer order items'),
-        message: translate("The selected items won't be available for receiving later."),
+        message: translate("The transfer order items won't be available for receiving later."),
         buttons: [{
           text: translate('Cancel'),
           role: 'cancel'
@@ -190,17 +173,10 @@ export default defineComponent({
       }
     },
     isEligibleToCloseTOItems() {
-      return this.order.items.some((item: any) => item.isChecked && this.isTOItemStatusPending(item))
+      return this.order.items.every((item: any) => item.isChecked && this.isTOItemStatusPending(item))
     },
     isTOItemStatusPending(item: any) {
       return item.statusId === "ITEM_PENDING_RECEIPT"
-    },
-    selectAllItems() {
-      this.order.items.forEach((item: any) => {
-        if(this.isItemQtyAccepted(item)) {
-          item.isChecked = true
-        }
-      })
     },
     getTOItems() {
       return this.order.items.filter((item: any) => item.orderItemSeqId && !['ITEM_REJECTED', 'ITEM_CANCELLED', 'ITEM_COMPLETED'].includes(item.statusId))
@@ -218,7 +194,6 @@ export default defineComponent({
       getFeatures,
       hasPermission,
       router,
-      saveOutline,
       store,
       translate,
       getProductIdentificationValue,
