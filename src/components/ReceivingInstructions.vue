@@ -14,7 +14,7 @@
       <ion-item lines="full">
         <ion-label>
           <h2>{{ translate("out of items open", { openItems, items }) }}</h2>
-          <p>{{ translate("Submit a quantity on all open items to receive and close them. Enter 0 quantity for items you didn’t receive complete quantities for.", { space: "<br/>" }) }}</p>
+          <p v-html="translate('Submit a quantity on all open items to receive and close them. Enter 0 quantity for items you didn’t receive complete quantities for.', { space: '<br/>' })"></p>
           <p>{{ translate("Use the open tab to view outstanding items.") }}</p>
         </ion-label>
       </ion-item>
@@ -34,6 +34,7 @@ import {
   IonButtons,
   IonContent,
   IonHeader,
+  IonIcon,
   IonItem,
   IonLabel,
   IonList,
@@ -52,6 +53,7 @@ export default defineComponent({
     IonButtons,
     IonContent,
     IonHeader,
+    IonIcon,
     IonItem,
     IonLabel,
     IonList,
