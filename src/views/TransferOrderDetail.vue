@@ -23,7 +23,7 @@
               <p class="overline">{{ order.orderId }}</p>
               <h1>{{ translate("Transfer Order")}}: {{ order.orderName ? order.orderName : order.externalId ? order.externalId : order.orderId }}</h1>
               <p>{{ translate("Item count") }}: {{ order.items?.length }}</p>
-              <p v-if="isReceivingByFulfillment && !isTOReceived()">{{ translate("Unfulfilled items") }}: {{ order.items?.length - getTOItems("all").length }}</p>
+              <p v-if="isReceivingByFulfillment && !isTOReceived()">{{ translate("Unfulfilled items") }}: {{ order.items?.length - filteredItems.length }}</p>
             </ion-label>
             <ion-row>
               <ion-chip v-for="(pkg, index) in trackedPackages" :key="index" @click="copyToClipboard(pkg.trackingCode, 'Tracking code copied to clipboard')">
@@ -37,7 +37,7 @@
             <ion-item button lines="none" @click="openTOReceivingInstructions">
               <ion-icon :icon="informationCircleOutline" />
               <ion-label slot="end">
-                {{ translate("Finish receiving the open items to complete this complete transfer order", { items: getTOItems("open").length }) }}
+                {{ translate("Finish receiving the open items to complete this transfer order", { items: getTOItems("open").length }) }}
                 <p>{{ translate("Tap to learn more") }}</p>
               </ion-label>
             </ion-item>
@@ -62,14 +62,14 @@
             <ion-label>{{ getTOItems("open")?.length }} {{ translate("Open") }}</ion-label>
           </ion-segment-button>
           <ion-segment-button value="received" content-id="received">
-            <ion-label>{{ getTOItems("received")?.length }} {{ translate("Received and closed") }}</ion-label>
+            <ion-label>{{ getTOItems("received")?.length }} {{ translate("Received and completed") }}</ion-label>
           </ion-segment-button>
         </ion-segment>
 
         <!-- TODO: create a common component for the item card -->
         <ion-segment-view v-if="!isTOReceived()">
           <ion-segment-content id="all">
-            <ion-card v-for="(item, index) in getTOItems('all')" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+            <ion-card v-for="(item, index) in filteredItems" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
               <div class="product" :data-product-id="item.productId">
                 <div class="product-info">
                   <ion-item lines="none">
@@ -139,7 +139,7 @@
             </ion-card>
           </ion-segment-content>
           <ion-segment-content id="open">
-            <ion-card v-for="(item, index) in (filteredItems ? filteredItems : getTOItems('open'))" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+            <ion-card v-for="(item, index) in openItems" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
               <div class="product" :data-product-id="item.productId">
                 <div class="product-info">
                   <ion-item lines="none">
@@ -196,7 +196,7 @@
                 </div>
               </div>
             </ion-card>
-            <div v-if="!getTOItems('open')?.length" class="empty-state">
+            <div v-if="!openItems?.length" class="empty-state">
               <ion-label>
                 {{ "No items available for receiving, check completed tab" }}
               </ion-label>
@@ -206,7 +206,7 @@
             </div>
           </ion-segment-content>
           <ion-segment-content id="received">
-            <ion-card v-for="(item, index) in getTOItems('received')" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+            <ion-card v-for="(item, index) in completedItems" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
               <div class="product" :data-product-id="item.productId">
                 <div class="product-info">
                   <ion-item lines="none">
@@ -238,7 +238,7 @@
                 </div>
               </div>
             </ion-card>
-            <div v-if="!getTOItems('received')?.length" class="empty-state">
+            <div v-if="!completedItems?.length" class="empty-state">
               <ion-label>
                 {{ "No items are marked as completed, check Open tab" }}
               </ion-label>
@@ -251,7 +251,7 @@
 
         <!-- TODO: update UI to have this information using the segment view -->
         <template v-if="isTOReceived()">
-          <ion-card v-for="(item, index) in getTOItems('received')" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+          <ion-card v-for="(item, index) in completedItems" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
             <div class="product" :data-product-id="item.productId">
               <div class="product-info">
                 <ion-item lines="none">
@@ -287,11 +287,11 @@
       </main>
     </ion-content>
 
-    <ion-footer v-if="!isTOReceived() && getTOItems(selectedSegment)?.length && selectedSegment !== 'received'">
+    <ion-footer v-if="!isTOReceived() && selectedSegment === 'open'">
       <ion-toolbar>
         <ion-buttons slot="end">
-          <ion-button class="ion-margin-end" fill="solid" size="small" color="primary" @click="receiveTO">{{ translate("Save progress:") }} {{ getReceivedUnits() }}</ion-button>
-          <ion-button fill="outline" size="small" color="primary" @click="receiveAndCloseTO">{{ translate("Receive and complete") }}</ion-button>
+          <ion-button :disabled="isWarningToastOpen" class="ion-margin-end" fill="solid" size="small" color="primary" @click="receiveTO">{{ translate("Save progress") }}{{ ":" }} {{ getReceivedUnits() }}</ion-button>
+          <ion-button :disabled="isWarningToastOpen" fill="outline" size="small" color="primary" @click="receiveAndCloseTO">{{ translate("Receive and complete") }}</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-footer>
@@ -381,7 +381,10 @@ export default defineComponent({
       productQoh: {} as any,
       observer: {} as IntersectionObserver,
       selectedSegment: "open",
-      filteredItems: []
+      filteredItems: [] as any,
+      openItems: [] as any,
+      completedItems: [] as any,
+      isWarningToastOpen: false
     }
   },
   computed: {
@@ -410,15 +413,15 @@ export default defineComponent({
         // Only display items those are fulfilled
         return this.isReceivingByFulfillment ? items.filter((item: any) => item.totalIssuedQuantity) : items
       }
-    },
+    }
   },
   methods: {
     getItemQty(item: any) {
       return (this.isReceivingByFulfillment ? Number(item.totalIssuedQuantity) : Number(item.quantity)) || 0
     },
     getReceivedUnits() {
-      const totalReceived = this.order.items.reduce((qty: any, item: any) => qty + (Number(item.quantityAccepted) || 0), 0)
-      const totalUnits = this.order.items.reduce((qty: any, item: any) => qty + ((this.isReceivingByFulfillment ? item.totalIssuedQuantity : item.quantity) - item.totalReceivedQuantity || 0), 0)
+      const totalReceived = this.filteredItems.reduce((qty: any, item: any) => qty + (Number(item.quantityAccepted) || 0), 0)
+      const totalUnits = this.filteredItems.reduce((qty: any, item: any) => qty + ((this.isReceivingByFulfillment ? item.totalIssuedQuantity : item.quantity) - item.totalReceivedQuantity || 0), 0)
       return `${totalReceived} / ${totalUnits} units`
     },
     segmentChanged(value: string) {
@@ -483,7 +486,7 @@ export default defineComponent({
         this.lastScannedId = payload
 
         // Identify the scanned value belongs to which segment and change the segment
-        const item = this.order.items.find((item: any) => getProductIdentificationValue(this.barcodeIdentifier, this.getProduct(item.productId)) === payload)
+        const item = this.filteredItems.find((item: any) => getProductIdentificationValue(this.barcodeIdentifier, this.getProduct(item.productId)) === payload)
         if(item.statusId === "ITEM_COMPLETED") {
           this.segmentChanged("received")
         } else {
@@ -580,14 +583,40 @@ export default defineComponent({
 
       return alert.present();
     },
+    async confirmComplete() {
+      const alert = await alertController.create({
+        header: translate("Close transfer order items"),
+        message: translate("All the TO items will be marked as completed"),
+        buttons: [{
+          text: translate("Cancel"),
+          role: "cancel"
+        },
+        {
+          text: translate("Proceed"),
+          role: "proceed",
+          handler: async () => {
+            // Dismiss alert before showing loader to prevent overlay stacking
+            alert.dismiss();
+            emitter.emit("presentLoader", { message: "Receiving in progress...", backdropDismiss: false });
+            try {
+              await this.receiveTransferOrder();
+            } finally {
+              emitter.emit("dismissLoader");
+            }
+          }
+        }]
+      });
+      return alert.present();
+    },
+    isAnyItemOverReceived() {
+      return this.openItems.some((item: any) => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) > this.getItemQty(item))
+    },
     async receiveTO() {
       if(!this.isEligibileForCreatingShipment() || !hasPermission(Actions.APP_SHIPMENT_UPDATE)) {
         return await this.receivingAlert();
       }
 
-      const isAnyItemOverReceived = this.order.items.some((item: any) => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) > this.getItemQty(item))
-
-      if(!isAnyItemOverReceived) {
+      if(!this.isAnyItemOverReceived()) {
         const alert = await alertController.create({
           header: translate("Save progress and receive more later"),
           message: translate("Your receiving progress will be saved and will be added to your inventory. Come back to this transfer order and finish receiving later. Fully received items auto close.", { space: "<br /><br />", units: this.getReceivedUnits() }),
@@ -601,7 +630,7 @@ export default defineComponent({
             handler: async () => {
               // Dismiss alert before showing loader to prevent overlay stacking
               alert.dismiss();
-              emitter.emit("presentLoader", { message: "Loading...", backdropDismiss: false });
+              emitter.emit("presentLoader", { message: "Receiving in progress...", backdropDismiss: false });
               try {
                 await this.receiveTransferOrder();
               } finally {
@@ -614,11 +643,14 @@ export default defineComponent({
       } else {
         const modal = await modalController
           .create({
-            component: ReceiveTransferOrder
+            component: ReceiveTransferOrder,
+            componentProps: {
+              items: this.filteredItems
+            }
           });
 
         modal.onDidDismiss().then(async (value: any) => {
-          this.order.items.forEach((item: any) => item.isChecked = false)
+          this.filteredItems.forEach((item: any) => item.isChecked = false)
           if(value?.data?.updateItems) {
             emitter.emit("presentLoader", { message: "Receiving in progress...", backdropDismiss: false });
             try { 
@@ -637,36 +669,51 @@ export default defineComponent({
         return await this.receivingAlert();
       }
 
-      const isAnyItemNotReceived = this.getTOItems("open").some((item: any) => !(item.quantityAccepted >= 0))
-      console.log('isAnyItemNotReceived', isAnyItemNotReceived)
+      const isAnyItemNotReceived = this.openItems.some((item: any) => !(item.quantityAccepted >= 0))
       if(isAnyItemNotReceived) {
-        const orderItems = this.order.items
-        this.order.items = this.order.items.filter((item: any) => !(item.quantityAccepted >= 0))
+        const items = this.openItems
+        this.openItems = this.openItems.filter((item: any) => !(item.quantityAccepted >= 0))
         const alert = await toastController.create({
-          message: "Enter 0 quantity on items with outstanding quantity that need to be closed.",
+          message: translate("Enter 0 quantity on items with outstanding quantity that need to be closed."),
           position: "bottom",
           buttons: [{
-            text: "Back to open items",
+            text: translate("Back to open items"),
             handler: () => {
-              this.order.items = orderItems
-              console.log("Dismiss clicked");
+              this.openItems = items
+              this.isWarningToastOpen = false;
             }
           }]
         })
+
+        this.isWarningToastOpen = true;
   
         return await alert.present();
+      }
+
+      const isAnyItemUnderReceived = this.openItems.some((item: any) => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) != this.getItemQty(item))
+      if(!this.isAnyItemOverReceived() && !isAnyItemUnderReceived) {
+        return await this.confirmComplete()
       }
 
       const modal = await modalController.create({
         component: ReceiveTransferOrder,
         componentProps: {
-          closeTO: true
+          closeTO: true,  // define if we need to initiate close TO flow from the modal
+          items: this.filteredItems
         }
       })
 
       // Mark as the items as unchecked
-      modal.onDidDismiss().then(() => {
-        this.order.items.forEach((item: any) => item.isChecked = false)
+      modal.onDidDismiss().then(async (value: any) => {
+        this.filteredItems.forEach((item: any) => item.isChecked = false)
+        if(value?.data?.updateItems) {
+          emitter.emit("presentLoader", { message: "Receiving in progress...", backdropDismiss: false });
+          try { 
+            await this.receiveTransferOrder();
+          } finally {
+            emitter.emit("dismissLoader");
+          }
+        }
       })
 
       return modal.present();
@@ -677,7 +724,7 @@ export default defineComponent({
     },
     async receiveTransferOrder() {
       const eligibleItems: any = []
-      this.order.items.forEach((item: any) => {
+      this.openItems.forEach((item: any) => {
         const isItemFullyReceived = item.quantityAccepted >= 0 && ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) >= this.getItemQty(item)
         if(isItemFullyReceived) {
           item.statusId = "ITEM_COMPLETED"
@@ -709,7 +756,7 @@ export default defineComponent({
       }
     },
     isEligibileForCreatingShipment() {
-      return this.order.items?.some((item: any) => (item.quantityAccepted && Number(item.quantityAccepted) >= 0))
+      return this.openItems?.some((item: any) => (item.quantityAccepted && Number(item.quantityAccepted) >= 0))
     },
     receiveAll(item: any) {
       const qtyAlreadyAccepted = Number(item.totalReceivedQuantity) || 0
@@ -754,8 +801,8 @@ export default defineComponent({
         .create({
           component: ReceivingInstructions,
           componentProps: {
-            openItems: this.getTOItems("open").length,
-            items: this.order.items.length
+            openItems: this.openItems.length,
+            items: this.filteredItems.length
           }
         });
       
@@ -763,7 +810,7 @@ export default defineComponent({
     }
   }, 
   async ionViewWillEnter() {
-    emitter.emit('presentLoader',{ backdropDismiss : false ,message:"Fetching details..."});
+    emitter.emit('presentLoader', { backdropDismiss: false, message: "Fetching details..." });
     this.store.dispatch("transferorder/clearTransferOrderDetail");
 
     await this.store.dispatch("transferorder/fetchTransferOrderDetail", { orderId: this.$route.params.slug }).then(async () => {
@@ -776,6 +823,16 @@ export default defineComponent({
       if(this.isTOReceived()) {
         this.showCompletedItems = true;
       }
+
+      if(this.isReceivingByFulfillment) {
+        this.filteredItems = JSON.parse(JSON.stringify(this.order.items.filter((item: any) => item.totalIssuedQuantity)))
+      } else {
+        this.filteredItems = JSON.parse(JSON.stringify(this.order.items))
+      }
+
+      this.completedItems = this.filteredItems.filter((item: any) => item.statusId === 'ITEM_COMPLETED')
+      this.openItems = this.filteredItems.filter((item: any) => !['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId))
+
       this.observeProductVisibility();
     })
     emitter.emit('dismissLoader');

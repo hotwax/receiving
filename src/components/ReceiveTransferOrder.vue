@@ -12,7 +12,7 @@
   </ion-header>
 
   <ion-content>
-    <ion-item lines="full">
+    <ion-item lines="full" v-if="!closeTO">
       <ion-label v-html="translate('Your receiving progress will be saved and will be added to your inventory. Come back to this transfer order and finish receiving later. Fully received items auto close.', { space: '<br /><br />', units: receivedQty })"></ion-label>
     </ion-item> 
     <ion-item lines="none">
@@ -28,7 +28,8 @@
           <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
           <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
           <p>{{ getFeatures(getProduct(item.productId).productFeatures) }}</p>
-          <ion-note color="danger">{{ translate("Over received:") }} {{ getOverReceivedQtyForItem(item) }}</ion-note>
+          <ion-note v-if="!closeTO" color="danger">{{ translate("Over received:") }} {{ getOverReceivedQtyForItem(item) }}</ion-note>
+          <ion-note v-else color="danger">{{ getOverReceivedQtyForItem(item) > 0 ? translate("Over received:") : translate("Under received:") }} {{ getOverReceivedQtyForItem(item) }}</ion-note>
         </ion-label>
         <ion-checkbox slot="end" :modelValue="item.isChecked">
           <ion-note>{{ "report discrepancy" }}</ion-note>
@@ -53,6 +54,7 @@ import {
   IonButtons,
   IonCheckbox,
   IonContent,
+  IonFooter,
   IonHeader,
   IonIcon,
   IonItem,
@@ -63,12 +65,11 @@ import {
   IonTitle,
   IonToolbar,
   IonThumbnail,
-  alertController,
   modalController
 } from '@ionic/vue';
 import { Actions, hasPermission } from '@/authorization'
 import { arrowBackOutline } from 'ionicons/icons';
-import { computed, onMounted, ref } from 'vue';
+import { computed, defineProps, onMounted, ref } from 'vue';
 import { useStore } from 'vuex'
 import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore, useUserStore } from '@hotwax/dxp-components';
 import { getFeatures } from '@/utils';
@@ -87,15 +88,19 @@ let overReceivedTOItems: any = ref([])
 let itemsToComplete: any = ref([])
 let receivedQty: any = ref(0)
 
-const props = defineProps({
-  closeTO: Boolean
-})
+const props = defineProps(["closeTO", "items"])
 
 onMounted(() => {
-  validTOItems.value = order.value.items.filter((item: any) => item.orderItemSeqId && !['ITEM_REJECTED', 'ITEM_CANCELLED', 'ITEM_COMPLETED'].includes(item.statusId))
+  validTOItems.value = props.items?.filter((item: any) => item.orderItemSeqId && !['ITEM_REJECTED', 'ITEM_CANCELLED', 'ITEM_COMPLETED'].includes(item.statusId))
   // Mark all items as completed for which user has entered any qty, this will be equal to all the open items
   itemsToComplete.value = validTOItems.value.filter((item: any) => item.quantityAccepted >= 0)
-  overReceivedTOItems.value = itemsToComplete.value.filter((item: any) => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) > ((isReceivingByFulfillment.value ? item.totalIssuedQuantity : item.quantity) || 0))
+
+  if(props.closeTO) {
+    overReceivedTOItems.value = itemsToComplete.value.filter((item: any) => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) != ((isReceivingByFulfillment.value ? item.totalIssuedQuantity : item.quantity) || 0))
+  } else {
+    overReceivedTOItems.value = itemsToComplete.value.filter((item: any) => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) > ((isReceivingByFulfillment.value ? item.totalIssuedQuantity : item.quantity) || 0))
+  }
+
   receivedQty.value = itemsToComplete.value.reduce((qty: any, item: any) => qty + (Number(item.quantityAccepted) || 0), 0)
 })
 
