@@ -33,7 +33,7 @@
             </ion-row>
           </div>
 
-          <div class="doc-meta">
+          <div class="doc-meta" v-if="!isTOReceived()">
             <ion-item button lines="none" @click="openTOReceivingInstructions">
               <ion-icon :icon="informationCircleOutline" />
               <ion-label slot="end">
@@ -290,8 +290,8 @@
     <ion-footer v-if="!isTOReceived() && selectedSegment === 'open'">
       <ion-toolbar>
         <ion-buttons slot="end">
-          <ion-button :disabled="isWarningToastOpen" class="ion-margin-end" fill="solid" size="small" color="primary" @click="receiveTO">{{ translate("Save progress") }}{{ ":" }} {{ getReceivedUnits() }}</ion-button>
-          <ion-button :disabled="isWarningToastOpen" fill="outline" size="small" color="primary" @click="receiveAndCloseTO">{{ translate("Receive and complete") }}</ion-button>
+          <ion-button :disabled="isWarningToastOpen" class="ion-margin-end" fill="outline" size="small" color="primary" @click="receiveTO">{{ translate("Partially receive") }}{{ ":" }} {{ getReceivedUnits() }}</ion-button>
+          <ion-button :disabled="isWarningToastOpen" fill="solid" size="small" color="primary" @click="receiveAndCloseTO">{{ translate("Receive and complete") }}</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-footer>
@@ -329,12 +329,10 @@ import {
 import { defineComponent, computed } from 'vue';
 import { addOutline, cameraOutline, checkmarkDone, copyOutline, cubeOutline, eyeOffOutline, eyeOutline, informationCircleOutline, locationOutline, openOutline, saveOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
-import ShippingHistoryModal from '@/views/ShippingHistoryModal.vue'
 import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore, useUserStore } from '@hotwax/dxp-components';
 import { useStore, mapGetters } from 'vuex';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue"
-import CloseTransferOrderModal from '@/components/CloseTransferOrderModal.vue';
 import ImageModal from '@/components/ImageModal.vue';
 import { copyToClipboard, getFeatures, hasError, showToast, hasWebcamAccess } from '@/utils';
 import { Actions, hasPermission } from '@/authorization'
@@ -384,9 +382,22 @@ export default defineComponent({
       filteredItems: [] as any,
       openItems: [] as any,
       completedItems: [] as any,
-      isWarningToastOpen: false
+      isWarningToastOpen: false,
+      toast: null as any
     }
   },
+  // watch: {
+  //   "openItems": {
+  //     handler() {
+  //       const unReceivedItems = this.openItems.filter((item: any) => !(item.quantityAccepted && item.quantityAccepted >= 0))
+
+  //       if(!unReceivedItems.length && this.toast != null) {
+  //         this.toast.dismiss();
+  //       }
+  //     },
+  //     deep: true
+  //   }
+  // },
   computed: {
     ...mapGetters({
       order: 'transferorder/getCurrent',
@@ -426,19 +437,6 @@ export default defineComponent({
     },
     segmentChanged(value: string) {
       this.selectedSegment = value
-    },
-    async shippingHistory(productId?: string, orderItemSeqId?: string) {
-      const modal = await modalController
-        .create({
-          component: ShippingHistoryModal,
-          componentProps: {
-            productId,
-            orderItemSeqId,
-            orderId:this.order.orderId,
-            orderType: 'transferOrder'
-          }
-        })
-      return modal.present();
     },
     isItemReceivedInFull(item: any) {
       return (Number(item.totalReceivedQuantity) || 0) >= this.getItemQty(item)
@@ -511,7 +509,11 @@ export default defineComponent({
                 componentProps: { selectedSKU: payload }
               })
 
-              modal.onDidDismiss().then(() => {
+              modal.onDidDismiss().then((value: any) => {
+                if(value.data.product?.productId) {
+                  this.openItems.push(value.data.product)
+                  this.filteredItems.push(value.data.product)
+                }
                 this.store.dispatch('product/clearSearchedProducts');
               })
 
@@ -546,9 +548,14 @@ export default defineComponent({
         .create({
           component: AddProductToTOModal
         })
-      modal.onDidDismiss()
-      .then(() => {
+      modal.onDidDismiss().then((value: any) => {
         this.store.dispatch('product/clearSearchedProducts');
+
+        if(value.data.product?.productId) {
+          this.openItems.push(value.data.product)
+          this.filteredItems.push(value.data.product)
+        }
+
         this.observeProductVisibility();
       })
       return modal.present();
@@ -599,7 +606,7 @@ export default defineComponent({
             alert.dismiss();
             emitter.emit("presentLoader", { message: "Receiving in progress...", backdropDismiss: false });
             try {
-              await this.receiveTransferOrder();
+              await this.receiveTransferOrder(true);
             } finally {
               emitter.emit("dismissLoader");
             }
@@ -645,7 +652,8 @@ export default defineComponent({
           .create({
             component: ReceiveTransferOrder,
             componentProps: {
-              items: this.filteredItems
+              items: this.filteredItems,
+              receivedUnitsFraction: this.getReceivedUnits()
             }
           });
 
@@ -665,29 +673,31 @@ export default defineComponent({
       }
     },
     async receiveAndCloseTO() {
-      if(!this.isEligibileForCreatingShipment() || !hasPermission(Actions.APP_SHIPMENT_UPDATE)) {
+      if(!hasPermission(Actions.APP_SHIPMENT_UPDATE)) {
         return await this.receivingAlert();
       }
 
-      const isAnyItemNotReceived = this.openItems.some((item: any) => !(item.quantityAccepted >= 0))
-      if(isAnyItemNotReceived) {
+      const itemsNotReceived = this.openItems.filter((item: any) => !(item.quantityAccepted && item.quantityAccepted >= 0))
+      if(itemsNotReceived.length) {
         const items = this.openItems
-        this.openItems = this.openItems.filter((item: any) => !(item.quantityAccepted >= 0))
-        const alert = await toastController.create({
+        this.openItems = itemsNotReceived
+        this.toast = await toastController.create({
           message: translate("Enter 0 quantity on items with outstanding quantity that need to be closed."),
           position: "bottom",
           buttons: [{
             text: translate("Back to open items"),
-            handler: () => {
-              this.openItems = items
-              this.isWarningToastOpen = false;
-            }
+            role: "cancel",
           }]
+        })
+
+        this.toast.onDidDismiss().then(() => {
+          this.openItems = items
+          this.isWarningToastOpen = false;
         })
 
         this.isWarningToastOpen = true;
   
-        return await alert.present();
+        return await this.toast.present();
       }
 
       const isAnyItemUnderReceived = this.openItems.some((item: any) => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) != this.getItemQty(item))
@@ -699,7 +709,8 @@ export default defineComponent({
         component: ReceiveTransferOrder,
         componentProps: {
           closeTO: true,  // define if we need to initiate close TO flow from the modal
-          items: this.filteredItems
+          items: this.filteredItems,
+          receivedUnitsFraction: this.getReceivedUnits()
         }
       })
 
@@ -709,7 +720,7 @@ export default defineComponent({
         if(value?.data?.updateItems) {
           emitter.emit("presentLoader", { message: "Receiving in progress...", backdropDismiss: false });
           try { 
-            await this.receiveTransferOrder();
+            await this.receiveTransferOrder(true);
           } finally {
             emitter.emit("dismissLoader");
           }
@@ -722,29 +733,43 @@ export default defineComponent({
       const currentFacility: any = useUserStore().getCurrentFacility;
       return currentFacility?.facilityId
     },
-    async receiveTransferOrder() {
-      const eligibleItems: any = []
-      this.openItems.forEach((item: any) => {
-        const isItemFullyReceived = item.quantityAccepted >= 0 && ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) >= this.getItemQty(item)
-        if(isItemFullyReceived) {
-          item.statusId = "ITEM_COMPLETED"
-        }
-
-        if(item.quantityAccepted > 0) {
-          eligibleItems.push(item)
-        }
-      })
+    async receiveTransferOrder(isClosingTO = false) {
+      let eligibleItems: any = []
+      if(!isClosingTO) {
+        this.openItems.forEach((item: any) => {
+          const isItemFullyReceived = item.quantityAccepted >= 0 && ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) >= this.getItemQty(item)
+          if(isItemFullyReceived) {
+            item.statusId = "ITEM_COMPLETED"
+          }
+  
+          if(item.quantityAccepted > 0) {
+            eligibleItems.push(item)
+          }
+        })
+      } else {
+        eligibleItems = this.openItems.map((item: any) => ({
+          ...item,
+          statusId: "ITEM_COMPLETED"
+        }))
+      }
 
       const payload = {
         facilityId: this.getCurrentFacilityId(),
         receivedDateTime: DateTime.now().toFormat("yyyy-MM-dd HH:mm:ss.SSS"),
-        items: eligibleItems.map((item: any) => ({
-          orderItemSeqId: item.orderItemSeqId,
-          productId: item.productId,
-          quantityAccepted: item.quantityAccepted,
-          statusId: item.statusId
-        }))
+        items: eligibleItems.map((item: any) => {
+          const params = {          
+            orderItemSeqId: item.orderItemSeqId,
+            productId: item.productId,
+            quantityAccepted: item.quantityAccepted,
+            statusId: item.statusId
+          } as any
+
+          return params;
+        })
       }
+
+      console.log('payload', payload);
+
       try {
         const resp = await TransferOrderService.receiveTransferOrder(this.order.orderId, payload)
         if (!hasError(resp)) {

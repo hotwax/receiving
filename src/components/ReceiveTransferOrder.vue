@@ -13,11 +13,11 @@
 
   <ion-content>
     <ion-item lines="full" v-if="!closeTO">
-      <ion-label v-html="translate('Your receiving progress will be saved and will be added to your inventory. Come back to this transfer order and finish receiving later. Fully received items auto close.', { space: '<br /><br />', units: receivedQty })"></ion-label>
+      <ion-label v-html="translate('Your receiving progress will be saved and will be added to your inventory. Come back to this transfer order and finish receiving later. Fully received items auto close.', { space: '<br /><br />', units: receivedUnitsFraction })"></ion-label>
     </ion-item> 
     <ion-item lines="none">
       <ion-list-header v-if="closeTO">{{ translate("out of items were not received as expected. Please verify them before closing the transfer order", { totalItems: itemsToComplete.length, items: overReceivedTOItems.length }) }}</ion-list-header>
-      <ion-list-header v-else>{{ translate("of items was over received. Please verify them before saving progress", { totalItems: itemsToComplete.length, items: (overReceivedTOItems.length || 0) }) }}</ion-list-header>
+      <ion-list-header v-else>{{ translate("of items was over received or not expected. Please verify them before saving progress", { totalItems: itemsToComplete.length, items: (overReceivedTOItems.length || 0) }) }}</ion-list-header>
     </ion-item>
     <ion-list>
       <ion-item v-for="(item, index) in overReceivedTOItems" :key="index" @click="(item.isChecked = !item.isChecked)">
@@ -28,8 +28,11 @@
           <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
           <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
           <p>{{ getFeatures(getProduct(item.productId).productFeatures) }}</p>
-          <ion-note v-if="!closeTO" color="danger">{{ translate("Over received:") }} {{ getOverReceivedQtyForItem(item) }}</ion-note>
-          <ion-note v-else color="danger">{{ getOverReceivedQtyForItem(item) > 0 ? translate("Over received:") : translate("Under received:") }} {{ getOverReceivedQtyForItem(item) }}</ion-note>
+          <template v-if="item.orderItemSeqId">
+            <ion-note v-if="!closeTO" color="danger">{{ translate("Over received:") }} {{ getOverReceivedQtyForItem(item) }}</ion-note>
+            <ion-note v-else color="danger">{{ getOverReceivedQtyForItem(item) > 0 ? translate("Over received:") : translate("Under received:") }} {{ getOverReceivedQtyForItem(item) }}</ion-note>
+          </template>
+          <ion-note v-else color="danger">{{ translate("Not expected: ") }} {{ getOverReceivedQtyForItem(item) }}</ion-note>
         </ion-label>
         <ion-checkbox slot="end" :modelValue="item.isChecked">
           <ion-note>{{ "report discrepancy" }}</ion-note>
@@ -88,10 +91,10 @@ let overReceivedTOItems: any = ref([])
 let itemsToComplete: any = ref([])
 let receivedQty: any = ref(0)
 
-const props = defineProps(["closeTO", "items"])
+const props = defineProps(["closeTO", "items", "receivedUnitsFraction"])
 
 onMounted(() => {
-  validTOItems.value = props.items?.filter((item: any) => item.orderItemSeqId && !['ITEM_REJECTED', 'ITEM_CANCELLED', 'ITEM_COMPLETED'].includes(item.statusId))
+  validTOItems.value = props.items?.filter((item: any) => !['ITEM_REJECTED', 'ITEM_CANCELLED', 'ITEM_COMPLETED'].includes(item.statusId))
   // Mark all items as completed for which user has entered any qty, this will be equal to all the open items
   itemsToComplete.value = validTOItems.value.filter((item: any) => item.quantityAccepted >= 0)
 
@@ -113,10 +116,6 @@ function saveProgress() {
 }
 
 function isEligibleToCloseTOItems() {
-  return overReceivedTOItems.value.every((item: any) => item.isChecked && isTOItemStatusPending(item))
-}
-
-function isTOItemStatusPending(item: any) {
-  return item.statusId === "ITEM_PENDING_RECEIPT"
+  return overReceivedTOItems.value.every((item: any) => item.isChecked)
 }
 </script>
