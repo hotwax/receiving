@@ -81,9 +81,8 @@ const store = useStore()
 const productIdentificationStore = useProductIdentificationStore();
 
 const getProduct = computed(() => (id: any) => store.getters["product/getProduct"](id));
-const order = computed(() => store.getters["transferorder/getCurrent"])
 const isReceivingByFulfillment = computed(() => store.getters["util/isReceivingByFulfillment"])
-const getOverReceivedQtyForItem = computed(() => (item: any): number => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0) - ((isReceivingByFulfillment.value ? item.totalIssuedQuantity : item.quantity) || 0)))
+const getOverReceivedQtyForItem = computed(() => (item: any): number => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0) - getItemQty(item)))
 let productIdentificationPref = computed(() => productIdentificationStore.getProductIdentificationPref)
 
 let validTOItems = ref([])
@@ -96,16 +95,21 @@ const props = defineProps(["closeTO", "items", "receivedUnitsFraction"])
 onMounted(() => {
   validTOItems.value = props.items?.filter((item: any) => !['ITEM_REJECTED', 'ITEM_CANCELLED', 'ITEM_COMPLETED'].includes(item.statusId))
   // Mark all items as completed for which user has entered any qty, this will be equal to all the open items
-  itemsToComplete.value = validTOItems.value.filter((item: any) => item.quantityAccepted >= 0)
+  itemsToComplete.value = validTOItems.value.filter((item: any) => props.closeTO ? item.quantityAccepted >= 0 : item.quantityAccepted > 0)
 
+  console.log('props.items', props.items)
   if(props.closeTO) {
-    overReceivedTOItems.value = itemsToComplete.value.filter((item: any) => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) != ((isReceivingByFulfillment.value ? item.totalIssuedQuantity : item.quantity) || 0))
+    overReceivedTOItems.value = itemsToComplete.value.filter((item: any) => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) != getItemQty(item))
   } else {
-    overReceivedTOItems.value = itemsToComplete.value.filter((item: any) => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) > ((isReceivingByFulfillment.value ? item.totalIssuedQuantity : item.quantity) || 0))
+    overReceivedTOItems.value = itemsToComplete.value.filter((item: any) => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) > getItemQty(item))
   }
 
   receivedQty.value = itemsToComplete.value.reduce((qty: any, item: any) => qty + (Number(item.quantityAccepted) || 0), 0)
 })
+
+function getItemQty(item: any) {
+  return (isReceivingByFulfillment.value ? item.totalIssuedQuantity : item.quantity) || 0
+}
 
 function closeModal() {
   modalController.dismiss({ dismissed: true });
