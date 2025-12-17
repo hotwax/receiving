@@ -303,7 +303,7 @@
     <ion-footer v-if="!isTOReceived() && selectedSegment === 'open'">
       <ion-toolbar>
         <ion-buttons slot="end">
-          <ion-button :disabled="!areAllItemsHaveQty" class="ion-margin-end" fill="outline" size="small" color="primary" @click="receiveTO">{{ translate("Partially receive") }}{{ ":" }} {{ getReceivedUnits() }}</ion-button>
+          <ion-button :disabled="!areAllItemsHaveQty" class="ion-margin-end" fill="outline" size="small" color="primary" @click="receiveTO">{{ translate("Save Progress") }}{{ ":" }} {{ getReceivedUnits() }}</ion-button>
           <ion-button :disabled="!areAllItemsHaveQty" fill="solid" size="small" color="primary" @click="receiveAndCloseTO">{{ translate("Receive and complete") }}</ion-button>
         </ion-buttons>
       </ion-toolbar>
