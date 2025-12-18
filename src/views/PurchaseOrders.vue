@@ -22,7 +22,7 @@
       <main>
         <PurchaseOrderItem v-for="(order, index) in orders" :key="index" :purchaseOrder="order.doclist.docs[0]" />
         
-        <div v-if="orders.length" class="load-more-action ion-text-center">
+        <div v-if="orders.length < ordersTotal" class="load-more-action ion-text-center">
           <ion-button fill="outline" color="dark" @click="loadMoreOrders()">
             <ion-icon :icon="cloudDownloadOutline" slot="start" />
             {{ translate("Load more purchase order") }}
@@ -102,6 +102,7 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       orders: 'order/getPurchaseOrders',
+      ordersTotal: 'order/getPurchaseOrdersTotal',
       isScrollable: 'order/isScrollable',
     })
   },
