@@ -141,7 +141,7 @@
           <ion-segment-content id="open">
             <ion-item v-if="openItemsTemp.length" lines="none">
               <ion-label color="danger">
-                {{ translate("Enter 0 quantity on items with outstanding quantity that need to be closed.") }}
+                {{ translate("If you under-received an item, enter 0 quantity to close it.") }}
               </ion-label>
               <ion-button fill="clear" slot="end" @click="showAllOpenItems">
                 {{ translate("Back to open items") }}
