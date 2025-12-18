@@ -69,7 +69,7 @@
         <!-- TODO: create a common component for the item card -->
         <ion-segment-view v-if="!isTOReceived()">
           <ion-segment-content id="all">
-            <ion-card v-for="(item, index) in filteredItems" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+            <ion-card v-for="(item, index) in filteredItems" :key="index">
               <div class="product" :data-product-id="item.productId">
                 <div class="product-info">
                   <ion-item lines="none">
@@ -140,7 +140,7 @@
           </ion-segment-content>
           <ion-segment-content id="open">
             <ion-item v-if="openItemsTemp.length" lines="none">
-              <ion-label>
+              <ion-label color="danger">
                 {{ translate("Enter 0 quantity on items with outstanding quantity that need to be closed.") }}
               </ion-label>
               <ion-button fill="clear" slot="end" @click="showAllOpenItems">
@@ -163,8 +163,8 @@
                 </div>
 
                 <div class="location">
-                  <ion-button v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
-                    <ion-icon color="medium" slot="icon-only" :icon="cubeOutline" />
+                  <ion-button color="medium" v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
+                    <ion-icon slot="icon-only" :icon="cubeOutline" />
                   </ion-button>
                   <ion-chip v-else outline>
                     {{ translate("on hand", { qoh: productQoh[item.productId] }) }}
@@ -173,15 +173,13 @@
                 </div>
 
                 <div class="product-count">
-                  <ion-item>
-                    <ion-input :label="translate('Qty')" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" />
-                  </ion-item>
+                  <ion-input fill="outline" :class="{ 'ion-invalid ion-touched': openItemsTemp.length }" :label="translate('Qty')" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" :error-text="openItemsTemp.length ? translate('Input quantity') : ''" />
                 </div>
               </div>
 
               <div class="action border-top" v-if="item.orderItemSeqId">
                 <div class="receive-all-qty">
-                  <ion-button @click="receiveAll(item)" :disabled="isForceScanEnabled || isItemReceivedInFull(item)" slot="start" size="small" fill="outline">
+                  <ion-button @click="receiveAll(item)" :disabled="isForceScanEnabled || isItemReceivedInFull(item)" size="small" fill="outline">
                     {{ translate("Receive All") }}
                   </ion-button>
                 </div>
@@ -338,7 +336,7 @@ import {
   alertController,
   modalController
 } from '@ionic/vue';
-import { defineComponent, computed } from 'vue';
+import { defineComponent, computed, nextTick } from 'vue';
 import { addOutline, cameraOutline, checkmarkDone, copyOutline, cubeOutline, eyeOffOutline, eyeOutline, informationCircleOutline, locationOutline, openOutline, saveOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore, useUserStore } from '@hotwax/dxp-components';
@@ -497,9 +495,11 @@ export default defineComponent({
           this.segmentChanged("open")
         }
 
+        await nextTick();
+
         // Highlight specific element
-        const scannedElement = document.getElementById(`${this.selectedSegment} > ${payload}`);
-        scannedElement && (scannedElement.scrollIntoView());
+        const scannedElement = document.getElementById(payload);
+        scannedElement && (scannedElement.scrollIntoView({ behavior: 'smooth', block: 'center' }));
 
         // Scanned product should get un-highlighted after 3s for better experience hence adding setTimeOut
         setTimeout(() => {
@@ -539,7 +539,7 @@ export default defineComponent({
       const scannedElement = document.getElementById(this.queryString);
       if(scannedElement) {
         this.lastScannedId = this.queryString
-        scannedElement.scrollIntoView()
+        scannedElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
         // Scanned product should get un-highlighted after 3s for better experience hence adding setTimeOut
         setTimeout(() => {
           this.lastScannedId = ''
@@ -853,7 +853,7 @@ export default defineComponent({
         this.showCompletedItems = true;
       }
 
-      this.filteredItems = JSON.parse(JSON.stringify(this.order.items))
+      this.filteredItems = this.order.items ? [...this.order.items] : []
       this.completedItems = this.filteredItems.filter((item: any) => item.statusId === 'ITEM_COMPLETED')
       this.openItems = this.filteredItems.filter((item: any) => !['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId))
 
@@ -908,6 +908,14 @@ export default defineComponent({
   --border-color: var(--ion-color-medium);
   --border-radius: 8px;
   --border-width: 1px;
+}
+
+.scanner {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background-color: var(--ion-background-color);
+  padding: var(--spacer-base);
 }
 
 .action {
