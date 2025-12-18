@@ -24,7 +24,7 @@ const actions: ActionTree<ReturnState, RootState> = {
         if (payload.viewIndex && payload.viewIndex > 0) returns = state.returns.list.concat(returns);
         commit(types.RETURN_LIST_UPDATED, { list: returns, total: resp.data.count } )
       } else {
-        payload.viewIndex ? showToast(translate("Returns not found")) : commit(types.RETURN_LIST_UPDATED, { list:[] ,total:0 });
+        payload.viewIndex ? showToast(translate("Returns not found")) : commit(types.RETURN_LIST_UPDATED, { list: [], total: 0 });
       }
     } catch(error){
       console.error(error)
@@ -162,7 +162,7 @@ const actions: ActionTree<ReturnState, RootState> = {
     });  
   },
   async clearReturns({ commit }) {
-    commit(types.RETURN_LIST_UPDATED, { list:[], total:0 })
+    commit(types.RETURN_LIST_UPDATED, { list: [], total: 0 })
     commit(types.RETURN_CURRENT_UPDATED, { current: {} })
   },
   async fetchValidReturnStatuses({ commit }) {

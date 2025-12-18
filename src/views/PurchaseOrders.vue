@@ -102,7 +102,7 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       orders: 'order/getPurchaseOrders',
-      ordersTotal:'order/getPurchaseOrdersTotal',
+      ordersTotal: 'order/getPurchaseOrdersTotal',
       isScrollable: 'order/isScrollable',
     })
   },

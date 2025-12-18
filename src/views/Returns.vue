@@ -95,7 +95,7 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       returns: 'return/getReturns',
-      returnsTotal:'return/getReturnsTotal'
+      returnsTotal: 'return/getReturnsTotal'
     })
   },
   data () {

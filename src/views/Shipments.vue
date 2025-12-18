@@ -95,7 +95,7 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       shipments: 'shipment/getShipments',
-      shipmentsTotal:'shipment/getTotalShipments',
+      shipmentsTotal: 'shipment/getTotalShipments',
     })
   },
   data() {

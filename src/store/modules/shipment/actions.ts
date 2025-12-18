@@ -33,9 +33,9 @@ const actions: ActionTree<ShipmentState, RootState> = {
         });
 
         if (payload.viewIndex && payload.viewIndex > 0) shipments = state.shipments.list.concat(shipments);
-        commit(types.SHIPMENT_LIST_UPDATED, { shipments, total:resp.data.count });
+        commit(types.SHIPMENT_LIST_UPDATED, { shipments, total: resp.data.count });
       } else {
-        payload.viewIndex ? showToast(translate("Shipments not found")) : commit(types.SHIPMENT_LIST_UPDATED, { shipments: [], total:0 })
+        payload.viewIndex ? showToast(translate("Shipments not found")) : commit(types.SHIPMENT_LIST_UPDATED, { shipments: [], total: 0 })
       }
     } catch(error){
       console.error(error)
@@ -277,11 +277,11 @@ const actions: ActionTree<ShipmentState, RootState> = {
       }
     })
 
-    commit(types.SHIPMENT_LIST_UPDATED, {  shipments, total: state.shipments.total })
+    commit(types.SHIPMENT_LIST_UPDATED, { shipments, total: state.shipments.total })
   },
 
   async clearShipments({ commit }) {
-    commit(types.SHIPMENT_LIST_UPDATED, { shipments:[], total:0 })
+    commit(types.SHIPMENT_LIST_UPDATED, { shipments: [], total: 0 })
     commit(types.SHIPMENT_CURRENT_UPDATED, { current: {} })
   },
 
