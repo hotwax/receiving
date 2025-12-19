@@ -296,9 +296,17 @@
           </ion-card>
         </template>
       </main>
+
+      <ion-toast
+        :isOpen="showToast"
+        :message="translate('All items are ready for receiving')"
+        position="bottom"
+        :buttons="toastButtons"
+        position-anchor="footer"
+      ></ion-toast>
     </ion-content>
 
-    <ion-footer v-if="!isTOReceived() && selectedSegment === 'open'">
+    <ion-footer id="footer" ref="footer" v-if="!isTOReceived() && selectedSegment === 'open'">
       <ion-toolbar>
         <ion-buttons slot="end">
           <ion-button :disabled="!areAllItemsHaveQty" class="ion-margin-end" fill="outline" size="small" color="primary" @click="receiveTO">{{ translate("Save Progress") }}{{ ":" }} {{ getReceivedUnits() }}</ion-button>
@@ -332,10 +340,10 @@ import {
   IonSegmentView,
   IonThumbnail,
   IonTitle,
+  IonToast,
   IonToolbar,
   alertController,
-  modalController,
-  toastController
+  modalController
 } from '@ionic/vue';
 import { defineComponent, computed, nextTick } from 'vue';
 import { addOutline, cameraOutline, checkmarkDone, copyOutline, cubeOutline, eyeOffOutline, eyeOutline, informationCircleOutline, locationOutline, openOutline, saveOutline, timeOutline } from 'ionicons/icons';
@@ -380,6 +388,7 @@ export default defineComponent({
     IonSegmentView,
     IonThumbnail,
     IonTitle,
+    IonToast,
     IonToolbar
   },
   data() {
@@ -395,7 +404,12 @@ export default defineComponent({
       completedItems: [] as any,
       openItemsTemp: [] as any,
       fulfilledItems: 0,
-      toast: null as any
+      toast: null as any,
+      showToast: false,
+      toastButtons: [{
+        text: translate("Receive and complete"),
+        handler: async() => this.receiveAndCloseTO()
+      }]
     }
   },
   computed: {
@@ -440,29 +454,18 @@ export default defineComponent({
   },
   methods: {
     async generateToast() {
-      if(!this.toast) {
-        this.toast = await toastController.create({
-          message: translate("All items are ready for receiving"),
-          buttons: [{
-            text: translate("Receive and complete"),
-            handler: async() => this.receiveAndCloseTO()
-          }]
-        })
-      }
-      await this.toast.present();
+      this.showToast = true
     },
     dismissToast() {
-      if(this.toast) {
-        this.toast?.dismiss();
-        this.toast = null;
-      }
+      this.showToast = false;
     },
     getItemQty(item: any) {
       return (this.isReceivingByFulfillment ? Number(item.totalIssuedQuantity) : Number(item.quantity)) || 0
     },
     getReceivedUnits() {
-      const totalReceived = this.openItems.reduce((qty: any, item: any) => qty + (Number(item.quantityAccepted) || 0), 0)
-      const totalUnits = this.openItems.reduce((qty: any, item: any) => qty + ((this.isReceivingByFulfillment ? item.totalIssuedQuantity : item.quantity) - item.totalReceivedQuantity || 0), 0)
+      const items = [...this.openItems, ...this.openItemsTemp]
+      const totalReceived = items.reduce((qty: any, item: any) => qty + (Number(item.quantityAccepted) || 0), 0)
+      const totalUnits = items.reduce((qty: any, item: any) => qty + ((this.isReceivingByFulfillment ? item.totalIssuedQuantity : item.quantity) - item.totalReceivedQuantity || 0), 0)
       return `${totalReceived} / ${totalUnits >= 0 ? totalUnits : 0} units`
     },
     segmentChanged(value: string) {
