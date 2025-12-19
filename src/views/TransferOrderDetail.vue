@@ -334,7 +334,8 @@ import {
   IonTitle,
   IonToolbar,
   alertController,
-  modalController
+  modalController,
+  toastController
 } from '@ionic/vue';
 import { defineComponent, computed, nextTick } from 'vue';
 import { addOutline, cameraOutline, checkmarkDone, copyOutline, cubeOutline, eyeOffOutline, eyeOutline, informationCircleOutline, locationOutline, openOutline, saveOutline, timeOutline } from 'ionicons/icons';
@@ -387,13 +388,14 @@ export default defineComponent({
       showCompletedItems: false,
       lastScannedId: '',
       productQoh: {} as any,
-      observer: {} as IntersectionObserver,
+      observer: null as IntersectionObserver | null,
       selectedSegment: "open",
       filteredItems: [] as any,
       openItems: [] as any,
       completedItems: [] as any,
       openItemsTemp: [] as any,
-      fulfilledItems: 0
+      fulfilledItems: 0,
+      toast: null as any
     }
   },
   computed: {
@@ -409,7 +411,13 @@ export default defineComponent({
     },
     areAllItemsHaveQty(): boolean {
       if(this.openItemsTemp.length) {
-        return this.openItems.every((item: any) => (item.quantityAccepted && Number(item.quantityAccepted) >= 0))
+        const isAllItemsReceived = this.openItems.every((item: any) => (item.quantityAccepted && Number(item.quantityAccepted) >= 0))
+        if(isAllItemsReceived) {
+          this.generateToast();
+        } else {
+          this.dismissToast();
+        }
+        return isAllItemsReceived
       } else {
         return true;
       }
@@ -431,13 +439,31 @@ export default defineComponent({
     }
   },
   methods: {
+    async generateToast() {
+      if(!this.toast) {
+        this.toast = await toastController.create({
+          message: translate("All items are ready for receiving"),
+          buttons: [{
+            text: translate("Receive and complete"),
+            handler: async() => this.receiveAndCloseTO()
+          }]
+        })
+      }
+      await this.toast.present();
+    },
+    dismissToast() {
+      if(this.toast) {
+        this.toast?.dismiss();
+        this.toast = null;
+      }
+    },
     getItemQty(item: any) {
       return (this.isReceivingByFulfillment ? Number(item.totalIssuedQuantity) : Number(item.quantity)) || 0
     },
     getReceivedUnits() {
-      const totalReceived = this.filteredItems.reduce((qty: any, item: any) => qty + (Number(item.quantityAccepted) || 0), 0)
-      const totalUnits = this.filteredItems.reduce((qty: any, item: any) => qty + ((this.isReceivingByFulfillment ? item.totalIssuedQuantity : item.quantity) - item.totalReceivedQuantity || 0), 0)
-      return `${totalReceived} / ${totalUnits} units`
+      const totalReceived = this.openItems.reduce((qty: any, item: any) => qty + (Number(item.quantityAccepted) || 0), 0)
+      const totalUnits = this.openItems.reduce((qty: any, item: any) => qty + ((this.isReceivingByFulfillment ? item.totalIssuedQuantity : item.quantity) - item.totalReceivedQuantity || 0), 0)
+      return `${totalReceived} / ${totalUnits >= 0 ? totalUnits : 0} units`
     },
     segmentChanged(value: string) {
       this.selectedSegment = value
@@ -446,7 +472,11 @@ export default defineComponent({
       return (Number(item.totalReceivedQuantity) || 0) >= this.getItemQty(item)
     },
     getRcvdToOrderedFraction(item: any) {
-      return ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) / ((this.isReceivingByFulfillment ? Number(item.totalIssuedQuantity) : Number(item.quantity)) || 1)
+      const totalQty = (Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)
+      if(!totalQty) {
+        return 0;
+      }
+      return ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) / ((this.isReceivingByFulfillment ? Number(item.totalIssuedQuantity) : Number(item.quantity)) || (this.isReceivingByFulfillment ? 0 : 1))
     },
     async openImage(imageUrl: string, productName: string) {
       const imageModal = await modalController.create({
@@ -625,7 +655,8 @@ export default defineComponent({
       return [...this.openItems, ...this.openItemsTemp].some((item: any) => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) > this.getItemQty(item))
     },
     async receiveTO() {
-      if(!this.isEligibileForCreatingShipment() || !hasPermission(Actions.APP_SHIPMENT_UPDATE)) {
+      this.dismissToast();
+      if(!this.isEligibleForCreatingShipment() || !hasPermission(Actions.APP_SHIPMENT_UPDATE)) {
         return await this.receivingAlert();
       }
 
@@ -683,7 +714,8 @@ export default defineComponent({
       this.openItemsTemp = [];
     },
     async receiveAndCloseTO() {
-      if(!this.isEligibileForCreatingShipment(true) || !hasPermission(Actions.APP_SHIPMENT_UPDATE)) {
+      this.dismissToast();
+      if(!this.isEligibleForCreatingShipment(true) || !hasPermission(Actions.APP_SHIPMENT_UPDATE)) {
         return await this.receivingAlert();
       }
 
@@ -784,7 +816,7 @@ export default defineComponent({
         showToast(translate("Error in receiving transfer order", { orderId: this.order.orderId }))
       }
     },
-    isEligibileForCreatingShipment(isClosingTO = false) {
+    isEligibleForCreatingShipment(isClosingTO = false) {
       return [...this.openItems, ...this.openItemsTemp]?.some((item: any) => !isClosingTO ? (item.quantityAccepted && Number(item.quantityAccepted) > 0) : (item.quantityAccepted && Number(item.quantityAccepted) >= 0))
     },
     receiveAll(item: any) {
@@ -797,7 +829,7 @@ export default defineComponent({
       return this.order.statusId === "ORDER_COMPLETED"
     },
     observeProductVisibility() {
-      if(this.observer.root) {
+      if(this.observer) {
         this.observer.disconnect();
       }
 
@@ -815,12 +847,14 @@ export default defineComponent({
         threshold: 0.4
       });
 
-      const products = document.querySelectorAll('.product');
-      if (products) {
-        products.forEach((product: any) => {
-          this.observer.observe(product);
-        });
-      }
+      this.$nextTick(() => {
+        const products = document.querySelectorAll('.product');
+        if (products) {
+          products.forEach((product: any) => {
+            this.observer?.observe(product);
+          });
+        }
+      });
     },
     async fetchQuantityOnHand(productId: any) {
       this.productQoh[productId] = await ProductService.getInventoryAvailableByFacility(productId);
@@ -865,6 +899,9 @@ export default defineComponent({
   },
   ionViewDidLeave() {
     this.productQoh = {};
+    if(this.observer) {
+      this.observer.disconnect();
+    }
   },
   setup() {
     const store = useStore();
