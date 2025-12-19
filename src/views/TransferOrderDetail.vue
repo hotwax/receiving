@@ -45,8 +45,8 @@
         </div>
 
         <div class="scanner">
-          <ion-item>
-            <ion-input :label="translate('Scan items')" label-placement="fixed" autofocus v-model="queryString" @keyup.enter="updateProductCount(null)" />
+          <ion-item :lines="scanErrorText ? 'none' : 'full'">
+            <ion-input :class="{ 'ion-invalid ion-touched': scanErrorText }" :error-text="scanErrorText" :label="translate('Scan items')" label-placement="fixed" autofocus v-model="queryString" @keyup.enter="updateProductCount(null)" @ionInput="scanErrorText = ''"/>
           </ion-item>
           <ion-button expand="block" fill="outline" @click="scan">
             <ion-icon slot="start" :icon="cameraOutline" />
@@ -409,7 +409,8 @@ export default defineComponent({
       toastButtons: [{
         text: translate("Receive and complete"),
         handler: async() => this.receiveAndCloseTO()
-      }]
+      }],
+      scanErrorText: ""
     }
   },
   computed: {
@@ -512,6 +513,18 @@ export default defineComponent({
         showToast(translate("Please provide a valid barcode identifier."))
         return;
       }
+
+      if(this.openItemsTemp.length) {
+        const item = this.openItems.find((item: any) => getProductIdentificationValue(this.barcodeIdentifier, this.getProduct(item.productId)) === payload)
+
+        if(!item) {
+          this.queryString = ""
+          this.scanErrorText = "Scanned item not found in filtered view, switch to all open items and scan again"
+          return;
+        }
+      }
+
+      // TODO: move the update product count logic in here, as there is no meaning of maintaining it in state
       const result = await this.store.dispatch('transferorder/updateProductCount', payload)
 
       if(result.isCompleted) {
