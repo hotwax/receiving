@@ -315,7 +315,7 @@ const actions: ActionTree<UtilState, RootState> = {
       }
     } catch(err) {
       console.error(err)
-      commit(types.UTIL_RECEIVE_BY_FULFILLMENT_UPDATED, "false")
+      commit(types.UTIL_RECEIVE_BY_FULFILLMENT_UPDATED, false)
     }
   },
 
@@ -362,7 +362,7 @@ const actions: ActionTree<UtilState, RootState> = {
     }
 
     try {
-      const resp = await UtilService.updateForceScanSetting(params) as any
+      const resp = await UtilService.updateReceiveByFulfillmentSetting(params) as any
 
       if((!hasError(resp))) {
         showToast(translate("Receiving flow preference updated successfully."))

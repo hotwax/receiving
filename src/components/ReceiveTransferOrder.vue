@@ -97,7 +97,6 @@ onMounted(() => {
   // Mark all items as completed for which user has entered any qty, this will be equal to all the open items
   itemsToComplete.value = validTOItems.value.filter((item: any) => props.closeTO ? item.quantityAccepted >= 0 : item.quantityAccepted > 0)
 
-  console.log('props.items', props.items)
   if(props.closeTO) {
     overReceivedTOItems.value = itemsToComplete.value.filter((item: any) => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) != getItemQty(item))
   } else {

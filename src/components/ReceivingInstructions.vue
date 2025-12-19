@@ -60,11 +60,6 @@ export default defineComponent({
     IonTitle,
     IonToolbar
   },
-  data() {
-    return {
-      queryString: this.selectedSKU ? this.selectedSKU : '',
-    }
-  },
   props: ["items", "openItems"],
   methods: {
     closeModal() {
