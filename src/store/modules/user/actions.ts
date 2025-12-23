@@ -122,6 +122,7 @@ const actions: ActionTree<UserState, RootState> = {
       dispatch('getFacilityLocations', currentFacilityId);
       // TODO: fetch product identifications from enumeration instead of storing it in env
       this.dispatch('util/getForceScanSetting', currentEComStore?.productStoreId);
+      this.dispatch('util/getReceivingByFulfillmentSetting', currentEComStore?.productStoreId);
       this.dispatch('util/getBarcodeIdentificationPref', currentEComStore?.productStoreId);
 
       const orderId = router.currentRoute.value.query.orderId
@@ -207,6 +208,7 @@ const actions: ActionTree<UserState, RootState> = {
       await useUserStore().setEComStorePreference(eComStore);
       commit(types.USER_CURRENT_ECOM_STORE_UPDATED, eComStore);
       this.dispatch('util/getForceScanSetting', eComStore.productStoreId)
+      this.dispatch('util/getReceivingByFulfillmentSetting', eComStore.productStoreId)
       this.dispatch('util/getBarcodeIdentificationPref', eComStore.productStoreId)
       await useProductIdentificationStore().getIdentificationPref(eComStore.productStoreId)
         .catch((error) => console.error(error));

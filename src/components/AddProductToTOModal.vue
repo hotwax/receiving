@@ -162,6 +162,7 @@ export default defineComponent({
     async addtoOrder (product: any) {
       product.locationSeqId = this.facilityLocationsByFacilityId(this.currentFacility.facilityId) ? this.facilityLocationsByFacilityId(this.currentFacility.facilityId)[0]?.locationSeqId : ''
       this.store.dispatch('transferorder/addOrderItem', product)
+      modalController.dismiss({ dismissed: true, product });
     },
     closeModal() {
       modalController.dismiss({ dismissed: true });
