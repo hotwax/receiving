@@ -4,12 +4,11 @@ import RootState from '@/store/RootState'
 import ShipmentState from './ShipmentState'
 import * as types from './mutation-types'
 import { hasError, showToast, getCurrentFacilityId } from '@/utils'
-import { getProductIdentificationValue, translate, useUserStore } from '@hotwax/dxp-components'
+import { getProductIdentificationValue, translate } from '@hotwax/dxp-components'
 import emitter from '@/event-bus'
 import store from "@/store";
 import { DateTime } from 'luxon';
 import { UploadService } from "@/services/UploadService";
-import { toHandlerKey } from "vue";
 
 const actions: ActionTree<ShipmentState, RootState> = {
   async findShipment ({ commit, state }, payload) {
@@ -34,9 +33,9 @@ const actions: ActionTree<ShipmentState, RootState> = {
         });
 
         if (payload.viewIndex && payload.viewIndex > 0) shipments = state.shipments.list.concat(shipments);
-        commit(types.SHIPMENT_LIST_UPDATED, { shipments })
+        commit(types.SHIPMENT_LIST_UPDATED, { shipments, total: resp.data.count });
       } else {
-        payload.viewIndex ? showToast(translate("Shipments not found")) : commit(types.SHIPMENT_LIST_UPDATED, { shipments: [] })
+        payload.viewIndex ? showToast(translate("Shipments not found")) : commit(types.SHIPMENT_LIST_UPDATED, { shipments: [], total: 0 })
       }
     } catch(error){
       console.error(error)
@@ -108,7 +107,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
       return Promise.reject(new Error(err))
     }
   },
-  async receiveShipmentItem ({ commit }, payload) {
+  async receiveShipmentItem(_, payload) {
     let areAllSuccess = true;
 
     for (const item of payload.items) {
@@ -144,7 +143,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
 
     return areAllSuccess;
   },
-  async receiveShipmentJson ({ dispatch }, payload) {
+  async receiveShipmentJson (_, payload) {
     emitter.emit("presentLoader");
     const fileName = `ReceiveShipment_${payload.shipmentId}_${DateTime.now().toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS)}.json`;
     const params = {
@@ -214,7 +213,6 @@ const actions: ActionTree<ShipmentState, RootState> = {
   },
 
   async receiveShipment ({ dispatch }, payload) {
-    emitter.emit("presentLoader", {message: 'Receiving in-progress.', backdropDismiss: false});
     const areAllSuccess = await dispatch("receiveShipmentItem", payload);
     if(areAllSuccess) {
       try {
@@ -225,7 +223,6 @@ const actions: ActionTree<ShipmentState, RootState> = {
 
         if (resp.status == 200 && !hasError(resp)) {
           showToast(translate("Shipment received successfully", { shipmentId: payload.shipmentId }))
-          emitter.emit("dismissLoader");
           return true;
         } else {
           throw resp.data;
@@ -234,7 +231,6 @@ const actions: ActionTree<ShipmentState, RootState> = {
         console.error(error);
       }
     }
-    emitter.emit("dismissLoader");
     return false;
   },
   async addShipmentItem ({ state, commit, dispatch }, payload) {
@@ -281,11 +277,11 @@ const actions: ActionTree<ShipmentState, RootState> = {
       }
     })
 
-    commit(types.SHIPMENT_LIST_UPDATED, { shipments })
+    commit(types.SHIPMENT_LIST_UPDATED, { shipments, total: state.shipments.total })
   },
 
   async clearShipments({ commit }) {
-    commit(types.SHIPMENT_LIST_UPDATED, { shipments: [] })
+    commit(types.SHIPMENT_LIST_UPDATED, { shipments: [], total: 0 })
     commit(types.SHIPMENT_CURRENT_UPDATED, { current: {} })
   },
 

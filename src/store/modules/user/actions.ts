@@ -61,7 +61,7 @@ const actions: ActionTree<UserState, RootState> = {
       const facilities = await useUserStore().getUserFacilities(userProfile?.partyId, "", isAdminUser)
       await useUserStore().getFacilityPreference('SELECTED_FACILITY')
 
-      if (!facilities.length) throw 'Unable to login. User is not assocaited with any facility'
+      if (!facilities.length) throw 'Unable to login. User is not associated with any facility'
 
       userProfile.facilities = facilities
 
@@ -123,11 +123,12 @@ const actions: ActionTree<UserState, RootState> = {
       dispatch('getFacilityLocations', currentFacilityId);
       // TODO: fetch product identifications from enumeration instead of storing it in env
       this.dispatch('util/getForceScanSetting', currentEComStore?.productStoreId);
+      this.dispatch('util/getReceivingByFulfillmentSetting', currentEComStore?.productStoreId);
       this.dispatch('util/getBarcodeIdentificationPref', currentEComStore?.productStoreId);
 
-      const shipmentId = router.currentRoute.value.query.shipmentId
-      if (isQueryFacilityFound && shipmentId) {
-        return `/shipment/${shipmentId}`;
+      const orderId = router.currentRoute.value.query.orderId
+      if (isQueryFacilityFound && orderId) {
+        return `/transfer-order-detail/${orderId}`;
       }
     } catch (err: any) {
       // If any of the API call in try block has status code other than 2xx it will be handled in common catch block.
@@ -208,6 +209,7 @@ const actions: ActionTree<UserState, RootState> = {
       await useUserStore().setEComStorePreference(eComStore);
       commit(types.USER_CURRENT_ECOM_STORE_UPDATED, eComStore);
       this.dispatch('util/getForceScanSetting', eComStore.productStoreId)
+      this.dispatch('util/getReceivingByFulfillmentSetting', eComStore.productStoreId)
       this.dispatch('util/getBarcodeIdentificationPref', eComStore.productStoreId)
       await useProductIdentificationStore().getIdentificationPref(eComStore.productStoreId)
         .catch((error) => console.error(error));

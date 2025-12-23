@@ -233,15 +233,6 @@ export default defineComponent({
     async fetchQuantityOnHand(productId: any) {
       this.productQoh[productId] = await ProductService.getInventoryAvailableByFacility(productId);  
     },
-    async fetchProducts(vSize: any, vIndex: any) {
-      const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
-      const viewIndex = vIndex ? vIndex : 0;
-      const payload = {
-        viewSize,
-        viewIndex,
-      }
-        await this.store.dispatch("product/fetchProducts", payload);
-    },
     async completeShipment() {
       const alert = await alertController.create({
         header: translate("Receive Shipment"),

@@ -1,15 +1,6 @@
 import { api, hasError } from '@/adapter';
 import { getCurrentFacilityId } from '@/utils';
 
-const fetchProducts = async (query: any): Promise <any> => {
-  return api({
-    url: "searchProducts",
-    method: "post",
-    data: query,
-    cache: true
-  })
-}
-
 const getInventoryAvailableByFacility = async (productId: any): Promise<any> => {
   let productQoh = ''
   const payload = {
@@ -35,6 +26,5 @@ const getInventoryAvailableByFacility = async (productId: any): Promise<any> => 
 }
 
 export const ProductService = {
-  fetchProducts,
   getInventoryAvailableByFacility
 }

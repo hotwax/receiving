@@ -1,6 +1,6 @@
 <template>
-  <ion-chip outline>
-    <ion-select aria-label="Facility Location" interface="popover" :placeholder="translate('facility location')" :value="item.locationSeqId" @ionChange="setFacilityLocation($event)">
+  <ion-chip outline @click="triggerOpen($event)">
+    <ion-select ref="selectRef" aria-label="Facility Location" interface="popover" :placeholder="translate('facility location')" :value="item.locationSeqId" @ionChange="setFacilityLocation($event)">
       <ion-icon slot="start" :icon="locationOutline"/>
       <ion-select-option v-for="facilityLocation in (getFacilityLocationsByFacilityId(facilityId) ? getFacilityLocationsByFacilityId(facilityId) : [])" :key="facilityLocation.locationSeqId" :value="facilityLocation.locationSeqId" >{{ facilityLocation.locationPath ? facilityLocation.locationPath : facilityLocation.locationSeqId }}</ion-select-option>
     </ion-select>
@@ -43,6 +43,12 @@ export default defineComponent({
         }
       }
     },
+    triggerOpen(event: CustomEvent) {
+      const selectEl = (this.$refs.selectRef as any)?.$el;
+      if (selectEl) {
+        selectEl.open(event);
+      }
+    }
   },
   setup() {
     const store = useStore();

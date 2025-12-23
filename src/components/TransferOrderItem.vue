@@ -1,13 +1,12 @@
 <template>
-  <ion-item button @click="getOrderDetail(transferOrder.orderId)">
+  <ion-item detail="true" button @click="getOrderDetail(transferOrder.orderId)">
     <ion-label>
-      <p class="overline">{{ transferOrder.orderId }}</p>
       {{ transferOrder.orderName }}
       <p>{{ transferOrder.orderExternalId }}</p>
+      <p>{{ transferOrder.orderId }}</p>
     </ion-label>
     <ion-label class="ion-text-end" slot="end">
-      <p>{{ getTime(transferOrder.orderDate) }}</p>
-      <ion-badge :color="orderStatusColor[transferOrder.orderStatusId]">{{ transferOrder.orderStatusDesc }}</ion-badge>
+      <p v-if="transferOrder.orderDate">{{ getTime(transferOrder.orderDate) }}</p>
     </ion-label>
   </ion-item>
 </template>
@@ -15,7 +14,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import {
-  IonBadge,
   IonItem,
   IonLabel
 } from '@ionic/vue'
@@ -25,7 +23,6 @@ import { useRouter } from 'vue-router';
 export default defineComponent({
   name: "TransferOrderItem",
   components: {
-    IonBadge,
     IonItem,
     IonLabel
   },
@@ -45,7 +42,7 @@ export default defineComponent({
       this.router.push({ path: `/transfer-order-detail/${orderId}` })
     },
     getTime(time: any) {
-      return time ? DateTime.fromMillis(time).toFormat("dd MMMM yyyy t a") : ""
+      return DateTime.fromMillis(time).toFormat("dd MMMM yyyy t")
     },
   },
   setup() {

@@ -23,7 +23,7 @@
       <main>
         <ShipmentListItem v-for="shipment in shipments" :key="shipment.shipmentId" :shipment="shipment"/>
 
-        <div v-if="shipments.length" class="load-more-action ion-text-center">
+        <div v-if="shipments.length < shipmentsTotal" class="load-more-action ion-text-center">
           <ion-button fill="outline" color="dark" @click="loadMoreShipments()">
             <ion-icon :icon="cloudDownloadOutline" slot="start" />
             {{ translate("Load more shipments") }}
@@ -95,6 +95,7 @@ export default defineComponent({
   computed: {
     ...mapGetters({
       shipments: 'shipment/getShipments',
+      shipmentsTotal: 'shipment/getTotalShipments',
     })
   },
   data() {

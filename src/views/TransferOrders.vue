@@ -21,7 +21,7 @@
     <ion-content>
       <main>
         <TransferOrderItem v-for="(order, index) in orders.list" :key="index" :transferOrder="order" />
-        <div v-if="orders.list.length" class="load-more-action ion-text-center">
+        <div v-if="orders.list.length < orders.total" class="load-more-action ion-text-center">
           <ion-button fill="outline" color="dark" @click="loadMoreOrders()">
             <ion-icon :icon="cloudDownloadOutline" slot="start" />
             {{ translate("Load more transfer order") }}
@@ -122,9 +122,10 @@ export default defineComponent({
         orderStatusId,
         destinationFacilityId: this.currentFacility?.facilityId,
         excludeOriginFacilityIds: "REJECTED_ITM_PARKING",
+        statusFlowId: ["TO_Fulfill_And_Receive", "TO_Receive_Only"],
         limit,
         pageIndex,
-        orderName: this.queryString
+        keyword: this.queryString?.trim() || undefined
       };
 
       emitter.emit('presentLoader');

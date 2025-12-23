@@ -63,21 +63,34 @@
             </ion-select>
           </ion-item>
         </ion-card>
+
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>
+              {{ translate("Receive flow type") }}
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            {{ translate("Define the receiving flow for TO items") }}
+          </ion-card-content>
+          <ion-item :disabled="!hasPermission(Actions.APP_UPDT_RECEIVE_FLOW_CONFIG)">
+            <ion-toggle label-placement="start" :checked="isReceivingByFulfillment" @click.prevent="updateReceiveFlowType($event)">{{ translate("Receive by fulfillment") }}</ion-toggle>
+          </ion-item>
+        </ion-card>
       </section>
     </ion-content>
   </ion-page>
 </template>
 
 <script lang="ts">
-import { alertController, IonAvatar, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader,IonIcon, IonItem, IonMenuButton, IonPage, IonSelect, IonSelectOption, IonTitle, IonToggle, IonToolbar } from '@ionic/vue';
+import { IonAvatar, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader,IonIcon, IonItem, IonMenuButton, IonPage, IonSelect, IonSelectOption, IonTitle, IonToggle, IonToolbar } from '@ionic/vue';
 import { computed, defineComponent } from 'vue';
-import { codeWorkingOutline, ellipsisVertical, openOutline, saveOutline, globeOutline, personCircleOutline, storefrontOutline} from 'ionicons/icons'
+import { openOutline } from 'ionicons/icons'
 import { mapGetters, useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import Image from '@/components/Image.vue'
-import { DateTime } from 'luxon';
 import { Actions, hasPermission } from '@/authorization';
-import { DxpProductIdentifier, getAppLoginUrl, translate, useAuthStore, useProductIdentificationStore } from "@hotwax/dxp-components"
+import { getAppLoginUrl, translate, useAuthStore, useProductIdentificationStore } from "@hotwax/dxp-components"
 
 export default defineComponent({
   name: 'Settings',
@@ -116,6 +129,7 @@ export default defineComponent({
       userProfile: 'user/getUserProfile',
       currentEComStore: 'user/getCurrentEComStore',
       isForceScanEnabled: 'util/isForceScanEnabled',
+      isReceivingByFulfillment: 'util/isReceivingByFulfillment',
       barcodeIdentificationPref: 'util/getBarcodeIdentificationPref'
     })
   },
@@ -129,30 +143,6 @@ export default defineComponent({
     async updateFacility(facility: any) {
       this.store.dispatch('shipment/clearShipments');
       await this.store.dispatch('user/setFacility', facility?.facilityId);
-    },
-    async presentAlert () {
-      const alert = await alertController.create({
-        header: translate('Logout'),
-        message: translate('The products in the upload list will be removed.'),
-        buttons: [{
-          text: translate('Cancel')
-        },
-        {
-          text: translate('Ok'),
-          handler: () => {
-            this.store.dispatch('user/logout', { isUserUnauthorised: false }).then((redirectionUrl) => {
-              this.store.dispatch('product/clearUploadProducts');
-
-              // if not having redirection url then redirect the user to launchpad
-              if (!redirectionUrl) {
-                const redirectUrl = window.location.origin + '/login'
-                window.location.href = `${getAppLoginUrl()}?isLoggedOut=true&redirectUrl=${redirectUrl}`
-              }
-            })
-          }
-        }]
-      });
-      await alert.present();
     },
     logout() {
       this.store.dispatch('user/logout', { isUserUnauthorised: false }).then((redirectionUrl) => {
@@ -173,12 +163,13 @@ export default defineComponent({
     setBarcodeIdentificationPref(value: string) {
       this.store.dispatch('util/setBarcodeIdentificationPref', value)
     },
-    getDateTime(time: any) {
-      return DateTime.fromMillis(time).toLocaleString(DateTime.DATETIME_MED);
-    },
     async updateForceScanStatus(event: any) {
       event.stopImmediatePropagation();
       this.store.dispatch("util/setForceScanSetting", !this.isForceScanEnabled)
+    },
+    async updateReceiveFlowType(event: any) {
+      event.stopImmediatePropagation();
+      this.store.dispatch("util/setReceivingByFulfillmentSetting", !this.isReceivingByFulfillment)
     },
   },
   setup(){
@@ -190,14 +181,8 @@ export default defineComponent({
     return {
       Actions,
       barcodeIdentificationOptions,
-      codeWorkingOutline,
-      ellipsisVertical,
-      globeOutline,
       hasPermission,
-      personCircleOutline,
       openOutline,
-      saveOutline,
-      storefrontOutline,
       store,
       router,
       translate,
@@ -228,11 +213,5 @@ export default defineComponent({
     justify-content: space-between;
     align-items: center;
     padding: var(--spacer-xs) 10px 0px;
-  }
-  /* Added conditional hiding in standalone mode that respects user permissions */
-  @media (display-mode: standalone) {
-    [standalone-hidden] {
-      display: none;
-    }
   }
 </style>

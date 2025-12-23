@@ -32,7 +32,7 @@ const actions: ActionTree<OrderState, RootState> = {
           total: orders.ngroups
         })
       } else {
-        payload.json.params.start ? showToast(translate("Orders not found")) : commit(types.ORDER_PRCHS_ORDRS_UPDATED, { list: [], total: 0 });
+        payload.json.params.start ? showToast(translate("Purchase orders not found")) : commit(types.ORDER_PRCHS_ORDRS_UPDATED, { list: [], total: 0 });
       }
     } catch(error){
       console.error(error)
@@ -68,7 +68,7 @@ const actions: ActionTree<OrderState, RootState> = {
     }
     commit(types.ORDER_CURRENT_PRODUCT_ADDED, product)
   },
-  async getOrderDetail({ commit, state }, { orderId }) {
+  async getOrderDetail({ commit }, { orderId }) {
     let resp;
 
     try {
@@ -106,7 +106,7 @@ const actions: ActionTree<OrderState, RootState> = {
     }
     return resp;
   },
-  async createPurchaseShipment({ commit }, payload) {
+  async createPurchaseShipment(_, payload) {
     let resp;
     try {
       const params = {
@@ -119,7 +119,7 @@ const actions: ActionTree<OrderState, RootState> = {
       if (resp.status === 200 && !hasError(resp) && resp.data.shipmentId) {
         const shipmentId = resp.data.shipmentId
 
-        Promise.all(payload.items.map((item: any, index: number) => {
+        await Promise.all(payload.items.map((item: any, index: number) => {
           // TODO: improve code to don't pass shipmentItemSeqId
           const shipmentItemSeqId = `0000${index+1}`
           return this.dispatch('shipment/addShipmentItem', { item, shipmentId, shipmentItemSeqId, orderId: params.orderId })
@@ -150,7 +150,7 @@ const actions: ActionTree<OrderState, RootState> = {
     return resp;
   },
 
-  async createAndReceiveIncomingShipment({ commit }, payload) {
+  async createAndReceiveIncomingShipment(_, payload) {
     let resp;
     try {
       payload.items.map((item: any, index: number) => {
@@ -196,8 +196,16 @@ const actions: ActionTree<OrderState, RootState> = {
 
   async getPOHistory({ commit, state }, payload) {
     let resp;
+    let viewIndex = 0;
+    const viewSize = 250;
+    let currentPOHistory = [] as Array<any>;
     const current = state.current as any;
+    let locationSeqId = "";
     try {
+      const facilityLocations = await this.dispatch('user/getFacilityLocations', getCurrentFacilityId());
+      locationSeqId = facilityLocations.length > 0 ? facilityLocations[0].locationSeqId : "";
+
+      do {
       const params = {
         "inputFields":{
           "orderId": [payload.orderId],
@@ -206,40 +214,39 @@ const actions: ActionTree<OrderState, RootState> = {
         "entityName": "ShipmentReceiptAndItem",
         "fieldList": ["datetimeReceived", "productId", "quantityAccepted", "quantityRejected", "receivedByUserLoginId", "shipmentId", 'locationSeqId'],
         "orderBy": 'datetimeReceived DESC',
-        "viewSize": "250"
+        viewSize,
+        viewIndex
       }
-      const facilityLocations = await this.dispatch('user/getFacilityLocations', getCurrentFacilityId());
-      const locationSeqId = facilityLocations.length > 0 ? facilityLocations[0].locationSeqId : "";
       resp = await OrderService.fetchPOHistory(params)
-      if (resp.status === 200 && !hasError(resp) && resp.data?.count > 0) {
-        const poHistory = resp.data.docs;
-        current.poHistory.items = poHistory;
-        const facilityLocationByProduct = poHistory.reduce((products: any, item: any) => {
-          products[item.productId] = item.locationSeqId
-          return products
-        }, {});
-
-        const receiversLoginIds = [...new Set(current.poHistory.items.map((item: any) => item.receivedByUserLoginId))]
-        const receiversDetails = await this.dispatch('party/getReceiversDetails', receiversLoginIds);
-        current.poHistory.items.map((item: any) => {
-          item.receiversFullName = receiversDetails[item.receivedByUserLoginId]?.fullName|| item.receivedByUserLoginId;
-        })
-        current.items.map((item: any) => {
-          item.locationSeqId = facilityLocationByProduct[item.productId] ? facilityLocationByProduct[item.productId] : locationSeqId;
-        });
-
-        commit(types.ORDER_CURRENT_UPDATED, current);
-        return poHistory;
-      } else {
-        current.items.map((item: any) => {
-          item.locationSeqId = locationSeqId;
-        });
-        current.poHistory.items = [];
+      if (resp.status === 200 && !hasError(resp) && resp.data?.docs.length > 0) {
+        currentPOHistory = [...currentPOHistory, ...resp.data.docs]
       }
-    } catch(error){
+      viewIndex++
+      } while (resp?.data?.docs?.length >= viewSize);
+    } catch(error) {
       console.error(error)
+      currentPOHistory = []
       current.poHistory.items = [];
     }
+
+    current.poHistory.items = currentPOHistory;
+    if(current.poHistory.items.length) {
+      const receiversLoginIds = [...new Set(current.poHistory.items.map((item: any) => item.receivedByUserLoginId))]
+      const receiversDetails = await this.dispatch('party/getReceiversDetails', receiversLoginIds);
+      current.poHistory.items.map((item: any) => {
+        item.receiversFullName = receiversDetails[item.receivedByUserLoginId]?.fullName || item.receivedByUserLoginId;
+      })
+    }
+
+    const facilityLocationByProduct = current.poHistory.items.reduce((products: any, item: any) => {
+      products[item.productId] = item.locationSeqId
+      return products
+    }, {});
+
+    current.items.forEach((item: any) => {
+      item.locationSeqId = facilityLocationByProduct[item.productId] ? facilityLocationByProduct[item.productId] : locationSeqId;
+    });
+
     commit(types.ORDER_CURRENT_UPDATED, current);
     return resp;
   },
