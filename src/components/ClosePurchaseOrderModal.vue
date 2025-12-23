@@ -116,7 +116,7 @@ export default defineComponent({
           text: translate('Proceed'),
           role: 'proceed',
           handler: async() => {
-            emitter.emit("presentLoader", {message: 'Receiving in-progress.', backdropDismiss: false});
+            emitter.emit("presentLoader", {message: translate('Receiving in progress...'), backdropDismiss: false});
             await this.updatePOItemStatus()
             modalController.dismiss()
             emitter.emit("dismissLoader");

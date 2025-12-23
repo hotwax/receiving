@@ -32,10 +32,10 @@
             <ion-note v-if="!closeTO" color="danger">{{ translate("Over received:") }} {{ getOverReceivedQtyForItem(item) }}</ion-note>
             <ion-note v-else color="danger">{{ getOverReceivedQtyForItem(item) > 0 ? translate("Over received:") : translate("Under received:") }} {{ getOverReceivedQtyForItem(item) }}</ion-note>
           </template>
-          <ion-note v-else color="danger">{{ translate("Not expected: ") }} {{ getOverReceivedQtyForItem(item) }}</ion-note>
+          <ion-note v-else color="danger">{{ translate("Not expected:") }} {{ getOverReceivedQtyForItem(item) }}</ion-note>
         </ion-label>
         <ion-checkbox slot="end" :modelValue="item.isChecked">
-          <ion-note>{{ "report discrepancy" }}</ion-note>
+          <ion-note>{{ translate("report discrepancy") }}</ion-note>
         </ion-checkbox>
       </ion-item>
     </ion-list>
@@ -74,7 +74,7 @@ import { Actions, hasPermission } from '@/authorization'
 import { arrowBackOutline } from 'ionicons/icons';
 import { computed, defineProps, onMounted, ref } from 'vue';
 import { useStore } from 'vuex'
-import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore, useUserStore } from '@hotwax/dxp-components';
+import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore } from '@hotwax/dxp-components';
 import { getFeatures } from '@/utils';
 
 const store = useStore()

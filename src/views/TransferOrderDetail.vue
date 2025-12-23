@@ -428,7 +428,7 @@ export default defineComponent({
       if(this.openItemsTemp.length) {
         const isAllItemsReceived = this.openItems.every((item: any) => (item.quantityAccepted && Number(item.quantityAccepted) >= 0))
         if(isAllItemsReceived) {
-          this.generateToast();
+          this.displayToast();
         } else {
           this.dismissToast();
         }
@@ -454,7 +454,7 @@ export default defineComponent({
     }
   },
   methods: {
-    async generateToast() {
+    async displayToast() {
       this.showToast = true
     },
     dismissToast() {
@@ -656,7 +656,7 @@ export default defineComponent({
           handler: async () => {
             // Dismiss alert before showing loader to prevent overlay stacking
             alert.dismiss();
-            emitter.emit("presentLoader", { message: "Receiving in progress...", backdropDismiss: false });
+            emitter.emit("presentLoader", { message: translate("Receiving in progress..."), backdropDismiss: false });
             try {
               await this.receiveTransferOrder(true);
             } finally {
@@ -690,7 +690,7 @@ export default defineComponent({
             handler: async () => {
               // Dismiss alert before showing loader to prevent overlay stacking
               alert.dismiss();
-              emitter.emit("presentLoader", { message: "Receiving in progress...", backdropDismiss: false });
+              emitter.emit("presentLoader", { message: translate("Receiving in progress..."), backdropDismiss: false });
               try {
                 await this.receiveTransferOrder();
               } finally {
@@ -713,7 +713,7 @@ export default defineComponent({
         modal.onDidDismiss().then(async (value: any) => {
           this.filteredItems.forEach((item: any) => item.isChecked = false)
           if(value?.data?.updateItems) {
-            emitter.emit("presentLoader", { message: "Receiving in progress...", backdropDismiss: false });
+            emitter.emit("presentLoader", { message: translate("Receiving in progress..."), backdropDismiss: false });
             try { 
               await this.receiveTransferOrder();
             } finally {
@@ -771,7 +771,7 @@ export default defineComponent({
       modal.onDidDismiss().then(async (value: any) => {
         this.filteredItems.forEach((item: any) => item.isChecked = false)
         if(value?.data?.updateItems) {
-          emitter.emit("presentLoader", { message: "Receiving in progress...", backdropDismiss: false });
+          emitter.emit("presentLoader", { message: translate("Receiving in progress..."), backdropDismiss: false });
           try { 
             await this.receiveTransferOrder(true);
           } finally {
@@ -889,7 +889,7 @@ export default defineComponent({
     }
   }, 
   async ionViewWillEnter() {
-    emitter.emit('presentLoader', { backdropDismiss: false, message: "Fetching details..." });
+    emitter.emit('presentLoader', { backdropDismiss: false, message: translate("Fetching details...") });
     this.store.dispatch("transferorder/clearTransferOrderDetail");
 
     await this.store.dispatch("transferorder/fetchTransferOrderDetail", { orderId: this.$route.params.slug }).then(async () => {

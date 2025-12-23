@@ -83,13 +83,12 @@
 </template>
 
 <script lang="ts">
-import { alertController, IonAvatar, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader,IonIcon, IonItem, IonMenuButton, IonPage, IonSelect, IonSelectOption, IonTitle, IonToggle, IonToolbar } from '@ionic/vue';
+import { IonAvatar, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader,IonIcon, IonItem, IonMenuButton, IonPage, IonSelect, IonSelectOption, IonTitle, IonToggle, IonToolbar } from '@ionic/vue';
 import { computed, defineComponent } from 'vue';
 import { openOutline } from 'ionicons/icons'
 import { mapGetters, useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import Image from '@/components/Image.vue'
-import { DateTime } from 'luxon';
 import { Actions, hasPermission } from '@/authorization';
 import { getAppLoginUrl, translate, useAuthStore, useProductIdentificationStore } from "@hotwax/dxp-components"
 
