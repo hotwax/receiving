@@ -74,7 +74,7 @@
                 {{ translate("If you under-received an item, enter 0 quantity to close it.") }}
               </ion-label>
               <ion-button fill="clear" slot="end" @click="showAllOpenItems">
-                {{ translate("Back to open items") }}
+                {{ translate("Back to all items") }}
               </ion-button>
             </ion-item>
             <ion-card v-for="(item, index) in getAllItems" :key="index">
