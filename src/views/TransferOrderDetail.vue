@@ -67,9 +67,17 @@
         </ion-segment>
 
         <!-- TODO: create a common component for the item card -->
-        <ion-segment-view v-if="!isTOReceived()">
-          <ion-segment-content id="all">
-            <ion-card v-for="(item, index) in filteredItems" :key="index">
+        <div v-if="!isTOReceived()">
+          <template v-if="selectedSegment === 'all'">
+            <ion-item v-if="openItemsTemp.length" lines="none">
+              <ion-label color="danger">
+                {{ translate("If you under-received an item, enter 0 quantity to close it.") }}
+              </ion-label>
+              <ion-button fill="clear" slot="end" @click="showAllOpenItems">
+                {{ translate("Back to open items") }}
+              </ion-button>
+            </ion-item>
+            <ion-card v-for="(item, index) in getAllItems" :key="index">
               <div class="product" :data-product-id="item.productId">
                 <div class="product-info">
                   <ion-item lines="none">
@@ -96,7 +104,7 @@
 
                 <template v-if="!['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId)">
                   <div class="product-count">
-                    <ion-input fill="outline" :label="translate('Qty')" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" />
+                    <ion-input fill="outline" :class="{ 'ion-invalid ion-touched': openItemsTemp.length }" :label="translate('Qty')" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" :error-text="openItemsTemp.length ? translate('Input quantity') : ''" />
                   </div>
                 </template>
                 <template v-else>
@@ -135,8 +143,13 @@
                 </div>
               </template>
             </ion-card>
-          </ion-segment-content>
-          <ion-segment-content id="open">
+            <ion-item v-if="openItemsTemp.length" lines="none">
+              <ion-label>
+                {{ openItemsTemp.length }} {{ translate("more items are ready to be received") }}
+              </ion-label>
+            </ion-item>
+          </template>
+          <template v-if="selectedSegment === 'open'">
             <ion-item v-if="openItemsTemp.length" lines="none">
               <ion-label color="danger">
                 {{ translate("If you under-received an item, enter 0 quantity to close it.") }}
@@ -213,8 +226,8 @@
                 {{ openItemsTemp.length }} {{ translate("more items are ready to be received") }}
               </ion-label>
             </ion-item>
-          </ion-segment-content>
-          <ion-segment-content id="received">
+          </template>
+          <template v-if="selectedSegment === 'received'">
             <ion-card v-for="(item, index) in completedItems" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
               <div class="product" :data-product-id="item.productId">
                 <div class="product-info">
@@ -255,8 +268,8 @@
                 <ion-icon slot="icon-only" :icon="openOutline" />
               </ion-button>
             </div>
-          </ion-segment-content>
-        </ion-segment-view>
+          </template>
+        </div>
 
         <!-- TODO: update UI to have this information using the segment view -->
         <template v-if="isTOReceived()">
@@ -304,7 +317,7 @@
       ></ion-toast>
     </ion-content>
 
-    <ion-footer id="footer" ref="footer" v-if="!isTOReceived() && selectedSegment === 'open'">
+    <ion-footer id="footer" ref="footer" v-if="!isTOReceived() && selectedSegment !== 'received'">
       <ion-toolbar>
         <ion-buttons slot="end">
           <ion-button :disabled="!areAllItemsHaveQty" class="ion-margin-end" fill="outline" size="small" color="primary" @click="receiveTO">{{ translate("Save Progress") }}{{ ":" }} {{ getReceivedUnits() }}</ion-button>
@@ -334,8 +347,6 @@ import {
   IonRow,
   IonSegment,
   IonSegmentButton,
-  IonSegmentContent,
-  IonSegmentView,
   IonThumbnail,
   IonTitle,
   IonToast,
@@ -382,8 +393,6 @@ export default defineComponent({
     IonRow,
     IonSegment,
     IonSegmentButton,
-    IonSegmentContent,
-    IonSegmentView,
     IonThumbnail,
     IonTitle,
     IonToast,
@@ -449,6 +458,9 @@ export default defineComponent({
 
         return items
       }
+    },
+    getAllItems(): any {
+      return this.openItemsTemp.length ? this.openItems : this.filteredItems
     }
   },
   methods: {
