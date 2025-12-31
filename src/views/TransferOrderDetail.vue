@@ -96,9 +96,7 @@
 
                 <template v-if="!['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId)">
                   <div class="product-count">
-                    <ion-item>
-                      <ion-input :label="translate('Qty')" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" />
-                    </ion-item>
+                    <ion-input fill="outline" :label="translate('Qty')" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" />
                   </div>
                 </template>
                 <template v-else>
