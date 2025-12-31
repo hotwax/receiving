@@ -72,7 +72,7 @@
           <template v-if="selectedSegment === 'all'">
             <ion-item v-if="openItemsTemp.length" lines="none">
               <ion-label color="danger">
-                {{ translate("If you under-received an item, enter 0 quantity to close it.") }}
+                {{ translate("To close this order, enter the actual quantity received or enter '0' if the item was not received.") }}
               </ion-label>
               <ion-button fill="clear" slot="end" @click="showAllOpenItems">
                 {{ translate("Back to all items") }}
@@ -153,7 +153,7 @@
           <template v-if="selectedSegment === 'open'">
             <ion-item v-if="openItemsTemp.length" lines="none">
               <ion-label color="danger">
-                {{ translate("If you under-received an item, enter 0 quantity to close it.") }}
+                {{ translate("To close this order, enter the actual quantity received or enter '0' if the item was not received.") }}
               </ion-label>
               <ion-button fill="clear" slot="end" @click="showAllOpenItems">
                 {{ translate("Back to open items") }}
