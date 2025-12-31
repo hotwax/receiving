@@ -197,6 +197,7 @@
   "Submit a quantity on all open items to receive and close them. Enter 0 quantity for items you didn’t receive complete quantities for.": "Submit a quantity on all open items to receive and close them.{space}Enter 0 quantity for items you didn’t receive complete quantities for.",
   "Tap to learn more": "Tap to learn more",
   "The timezone you select is used to ensure automations you schedule are always accurate to the time you select.": "The timezone you select is used to ensure automations you schedule are always accurate to the time you select.",
+  "This transfer order can only be received on one device at a time. Make sure this transfer order is not open on any other device": "This transfer order can only be received on one device at a time. Make sure this transfer order is not open on any other device",
   "There are no incoming shipments": "There are no incoming shipments",
   "There are no purchase orders to receive": "There are no purchase orders to receive",
   "There are no transfer orders to receive": "There are no transfer orders to receive",

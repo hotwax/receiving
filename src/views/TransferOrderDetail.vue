@@ -35,9 +35,10 @@
 
           <div class="doc-meta" v-if="!isTOReceived()">
             <ion-item button lines="none" @click="openTOReceivingInstructions">
-              <ion-icon :icon="informationCircleOutline" />
+              <ion-icon :icon="informationCircleOutline" slot="start" />
               <ion-label slot="end">
                 {{ translate("Finish receiving the open items to complete this transfer order", { items: getTOItems("open").length }) }}
+                <p><ion-text color="danger">{{ translate("This transfer order can only be received on one device at a time. Make sure this transfer order is not open on any other device") }}</ion-text></p>
                 <p>{{ translate("Tap to learn more") }}</p>
               </ion-label>
             </ion-item>
