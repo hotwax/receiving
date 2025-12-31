@@ -45,7 +45,7 @@
     <ion-toolbar class="ion-padding-start">
       <ion-label slot="start">{{ translate("Select all items to proceed") }}</ion-label>
       <ion-buttons slot="end">
-        <ion-button fill="solid" color="primary" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibleToCloseTOItems()" @click="saveProgress">{{ closeTO ? translate("Complete transfer order") : translate("Save progress") }}</ion-button>
+        <ion-button fill="solid" color="primary" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibleToCloseTOItems()" @click="saveProgress">{{ saveButtonLabel }}</ion-button>
       </ion-buttons>
     </ion-toolbar>
   </ion-footer>
@@ -84,6 +84,7 @@ const getProduct = computed(() => (id: any) => store.getters["product/getProduct
 const isReceivingByFulfillment = computed(() => store.getters["util/isReceivingByFulfillment"])
 const getOverReceivedQtyForItem = computed(() => (item: any): number => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0) - getItemQty(item)))
 let productIdentificationPref = computed(() => productIdentificationStore.getProductIdentificationPref)
+const saveButtonLabel = computed(() => props.closeTO ? translate("Complete transfer order") : canReceiveAndClose() ? translate("Receive and close") : translate("Save progress"))
 
 let validTOItems = ref([])
 let overReceivedTOItems: any = ref([])
@@ -105,6 +106,13 @@ onMounted(() => {
 
   receivedQty.value = itemsToComplete.value.reduce((qty: any, item: any) => qty + (Number(item.quantityAccepted) || 0), 0)
 })
+
+function canReceiveAndClose() {
+  return validTOItems.value.every((item: any) => {
+    const totalReceived = (Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)
+    return totalReceived >= getItemQty(item)
+  })
+}
 
 function getItemQty(item: any) {
   return (isReceivingByFulfillment.value ? item.totalIssuedQuantity : item.quantity) || 0
