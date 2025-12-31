@@ -84,7 +84,7 @@ const getProduct = computed(() => (id: any) => store.getters["product/getProduct
 const isReceivingByFulfillment = computed(() => store.getters["util/isReceivingByFulfillment"])
 const getOverReceivedQtyForItem = computed(() => (item: any): number => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0) - getItemQty(item)))
 let productIdentificationPref = computed(() => productIdentificationStore.getProductIdentificationPref)
-const saveButtonLabel = computed(() => props.closeTO ? translate("Complete transfer order") : canReceiveAndClose() ? translate("Receive and close") : translate("Save progress"))
+const saveButtonLabel = computed(() => props.closeTO ? translate("Complete transfer order") : canReceiveAndClose() ? translate("Receive and complete") : translate("Save progress"))
 
 let validTOItems = ref([])
 let overReceivedTOItems: any = ref([])
