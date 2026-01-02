@@ -32,6 +32,21 @@ const fetchTransferOrderDetail = async (orderId: string): Promise<any> => {
   });
 };
 
+const fetchMisShippedItems = async (orderId: string): Promise<any> => {
+  const omsRedirectionInfo = store.getters['user/getOmsRedirectionInfo'];
+  const baseURL = store.getters['user/getMaargBaseUrl'];
+
+  return client({
+    url: `poorti/transferOrders/${orderId}/misShippedItems`,
+    method: "get",
+    baseURL,
+    headers: {
+      "api_key": omsRedirectionInfo.token,
+      "Content-Type": "application/json"
+    }
+  });
+};
+
 const fetchOrderTrackingDetails = async (orderId: string): Promise<any> => {
   const omsRedirectionInfo = store.getters['user/getOmsRedirectionInfo'];
   const baseURL = store.getters['user/getMaargBaseUrl'];
@@ -95,6 +110,7 @@ const fetchOutboundShipmentsHistory = async (params: any): Promise<any> => {
 }
 
 export const TransferOrderService = {
+  fetchMisShippedItems,
   fetchTransferOrders,
   fetchTransferOrderDetail,
   receiveTransferOrder,

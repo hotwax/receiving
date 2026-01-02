@@ -106,6 +106,7 @@
   "Ordered":"Ordered",
   "Over received:": "Over received:",
   "/ received": "{receivedCount} / {orderedCount} received",
+  " Received": "{received} Received",
   " Received | Fulfilled | Ordered": "{received} Received {'|'} {fulfilled} Fulfilled {'|'} {ordered} Ordered",
   "Partially receive": "Partially receive",
   "Password": "Password",

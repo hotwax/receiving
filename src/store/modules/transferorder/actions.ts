@@ -41,16 +41,38 @@ const actions: ActionTree<TransferOrderState, RootState> = {
     commit(types.ORDER_TRANSFER_QUERY_UPDATED, { ...transferOrderQuery });
     return resp;
   },
+  async fetchMisShippedItems({ commit }, payload) {
+    let misShippedItems: any = [];
+    const orderId = payload.orderId;
+
+    try {
+      const resp = await TransferOrderService.fetchMisShippedItems(orderId);
+      if(!hasError(resp) && resp.data?.length){
+        misShippedItems = resp.data.map((item: any) => ({
+          ...item,
+          statusId: 'ITEM_COMPLETED'
+        }));
+      }
+    } catch (error) {
+      console.error(error);
+    }
+    
+    commit(types.ORDER_MISSHIPPED_ITEMS_UPDATED, misShippedItems);
+  },
   async fetchTransferOrderDetail({ commit }, payload) {
     let resp;
     let order: any = {};
     const orderId = payload.orderId;
+    const misShippedItems = store.getters['transferorder/getMisShippedItems'];
 
     try {
       resp = await TransferOrderService.fetchTransferOrderDetail(orderId);
 
       if (resp.status === 200 && !hasError(resp) && resp.data.order) {
         order = resp.data.order;
+        // Append mis-shipped items to order
+        order.items = order.items.concat(misShippedItems);
+
         const trackingResp = await TransferOrderService.fetchOrderTrackingDetails(orderId);
         if (!hasError(trackingResp) && trackingResp.data) {
           order.shipmentPackages = trackingResp.data.shipmentPackages;
@@ -104,6 +126,7 @@ const actions: ActionTree<TransferOrderState, RootState> = {
   async fetchTOHistory({ commit, state }, { payload }) {
     const current = state.current as any;
     const pageSize = Number(process.env.VUE_APP_VIEW_SIZE) ;
+    const misShippedItems = store.getters['transferorder/getMisShippedItems'];
     let pageIndex = 0;
     let allHistory: any[] = [];
     let resp;
@@ -116,7 +139,7 @@ const actions: ActionTree<TransferOrderState, RootState> = {
           pageIndex
         });
         if (!hasError(resp) && resp.data.length > 0) {
-          allHistory = allHistory.concat(resp.data);
+          allHistory = allHistory.concat(...resp.data, ...misShippedItems);
           pageIndex++;
         }
       } while (resp.data.length >= pageSize);
