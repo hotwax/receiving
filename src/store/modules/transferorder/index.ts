@@ -32,7 +32,8 @@ const orderModule: Module<TransferOrderState, RootState> = {
       shipmentHistory:{
         items:[]
       }
-    }
+    },
+    misShippedItems: []
   },
   getters,
   actions,

@@ -10,5 +10,6 @@ export default interface TransferOrderState {
       selectedStatuses: Array<string>
     }
   },
-  current: any
+  current: any,
+  misShippedItems: any
 }
