@@ -110,7 +110,6 @@
                 </template>
                 <template v-else-if="!item.orderItemSeqId">
                   <ion-item lines="none">
-                    {{ item.quantityAccepted }}
                     <ion-label slot="end">
                       {{ translate(' Received', { received: item.quantityAccepted ?? 0 }) }}
                       <p>{{ translate('Manually added') }}</p>
