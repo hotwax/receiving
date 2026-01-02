@@ -139,10 +139,14 @@ const actions: ActionTree<TransferOrderState, RootState> = {
           pageIndex
         });
         if (!hasError(resp) && resp.data.length > 0) {
-          allHistory = allHistory.concat(...resp.data, ...misShippedItems);
+          allHistory = allHistory.concat(resp.data);
           pageIndex++;
         }
       } while (resp.data.length >= pageSize);
+
+      if (misShippedItems?.length) {
+        allHistory.push(...misShippedItems);
+      }
   
       if (allHistory.length > 0) {
         const receiversLoginIds = [...new Set(allHistory.map((item: any) => item.receivedByUserLoginId))];
