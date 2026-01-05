@@ -32,14 +32,15 @@ const fetchTransferOrderDetail = async (orderId: string): Promise<any> => {
   });
 };
 
-const fetchMisShippedItems = async (orderId: string): Promise<any> => {
+const fetchMisShippedItems = async (params: any): Promise<any> => {
   const omsRedirectionInfo = store.getters['user/getOmsRedirectionInfo'];
   const baseURL = store.getters['user/getMaargBaseUrl'];
 
   return client({
-    url: `poorti/transferOrders/${orderId}/misShippedItems`,
+    url: `poorti/transferOrders/${params.orderId}/misShippedItems`,
     method: "get",
     baseURL,
+    params,
     headers: {
       "api_key": omsRedirectionInfo.token,
       "Content-Type": "application/json"

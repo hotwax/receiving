@@ -372,6 +372,7 @@ import {
   IonRow,
   IonSegment,
   IonSegmentButton,
+  IonText,
   IonThumbnail,
   IonTitle,
   IonToast,
@@ -418,6 +419,7 @@ export default defineComponent({
     IonRow,
     IonSegment,
     IonSegmentButton,
+    IonText,
     IonThumbnail,
     IonTitle,
     IonToast,
@@ -823,7 +825,7 @@ export default defineComponent({
     },
     async receiveTransferOrder(isClosingTO = false) {
       let eligibleItems: any = []
-      const itemsToReceive =  [...this.openItems, ...this.openItemsTemp]
+      const itemsToReceive =  JSON.parse(JSON.stringify([...this.openItems, ...this.openItemsTemp]))
       if(!isClosingTO) {
         itemsToReceive.forEach((item: any) => {
           const isItemFullyReceived = item.quantityAccepted >= 0 && ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) >= this.getItemQty(item)

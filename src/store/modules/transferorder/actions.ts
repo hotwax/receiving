@@ -46,7 +46,10 @@ const actions: ActionTree<TransferOrderState, RootState> = {
     const orderId = payload.orderId;
 
     try {
-      const resp = await TransferOrderService.fetchMisShippedItems(orderId);
+      const resp = await TransferOrderService.fetchMisShippedItems({
+        orderId,
+        pageSize: 200
+      });
       if(!hasError(resp) && resp.data?.length){
         misShippedItems = resp.data.map((item: any) => ({
           ...item,
