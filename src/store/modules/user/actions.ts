@@ -96,7 +96,7 @@ const actions: ActionTree<UserState, RootState> = {
           const facilityId = resp.data.docs[0].facilityId;
           const facility = userProfile.facilities.find((facility: any) => facility.facilityId === facilityId);
 
-          if(facility) {
+          if(!facility) {
             throw "Unable to login. User is not associated with this location"
           }
           useUserStore().currentFacility = facility
