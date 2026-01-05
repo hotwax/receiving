@@ -17,6 +17,9 @@ const getters: GetterTree<TransferOrderState, RootState> = {
   },
   getShipmentHistory(state){
     return state.current.shipmentHistory;
+  },
+  getMisShippedItems(state){
+    return state.misShippedItems;
   }
 };
 export default getters;
