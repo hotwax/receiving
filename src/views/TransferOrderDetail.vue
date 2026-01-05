@@ -108,6 +108,14 @@
                     <ion-input fill="outline" :class="{ 'ion-invalid ion-touched': openItemsTemp.length }" :label="translate('Qty')" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" :error-text="openItemsTemp.length ? translate('Input quantity') : ''" />
                   </div>
                 </template>
+                <template v-else-if="!item.orderItemSeqId">
+                  <ion-item lines="none">
+                    <ion-label slot="end">
+                      {{ translate(' Received', { received: item.quantityAccepted ?? 0 }) }}
+                      <p>{{ translate('Manually added') }}</p>
+                    </ion-label>
+                  </ion-item>
+                </template>
                 <template v-else>
                   <div>
                     <ion-item lines="none">
@@ -256,7 +264,15 @@
 
                 <div>
                   <ion-item lines="none">
-                    <ion-label slot="end">{{ translate(' Received | Fulfilled | Ordered',{ received: item.totalReceivedQuantity ?? 0, fulfilled:item.totalIssuedQuantity ?? 0 , ordered: item.quantity }) }}</ion-label>
+                    <ion-label slot="end">
+                      <template v-if="!item.orderItemSeqId">
+                        {{ translate(' Received', { received: item.quantityAccepted ?? 0 }) }}
+                        <p>{{ translate('Manually added') }}</p>
+                      </template>
+                      <template v-else>
+                        {{ translate(' Received | Fulfilled | Ordered',{ received: item.totalReceivedQuantity ?? 0, fulfilled:item.totalIssuedQuantity ?? 0 , ordered: item.quantity }) }}
+                      </template>
+                    </ion-label>
                   </ion-item>
                 </div>
               </div>
@@ -301,7 +317,15 @@
 
               <div>
                 <ion-item lines="none">
-                  <ion-label slot="end">{{ translate(' Received | Fulfilled | Ordered',{ received: item.totalReceivedQuantity ?? 0, fulfilled:item.totalIssuedQuantity ?? 0 , ordered: item.quantity }) }}</ion-label>
+                  <ion-label slot="end">
+                    <template v-if="!item.orderItemSeqId">
+                      {{ translate('Received', { received: item.quantityAccepted ?? 0 }) }}
+                      <p>{{ translate('Manually added') }}</p>
+                    </template>
+                    <template v-else>
+                      {{ translate(' Received | Fulfilled | Ordered',{ received: item.totalReceivedQuantity ?? 0, fulfilled:item.totalIssuedQuantity ?? 0 , ordered: item.quantity }) }}
+                    </template>
+                  </ion-label>
                 </ion-item>
               </div>
             </div>
@@ -348,6 +372,7 @@ import {
   IonRow,
   IonSegment,
   IonSegmentButton,
+  IonText,
   IonThumbnail,
   IonTitle,
   IonToast,
@@ -394,6 +419,7 @@ export default defineComponent({
     IonRow,
     IonSegment,
     IonSegmentButton,
+    IonText,
     IonThumbnail,
     IonTitle,
     IonToast,
@@ -808,7 +834,7 @@ export default defineComponent({
     },
     async receiveTransferOrder(isClosingTO = false) {
       let eligibleItems: any = []
-      const itemsToReceive =  [...this.openItems, ...this.openItemsTemp]
+      const itemsToReceive =  JSON.parse(JSON.stringify([...this.openItems, ...this.openItemsTemp]))
       if(!isClosingTO) {
         itemsToReceive.forEach((item: any) => {
           const isItemFullyReceived = item.quantityAccepted >= 0 && ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) >= this.getItemQty(item)
@@ -911,7 +937,8 @@ export default defineComponent({
   async ionViewWillEnter() {
     emitter.emit('presentLoader', { backdropDismiss: false, message: translate("Fetching details...") });
     this.store.dispatch("transferorder/clearTransferOrderDetail");
-
+    
+    await this.store.dispatch('transferorder/fetchMisShippedItems', { orderId: this.$route.params.slug });
     await this.store.dispatch("transferorder/fetchTransferOrderDetail", { orderId: this.$route.params.slug }).then(async () => {
       await this.store.dispatch('transferorder/fetchTOHistory', {
         payload: { 

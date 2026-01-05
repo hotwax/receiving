@@ -32,5 +32,8 @@ const mutations: MutationTree <TransferOrderState> = {
   [types.ORDER_CURRENT_PRODUCT_ADDED] (state, payload) {
     state.current.items.push(payload)
   },
+  [types.ORDER_MISSHIPPED_ITEMS_UPDATED](state, payload) {
+    state.misShippedItems = payload;
+  }
 }
 export default mutations;
