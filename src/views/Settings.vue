@@ -22,8 +22,8 @@
               <ion-card-title>{{ userProfile.partyName }}</ion-card-title>
             </ion-card-header>
           </ion-item>
-          <ion-button color="danger" @click="logout()">{{ translate("Logout") }}</ion-button>
-          <ion-button fill="outline" @click="goToLaunchpad()">
+          <ion-button color="danger" v-if="!authStore.isEmbedded" @click="logout()">{{ translate("Logout") }}</ion-button>
+          <ion-button :standalone-hidden="!hasPermission(Actions.APP_PWA_STANDALONE_ACCESS)" fill="outline" @click="goToLaunchpad()">
             {{ translate("Go to Launchpad") }}
             <ion-icon slot="end" :icon="openOutline" />
           </ion-button>
@@ -59,8 +59,22 @@
           </ion-item>
           <ion-item lines="none">
             <ion-select :label="translate('Barcode Identifier')" interface="popover" :placeholder="translate('Select')" :value="barcodeIdentificationPref" @ionChange="setBarcodeIdentificationPref($event.detail.value)">
-              <ion-select-option v-for="identification in barcodeIdentificationOptions" :key="identification" :value="identification" >{{ identification }}</ion-select-option>
+              <ion-select-option v-for="identification in barcodeIdentificationOptions" :key="identification" :value="identification.goodIdentificationTypeId" >{{ identification.description ? identification.description : identification.goodIdentificationTypeId }}</ion-select-option>
             </ion-select>
+          </ion-item>
+        </ion-card>
+
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>
+              {{ translate("Receive flow type") }}
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            {{ translate("Define the receiving flow for TO items") }}
+          </ion-card-content>
+          <ion-item :disabled="!hasPermission(Actions.APP_UPDT_RECEIVE_FLOW_CONFIG)">
+            <ion-toggle label-placement="start" :checked="isReceivingByFulfillment" @click.prevent="updateReceiveFlowType($event)">{{ translate("Receive by fulfillment") }}</ion-toggle>
           </ion-item>
         </ion-card>
       </section>
@@ -69,15 +83,14 @@
 </template>
 
 <script lang="ts">
-import { alertController, IonAvatar, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader,IonIcon, IonItem, IonMenuButton, IonPage, IonSelect, IonSelectOption, IonTitle, IonToggle, IonToolbar } from '@ionic/vue';
+import { IonAvatar, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader,IonIcon, IonItem, IonMenuButton, IonPage, IonSelect, IonSelectOption, IonTitle, IonToggle, IonToolbar } from '@ionic/vue';
 import { computed, defineComponent } from 'vue';
-import { codeWorkingOutline, ellipsisVertical, openOutline, saveOutline, globeOutline, personCircleOutline, storefrontOutline} from 'ionicons/icons'
+import { openOutline } from 'ionicons/icons'
 import { mapGetters, useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import Image from '@/components/Image.vue'
-import { DateTime } from 'luxon';
 import { Actions, hasPermission } from '@/authorization';
-import { DxpProductIdentifier, translate, useProductIdentificationStore } from "@hotwax/dxp-components"
+import { getAppLoginUrl, translate, useAuthStore, useProductIdentificationStore } from "@hotwax/dxp-components"
 
 export default defineComponent({
   name: 'Settings',
@@ -116,6 +129,7 @@ export default defineComponent({
       userProfile: 'user/getUserProfile',
       currentEComStore: 'user/getCurrentEComStore',
       isForceScanEnabled: 'util/isForceScanEnabled',
+      isReceivingByFulfillment: 'util/isReceivingByFulfillment',
       barcodeIdentificationPref: 'util/getBarcodeIdentificationPref'
     })
   },
@@ -130,30 +144,6 @@ export default defineComponent({
       this.store.dispatch('shipment/clearShipments');
       await this.store.dispatch('user/setFacility', facility?.facilityId);
     },
-    async presentAlert () {
-      const alert = await alertController.create({
-        header: translate('Logout'),
-        message: translate('The products in the upload list will be removed.'),
-        buttons: [{
-          text: translate('Cancel')
-        },
-        {
-          text: translate('Ok'),
-          handler: () => {
-            this.store.dispatch('user/logout', { isUserUnauthorised: false }).then((redirectionUrl) => {
-              this.store.dispatch('product/clearUploadProducts');
-
-              // if not having redirection url then redirect the user to launchpad
-              if (!redirectionUrl) {
-                const redirectUrl = window.location.origin + '/login'
-                window.location.href = `${process.env.VUE_APP_LOGIN_URL}?isLoggedOut=true&redirectUrl=${redirectUrl}`
-              }
-            })
-          }
-        }]
-      });
-      await alert.present();
-    },
     logout() {
       this.store.dispatch('user/logout', { isUserUnauthorised: false }).then((redirectionUrl) => {
         this.store.dispatch('shipment/clearShipments');
@@ -163,44 +153,40 @@ export default defineComponent({
         // if not having redirection url then redirect the user to launchpad
         if (!redirectionUrl) {
           const redirectUrl = window.location.origin + '/login'
-          window.location.href = `${process.env.VUE_APP_LOGIN_URL}?isLoggedOut=true&redirectUrl=${redirectUrl}`
+          window.location.href = `${getAppLoginUrl()}?isLoggedOut=true&redirectUrl=${redirectUrl}`
         }
       })
     },
     goToLaunchpad() {
-      window.location.href = `${process.env.VUE_APP_LOGIN_URL}`
+      window.location.href = getAppLoginUrl();
     },
     setBarcodeIdentificationPref(value: string) {
       this.store.dispatch('util/setBarcodeIdentificationPref', value)
     },
-    getDateTime(time: any) {
-      return DateTime.fromMillis(time).toLocaleString(DateTime.DATETIME_MED);
-    },
     async updateForceScanStatus(event: any) {
       event.stopImmediatePropagation();
       this.store.dispatch("util/setForceScanSetting", !this.isForceScanEnabled)
+    },
+    async updateReceiveFlowType(event: any) {
+      event.stopImmediatePropagation();
+      this.store.dispatch("util/setReceivingByFulfillmentSetting", !this.isReceivingByFulfillment)
     },
   },
   setup(){
     const store = useStore();
     const router = useRouter();
     const productIdentificationStore = useProductIdentificationStore();
-    let barcodeIdentificationOptions = computed(() => productIdentificationStore.getProductIdentificationOptions)
-
+    let barcodeIdentificationOptions = computed(() => productIdentificationStore.getGoodIdentificationOptions)
+    const authStore = useAuthStore();
     return {
       Actions,
       barcodeIdentificationOptions,
-      codeWorkingOutline,
-      ellipsisVertical,
-      globeOutline,
       hasPermission,
-      personCircleOutline,
       openOutline,
-      saveOutline,
-      storefrontOutline,
       store,
       router,
-      translate
+      translate,
+      authStore
     }
   }
 });

@@ -24,9 +24,8 @@ const actions: ActionTree<UserState, RootState> = {
  */
   async login ({ commit, dispatch }, payload) {
     try {
-      const {token, oms} = payload;
+      const {token, oms, omsRedirectionUrl} = payload;
       dispatch("setUserInstanceUrl", oms);
-
       // Getting the permissions list from server
       const permissionId = process.env.VUE_APP_PERMISSION_ID;
       // Prepare permissions list
@@ -61,7 +60,7 @@ const actions: ActionTree<UserState, RootState> = {
       const facilities = await useUserStore().getUserFacilities(userProfile?.partyId, "", isAdminUser)
       await useUserStore().getFacilityPreference('SELECTED_FACILITY')
 
-      if (!facilities.length) throw 'Unable to login. User is not assocaited with any facility'
+      if (!facilities.length) throw 'Unable to login. User is not associated with any facility'
 
       userProfile.facilities = facilities
 
@@ -89,13 +88,25 @@ const actions: ActionTree<UserState, RootState> = {
       useUserStore().currentEComStore = currentEComStore
       const productStoreId = currentEComStore?.productStoreId;
 
-      await useProductIdentificationStore().getIdentificationPref(productStoreId)
-        .catch((error) => console.error(error));
 
       setPermissions(appPermissions);
       if (userProfile.userTimeZone) {
         Settings.defaultZone = userProfile.userTimeZone;
       }
+
+      if(omsRedirectionUrl) {
+        const api_key = await UserService.moquiLogin(omsRedirectionUrl, token)
+        if(api_key) {
+          dispatch("setOmsRedirectionInfo", { url: omsRedirectionUrl, token: api_key })
+        } else {
+          showToast(translate("Some of the app functionality will not work due to missing configuration."))
+          console.error("Some of the app functionality will not work due to missing configuration.");
+        }
+      } else {
+        showToast(translate("Some of the app functionality will not work due to missing configuration."))
+        console.error("Some of the app functionality will not work due to missing configuration.")
+      }
+
       updateToken(token)
 
       // TODO user single mutation
@@ -103,15 +114,20 @@ const actions: ActionTree<UserState, RootState> = {
       commit(types.USER_CURRENT_ECOM_STORE_UPDATED, currentEComStore);
       commit(types.USER_PERMISSIONS_UPDATED, appPermissions);
       commit(types.USER_TOKEN_CHANGED, { newToken: token })
+
+      await useProductIdentificationStore().getIdentificationPref(productStoreId)
+        .catch((error) => console.error(error));
+
       // Get facility location of selected facility
       dispatch('getFacilityLocations', currentFacilityId);
       // TODO: fetch product identifications from enumeration instead of storing it in env
       this.dispatch('util/getForceScanSetting', currentEComStore?.productStoreId);
+      this.dispatch('util/getReceivingByFulfillmentSetting', currentEComStore?.productStoreId);
       this.dispatch('util/getBarcodeIdentificationPref', currentEComStore?.productStoreId);
 
-      const shipmentId = router.currentRoute.value.query.shipmentId
-      if (isQueryFacilityFound && shipmentId) {
-        return `/shipment/${shipmentId}`;
+      const orderId = router.currentRoute.value.query.orderId
+      if (isQueryFacilityFound && orderId) {
+        return `/transfer-order-detail/${orderId}`;
       }
     } catch (err: any) {
       // If any of the API call in try block has status code other than 2xx it will be handled in common catch block.
@@ -186,11 +202,16 @@ const actions: ActionTree<UserState, RootState> = {
       useUserStore().currentEComStore = {}
       commit(types.USER_CURRENT_ECOM_STORE_UPDATED, '');
       await dispatch('updateSettingsToDefault')
+      await useProductIdentificationStore().getIdentificationPref("")
+        .catch((error) => console.error(error));
     } else if(previousEComStore.productStoreId !== eComStore.productStoreId) {
       await useUserStore().setEComStorePreference(eComStore);
       commit(types.USER_CURRENT_ECOM_STORE_UPDATED, eComStore);
       this.dispatch('util/getForceScanSetting', eComStore.productStoreId)
+      this.dispatch('util/getReceivingByFulfillmentSetting', eComStore.productStoreId)
       this.dispatch('util/getBarcodeIdentificationPref', eComStore.productStoreId)
+      await useProductIdentificationStore().getIdentificationPref(eComStore.productStoreId)
+        .catch((error) => console.error(error));
     }
   },
   
@@ -257,7 +278,11 @@ const actions: ActionTree<UserState, RootState> = {
 
   updatePwaState({ commit }, payload) {
     commit(types.USER_PWA_STATE_UPDATED, payload);
-  }
+  },
+
+  setOmsRedirectionInfo({ commit }, payload) {
+    commit(types.USER_OMS_REDIRECTION_INFO_UPDATED, payload)
+  },
 }
 
 export default actions;

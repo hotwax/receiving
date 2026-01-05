@@ -81,6 +81,14 @@ const createEnumeration = async (payload: any): Promise<any> => {
   })
 }
 
+const updateReceiveByFulfillmentSetting = async (payload: any): Promise<any> => {
+  return api({
+    url: "service/updateProductStoreSetting",
+    method: "post",
+    data: payload
+  });
+}
+
 export const UtilService = {
   createBarcodeIdentificationPref,
   createEnumeration,
@@ -89,5 +97,6 @@ export const UtilService = {
   getProductStoreSetting,
   isEnumExists,
   updateBarcodeIdentificationPref,
-  updateForceScanSetting
+  updateForceScanSetting,
+  updateReceiveByFulfillmentSetting
 }

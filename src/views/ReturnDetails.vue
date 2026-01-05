@@ -43,12 +43,13 @@
                 <ion-label class="ion-text-wrap">
                   <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
                   <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                  <p>{{ getFeatures(getProduct(item.productId).productFeatures) }}</p>
                 </ion-label>
               </ion-item>
             </div>
 
             <div class="location">
-              <ion-button v-if="productQoh[item.productId] === '' || !(productQoh[item.productId] >= 0)" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
+              <ion-button v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
                 <ion-icon color="medium" slot="icon-only" :icon="cubeOutline" />
               </ion-button>
               <ion-chip v-else outline>
@@ -110,15 +111,13 @@ import {
   alertController,
 } from '@ionic/vue';
 import { defineComponent, computed } from 'vue';
-import { checkmarkDone, cubeOutline, barcodeOutline, locationOutline } from 'ionicons/icons';
+import { checkmarkDone, cubeOutline, barcodeOutline } from 'ionicons/icons';
 import { mapGetters, useStore } from "vuex";
-import AddProductModal from '@/views/AddProductModal.vue'
 import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore } from '@hotwax/dxp-components';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue";
 import ImageModal from '@/components/ImageModal.vue';
-import { hasError } from '@/utils';
-import { showToast, hasWebcamAccess } from '@/utils'
+import { getFeatures, showToast, hasWebcamAccess } from '@/utils'
 import { Actions, hasPermission } from '@/authorization'
 import { ProductService } from '@/services/ProductService';
 
@@ -157,11 +156,12 @@ export default defineComponent({
         'Created': 'medium'
       } as any,
       lastScannedId: '',
-      productQoh: {} as any
+      productQoh: {} as any,
+      observer: {} as IntersectionObserver
     }
   },
   async ionViewWillEnter() {
-    const current = await this.store.dispatch('return/setCurrent', { shipmentId: this.$route.params.id })
+    await this.store.dispatch('return/setCurrent', { shipmentId: this.$route.params.id })
     this.observeProductVisibility();
   },
   ionViewDidLeave() {
@@ -190,32 +190,16 @@ export default defineComponent({
       });
       return imageModal.present();
     },
-    async addProduct() {
-      const modal = await modalController
-        .create({
-          component: AddProductModal
-        })
-        modal.onDidDismiss()
-        .then( () => {
-          this.store.dispatch('product/clearSearchedProducts')
-        })
-      return modal.present();
-    },
-    async fetchProducts(vSize: any, vIndex: any) {
-      const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
-      const viewIndex = vIndex ? vIndex : 0;
-      const payload = {
-        viewSize,
-        viewIndex,
-      }
-      await this.store.dispatch("product/fetchProducts", payload);
-    },
     observeProductVisibility() {
-      const observer = new IntersectionObserver((entries: any) => {
+      if(this.observer.root) {
+        this.observer.disconnect();
+      }
+      
+      this.observer = new IntersectionObserver((entries: any) => {
         entries.forEach((entry: any) => {
           if (entry.isIntersecting) {
             const productId = entry.target.getAttribute('data-product-id');
-            if (productId && !(this.productQoh[productId] >= 0)) {
+            if (productId && !this.productQoh[productId]) {
               this.fetchQuantityOnHand(productId);
             }
           }
@@ -228,7 +212,7 @@ export default defineComponent({
       const products = document.querySelectorAll('.product');
       if (products) {
         products.forEach((product: any) => {
-          observer.observe(product);
+          this.observer.observe(product);
         });
       }
     },
@@ -347,8 +331,8 @@ export default defineComponent({
       barcodeOutline,
       checkmarkDone,
       cubeOutline,
+      getFeatures,
       hasPermission,
-      locationOutline,
       store,
       router,
       translate,

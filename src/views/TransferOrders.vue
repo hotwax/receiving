@@ -3,10 +3,10 @@
     <ion-header :translucent="true">
       <ion-toolbar>
         <ion-menu-button slot="start" />
-        <ion-title>{{ translate("Purchase Orders") }}</ion-title>
+        <ion-title>{{ translate("Transfer Orders") }}</ion-title>
       </ion-toolbar>
       <div>
-        <ion-searchbar :placeholder="translate('Search purchase orders')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getPurchaseOrders()" />
+        <ion-searchbar :placeholder="translate('Search transfer orders')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getTransferOrders()" />
 
         <ion-segment v-model="selectedSegment" @ionChange="segmentChanged()">
           <ion-segment-button value="open">
@@ -20,27 +20,26 @@
     </ion-header>
     <ion-content>
       <main>
-        <PurchaseOrderItem v-for="(order, index) in orders" :key="index" :purchaseOrder="order.doclist.docs[0]" />
-        
-        <div v-if="orders.length < ordersTotal" class="load-more-action ion-text-center">
+        <TransferOrderItem v-for="(order, index) in orders.list" :key="index" :transferOrder="order" />
+        <div v-if="orders.list.length < orders.total" class="load-more-action ion-text-center">
           <ion-button fill="outline" color="dark" @click="loadMoreOrders()">
             <ion-icon :icon="cloudDownloadOutline" slot="start" />
-            {{ translate("Load more purchase order") }}
+            {{ translate("Load more transfer order") }}
           </ion-button>
         </div>
 
         <!-- Empty state -->
-        <div class="empty-state" v-if="!orders.length && !fetchingOrders">
+        <div class="empty-state" v-if="!orders.total && !fetchingOrders">
           <p v-if="showErrorMessage">{{ translate("No results found")}}</p>
           <img src="../assets/images/empty-state.png" alt="empty state">
-          <p>{{ translate("There are no purchase orders to receive")}}</p>
-          <ion-button fill="outline" color="dark" @click="refreshPurchaseOrders()">
+          <p>{{ translate("There are no transfer orders to receive")}}</p>
+          <ion-button fill="outline" color="dark" @click="refreshTransferOrders()">
             <ion-icon :icon="reload" slot="start" />
             {{ translate("Refresh") }}
           </ion-button>
         </div>
 
-        <ion-refresher slot="fixed" @ionRefresh="refreshPurchaseOrders($event)">
+        <ion-refresher slot="fixed" @ionRefresh="refreshTransferOrders($event)">
           <ion-refresher-content pullingIcon="crescent" refreshingSpinner="crescent" />
         </ion-refresher>
       </main>
@@ -68,12 +67,12 @@ import {
 import { cloudDownloadOutline, reload } from 'ionicons/icons'
 import { defineComponent, computed } from 'vue';
 import { mapGetters, useStore } from 'vuex';
-import PurchaseOrderItem from '@/components/PurchaseOrderItem.vue'
+import TransferOrderItem from '@/components/TransferOrderItem.vue'
 import { translate, useUserStore } from "@hotwax/dxp-components"
-import { useRouter } from 'vue-router';
+import emitter from '@/event-bus';
 
 export default defineComponent({
-  name: 'PurchaseOrders',
+  name: 'TransferOrders',
   components: {
     IonButton,
     IonContent,
@@ -89,7 +88,7 @@ export default defineComponent({
     IonSegmentButton,
     IonTitle,
     IonToolbar,
-    PurchaseOrderItem
+    TransferOrderItem
   },
   data() {
     return {
@@ -101,63 +100,59 @@ export default defineComponent({
   },
   computed: {
     ...mapGetters({
-      orders: 'order/getPurchaseOrders',
-      ordersTotal: 'order/getPurchaseOrdersTotal',
+      orders: 'transferorder/getTransferOrders',
       isScrollable: 'order/isScrollable',
     })
   },
   methods: {
-    async getPurchaseOrders(vSize?: any, vIndex?: any){
+    async getTransferOrders(vSize?: any, vIndex?: any){
       this.queryString ? this.showErrorMessage = true : this.showErrorMessage = false;
       this.fetchingOrders = true;
-      const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
-      const viewIndex = vIndex ? vIndex : 0;
+      const limit = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
+      const pageIndex = vIndex ? vIndex : 0;
+
+      let orderStatusId;
+      if (this.selectedSegment === 'open') {
+        orderStatusId = 'ORDER_APPROVED';
+      } else {
+        orderStatusId = 'ORDER_COMPLETED';
+      }
+
       const payload = {
-        "json": {
-          "params": {
-            "rows": viewSize,
-            "start": viewSize * viewIndex,
-            "group": true,
-            "group.field": "orderId",
-            "group.limit": 10000,
-            "group.ngroups": true,
-          } as any,
-          "query": "*:*",
-          "filter": `docType: ORDER AND orderTypeId: PURCHASE_ORDER AND orderStatusId: ${this.selectedSegment === 'open' ? '(ORDER_APPROVED OR ORDER_CREATED)' : 'ORDER_COMPLETED'} AND facilityId: ${this.currentFacility?.facilityId}`
-        }
-      }
-      if(this.queryString) {
-        payload.json.query = this.queryString;
-        payload.json.params.defType = "edismax";
-        payload.json.params.qf = "orderId externalOrderId";
-        payload.json.params['q.op'] = "AND";
-      }
-      await this.store.dispatch('order/findPurchaseOrders', payload);
+        orderStatusId,
+        destinationFacilityId: this.currentFacility?.facilityId,
+        excludeOriginFacilityIds: "REJECTED_ITM_PARKING",
+        statusFlowId: ["TO_Fulfill_And_Receive", "TO_Receive_Only"],
+        limit,
+        pageIndex,
+        orderName: this.queryString?.trim() || undefined,  // Kept this for backward compatibility, can be removed once the changes are pushed on oms
+        keyword: this.queryString?.trim() || undefined
+      };
+
+      emitter.emit('presentLoader');
+      await this.store.dispatch('transferorder/fetchTransferOrders', payload);
+      emitter.emit('dismissLoader');
       this.fetchingOrders = false;
       return Promise.resolve();
     },
     async loadMoreOrders() {
-      this.getPurchaseOrders(
-        undefined,
-        Math.ceil(this.orders.length / process.env.VUE_APP_VIEW_SIZE)
-      );
+      const limit = process.env.VUE_APP_VIEW_SIZE;
+      const pageIndex = Math.ceil(this.orders.list.length / limit);
+      await this.getTransferOrders(limit, pageIndex);
     },
-    async refreshPurchaseOrders(event?: any) {
-      this.getPurchaseOrders().then(() => {
+    async refreshTransferOrders(event?: any) {
+      this.getTransferOrders().then(() => {
         if (event) event.target.complete();
       })
     },
     segmentChanged() {
-      this.getPurchaseOrders();
+      this.getTransferOrders();
     }
   },
-  ionViewWillEnter () {
-    const forwardRoute = this.router.options.history.state.forward as any;
-    if(!forwardRoute?.startsWith('/purchase-order-detail/')) this.selectedSegment = "open";
-    this.getPurchaseOrders();
+  async ionViewWillEnter () {
+    await this.getTransferOrders();
   },
   setup () {
-    const router = useRouter();
     const store = useStore();
     const userStore = useUserStore()
     let currentFacility: any = computed(() => userStore.getCurrentFacility) 
@@ -166,7 +161,6 @@ export default defineComponent({
       cloudDownloadOutline,
       currentFacility,
       reload,
-      router,
       store,
       translate
     }

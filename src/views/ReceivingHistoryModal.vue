@@ -17,7 +17,9 @@
         </ion-thumbnail>
         <ion-label>
           {{ item.receiversFullName }}
-          <p>{{ translate("Shipment ID") }}: {{ item.shipmentId }}</p>
+          <p v-if="orderType !== 'transferOrder'">
+            {{ translate("Shipment ID") }}: {{ item.shipmentId }}
+          </p>
         </ion-label>
         <ion-label>
           <ion-note>{{ item.quantityAccepted }} {{ translate("received") }} | {{ item.quantityRejected }} {{ translate("rejected") }}</ion-note>
@@ -50,9 +52,9 @@ import {
   IonToolbar,
   modalController,
 } from '@ionic/vue';
-import { defineComponent } from 'vue';
+import { defineComponent, computed } from 'vue';
 import { closeOutline } from 'ionicons/icons';
-import { DxpShopifyImg, translate } from '@hotwax/dxp-components';
+import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore } from '@hotwax/dxp-components';
 import { mapGetters, useStore } from "vuex";
 import { DateTime } from 'luxon';
 
@@ -73,21 +75,48 @@ export default defineComponent({
     IonTitle,
     IonToolbar,
   },
-  data() {
-    return {
-      items: [],
-      emptyStateMessage: translate("No shipments have been received against this purchase order yet", {lineBreak: '<br />'})
+  props: {
+    productId: String,
+    orderItemSeqId: String,
+    orderType: {
+      type: String,
+      default: 'purchaseOrder',
+      validator: val => ['transferOrder', 'purchaseOrder'].includes(val)
     }
-  },
-  props: ["productId"],
-  mounted() {
-    this.items = this.productId ? this.poHistory.items.filter(item => item.productId === this.productId) : this.poHistory.items;
   },
   computed: {
     ...mapGetters({
       poHistory: 'order/getPOHistory',
+      toHistory: 'transferorder/getTOHistory',
       getProduct: 'product/getProduct'
-    })
+    }),
+    items() {
+      const history = this.orderType === 'purchaseOrder' ? this.poHistory : this.toHistory;
+      if (!history?.items) return [];
+      
+      if (this.orderItemSeqId) {
+        return history.items.filter(item => item.orderItemSeqId === this.orderItemSeqId)
+      } else if (this.productId) {
+        return history.items.filter(item => item.productId === this.productId)
+      } else {
+        return history.items;
+      }
+    },
+    emptyStateMessage() {
+      if (this.productId) {
+        const product = this.getProduct(this.productId);
+        const identifier =
+          this.getProductIdentificationValue(this.productIdentificationPref.primaryId, product) ||
+          this.getProductIdentificationValue(this.productIdentificationPref.secondaryId, product) ||
+          product?.productName ||
+          product.productId;
+        return this.translate("No receipts have been created against yet", { lineBreak: '<br />', productIdentifier: identifier });
+      }
+      if (this.orderType === 'transferOrder') {
+        return this.translate("No receipts have been created against this transfer order yet", { lineBreak: '<br />' });
+      }
+      return this.translate("No shipments have been received against this purchase order yet", { lineBreak: '<br />' });
+    }
   },
   methods: {
     closeModal() {
@@ -99,11 +128,15 @@ export default defineComponent({
   },
   setup() {
     const store = useStore();
+    const productIdentificationStore = useProductIdentificationStore();
+    let productIdentificationPref = computed(() => productIdentificationStore.getProductIdentificationPref);
 
     return {
       closeOutline,
       store,
-      translate
+      translate,
+      getProductIdentificationValue,
+      productIdentificationPref
     };
   },
 });

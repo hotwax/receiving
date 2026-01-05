@@ -66,4 +66,12 @@ const hasWebcamAccess = async () => {
   }
 }
 
-export { handleDateTimeInput, getCurrentFacilityId, showToast, hasError, copyToClipboard, hasWebcamAccess }
+const getFeatures = (productFeatures: any) => {
+  const features = productFeatures
+    ?.sort((firstFeature: string, secondFeature: string) => firstFeature.split('/')[0].localeCompare(secondFeature.split('/')[0]))
+    ?.map((feature: string) => feature.substring(feature.indexOf("/") + 1)) // Not using split method as we may have features with value as `Size/N/S` and thus the only value returned is N when accessing 1st index considering that 1st index will have actual feature value, so we need to have some additional handling in case of split method
+    ?.join(' ');
+  return features || "";
+}
+
+export { handleDateTimeInput, getCurrentFacilityId, getFeatures, showToast, hasError, copyToClipboard, hasWebcamAccess }

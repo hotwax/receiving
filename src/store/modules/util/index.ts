@@ -10,7 +10,8 @@ const utilModule: Module<UtilState, RootState> = {
     state: {
       status: {},
       isForceScanEnabled: false,
-      barcodeIdentificationPref: ""
+      barcodeIdentificationPref: "",
+      isReceivingByFulfillment: false
     },
     getters,
     actions,

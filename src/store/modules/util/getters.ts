@@ -12,6 +12,9 @@ const getters: GetterTree <UtilState, RootState> = {
   },
   getBarcodeIdentificationPref(state) {
     return state.barcodeIdentificationPref
-  }
+  },
+  isReceivingByFulfillment(state) {
+    return state.isReceivingByFulfillment
+  },
 }
 export default getters;

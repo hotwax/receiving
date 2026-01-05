@@ -11,6 +11,9 @@ const mutations: MutationTree <UtilState> = {
   },
   [types.UTIL_BARCODE_IDENTIFICATION_PREF_UPDATED](state, payload) {
     state.barcodeIdentificationPref = payload
+  },
+  [types.UTIL_RECEIVE_BY_FULFILLMENT_UPDATED](state, payload) {
+    state.isReceivingByFulfillment = payload
   }
 }
 export default mutations;
