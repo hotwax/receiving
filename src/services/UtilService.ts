@@ -1,4 +1,5 @@
-import { api, hasError } from '@/adapter';
+import { api, client, hasError } from '@/adapter';
+import store from '@/store';
 
 const fetchStatus = async (payload: any): Promise<any> => {
   return api({
@@ -89,10 +90,25 @@ const updateReceiveByFulfillmentSetting = async (payload: any): Promise<any> => 
   });
 }
 
+const fetchShopifyShopLocation = async (token: any, payload: any): Promise<any> => {
+  const baseURL = store.getters['user/getBaseUrl'];
+  return await client({
+    url: "performFind",
+    method: "post",
+    baseURL,
+    headers: {
+      Authorization:  'Bearer ' + token,
+      'Content-Type': 'application/json'
+    },
+    data: payload
+  });
+}
+
 export const UtilService = {
   createBarcodeIdentificationPref,
   createEnumeration,
   createForceScanSetting,
+  fetchShopifyShopLocation,
   fetchStatus,
   getProductStoreSetting,
   isEnumExists,
