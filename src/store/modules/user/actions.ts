@@ -83,6 +83,7 @@ const actions: ActionTree<UserState, RootState> = {
         }
       }
 
+      const authStore = useAuthStore()
       if(authStore.isEmbedded) {
         const locationId = authStore.posContext.locationId
         const resp = await UtilService.fetchShopifyShopLocation(token, {
