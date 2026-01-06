@@ -319,7 +319,7 @@
                 <ion-item lines="none">
                   <ion-label slot="end">
                     <template v-if="!item.orderItemSeqId">
-                      {{ translate('Received', { received: item.quantityAccepted ?? 0 }) }}
+                      {{ translate(' Received', { received: item.quantityAccepted ?? 0 }) }}
                       <p>{{ translate('Manually added') }}</p>
                     </template>
                     <template v-else>
@@ -994,6 +994,9 @@ export default defineComponent({
 </script>
 
 <style scoped>
+.doc-meta {
+  flex-basis: 60%;
+}
 
 .doc-meta > ion-item {
   --border-color: var(--ion-color-medium);
