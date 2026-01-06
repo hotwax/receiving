@@ -68,7 +68,7 @@ const receiveTransferOrder = async (orderId: string, payload: any): Promise<any>
   const baseURL = store.getters['user/getMaargBaseUrl'];
 
   return client({
-    url: `poorti/transferOrders/${orderId}/receiptsV2`,
+    url: `poorti/transferOrders/${orderId}/receipts`,
     method: "post",
     baseURL,
     data: payload,
