@@ -1,4 +1,5 @@
 import { UserService } from '@/services/UserService'
+import { UtilService } from '@/services/UtilService'
 import { ActionTree } from 'vuex'
 import RootState from '@/store/RootState'
 import UserState from './UserState'
@@ -36,7 +37,6 @@ const actions: ActionTree<UserState, RootState> = {
         permissionIds: [...new Set(serverPermissionsFromRules)]
       }, token);
       const appPermissions = prepareAppPermissions(serverPermissions);
-
 
       // Checking if the user has permission to access the app
       // If there is no configuration, the permission check is not enabled
@@ -80,6 +80,29 @@ const actions: ActionTree<UserState, RootState> = {
           useUserStore().currentFacility = facility
         } else {
           showToast(translate("Redirecting to home page due to incorrect information being passed."))
+        }
+      }
+
+      const authStore = useAuthStore()
+      if(authStore.isEmbedded) {
+        const locationId = authStore.posContext.locationId
+        const resp = await UtilService.fetchShopifyShopLocation(token, {
+          entityName: "ShopifyShopLocation",
+          inputFields: {
+            shopifyLocationId: locationId.toString()
+          },
+          viewSize: 1
+        });
+        if(!hasError(resp) && resp.data.docs?.length) {
+          const facilityId = resp.data.docs[0].facilityId;
+          const facility = userProfile.facilities.find((facility: any) => facility.facilityId === facilityId);
+
+          if(!facility) {
+            throw "Unable to login. User is not associated with this location"
+          }
+          useUserStore().currentFacility = facility
+        } else {
+          throw "Failed to fetch location information"
         }
       }
 

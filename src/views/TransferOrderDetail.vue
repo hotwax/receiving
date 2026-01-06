@@ -18,8 +18,8 @@
     <ion-content>
       <main>
         <div class="doc-id">
-          <div>
-            <ion-label class="ion-padding">
+          <div class="ion-padding">
+            <ion-label>
               <p class="overline">{{ order.orderId }}</p>
               <h1>{{ translate("Transfer Order")}}: {{ order.orderName ? order.orderName : order.externalId ? order.externalId : order.orderId }}</h1>
               <p>{{ translate("Item count") }}: {{ order.items?.length }}</p>
@@ -383,7 +383,7 @@ import {
 import { defineComponent, computed, nextTick } from 'vue';
 import { addOutline, cameraOutline, checkmarkDone, copyOutline, cubeOutline, eyeOffOutline, eyeOutline, informationCircleOutline, locationOutline, openOutline, saveOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
-import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore, useUserStore } from '@hotwax/dxp-components';
+import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore, useUserStore, useAuthStore, openPosScanner } from '@hotwax/dxp-components';
 import { useStore, mapGetters } from 'vuex';
 import { useRouter } from 'vue-router';
 import Scanner from "@/components/Scanner.vue"
@@ -527,8 +527,17 @@ export default defineComponent({
       return imageModal.present();
     },
     async scan() {
+      if (useAuthStore().isEmbedded) {
+        const scanData = await openPosScanner();
+        if(scanData) {
+          this.updateProductCount(scanData);
+        } else {
+          showToast(translate("No data received from scanner"));
+        }
+        return;
+      }
       if (!(await hasWebcamAccess())) {
-        showToast(translate("Camera access not allowed, please check permissons."));
+        showToast(translate("Camera access not allowed, please check permissions."));
         return;
       } 
       const modal = await modalController

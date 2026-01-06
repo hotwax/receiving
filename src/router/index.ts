@@ -16,7 +16,7 @@ import { hasPermission } from '@/authorization';
 import { showToast } from '@/utils'
 
 import 'vue-router'
-import { DxpLogin, translate, useAuthStore, getAppLoginUrl } from '@hotwax/dxp-components';
+import { DxpLogin, translate, useAuthStore, getAppLoginUrl, useUserStore } from '@hotwax/dxp-components';
 import { loader } from '@/user-utils';
 
 // Defining types for the meta values
@@ -30,9 +30,14 @@ const authGuard = async (to: any, from: any, next: any) => {
   const authStore = useAuthStore()
   if (!authStore.isAuthenticated || !store.getters['user/isAuthenticated']) {
     await loader.present('Authenticating')
+    if (authStore.isEmbedded) {
+      next('/login');
+      loader.dismiss();
+      return;
+    }
     // TODO use authenticate() when support is there
     const redirectUrl = window.location.origin + '/login'
-    window.location.href = authStore.isEmbedded? getAppLoginUrl() : `${getAppLoginUrl()}?redirectUrl=${redirectUrl}`
+    window.location.href = `${getAppLoginUrl()}?redirectUrl=${redirectUrl}`
     loader.dismiss()
   }
   next()
@@ -40,6 +45,11 @@ const authGuard = async (to: any, from: any, next: any) => {
 
 const loginGuard = (to: any, from: any, next: any) => {
   const authStore = useAuthStore()
+  const userStore = useUserStore();
+  if (to.query?.embedded === '1') {
+    authStore.$reset();
+    userStore.$reset();
+  }
   if (authStore.isAuthenticated && !to.query?.token && !to.query?.oms) {
     next('/')
   }
