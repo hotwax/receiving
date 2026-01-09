@@ -11,6 +11,7 @@ const mutations: MutationTree <UserState> = {
       state.current = {}
       state.facilityLocationsByFacilityId = {},
       state.permissions = [],
+      state.allNotificationPrefs = [],
       state.omsRedirectionInfo = {
         url: "",
         token: ""
@@ -37,6 +38,21 @@ const mutations: MutationTree <UserState> = {
     },
     [types.USER_OMS_REDIRECTION_INFO_UPDATED](state, payload) {
          state.omsRedirectionInfo = payload;
-     }
+     },
+    [types.USER_NOTIFICATIONS_UPDATED] (state, payload) {
+        state.notifications = payload
+    },
+    [types.USER_NOTIFICATIONS_PREFERENCES_UPDATED] (state, payload) {
+        state.notificationPrefs = payload
+    },
+    [types.USER_FIREBASE_DEVICEID_UPDATED] (state, payload) {
+        state.firebaseDeviceId = payload
+    },
+    [types.USER_UNREAD_NOTIFICATIONS_STATUS_UPDATED] (state, payload) {
+        state.hasUnreadNotifications = payload
+    },
+    [types.USER_ALL_NOTIFICATION_PREFS_UPDATED] (state, payload) {
+        state.allNotificationPrefs = payload
+    }, 
 }
 export default mutations;

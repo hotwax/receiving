@@ -43,5 +43,20 @@ const getters: GetterTree <UserState, RootState> = {
     getOmsRedirectionInfo(state) {
         return state.omsRedirectionInfo
     },
+    getNotifications(state) {
+        return state.notifications.sort((a: any, b: any) => b.time - a.time)
+    },
+    getNotificationPrefs(state) {
+        return state.notificationPrefs
+    },
+    getFirebaseDeviceId(state) {
+        return state.firebaseDeviceId
+    },
+    getUnreadNotificationsStatus(state) {
+        return state.hasUnreadNotifications
+    },
+    getAllNotificationPrefs(state) {
+        return state.allNotificationPrefs
+    },
 }
 export default getters;

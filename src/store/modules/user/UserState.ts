@@ -10,4 +10,9 @@ export default interface UserState {
     }
     permissions: any;
     pwaState: any;
+    notifications: any;
+    notificationPrefs: any;
+    firebaseDeviceId: string;
+    hasUnreadNotifications: boolean;
+    allNotificationPrefs: any;
 }
