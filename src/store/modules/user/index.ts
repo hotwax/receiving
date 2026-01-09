@@ -21,7 +21,12 @@ const userModule: Module<UserState, RootState> = {
       omsRedirectionInfo: {
          url: "",
          token: ""
-      }
+      },
+      notifications: [],
+      notificationPrefs: [],
+      firebaseDeviceId: '',
+      hasUnreadNotifications: true,
+      allNotificationPrefs: []
     },
     getters,
     actions,

@@ -32,6 +32,7 @@ import permissionRules from '@/authorization/Rules';
 import permissionActions from '@/authorization/Actions';
 import { dxpComponents } from '@hotwax/dxp-components'
 import { login, logout, loader } from './user-utils';
+import { addNotification, storeClientRegistrationToken } from '@/utils/firebase';
 import { fetchGoodIdentificationTypes, getConfig, initialise, setUserTimeZone, getAvailableTimeZones, getProductIdentificationPref, getUserFacilities, getUserPreference, setProductIdentificationPref, setUserPreference } from '@/adapter'
 import localeMessages from './locales';
 
@@ -48,6 +49,7 @@ const app = createApp(App)
   })
   .use(dxpComponents, {
     Actions,
+    addNotification,
     defaultImgUrl: require("@/assets/images/defaultImage.png"),
     login,
     logout,
@@ -59,6 +61,7 @@ const app = createApp(App)
     localeMessages,
     setUserTimeZone,
     setProductIdentificationPref,
+    storeClientRegistrationToken,
     getAvailableTimeZones,
     hasPermission,
     fetchGoodIdentificationTypes,
