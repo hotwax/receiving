@@ -184,7 +184,7 @@ export default defineComponent({
       }
 
       // Clears the stored firebase device ID from the app state
-      this.store.dispatch("util/clearDeviceId", {})
+      this.store.dispatch("user/clearDeviceId", {})
 
       this.store.dispatch('user/logout', { isUserUnauthorised: false }).then((redirectionUrl) => {
         this.store.dispatch('shipment/clearShipments');

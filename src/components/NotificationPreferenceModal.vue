@@ -137,25 +137,19 @@ export default defineComponent({
     },
     async handleTopicSubscription() {
       const facilityId = this.currentFacility?.facilityId
-      const subscribeRequests = [] as any
-      this.notificationPrefToUpdate.subscribe.map(async (enumId: string) => {
+      const subscribeRequests = this.notificationPrefToUpdate.subscribe.map((enumId: string) => {
         const topicName = generateTopicName(facilityId, enumId)
-        await subscribeRequests.push(NotificationService.subscribeTopic(topicName, process.env.VUE_APP_NOTIF_APP_ID))
+        return NotificationService.subscribeTopic(topicName, process.env.VUE_APP_NOTIF_APP_ID)
       })
 
-      const unsubscribeRequests = [] as any
-      this.notificationPrefToUpdate.unsubscribe.map(async (enumId: string) => {
+      const unsubscribeRequests = this.notificationPrefToUpdate.unsubscribe.map((enumId: string) => {
         const topicName = generateTopicName(facilityId, enumId)
-        await unsubscribeRequests.push(NotificationService.unsubscribeTopic(topicName, process.env.VUE_APP_NOTIF_APP_ID))
+        return NotificationService.unsubscribeTopic(topicName, process.env.VUE_APP_NOTIF_APP_ID)
       })
 
       const responses = await Promise.allSettled([...subscribeRequests, ...unsubscribeRequests])
       const hasFailedResponse = responses.some((response: any) => response.status === "rejected")
-      showToast(
-        hasFailedResponse
-          ? translate('Notification preferences not updated. Please try again.')
-          : translate('Notification preferences updated.')
-      )
+      showToast( hasFailedResponse ? translate('Notification preferences not updated. Please try again.') : translate('Notification preferences updated.'))
     },
     async confirmSave() {
       const message = translate("Are you sure you want to update the notification preferences?");

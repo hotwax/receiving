@@ -361,10 +361,10 @@ const actions: ActionTree<UserState, RootState> = {
       // checking enumerationResp as we want to show disbaled prefs if only getNotificationEnumIds returns
       // data and getNotificationUserPrefTypeIds fails or returns empty response (all disbaled)
       if (enumerationResp?.length) {
-        notificationPreferences = enumerationResp.reduce((notifactionPref: any, pref: any) => {
+        notificationPreferences = enumerationResp.reduce((notificationPref: any, pref: any) => {
           const userPrefTypeIdToSearch = generateTopicName(getCurrentFacilityId(), pref.enumId)
-          notifactionPref.push({ ...pref, isEnabled: userPrefIds.includes(userPrefTypeIdToSearch) })
-          return notifactionPref
+          notificationPref.push({ ...pref, isEnabled: userPrefIds.includes(userPrefTypeIdToSearch) })
+          return notificationPref
         }, [])
       }
       commit(types.USER_NOTIFICATIONS_PREFERENCES_UPDATED, notificationPreferences)
