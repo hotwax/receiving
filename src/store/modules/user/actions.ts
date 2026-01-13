@@ -56,6 +56,8 @@ const actions: ActionTree<UserState, RootState> = {
       }
 
       const userProfile = await UserService.getUserProfile(token);
+      const moquiUser = await UserService.getMoquiUserProfile(omsRedirectionUrl, token);
+      userProfile.moquiUserId = moquiUser.userId;
 
       //fetching user facilities
       const isAdminUser = appPermissions.some((appPermission: any) => appPermission?.action === "APP_RECVG_ADMIN");
@@ -326,7 +328,7 @@ const actions: ActionTree<UserState, RootState> = {
     let allNotificationPrefs = [];
 
     try {
-      const resp = await NotificationService.getNotificationUserPrefTypeIds(process.env.VUE_APP_NOTIF_APP_ID, state.current.userLoginId, {
+      const resp = await NotificationService.getNotificationUserPrefTypeIds(process.env.VUE_APP_NOTIF_APP_ID, state.current.moquiUserId, {
         "topic": getCurrentFacilityId(),
         "topic_op": "contains"
       })
@@ -350,7 +352,7 @@ const actions: ActionTree<UserState, RootState> = {
     try {
       resp = await NotificationService.getNotificationEnumIds(process.env.VUE_APP_NOTIF_ENUM_TYPE_ID)
       enumerationResp = resp
-      resp = await NotificationService.getNotificationUserPrefTypeIds(process.env.VUE_APP_NOTIF_APP_ID, state.current.userLoginId, {
+      resp = await NotificationService.getNotificationUserPrefTypeIds(process.env.VUE_APP_NOTIF_APP_ID, state.current.moquiUserId, {
         "topic": getCurrentFacilityId(),
         "topic_op": "contains"
       })

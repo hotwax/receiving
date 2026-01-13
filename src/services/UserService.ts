@@ -71,6 +71,28 @@ const getUserProfile = async (token: any): Promise<any> => {
   }
 }
 
+const getMoquiUserProfile = async (omsRedirectionUrl: string, token: any): Promise<any> => {
+  const baseURL = omsRedirectionUrl.startsWith('http') ? omsRedirectionUrl.includes('/rest/s1/') ? omsRedirectionUrl : `${omsRedirectionUrl}/rest/s1/` : `https://${omsRedirectionUrl}.hotwax.io/rest/s1/`;
+
+  try {
+    const resp = await client({
+      url: "admin/user/profile",
+      method: "get",
+      baseURL,
+      params: {
+        token
+      },
+      headers: {
+        "Content-Type": "application/json"
+      }
+    }) as any;
+    if(hasError(resp)) return Promise.reject("Error getting user profile: " + JSON.stringify(resp.data));
+    return Promise.resolve(resp.data)
+  } catch(error: any) {
+    return Promise.reject(error)
+  }
+}
+
 const getFacilityLocations = async (payload: any): Promise<any> => {
   return api({
     url: "/performFind",
@@ -218,6 +240,7 @@ const getUserPermissions = async (payload: any, token: any): Promise<any> => {
 
 export const UserService = {
     login,
+    getMoquiUserProfile,
     getUserProfile,
     getUserPermissions,
     getFacilityLocations,
