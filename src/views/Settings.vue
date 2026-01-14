@@ -64,6 +64,22 @@
           </ion-item>
         </ion-card>
 
+        <ion-card v-if="notificationPrefs.length">
+          <ion-card-header>
+            <ion-card-title>
+              {{ translate("Notification Preference") }}
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            {{ translate("Select the notifications you want to receive.") }}
+          </ion-card-content>
+          <ion-list>
+            <ion-item :key="pref.enumId" v-for="pref in notificationPrefs" lines="none">
+              <ion-toggle label-placement="start" @click.prevent="confirmNotificationPrefUpdate(pref.enumId, $event)" :checked="pref.isEnabled">{{ pref.description }}</ion-toggle>
+            </ion-item>
+          </ion-list>
+        </ion-card>
+
         <ion-card>
           <ion-card-header>
             <ion-card-title>
@@ -83,14 +99,18 @@
 </template>
 
 <script lang="ts">
-import { IonAvatar, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader,IonIcon, IonItem, IonMenuButton, IonPage, IonSelect, IonSelectOption, IonTitle, IonToggle, IonToolbar } from '@ionic/vue';
+import { IonAvatar, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader,IonIcon, IonItem, IonList, IonMenuButton, IonPage, IonSelect, IonSelectOption, IonTitle, IonToggle, IonToolbar, alertController } from '@ionic/vue';
 import { computed, defineComponent } from 'vue';
 import { openOutline } from 'ionicons/icons'
 import { mapGetters, useStore } from 'vuex';
 import { useRouter } from 'vue-router';
+import { getCurrentFacilityId, showToast } from '@/utils';
+import emitter from '@/event-bus';
 import Image from '@/components/Image.vue'
 import { Actions, hasPermission } from '@/authorization';
-import { getAppLoginUrl, translate, useAuthStore, useProductIdentificationStore } from "@hotwax/dxp-components"
+import { getAppLoginUrl, initialiseFirebaseApp, translate, useAuthStore, useProductIdentificationStore } from "@hotwax/dxp-components"
+import { addNotification, generateTopicName, isFcmConfigured, storeClientRegistrationToken } from "@/utils/firebase";
+import { NotificationService } from '@/services/NotificationService';
 
 export default defineComponent({
   name: 'Settings',
@@ -106,6 +126,7 @@ export default defineComponent({
     IonHeader, 
     IonIcon,
     IonItem, 
+    IonList,
     IonMenuButton,
     IonPage, 
     IonSelect, 
@@ -130,11 +151,19 @@ export default defineComponent({
       currentEComStore: 'user/getCurrentEComStore',
       isForceScanEnabled: 'util/isForceScanEnabled',
       isReceivingByFulfillment: 'util/isReceivingByFulfillment',
-      barcodeIdentificationPref: 'util/getBarcodeIdentificationPref'
+      barcodeIdentificationPref: 'util/getBarcodeIdentificationPref',
+      notificationPrefs: 'user/getNotificationPrefs',
+      allNotificationPrefs: 'user/getAllNotificationPrefs',
+      firebaseDeviceId: 'user/getFirebaseDeviceId'
     })
   },
   mounted() {
     this.appVersion = this.appInfo.branch ? (this.appInfo.branch + "-" + this.appInfo.revision) : this.appInfo.tag;
+  },
+  async ionViewWillEnter() {
+    // as notification prefs can also be updated from the notification pref modal,
+    // latest state is fetched each time we open the settings page
+    await this.store.dispatch('user/fetchNotificationPreferences')
   },
   methods: {
     async timeZoneUpdated(tzId: string) {
@@ -143,8 +172,20 @@ export default defineComponent({
     async updateFacility(facility: any) {
       this.store.dispatch('shipment/clearShipments');
       await this.store.dispatch('user/setFacility', facility?.facilityId);
+      await this.store.dispatch('user/fetchNotificationPreferences')
     },
-    logout() {
+    async logout() {
+      // remove firebase notification registration token -
+      // OMS and auth is required hence, removing it before logout (clearing state)
+      try {
+        await NotificationService.removeClientRegistrationToken(this.firebaseDeviceId, process.env.VUE_APP_NOTIF_APP_ID)
+      } catch (error) {
+        console.error(error)
+      }
+
+      // Clears the stored firebase device ID from the app state
+      this.store.dispatch("user/clearDeviceId", {})
+
       this.store.dispatch('user/logout', { isUserUnauthorised: false }).then((redirectionUrl) => {
         this.store.dispatch('shipment/clearShipments');
         this.store.dispatch('return/clearReturns');
@@ -171,6 +212,68 @@ export default defineComponent({
       event.stopImmediatePropagation();
       this.store.dispatch("util/setReceivingByFulfillmentSetting", !this.isReceivingByFulfillment)
     },
+    async confirmNotificationPrefUpdate(enumId: string, event: CustomEvent) {
+      event.stopImmediatePropagation();
+
+      const message = translate("Are you sure you want to update the notification preferences?");
+      const alert = await alertController.create({
+        header: translate("Update notification preferences"),
+        message,
+        buttons: [
+          {
+            text: translate("Cancel"),
+            role: "cancel"
+          },
+          {
+            text: translate("Confirm"),
+            handler: async () => {
+              // passing event reference for updation in case the API success
+              alertController.dismiss()
+              await this.updateNotificationPref(enumId)
+            }
+          }
+        ],
+      });
+      return alert.present();
+    },
+    async updateNotificationPref(enumId: string) {
+      let isToggledOn = false;
+
+      try {
+        if (!isFcmConfigured()) {
+          console.error("FCM is not configured.");
+          showToast(translate('Notification preferences not updated. Please try again.'))
+          return;
+        }
+
+        emitter.emit('presentLoader',  { backdropDismiss: false })
+        const facilityId = getCurrentFacilityId();
+        const topicName = generateTopicName(facilityId, enumId)
+
+        const notificationPref = this.notificationPrefs.find((pref: any) => pref.enumId === enumId)
+        notificationPref.isEnabled ? await NotificationService.unsubscribeTopic(topicName, process.env.VUE_APP_NOTIF_APP_ID) : await NotificationService.subscribeTopic(topicName, process.env.VUE_APP_NOTIF_APP_ID)
+        isToggledOn = !notificationPref.isEnabled
+        notificationPref.isEnabled = !notificationPref.isEnabled
+
+        await this.store.dispatch('user/updateNotificationPreferences', this.notificationPrefs)
+        showToast(translate('Notification preferences updated.'))
+      } catch (error) {
+        showToast(translate('Notification preferences not updated. Please try again.'))
+      } finally {
+        emitter.emit("dismissLoader")
+      }
+      
+      try {
+        if(!this.allNotificationPrefs.length && isToggledOn) {
+          await initialiseFirebaseApp(JSON.parse(process.env.VUE_APP_FIREBASE_CONFIG), process.env.VUE_APP_FIREBASE_VAPID_KEY, storeClientRegistrationToken, addNotification)
+        } else if(this.allNotificationPrefs.length == 1 && !isToggledOn) {
+          await NotificationService.removeClientRegistrationToken(this.firebaseDeviceId, process.env.VUE_APP_NOTIF_APP_ID)
+        }
+        await this.store.dispatch("user/fetchAllNotificationPrefs");
+      } catch(error) {
+        console.error(error);
+      }
+    }
   },
   setup(){
     const store = useStore();

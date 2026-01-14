@@ -11,6 +11,7 @@ import Returns from '@/views/Returns.vue'
 import ReturnDetails from '@/views/ReturnDetails.vue'
 import TransferOrders from '@/views/TransferOrders.vue';
 import TransferOrderDetail from '@/views/TransferOrderDetail.vue';
+import Notifications from '@/views/Notifications.vue'
 
 import { hasPermission } from '@/authorization';
 import { showToast } from '@/utils'
@@ -140,6 +141,12 @@ const routes: Array<RouteRecordRaw> = [
       permissionId: "APP_TRANSFERORDERS_VIEW"
     }
   },
+  {
+    path: '/notifications',
+    name: "Notifications",
+    component: Notifications,
+    beforeEnter: authGuard,
+  }
 ]
 
 const router = createRouter({

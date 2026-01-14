@@ -17,7 +17,8 @@ import { mapGetters, useStore } from "vuex";
 import { Settings } from 'luxon';
 import { initialise, resetConfig } from '@/adapter'
 import { useRouter } from 'vue-router';
-import { getAppLoginUrl, translate , useAuthStore, useProductIdentificationStore } from "@hotwax/dxp-components"
+import { getAppLoginUrl, initialiseFirebaseApp, translate , useAuthStore, useProductIdentificationStore } from "@hotwax/dxp-components"
+import { addNotification, storeClientRegistrationToken } from '@/utils/firebase';
 
 export default defineComponent({
   name: 'App',
@@ -30,7 +31,9 @@ export default defineComponent({
   data() {
     return {
       loader: null as any,
-      maxAge: process.env.VUE_APP_CACHE_MAX_AGE ? parseInt(process.env.VUE_APP_CACHE_MAX_AGE) : 0
+      maxAge: process.env.VUE_APP_CACHE_MAX_AGE ? parseInt(process.env.VUE_APP_CACHE_MAX_AGE) : 0,
+      appFirebaseConfig: JSON.parse(process.env.VUE_APP_FIREBASE_CONFIG),
+      appFirebaseVapidKey: process.env.VUE_APP_FIREBASE_VAPID_KEY || '',
     }
   },
   computed: {
@@ -38,7 +41,8 @@ export default defineComponent({
       currentEComStore: 'user/getCurrentEComStore',
       userProfile: 'user/getUserProfile',
       userToken: 'user/getUserToken',
-      instanceUrl: 'user/getInstanceUrl'
+      instanceUrl: 'user/getInstanceUrl',
+      allNotificationPrefs: 'user/getAllNotificationPrefs'
     })
   },
   methods: {
@@ -107,6 +111,17 @@ export default defineComponent({
       // Get product identification from api using dxp-component
       await useProductIdentificationStore().getIdentificationPref(this.currentEComStore?.productStoreId)
         .catch((error) => console.error(error));
+
+      // check if firebase configurations are there.
+      if (this.appFirebaseConfig && this.appFirebaseConfig.apiKey && this.allNotificationPrefs?.length) {
+        // initialising and connecting firebase app for notification support
+        await initialiseFirebaseApp(
+          this.appFirebaseConfig,
+          this.appFirebaseVapidKey,
+          storeClientRegistrationToken,
+          addNotification,
+        )
+      }
     }
 
     // Handles case when user resumes or reloads the app

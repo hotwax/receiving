@@ -4,6 +4,11 @@
       <ion-toolbar>
         <ion-menu-button slot="start" />
         <ion-title>{{ translate("Transfer Orders") }}</ion-title>
+        <ion-buttons slot="end">
+          <ion-button data-testid="notifications-button" @click="viewNotifications()">
+            <ion-icon slot="icon-only" :icon="notificationsOutline" :color="(unreadNotificationsStatus && notifications.length) ? 'primary' : ''" />
+          </ion-button>
+        </ion-buttons>
       </ion-toolbar>
       <div>
         <ion-searchbar :placeholder="translate('Search transfer orders')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getTransferOrders()" />
@@ -50,6 +55,7 @@
 <script lang="ts">
 import {
   IonButton,
+  IonButtons,
   IonContent,
   IonHeader,
   IonIcon,
@@ -64,7 +70,7 @@ import {
   IonTitle,
   IonToolbar
 } from '@ionic/vue';
-import { cloudDownloadOutline, reload } from 'ionicons/icons'
+import { cloudDownloadOutline, notificationsOutline, reload } from 'ionicons/icons'
 import { defineComponent, computed } from 'vue';
 import { mapGetters, useStore } from 'vuex';
 import TransferOrderItem from '@/components/TransferOrderItem.vue'
@@ -75,6 +81,7 @@ export default defineComponent({
   name: 'TransferOrders',
   components: {
     IonButton,
+    IonButtons,
     IonContent,
     IonHeader,
     IonIcon, 
@@ -102,6 +109,8 @@ export default defineComponent({
     ...mapGetters({
       orders: 'transferorder/getTransferOrders',
       isScrollable: 'order/isScrollable',
+      notifications: 'user/getNotifications',
+      unreadNotificationsStatus: 'user/getUnreadNotificationsStatus'
     })
   },
   methods: {
@@ -147,7 +156,11 @@ export default defineComponent({
     },
     segmentChanged() {
       this.getTransferOrders();
-    }
+    },
+    viewNotifications() {
+      this.store.dispatch('user/setUnreadNotificationsStatus', false)
+      this.$router.push({ path: '/notifications' })
+    },
   },
   async ionViewWillEnter () {
     await this.getTransferOrders();
@@ -160,6 +173,7 @@ export default defineComponent({
     return {
       cloudDownloadOutline,
       currentFacility,
+      notificationsOutline,
       reload,
       store,
       translate

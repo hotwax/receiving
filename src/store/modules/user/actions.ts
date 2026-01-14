@@ -4,8 +4,9 @@ import RootState from '@/store/RootState'
 import UserState from './UserState'
 import * as types from './mutation-types'
 import { getCurrentFacilityId, hasError, showToast } from '@/utils'
-import { Settings } from 'luxon';
+import { DateTime, Settings } from 'luxon';
 import { logout, updateInstanceUrl, updateToken, resetConfig } from '@/adapter'
+import { NotificationService } from '@/services/NotificationService'
 import {
   getServerPermissionsFromRules,
   prepareAppPermissions,
@@ -13,6 +14,7 @@ import {
   setPermissions
 } from '@/authorization'
 import { translate, useAuthStore, useProductIdentificationStore, useUserStore } from '@hotwax/dxp-components'
+import { generateDeviceId, generateTopicName } from '@/utils/firebase'
 import emitter from '@/event-bus'
 import store from '@/store'
 import router from '@/router'
@@ -54,6 +56,8 @@ const actions: ActionTree<UserState, RootState> = {
       }
 
       const userProfile = await UserService.getUserProfile(token);
+      const moquiUser = await UserService.getMoquiUserProfile(omsRedirectionUrl, token);
+      userProfile.moquiUserId = moquiUser.userId;
 
       //fetching user facilities
       const isAdminUser = appPermissions.some((appPermission: any) => appPermission?.action === "APP_RECVG_ADMIN");
@@ -124,6 +128,7 @@ const actions: ActionTree<UserState, RootState> = {
       this.dispatch('util/getForceScanSetting', currentEComStore?.productStoreId);
       this.dispatch('util/getReceivingByFulfillmentSetting', currentEComStore?.productStoreId);
       this.dispatch('util/getBarcodeIdentificationPref', currentEComStore?.productStoreId);
+      await dispatch("fetchAllNotificationPrefs");
 
       const orderId = router.currentRoute.value.query.orderId
       if (isQueryFacilityFound && orderId) {
@@ -141,7 +146,7 @@ const actions: ActionTree<UserState, RootState> = {
   /**
    * Logout user
    */
-  async logout ({ commit }, payload) {
+  async logout ({ commit, dispatch }, payload) {
     // store the url on which we need to redirect the user after logout api completes in case of SSO enabled
     let redirectionUrl = ''
 
@@ -171,6 +176,7 @@ const actions: ActionTree<UserState, RootState> = {
 
     // TODO add any other tasks if need
     commit(types.USER_END_SESSION)
+    dispatch('clearNotificationState')
     this.dispatch('order/clearPurchaseOrders');
     this.dispatch('util/updateForceScanStatus', false)
     this.dispatch('util/updateBarcodeIdentificationPref', "")
@@ -282,6 +288,107 @@ const actions: ActionTree<UserState, RootState> = {
 
   setOmsRedirectionInfo({ commit }, payload) {
     commit(types.USER_OMS_REDIRECTION_INFO_UPDATED, payload)
+  },
+
+  /**
+   * Stores the client's Firebase registration token for push notifications.
+   * Generates a unique device ID, commits it to the store, and sends both the registration token
+   * and device ID to the notification service for registration.
+   */
+  async storeClientRegistrationToken({ commit }, registrationToken) {
+    const firebaseDeviceId = generateDeviceId()
+    commit(types.USER_FIREBASE_DEVICEID_UPDATED, firebaseDeviceId)
+
+    try {
+      await NotificationService.storeClientRegistrationToken(registrationToken, firebaseDeviceId, process.env.VUE_APP_NOTIF_APP_ID)
+    } catch (error) {
+      console.error(error)
+    }
+  },
+
+  /**
+   * Adds a new notification to the user's notification list and updates the store state.
+   * Optionally displays a toast message if the app is in the foreground.
+   */
+  addNotification({ state, commit }, payload) {
+    const notifications = JSON.parse(JSON.stringify(state.notifications))
+    notifications.push({ ...payload.notification, time: DateTime.now().toMillis() })
+    commit(types.USER_UNREAD_NOTIFICATIONS_STATUS_UPDATED, true)
+    if (payload.isForeground) {
+      showToast(translate("New notification received."));
+    }
+    commit(types.USER_NOTIFICATIONS_UPDATED, notifications)
+  },
+
+  /**
+   * Fetches all notification preferences for the current user and facility.
+   * Retrieves notification preference type IDs from the NotificationService and commits the result to the store.
+   */
+  async fetchAllNotificationPrefs({ commit, state }) {
+    let allNotificationPrefs = [];
+
+    try {
+      const resp = await NotificationService.getNotificationUserPrefTypeIds(process.env.VUE_APP_NOTIF_APP_ID, state.current.moquiUserId, {
+        "topic": getCurrentFacilityId(),
+        "topic_op": "contains"
+      })
+      allNotificationPrefs = resp
+    } catch(error) {
+      console.error(error)
+    }
+
+    commit(types.USER_ALL_NOTIFICATION_PREFS_UPDATED, allNotificationPrefs)
+  },
+
+  /**
+   * Fetches the user's notification preferences and updates the state with the results.
+   * This action retrieves notification enumeration IDs and user preference type IDs,
+   * then constructs a list of notification preferences indicating whether each is enabled.
+   */
+  async fetchNotificationPreferences({ commit, state }) {
+    let resp = {} as any
+    let notificationPreferences = [], enumerationResp = [], userPrefIds = [] as any
+
+    try {
+      resp = await NotificationService.getNotificationEnumIds(process.env.VUE_APP_NOTIF_ENUM_TYPE_ID)
+      enumerationResp = resp
+      resp = await NotificationService.getNotificationUserPrefTypeIds(process.env.VUE_APP_NOTIF_APP_ID, state.current.moquiUserId, {
+        "topic": getCurrentFacilityId(),
+        "topic_op": "contains"
+      })
+      userPrefIds = resp.map((userPref: any) => userPref.topic)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      // checking enumerationResp as we want to show disbaled prefs if only getNotificationEnumIds returns
+      // data and getNotificationUserPrefTypeIds fails or returns empty response (all disbaled)
+      if (enumerationResp?.length) {
+        notificationPreferences = enumerationResp.reduce((notificationPref: any, pref: any) => {
+          const userPrefTypeIdToSearch = generateTopicName(getCurrentFacilityId(), pref.enumId)
+          notificationPref.push({ ...pref, isEnabled: userPrefIds.includes(userPrefTypeIdToSearch) })
+          return notificationPref
+        }, [])
+      }
+      commit(types.USER_NOTIFICATIONS_PREFERENCES_UPDATED, notificationPreferences)
+    }
+  },
+
+  async updateNotificationPreferences({ commit }, payload) {
+    commit(types.USER_NOTIFICATIONS_PREFERENCES_UPDATED, payload)
+  },
+
+  clearNotificationState({ commit }) {
+    commit(types.USER_NOTIFICATIONS_UPDATED, [])
+    commit(types.USER_NOTIFICATIONS_PREFERENCES_UPDATED, [])
+    commit(types.USER_UNREAD_NOTIFICATIONS_STATUS_UPDATED, true)
+  },
+
+  clearDeviceId({ commit }) {
+    commit(types.USER_FIREBASE_DEVICEID_UPDATED, '')
+  },
+
+  setUnreadNotificationsStatus({ commit }, payload) {
+    commit(types.USER_UNREAD_NOTIFICATIONS_STATUS_UPDATED, payload)
   },
 }
 
