@@ -2,18 +2,18 @@
   <ion-page>
     <ion-header :translucent="true">
       <ion-toolbar>
-        <ion-menu-button slot="start" />
-        <ion-title>{{ translate("Returns") }}</ion-title>
+        <ion-menu-button slot="start" data-testid="returns-menu-button" />
+        <ion-title data-testid="returns-title">{{ translate("Returns") }}</ion-title>
       </ion-toolbar>
 
       <div>
-        <ion-searchbar :placeholder="translate('Search returns')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getReturns()" />
+        <ion-searchbar data-testid="returns-search-bar" :placeholder="translate('Search returns')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getReturns()" />
 
-        <ion-segment v-model="selectedSegment" @ionChange="segmentChanged()">
-          <ion-segment-button value="open">
+        <ion-segment data-testid="returns-segment" v-model="selectedSegment" @ionChange="segmentChanged()">
+          <ion-segment-button value="open" data-testid="returns-segment-open-button">
             <ion-label>{{ translate("Open") }}</ion-label>
           </ion-segment-button>
-          <ion-segment-button value="completed">
+          <ion-segment-button value="completed" data-testid="returns-segment-completed-button">
             <ion-label>{{ translate("Completed") }}</ion-label>
           </ion-segment-button>
         </ion-segment>
@@ -21,27 +21,27 @@
     </ion-header>
     <ion-content>
       <main>
-        <ReturnListItem v-for="returnShipment in returns" :key="returnShipment.shipmentId" :returnShipment="returnShipment" />
+        <ReturnListItem v-for="returnShipment in returns" :key="returnShipment.shipmentId" :data-testid="`returns-item-${returnShipment.shipmentId}`" :returnShipment="returnShipment"/>
 
         <div v-if="returns.length < returnsTotal" class="load-more-action ion-text-center">
-          <ion-button fill="outline" color="dark" @click="loadMoreReturns()">
+          <ion-button fill="outline" color="dark" data-testid="returns-load-more-button" @click="loadMoreReturns()">
             <ion-icon :icon="cloudDownloadOutline" slot="start" />
             {{ translate("Load more returns") }}
           </ion-button>
         </div>
 
         <!-- Empty state -->
-        <div class="empty-state" v-if="!returns.length && !fetchingReturns">
-          <p v-if="showErrorMessage">{{ translate("No results found")}}</p>
+        <div class="empty-state" data-testid="returns-empty-state" v-if="!returns.length && !fetchingReturns">
+          <p v-if="showErrorMessage">{{ translate("No results found") }}</p>
           <img src="../assets/images/empty-state.png" alt="empty state">
-          <p>{{ translate("There are no returns to receive")}}</p>
-          <ion-button fill="outline" color="dark" @click="refreshReturns()">
+          <p>{{ translate("There are no returns to receive") }}</p>
+          <ion-button fill="outline" color="dark" data-testid="returns-empty-refresh-button" @click="refreshReturns()">
             <ion-icon :icon="reload" slot="start" />
             {{ translate("Refresh") }}
           </ion-button>
         </div>
 
-        <ion-refresher slot="fixed" @ionRefresh="refreshReturns($event)">
+        <ion-refresher data-testid="returns-refresher" slot="fixed" @ionRefresh="refreshReturns($event)">
           <ion-refresher-content pullingIcon="crescent" refreshingSpinner="crescent" />
         </ion-refresher>        
       </main>

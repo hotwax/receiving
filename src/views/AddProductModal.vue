@@ -2,19 +2,19 @@
   <ion-header>
     <ion-toolbar>
       <ion-buttons slot="start">
-        <ion-button @click="closeModal">
+        <ion-button @click="closeModal" data-testid="product-modal-close-button">
           <ion-icon slot="icon-only" :icon="closeOutline" />
         </ion-button>
       </ion-buttons>
       <ion-title>{{ translate("Add a product") }}</ion-title>
     </ion-toolbar>
   </ion-header>
-  <ion-content ref="contentRef" :scroll-events="true" @ionScroll="enableScrolling()">
-    <ion-searchbar @ionFocus="selectSearchBarText($event)" v-model="queryString" :placeholder="translate('Search SKU or product name')" v-on:keyup.enter="queryString = $event.target.value; getProducts()" />
+  <ion-content ref="contentRef" :scroll-events="true" @ionScroll="enableScrolling()" data-testid="product-modal-content">
+    <ion-searchbar @ionFocus="selectSearchBarText($event)" v-model="queryString" :placeholder="translate('Search SKU or product name')" v-on:keyup.enter="queryString = $event.target.value; getProducts()" data-testid="product-modal-searchbar" />
     
     <template v-if="products.length">
       <ion-list v-for="product in products" :key="product.productId">
-        <ion-item lines="none">
+        <ion-item lines="none" :data-testid="`product-modal-item-${product.productId}`">
           <ion-thumbnail slot="start">
             <DxpShopifyImg :src="product.mainImageUrl" />
           </ion-thumbnail>
@@ -25,19 +25,10 @@
             <p>{{ getFeatures(getProduct(product.productId).productFeatures) }}</p>
           </ion-label>
           <ion-icon v-if="isProductAvailableInShipment(product.productId)" color="success" :icon="checkmarkCircle" />
-          <ion-button v-else fill="outline" @click="addtoShipment(product)">{{ translate("Add to Shipment") }}</ion-button>
+          <ion-button v-else fill="outline" @click="addtoShipment(product)" :data-testid="`product-modal-add-to-shipment-button-${product.productId}`">{{ translate("Add to Shipment") }}</ion-button>
         </ion-item>
       </ion-list>
-       <!--
-        When searching for a keyword, and if the user moves to the last item, then the didFire value inside infinite scroll becomes true and thus the infinite scroll does not trigger again on the same page(https://github.com/hotwax/users/issues/84).
-        Also if we are at the section that has been loaded by infinite-scroll and then move to the details page then the list infinite scroll does not work after coming back to the page
-        In ionic v7.6.0, an issue related to infinite scroll has been fixed that when more items can be added to the DOM, but infinite scroll does not fire as the window is not completely filled with the content(https://github.com/ionic-team/ionic-framework/issues/18071).
-        The above fix in ionic 7.6.0 is resulting in the issue of infinite scroll not being called again.
-        To fix this we have maintained another variable `isScrollingEnabled` to check whether the scrolling can be performed or not.
-        If we do not define an extra variable and just use v-show to check for `isScrollable` then when coming back to the page infinite-scroll is called programatically.
-        We have added an ionScroll event on ionContent to check whether the infiniteScroll can be enabled or not by toggling the value of isScrollingEnabled whenever the height < 0.
-       -->
-      <ion-infinite-scroll @ionInfinite="loadMoreProducts($event)" threshold="100px" v-show="isScrollable" ref="infiniteScrollRef">
+      <ion-infinite-scroll @ionInfinite="loadMoreProducts($event)" threshold="100px" v-show="isScrollable" ref="infiniteScrollRef" data-testid="product-modal-infinite-scroll">
         <ion-infinite-scroll-content loading-spinner="crescent" :loading-text="translate('Loading')" />
       </ion-infinite-scroll>
     </template>

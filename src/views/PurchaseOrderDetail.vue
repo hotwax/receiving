@@ -2,13 +2,13 @@
   <ion-page>
     <ion-header :translucent="true">
       <ion-toolbar>
-        <ion-back-button default-href="/purchase-orders" slot="start" />
+        <ion-back-button default-href="/purchase-orders" slot="start" data-testid="purchase-order-details-back-button" />
         <ion-title> {{ translate("Purchase Order Details") }} </ion-title>
         <ion-buttons slot="end">
-          <ion-button @click="receivingHistory()">
+          <ion-button @click="receivingHistory()" data-testid="purchase-order-details-receiving-history-button">
             <ion-icon slot="icon-only" :icon="timeOutline"/>
           </ion-button>
-          <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_ADMIN) || isPOReceived()" @click="addProduct">
+          <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_ADMIN) || isPOReceived()" @click="addProduct" data-testid="purchase-order-details-add-product-button">
             <ion-icon slot="icon-only" :icon="addOutline"/>
           </ion-button>
         </ion-buttons>
@@ -24,16 +24,16 @@
           </ion-label>
 
           <div class="doc-meta">
-            <ion-chip @click="copyToClipboard(order.orderId, 'Internal ID saved to clipboard')">{{ order.orderId }}<ion-icon :icon="copyOutline"/></ion-chip>
+            <ion-chip @click="copyToClipboard(order.orderId, 'Internal ID saved to clipboard')" data-testid="purchase-order-details-copy-internal-id-chip">{{ order.orderId }}<ion-icon :icon="copyOutline"/></ion-chip>
             <ion-badge :color="order.orderStatusId === 'ORDER_CREATED' ? 'medium' : 'primary'">{{ order.orderStatusDesc }}</ion-badge>
           </div>
         </div>
 
         <div class="scanner">
           <ion-item>
-            <ion-input :label="translate(isPOReceived() ? 'Search items' : 'Scan items')" label-placement="fixed" autofocus v-model="queryString" @keyup.enter="isPOReceived() ? searchProduct() : updateProductCount()" />
+            <ion-input :label="translate(isPOReceived() ? 'Search items' : 'Scan items')" label-placement="fixed" autofocus v-model="queryString" @keyup.enter="isPOReceived() ? searchProduct() : updateProductCount()" data-testid="purchase-order-details-item-search-input" />
           </ion-item>
-          <ion-button expand="block" fill="outline" @click="scan" :disabled="isPOReceived()">
+          <ion-button expand="block" fill="outline" @click="scan" data-testid="purchase-order-details-scan-button" :disabled="isPOReceived()">
             <ion-icon slot="start" :icon="cameraOutline" />
             {{ translate("Scan") }}
           </ion-button>
@@ -53,7 +53,7 @@
             <div  class="product">
               <div class="product-info">
                 <ion-item lines="none">
-                  <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
+                  <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)" :data-testid="`purchase-order-details-pending-item-thumbnail-${item.productId}`">
                     <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
                   </ion-thumbnail>
                   <ion-label class="ion-text-wrap">
@@ -70,14 +70,14 @@
 
               <div class="product-count">
                 <ion-item>
-                  <ion-input :label="translate('Qty')" label-placement="floating" type="number" value="0" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" />
+                  <ion-input :label="translate('Qty')" label-placement="floating" type="number" value="0" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" :data-testid="`purchase-order-details-quantity-input-${item.productId}`" />
                 </ion-item>
               </div>
             </div>
 
             <div class="action border-top" v-if="item.quantity > 0">
               <div class="receive-all-qty">
-                <ion-button @click="receiveAll(item)" :disabled="isForceScanEnabled || isItemReceivedInFull(item)" slot="start" size="small" fill="outline">
+                <ion-button @click="receiveAll(item)" :disabled="isForceScanEnabled || isItemReceivedInFull(item)" slot="start" size="small" fill="outline" :data-testid="`purchase-order-details-receive-all-button-${item.productId}`">
                   {{ translate("Receive All") }}
                 </ion-button>
               </div>
@@ -88,7 +88,7 @@
               </div>
 
               <div class="po-item-history">
-                <ion-chip outline @click="receivingHistory(item.productId)">
+                <ion-chip outline @click="receivingHistory(item.productId)" :data-testid="`purchase-order-details-item-history-chip-${item.productId}`">
                   <ion-icon :icon="checkmarkDone"/>
                   <ion-label> {{ getPOItemAccepted(item.productId) }} {{ translate("received") }} </ion-label>
                 </ion-chip>
@@ -108,7 +108,7 @@
           <ion-text v-else color="medium" class="ion-margin-end">
             {{ translate("Completed: item", { itemsCount: getPOItems('completed').length }) }}
           </ion-text>
-          <ion-button size="default" v-if="getPOItems('completed').length" @click="showCompletedItems = !showCompletedItems" color="medium" fill="clear">
+          <ion-button size="default" v-if="getPOItems('completed').length" @click="showCompletedItems = !showCompletedItems" color="medium" fill="clear" data-testid="purchase-order-details-toggle-completed-items-button">
             <ion-icon :icon="showCompletedItems ? eyeOutline : eyeOffOutline" slot="icon-only" />
           </ion-button>
         </ion-item>
@@ -117,7 +117,7 @@
           <div class="product">
             <div class="product-info">
               <ion-item lines="none">
-                <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
+                <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)" :data-testid="`purchase-order-details-completed-item-thumbnail-${item.productId}`">
                   <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
@@ -149,8 +149,8 @@
     <ion-footer v-if="!isPOReceived()">
       <ion-toolbar>
         <ion-buttons slot="end">
-          <ion-button fill="outline" size="small" color="primary" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE)" class="ion-margin-end" @click="closePO">{{ translate("Receive And Close") }}</ion-button>
-          <ion-button fill="solid" size="small" color="primary" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibileForCreatingShipment()" @click="savePODetails">{{ translate("Receive") }}</ion-button>
+          <ion-button fill="outline" size="small" color="primary" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE)" class="ion-margin-end" @click="closePO" data-testid="purchase-order-details-receive-and-close-button">{{ translate("Receive And Close") }}</ion-button>
+          <ion-button fill="solid" size="small" color="primary" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibileForCreatingShipment()" @click="savePODetails" data-testid="purchase-order-details-receive-button">{{ translate("Receive") }}</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-footer>

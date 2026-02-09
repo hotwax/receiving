@@ -2,7 +2,7 @@
   <ion-header>
     <ion-toolbar>
       <ion-buttons slot="start">
-        <ion-button @click="closeModal">
+        <ion-button @click="closeModal" data-testid="product-modal-close-button">
           <ion-icon slot="icon-only" :icon="closeOutline" />
         </ion-button>
       </ion-buttons>
@@ -10,7 +10,7 @@
     </ion-toolbar>
   </ion-header>
   <ion-content ref="contentRef" :scroll-events="true" @ionScroll="enableScrolling()">
-    <ion-searchbar @ionFocus="selectSearchBarText($event)" v-model="queryString" :placeholder="translate('Search SKU or product name')" @keyup.enter="handleSearch" @ionInput='handleInput'/>
+    <ion-searchbar @ionFocus="selectSearchBarText($event)" v-model="queryString" :placeholder="translate('Search SKU or product name')" @keyup.enter="handleSearch" @ionInput='handleInput' data-testid="product-modal-searchbar"/>
     <template v-if="products.length">
       <ion-list v-for="product in products" :key="product.productId">
         <ion-item lines="none">
@@ -24,11 +24,11 @@
             <p>{{ getFeatures(getProduct(product.productId).productFeatures) }}</p>
           </ion-label>
           <ion-icon v-if="isProductAvailableInOrder(product.productId)" color="success" :icon="checkmarkCircle" />
-          <ion-button v-else fill="outline" @click="addtoOrder(product)">{{ translate("Add to Purchase Order") }}</ion-button>
+          <ion-button v-else fill="outline" @click="addtoOrder(product)" :data-testid="`product-modal-add-to-order-button-${product.productId}`">{{ translate("Add to Purchase Order") }}</ion-button>
         </ion-item>
       </ion-list>
 
-      <ion-infinite-scroll @ionInfinite="loadMoreProducts($event)" threshold="100px" v-show="isScrollable" ref="infiniteScrollRef">
+      <ion-infinite-scroll @ionInfinite="loadMoreProducts($event)" threshold="100px" v-show="isScrollable" ref="infiniteScrollRef" data-testid="product-modal-infinite-scroll">
         <ion-infinite-scroll-content loading-spinner="crescent" :loading-text="translate('Loading')" />
       </ion-infinite-scroll>
     </template>

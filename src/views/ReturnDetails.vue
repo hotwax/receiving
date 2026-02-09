@@ -1,46 +1,45 @@
 <template>
-  <ion-page>
+  <ion-page data-testid="return-details-page">
     <ion-header :translucent="true">
       <ion-toolbar>
-        <ion-back-button default-href="/returns" slot="start"></ion-back-button>
-        <ion-title>{{ translate("Return Details") }}</ion-title>
+        <ion-back-button default-href="/returns" slot="start" data-testid="return-details-back-button"></ion-back-button>
+        <ion-title data-testid="return-details-title">{{ translate("Return Details") }}</ion-title>
       </ion-toolbar>
     </ion-header>
 
     <ion-content>
       <main>
         <div class="doc-id">
-          <ion-item lines="none">
-            <h1> {{ current.shopifyOrderName ? current.shopifyOrderName : current.hcOrderId ? current.hcOrderId : current.externalId ? current.externalId : translate("Return Details") }}</h1>
+          <ion-item lines="none" data-testid="return-details-order-item">
+            <h1 data-testid="return-details-order-name">{{ current.shopifyOrderName ? current.shopifyOrderName : current.hcOrderId ? current.hcOrderId : current.externalId ? current.externalId : translate("Return Details") }}</h1>
             <!-- TODO: Fetch Customer name -->
             <!-- <p>{{ translate("Customer: <customer name>")}}</p> -->
           </ion-item>
 
           <div class="doc-meta">
-            <ion-badge :color="statusColorMapping[current.statusDesc]" slot="end">{{ current.statusDesc }}</ion-badge>
-            <ion-chip v-if="current.trackingCode" slot="end">{{ current.trackingCode }}</ion-chip>
+            <ion-badge :color="statusColorMapping[current.statusDesc]" slot="end" data-testid="return-details-status-badge">{{ current.statusDesc }}</ion-badge>
+            <ion-chip v-if="current.trackingCode" slot="end" data-testid="return-details-tracking-chip">{{ current.trackingCode }}</ion-chip>
           </div>
         </div>
 
-  
         <div class="scanner">
           <ion-item>
-            <ion-input :label="translate(isReturnReceivable(current.statusId) ? 'Scan items' : 'Search items')" autofocus v-model="queryString" @keyup.enter="isReturnReceivable(current.statusId) ? updateProductCount() : searchProduct()" />
+            <ion-input :label="translate(isReturnReceivable(current.statusId) ? 'Scan items' : 'Search items')" autofocus v-model="queryString" @keyup.enter="isReturnReceivable(current.statusId) ? updateProductCount() : searchProduct()" data-testid="return-details-search-input" />
           </ion-item>
 
-          <ion-button expand="block" fill="outline" @click="scanCode()" :disabled="!isReturnReceivable(current.statusId)">
+          <ion-button expand="block" fill="outline" @click="scanCode()" :disabled="!isReturnReceivable(current.statusId)" data-testid="return-details-scan-button">
             <ion-icon slot="start" :icon="barcodeOutline" />{{ translate("Scan") }}
           </ion-button>
         </div>
 
-        <ion-card v-for="item in current.items" :key="item.id" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : ''" :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+        <ion-card v-for="item in current.items" :key="item.id" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : ''" :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))" :data-testid="`return-details-item-card-${item.id}`">
           <div class="product" :data-product-id="item.productId">
             <div class="product-info">
-              <ion-item lines="none">
-                <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)">
+              <ion-item lines="none" :data-testid="`return-details-item-info-${item.id}`">
+                <ion-thumbnail slot="start" @click="openImage(getProduct(item.productId).mainImageUrl, getProduct(item.productId).productName)" data-testid="'return-details-item-thumbnail-' + item.id">
                   <DxpShopifyImg :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
-                <ion-label class="ion-text-wrap">
+                <ion-label class="ion-text-wrap" :data-testid="`return-details-item-label-${item.id}`">
                   <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
                   <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
                   <p>{{ getFeatures(getProduct(item.productId).productFeatures) }}</p>
@@ -49,37 +48,37 @@
             </div>
 
             <div class="location">
-              <ion-button v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
+              <ion-button v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)" :data-testid="`return-details-fetch-qoh-button-${item.id}`">
                 <ion-icon color="medium" slot="icon-only" :icon="cubeOutline" />
               </ion-button>
-              <ion-chip v-else outline>
+              <ion-chip v-else outline :data-testid="`return-details-qoh-chip-${item.id}`">
                 {{ translate("on hand", { qoh: productQoh[item.productId] }) }}
                 <ion-icon color="medium" :icon="cubeOutline"/>
               </ion-chip>
             </div>
 
             <div class="product-count">
-              <ion-item v-if="isReturnReceivable(current.statusId) && item.quantityReceived === 0">
-                <ion-input :label="translate('Qty')" :disabled="isForceScanEnabled" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" />
+              <ion-item v-if="isReturnReceivable(current.statusId) && item.quantityReceived === 0" :data-testid="`return-details-quantity-item-${item.id}`">
+                <ion-input :label="translate('Qty')" :disabled="isForceScanEnabled" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" data-testid="'return-details-quantity-input-' + item.id" />
               </ion-item>
-              <ion-item v-else lines="none">
-                <ion-label>{{ item.quantityAccepted }} {{ translate("received") }}</ion-label>
+              <ion-item v-else lines="none" :data-testid="`return-details-received-item-${item.id}`">
+                <ion-label data-testid="'return-details-received-label-' + item.id">{{ item.quantityAccepted }} {{ translate("received") }}</ion-label>
               </ion-item>
             </div>
           </div>
-  
-          <ion-item lines="none" class="border-top" v-if="item.quantityOrdered > 0">
-            <ion-button v-if="isReturnReceivable(current.statusId) && item.quantityReceived === 0" :disabled="isForceScanEnabled" @click="receiveAll(item)" slot="start" fill="outline">
+
+          <ion-item lines="none" class="border-top" v-if="item.quantityOrdered > 0" :data-testid="`return-details-progress-item-${item.id}`">
+            <ion-button v-if="isReturnReceivable(current.statusId) && item.quantityReceived === 0" :disabled="isForceScanEnabled" @click="receiveAll(item)" slot="start" fill="outline" :data-testid="`return-details-receive-all-button-${item.id}`">
               {{ translate("Receive All") }}
             </ion-button>
-            <ion-progress-bar :color="getRcvdToOrdrdFraction(item) === 1 ? 'success' : getRcvdToOrdrdFraction(item) > 1 ? 'danger' : 'primary'" :value="getRcvdToOrdrdFraction(item)" />
-            <p slot="end">{{ item.quantityOrdered }} {{ translate("returned") }}</p>
+            <ion-progress-bar :color="getRcvdToOrdrdFraction(item) === 1 ? 'success' : getRcvdToOrdrdFraction(item) > 1 ? 'danger' : 'primary'" :value="getRcvdToOrdrdFraction(item)" :data-testid="`return-details-progress-bar-${item.id}`" />
+            <p slot="end" :data-testid="`return-details-returned-quantity-label-${item.id}`">{{ item.quantityOrdered }} {{ translate("returned") }}</p>
           </ion-item>
         </ion-card>
       </main>
 
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibleForReceivingReturns()" v-if="isReturnReceivable(current.statusId)" @click="completeShipment">
+        <ion-fab-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibleForReceivingReturns()" v-if="isReturnReceivable(current.statusId)" @click="completeShipment" data-testid="return-details-complete-shipment-button">
           <ion-icon :icon="checkmarkDone" />
         </ion-fab-button>
       </ion-fab>
@@ -356,4 +355,3 @@ export default defineComponent({
     outline: 2px solid var( --ion-color-medium-tint);
   }
 </style>
-  
