@@ -2,25 +2,25 @@
   <ion-header>
     <ion-toolbar>
       <ion-buttons slot="start">
-        <ion-button @click="closeModal">
+        <ion-button data-testid="transfer-order-receive-modal-close-btn" @click="closeModal">
           <ion-icon slot="icon-only" :icon="arrowBackOutline" />
         </ion-button>
       </ion-buttons>
-      <ion-title v-if="closeTO">{{ translate("Complete transfer order") }}</ion-title>
-      <ion-title v-else>{{ translate("Save receiving progress") }}</ion-title>
+      <ion-title v-if="closeTO" data-testid="transfer-order-receive-modal-complete-title">{{ translate("Complete transfer order") }}</ion-title>
+      <ion-title v-else data-testid="transfer-order-receive-modal-save-progress-title">{{ translate("Save receiving progress") }}</ion-title>
     </ion-toolbar>
   </ion-header>
 
-  <ion-content>
-    <ion-item lines="full" v-if="!closeTO">
+  <ion-content data-testid="transfer-order-receive-modal-content">
+    <ion-item data-testid="transfer-order-receive-modal-progress-info-section" lines="full" v-if="!closeTO">
       <ion-label v-html="translate('Your receiving progress will be saved and will be added to your inventory. Come back to this transfer order and finish receiving later. Fully received items auto close.', { space: '<br /><br />', units: receivedUnitsFraction })"></ion-label>
     </ion-item> 
-    <ion-item lines="none">
-      <ion-list-header v-if="closeTO">{{ translate("out of items were not received as expected. Please verify them before closing the transfer order", { totalItems: itemsToComplete.length, items: overReceivedTOItems.length }) }}</ion-list-header>
-      <ion-list-header v-else>{{ translate("of items was over received or not expected. Please verify them before saving progress", { totalItems: itemsToComplete.length, items: (overReceivedTOItems.length || 0) }) }}</ion-list-header>
+    <ion-item data-testid="transfer-order-receive-modal-discrepancy-summary-section" lines="none">
+      <ion-list-header v-if="closeTO" data-testid="transfer-order-receive-modal-close-summary">{{ translate("out of items were not received as expected. Please verify them before closing the transfer order", { totalItems: itemsToComplete.length, items: overReceivedTOItems.length }) }}</ion-list-header>
+      <ion-list-header v-else data-testid="transfer-order-receive-modal-save-summary">{{ translate("of items was over received or not expected. Please verify them before saving progress", { totalItems: itemsToComplete.length, items: (overReceivedTOItems.length || 0) }) }}</ion-list-header>
     </ion-item>
-    <ion-list>
-      <ion-item v-for="(item, index) in overReceivedTOItems" :key="index" @click="(item.isChecked = !item.isChecked)">
+    <ion-list data-testid="transfer-order-receive-modal-discrepancy-list">
+      <ion-item v-for="(item, index) in overReceivedTOItems" :key="index" :data-testid="`transfer-order-receive-modal-discrepancy-row-${item.orderItemSeqId || item.productId}`" @click="(item.isChecked = !item.isChecked)">
         <ion-thumbnail slot="start">
           <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
         </ion-thumbnail>
@@ -34,7 +34,7 @@
           </template>
           <ion-note v-else color="danger">{{ translate("Not expected:") }} {{ getOverReceivedQtyForItem(item) }}</ion-note>
         </ion-label>
-        <ion-checkbox slot="end" :modelValue="item.isChecked">
+        <ion-checkbox slot="end" :data-testid="`transfer-order-receive-modal-discrepancy-checkbox-${item.orderItemSeqId || item.productId}`" :modelValue="item.isChecked">
           <ion-note>{{ translate("report discrepancy") }}</ion-note>
         </ion-checkbox>
       </ion-item>
@@ -45,7 +45,7 @@
     <ion-toolbar class="ion-padding-start">
       <ion-label slot="start">{{ translate("Select all items to proceed") }}</ion-label>
       <ion-buttons slot="end">
-        <ion-button fill="solid" color="primary" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibleToCloseTOItems()" @click="saveProgress">{{ saveButtonLabel }}</ion-button>
+        <ion-button data-testid="transfer-order-receive-modal-save-btn" fill="solid" color="primary" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibleToCloseTOItems()" @click="saveProgress">{{ saveButtonLabel }}</ion-button>
       </ion-buttons>
     </ion-toolbar>
   </ion-footer>

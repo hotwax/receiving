@@ -1,12 +1,12 @@
 <template>
-  <ion-item button @click="viewShipment()">
+  <ion-item :data-testid="`shipment-list-item-row-${shipment.shipmentId}`" button @click="viewShipment()">
     <ion-label>
       <p class="overline" v-show="shipment.externalOrderId || shipment.externalOrderName">{{ shipment.externalOrderName ? shipment.externalOrderName : shipment.externalOrderId }}</p>
       <h2>{{ shipment.externalId ? shipment.externalId : shipment.shipmentId }}</h2>
       <p v-if="shipment.shipmentItemCount">{{ shipment.shipmentItemCount }} {{ (shipment.shipmentItemCount > 1 ? 'Items' : 'Item') }}</p>
     </ion-label>
     <ion-label class="ion-text-end" slot="end">
-      <p>{{ shipment.estimatedArrivalDate ? ($filters.formatDate(shipment.estimatedArrivalDate)) : shipment.statusDesc }}</p>
+      <p>{{ shipment.estimatedArrivalDate ? formatDate(shipment.estimatedArrivalDate) : shipment.statusDesc }}</p>
       <p class="overline"> {{ shipment.trackingIdNumber }}</p>
     </ion-label>
   </ion-item>
@@ -30,6 +30,9 @@ export default defineComponent({
   },
   props: ["shipment"],
   methods: {
+    formatDate(value: string) {
+      return (this as any).$filters.formatDate(value)
+    },
     async viewShipment () {
       this.store.dispatch('shipment/setCurrent', { shipmentId: this.shipment.shipmentId }).then((resp) => {
         if (resp.items) {

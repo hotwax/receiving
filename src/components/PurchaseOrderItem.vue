@@ -1,5 +1,5 @@
 <template>
-  <ion-item button @click="getOrderDetail(purchaseOrder.orderId)">
+  <ion-item :data-testid="`purchase-order-list-item-row-${purchaseOrder.orderId}`" button @click="getOrderDetail(purchaseOrder.orderId)">
     <ion-label>
       <!-- TODO:- Handle this purchase order number property for now i have used OrderName or OrderId -->
       <h3>{{ purchaseOrder.externalOrderId }}</h3>
@@ -7,7 +7,7 @@
     </ion-label>
     <ion-label class="ion-text-end" slot="end">
       <p>{{ purchaseOrder.estimatedDeliveryDate ? $filters.formatUtcDate(purchaseOrder.estimatedDeliveryDate, 'YYYY-MM-DDTHH:mm:ssZ') : " - " }}</p>
-      <ion-badge :color="orderStatusColor[purchaseOrder.orderStatusId]">{{ purchaseOrder.orderStatusDesc }}</ion-badge>
+      <ion-badge :data-testid="`purchase-order-list-item-status-badge-${purchaseOrder.orderId}`" :color="orderStatusColor[purchaseOrder.orderStatusId]">{{ purchaseOrder.orderStatusDesc }}</ion-badge>
     </ion-label>
   </ion-item>
 </template>

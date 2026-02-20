@@ -2,25 +2,25 @@
   <ion-header>
     <ion-toolbar>
       <ion-buttons slot="start">
-        <ion-button @click="closeModal"> 
+        <ion-button data-testid="notification-preference-modal-close-btn" @click="closeModal"> 
           <ion-icon slot="icon-only" :icon="closeOutline" />
         </ion-button>
       </ion-buttons>
-      <ion-title>{{ translate("Notification Preference") }}</ion-title>
+      <ion-title data-testid="notification-preference-modal-title">{{ translate("Notification Preference") }}</ion-title>
     </ion-toolbar>
   </ion-header>
 
-  <ion-content>
-    <div v-if="!notificationPrefs.length" class="ion-text-center">
+  <ion-content data-testid="notification-preference-modal-content">
+    <div v-if="!notificationPrefs.length" data-testid="notification-preference-empty-state" class="ion-text-center">
       <p>{{ translate("Notification preferences not found.")}}</p>
     </div>
-    <ion-list v-else>
-      <ion-item :key="pref.enumId" v-for="pref in notificationPrefs">
-        <ion-toggle label-placement="start" @click="toggleNotificationPref(pref.enumId, $event)" :checked="pref.isEnabled">{{ pref.description }}</ion-toggle>
+    <ion-list v-else data-testid="notification-preference-list">
+      <ion-item :key="pref.enumId" :data-testid="`notification-preference-row-${pref.enumId}`" v-for="pref in notificationPrefs">
+        <ion-toggle :data-testid="`notification-preference-toggle-${pref.enumId}`" label-placement="start" @click="toggleNotificationPref(pref.enumId, $event)" :checked="pref.isEnabled">{{ pref.description }}</ion-toggle>
       </ion-item>
     </ion-list>
     <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-      <ion-fab-button :disabled="isButtonDisabled" @click="confirmSave()">
+      <ion-fab-button data-testid="notification-preference-save-btn" :disabled="isButtonDisabled" @click="confirmSave()">
         <ion-icon :icon="save" />
       </ion-fab-button>
     </ion-fab>

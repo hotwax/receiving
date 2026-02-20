@@ -1,13 +1,14 @@
 <template>
-  <ion-toolbar>
+  <ion-toolbar data-testid="scanner-modal-toolbar">
     <ion-buttons slot="end" @click="closeScanner()" >
-      <ion-button >
+      <ion-button data-testid="scanner-modal-close-btn" >
         <ion-icon :icon="closeOutline" />
       </ion-button>
     </ion-buttons>  
   </ion-toolbar>   
-  <div class="scanner">
+  <div data-testid="scanner-modal-content" class="scanner">
     <StreamBarcodeReader
+      data-testid="scanner-modal-barcode-reader"
       @decode="onDecode"
       @loaded="onLoaded"
     />
