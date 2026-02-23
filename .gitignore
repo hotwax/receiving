@@ -18,6 +18,14 @@ log.txt
 npm-debug.log*
 .env
 .env.*
+playwright/.env
+playwright/.env.*
+playwright/.auth/*.json
+**/storageState.json
+**/*.storageState.json
+playwright/data/**/secrets*
+playwright/data/**/credentials*
+playwright/data/**/*.secret.*
 
 /.idea
 /.ionic

@@ -1,5 +1,5 @@
 <template>
-  <ion-item detail="true" button @click="getOrderDetail(transferOrder.orderId)">
+  <ion-item :data-testid="`transfer-order-list-item-row-${transferOrder.orderId}`" :detail="true" button @click="getOrderDetail(transferOrder.orderId)">
     <ion-label>
       {{ transferOrder.orderName }}
       <p>{{ transferOrder.orderExternalId }}</p>

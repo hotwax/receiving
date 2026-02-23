@@ -2,49 +2,49 @@
   <ion-page>
     <ion-header :translucent="true">
       <ion-toolbar>
-        <ion-menu-button slot="start" />
+        <ion-menu-button data-testid="transfer-orders-page-menu-btn" slot="start" />
         <ion-title>{{ translate("Transfer Orders") }}</ion-title>
         <ion-buttons slot="end">
-          <ion-button data-testid="notifications-button" @click="viewNotifications()">
+          <ion-button data-testid="transfer-orders-page-notifications-btn" @click="viewNotifications()">
             <ion-icon slot="icon-only" :icon="notificationsOutline" :color="(unreadNotificationsStatus && notifications.length) ? 'primary' : ''" />
           </ion-button>
         </ion-buttons>
       </ion-toolbar>
       <div>
-        <ion-searchbar :placeholder="translate('Search transfer orders')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getTransferOrders()" />
+        <ion-searchbar data-testid="transfer-orders-page-search-input" :placeholder="translate('Search transfer orders')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getTransferOrders()" />
 
-        <ion-segment v-model="selectedSegment" @ionChange="segmentChanged()">
-          <ion-segment-button value="open">
+        <ion-segment data-testid="transfer-orders-page-segment" v-model="selectedSegment" @ionChange="segmentChanged()">
+          <ion-segment-button data-testid="transfer-orders-page-open-tab" value="open">
             <ion-label>{{ translate("Open") }}</ion-label>
           </ion-segment-button>
-          <ion-segment-button value="completed">
+          <ion-segment-button data-testid="transfer-orders-page-completed-tab" value="completed">
             <ion-label>{{ translate("Completed") }}</ion-label>
           </ion-segment-button>
         </ion-segment>
       </div>
     </ion-header>
-    <ion-content>
+    <ion-content data-testid="transfer-orders-page-content">
       <main>
-        <TransferOrderItem v-for="(order, index) in orders.list" :key="index" :transferOrder="order" />
-        <div v-if="orders.list.length < orders.total" class="load-more-action ion-text-center">
-          <ion-button fill="outline" color="dark" @click="loadMoreOrders()">
+        <TransferOrderItem :data-testid="`transfer-orders-page-row-${order.orderId || order.orderName}`" v-for="(order, index) in orders.list" :key="index" :transferOrder="order" />
+        <div v-if="orders.list.length < orders.total" data-testid="transfer-orders-page-load-more-section" class="load-more-action ion-text-center">
+          <ion-button data-testid="transfer-orders-page-load-more-btn" fill="outline" color="dark" @click="loadMoreOrders()">
             <ion-icon :icon="cloudDownloadOutline" slot="start" />
             {{ translate("Load more transfer order") }}
           </ion-button>
         </div>
 
         <!-- Empty state -->
-        <div class="empty-state" v-if="!orders.total && !fetchingOrders">
+        <div class="empty-state" data-testid="transfer-orders-page-empty-state" v-if="!orders.total && !fetchingOrders">
           <p v-if="showErrorMessage">{{ translate("No results found")}}</p>
           <img src="../assets/images/empty-state.png" alt="empty state">
           <p>{{ translate("There are no transfer orders to receive")}}</p>
-          <ion-button fill="outline" color="dark" @click="refreshTransferOrders()">
+          <ion-button data-testid="transfer-orders-page-refresh-btn" fill="outline" color="dark" @click="refreshTransferOrders()">
             <ion-icon :icon="reload" slot="start" />
             {{ translate("Refresh") }}
           </ion-button>
         </div>
 
-        <ion-refresher slot="fixed" @ionRefresh="refreshTransferOrders($event)">
+        <ion-refresher data-testid="transfer-orders-page-refresher" slot="fixed" @ionRefresh="refreshTransferOrders($event)">
           <ion-refresher-content pullingIcon="crescent" refreshingSpinner="crescent" />
         </ion-refresher>
       </main>

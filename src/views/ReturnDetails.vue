@@ -2,12 +2,12 @@
   <ion-page>
     <ion-header :translucent="true">
       <ion-toolbar>
-        <ion-back-button default-href="/returns" slot="start"></ion-back-button>
+        <ion-back-button data-testid="return-detail-page-back-btn" default-href="/returns" slot="start"></ion-back-button>
         <ion-title>{{ translate("Return Details") }}</ion-title>
       </ion-toolbar>
     </ion-header>
 
-    <ion-content>
+    <ion-content data-testid="return-detail-page-content">
       <main>
         <div class="doc-id">
           <ion-item lines="none">
@@ -25,15 +25,15 @@
   
         <div class="scanner">
           <ion-item>
-            <ion-input :label="translate(isReturnReceivable(current.statusId) ? 'Scan items' : 'Search items')" autofocus v-model="queryString" @keyup.enter="isReturnReceivable(current.statusId) ? updateProductCount() : searchProduct()" />
+            <ion-input data-testid="return-detail-page-scan-search-input" :label="translate(isReturnReceivable(current.statusId) ? 'Scan items' : 'Search items')" autofocus v-model="queryString" @keyup.enter="isReturnReceivable(current.statusId) ? updateProductCount() : searchProduct()" />
           </ion-item>
 
-          <ion-button expand="block" fill="outline" @click="scanCode()" :disabled="!isReturnReceivable(current.statusId)">
+          <ion-button data-testid="return-detail-page-scan-btn" expand="block" fill="outline" @click="scanCode()" :disabled="!isReturnReceivable(current.statusId)">
             <ion-icon slot="start" :icon="barcodeOutline" />{{ translate("Scan") }}
           </ion-button>
         </div>
 
-        <ion-card v-for="item in current.items" :key="item.id" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : ''" :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+        <ion-card :data-testid="`return-detail-page-item-card-${item.productId}`" v-for="item in current.items" :key="item.id" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : ''" :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
           <div class="product" :data-product-id="item.productId">
             <div class="product-info">
               <ion-item lines="none">
@@ -49,7 +49,7 @@
             </div>
 
             <div class="location">
-              <ion-button v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
+              <ion-button :data-testid="`return-detail-page-fetch-qoh-btn-${item.itemSeqId || item.productId}`" v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
                 <ion-icon color="medium" slot="icon-only" :icon="cubeOutline" />
               </ion-button>
               <ion-chip v-else outline>
@@ -60,7 +60,7 @@
 
             <div class="product-count">
               <ion-item v-if="isReturnReceivable(current.statusId) && item.quantityReceived === 0">
-                <ion-input :label="translate('Qty')" :disabled="isForceScanEnabled" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" />
+                <ion-input :data-testid="`return-detail-page-qty-input-${item.itemSeqId || item.productId}`" :label="translate('Qty')" :disabled="isForceScanEnabled" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" />
               </ion-item>
               <ion-item v-else lines="none">
                 <ion-label>{{ item.quantityAccepted }} {{ translate("received") }}</ion-label>
@@ -69,7 +69,7 @@
           </div>
   
           <ion-item lines="none" class="border-top" v-if="item.quantityOrdered > 0">
-            <ion-button v-if="isReturnReceivable(current.statusId) && item.quantityReceived === 0" :disabled="isForceScanEnabled" @click="receiveAll(item)" slot="start" fill="outline">
+            <ion-button :data-testid="`return-detail-page-receive-all-btn-${item.itemSeqId || item.productId}`" v-if="isReturnReceivable(current.statusId) && item.quantityReceived === 0" :disabled="isForceScanEnabled" @click="receiveAll(item)" slot="start" fill="outline">
               {{ translate("Receive All") }}
             </ion-button>
             <ion-progress-bar :color="getRcvdToOrdrdFraction(item) === 1 ? 'success' : getRcvdToOrdrdFraction(item) > 1 ? 'danger' : 'primary'" :value="getRcvdToOrdrdFraction(item)" />
@@ -79,7 +79,7 @@
       </main>
 
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibleForReceivingReturns()" v-if="isReturnReceivable(current.statusId)" @click="completeShipment">
+        <ion-fab-button data-testid="return-detail-page-complete-btn" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibleForReceivingReturns()" v-if="isReturnReceivable(current.statusId)" @click="completeShipment">
           <ion-icon :icon="checkmarkDone" />
         </ion-fab-button>
       </ion-fab>

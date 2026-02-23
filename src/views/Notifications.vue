@@ -2,15 +2,15 @@
   <ion-page>
     <ion-header>
       <ion-toolbar>
-        <ion-back-button slot="start" default-href="/transfer-orders" />
+        <ion-back-button data-testid="notifications-page-back-btn" slot="start" default-href="/transfer-orders" />
         <ion-title>{{ translate("Notifications") }}</ion-title>
       </ion-toolbar>
     </ion-header>
 
-    <ion-content>
+    <ion-content data-testid="notifications-page-content">
       <main>
-          <ion-list v-if="notifications.length">
-            <ion-item v-for="(notification, index) in notifications" :key="index">
+          <ion-list data-testid="notifications-page-list" v-if="notifications.length">
+            <ion-item v-for="(notification, index) in notifications" :key="index" :data-testid="`notifications-page-row-${notification.time}`">
               <ion-label class="ion-text-wrap">
                 <h3>{{ notification.data.title }}</h3>
                 <p>{{ notification.data.body }}</p>
@@ -18,12 +18,12 @@
               <ion-note slot="end">{{ timeTillNotification(notification.time) }}</ion-note>
             </ion-item>
           </ion-list>
-          <div v-else class="ion-text-center">
+          <div v-else data-testid="notifications-page-empty-state" class="ion-text-center">
             {{ translate('No notifications to show') }}
           </div>
       </main>
       <ion-fab slot="fixed" size="small" vertical="top" horizontal="end" :edge="true">
-        <ion-fab-button size="small" @click="openNotificationSettings()">
+        <ion-fab-button data-testid="notifications-page-settings-btn" size="small" @click="openNotificationSettings()">
           <ion-icon :icon="cogOutline"></ion-icon>
         </ion-fab-button>
       </ion-fab>

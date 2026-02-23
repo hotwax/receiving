@@ -1,15 +1,15 @@
 <template>
-  <ion-menu content-id="main-content" type="overlay" :disabled="!isUserAuthenticated">
+  <ion-menu data-testid="app-menu-drawer" content-id="main-content" type="overlay" :disabled="!isUserAuthenticated">
     <ion-header>
       <ion-toolbar>
-        <ion-title>{{ currentFacility.facilityName }}</ion-title>
+        <ion-title data-testid="app-menu-facility-title">{{ currentFacility.facilityName }}</ion-title>
       </ion-toolbar>
     </ion-header>
 
-    <ion-content>
-      <ion-list id="receiving-list">
-        <ion-menu-toggle auto-hide="false" v-for="(p, i) in getValidMenuItems()" :key="i">
-          <ion-item button router-direction="root" :router-link="p.url" class="hydrated" :class="{ selected: selectedIndex === i }">
+    <ion-content data-testid="app-menu-content">
+      <ion-list id="receiving-list" data-testid="app-menu-list">
+        <ion-menu-toggle :auto-hide="false" v-for="(p, i) in getValidMenuItems()" :key="i">
+          <ion-item :data-testid="`app-menu-item-${String(p.url).replace(/\//g, '-').replace(/^-/, '')}`" button router-direction="root" :router-link="p.url" class="hydrated" :class="{ selected: selectedIndex === i }">
             <ion-icon slot="start" :ios="p.iosIcon" :md="p.mdIcon" />
             <ion-label>{{ p.title }}</ion-label>
           </ion-item>

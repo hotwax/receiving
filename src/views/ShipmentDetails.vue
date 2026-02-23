@@ -2,15 +2,15 @@
   <ion-page>
     <ion-header :translucent="true">
       <ion-toolbar>
-        <ion-back-button default-href="/" slot="start"></ion-back-button>
+        <ion-back-button data-testid="shipment-detail-page-back-btn" default-href="/" slot="start"></ion-back-button>
         <ion-title>{{ translate("Shipment Details") }}</ion-title>
         <ion-buttons slot="end" v-if="!isShipmentReceived()">
-          <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_ADMIN)" @click="addProduct"><ion-icon :icon="add"/></ion-button>
+          <ion-button data-testid="shipment-detail-page-add-product-btn" :disabled="!hasPermission(Actions.APP_SHIPMENT_ADMIN)" @click="addProduct"><ion-icon :icon="add"/></ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
 
-    <ion-content>
+    <ion-content data-testid="shipment-detail-page-content">
       <main>
         <ion-item lines="none">
           <ion-label>
@@ -25,15 +25,15 @@
 
         <div class="scanner">
           <ion-item>
-            <ion-input :label="translate(isShipmentReceived() ? 'Search items' : 'Scan items')" autofocus v-model="queryString" @keyup.enter="isShipmentReceived() ? searchProduct() : updateProductCount()"></ion-input>
+            <ion-input data-testid="shipment-detail-page-scan-search-input" :label="translate(isShipmentReceived() ? 'Search items' : 'Scan items')" autofocus v-model="queryString" @keyup.enter="isShipmentReceived() ? searchProduct() : updateProductCount()"></ion-input>
           </ion-item>
 
-          <ion-button expand="block" fill="outline" @click="scanCode()" :disabled="isShipmentReceived()">
+          <ion-button data-testid="shipment-detail-page-scan-btn" expand="block" fill="outline" @click="scanCode()" :disabled="isShipmentReceived()">
             <ion-icon slot="start" :icon="cameraOutline" />{{ translate("Scan") }}
           </ion-button>
         </div>
 
-        <ion-card v-for="item in current.items" :key="item.id" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : ''" :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+        <ion-card :data-testid="`shipment-detail-page-item-card-${item.productId}`" v-for="item in current.items" :key="item.id" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : ''" :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
           <div class="product" :data-product-id="item.productId">
             <div class="product-info">
               <ion-item lines="none">
@@ -49,7 +49,7 @@
             </div>
 
             <div class="location">
-              <ion-button v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
+              <ion-button :data-testid="`shipment-detail-page-fetch-qoh-btn-${item.itemSeqId || item.productId}`" v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
                 <ion-icon color="medium" slot="icon-only" :icon="cubeOutline" />
               </ion-button>
               <ion-chip v-else outline>
@@ -60,7 +60,7 @@
 
             <div class="product-count">
               <ion-item v-if="!isShipmentReceived() && item.quantityReceived === 0">
-                <ion-input :label="translate('Qty')" :disabled="isForceScanEnabled" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" />
+                <ion-input :data-testid="`shipment-detail-page-qty-input-${item.itemSeqId || item.productId}`" :label="translate('Qty')" :disabled="isForceScanEnabled" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" />
               </ion-item>
               <div v-else>
                 <ion-item lines="none">
@@ -72,7 +72,7 @@
           </div>
 
           <ion-item lines="none" class="border-top" v-if="item.quantityOrdered > 0 && !isShipmentReceived() && item.quantityReceived === 0">
-            <ion-button @click="receiveAll(item)" :disabled="isForceScanEnabled" slot="start" fill="outline">
+            <ion-button :data-testid="`shipment-detail-page-receive-all-btn-${item.itemSeqId || item.productId}`" @click="receiveAll(item)" :disabled="isForceScanEnabled" slot="start" fill="outline">
               {{ translate("Receive All") }}
             </ion-button>
 
@@ -85,7 +85,7 @@
 
       <!-- Removing fab when the shipment is already received, this case can occur when directly hitting the shipment detail page for an already received shipment -->
       <ion-fab vertical="bottom" horizontal="end" slot="fixed" v-if="!isShipmentReceived()">
-        <ion-fab-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibleForReceivingShipment()" @click="completeShipment">
+        <ion-fab-button data-testid="shipment-detail-page-complete-btn" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibleForReceivingShipment()" @click="completeShipment">
           <ion-icon :icon="checkmarkDone" />
         </ion-fab-button>
       </ion-fab>

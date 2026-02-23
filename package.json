@@ -8,7 +8,9 @@
     "build": "vue-cli-service build",
     "test:unit": "vue-cli-service test:unit",
     "test:e2e": "vue-cli-service test:e2e",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "test:playwright": "playwright test -c playwright/playwright.config.ts",
+    "test:playwright:headed": "playwright test -c playwright/playwright.config.ts --headed"
   },
   "dependencies": {
     "@capacitor/android": "^2.4.7",
@@ -36,6 +38,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^2.4.7",
+    "@playwright/test": "^1.58.2",
     "@types/luxon": "^3.2.0",
     "@typescript-eslint/eslint-plugin": "~5.26.0",
     "@typescript-eslint/parser": "~5.26.0",

@@ -2,18 +2,18 @@
   <ion-header>
     <ion-toolbar>
       <ion-buttons slot="start">
-        <ion-button @click="closeModal">
+        <ion-button data-testid="shipment-add-product-modal-close-btn" @click="closeModal">
           <ion-icon slot="icon-only" :icon="closeOutline" />
         </ion-button>
       </ion-buttons>
       <ion-title>{{ translate("Add a product") }}</ion-title>
     </ion-toolbar>
   </ion-header>
-  <ion-content ref="contentRef" :scroll-events="true" @ionScroll="enableScrolling()">
-    <ion-searchbar @ionFocus="selectSearchBarText($event)" v-model="queryString" :placeholder="translate('Search SKU or product name')" v-on:keyup.enter="queryString = $event.target.value; getProducts()" />
+  <ion-content data-testid="shipment-add-product-modal-content" ref="contentRef" :scroll-events="true" @ionScroll="enableScrolling()">
+    <ion-searchbar data-testid="shipment-add-product-search-input" @ionFocus="selectSearchBarText($event)" v-model="queryString" :placeholder="translate('Search SKU or product name')" v-on:keyup.enter="queryString = $event.target.value; getProducts()" />
     
     <template v-if="products.length">
-      <ion-list v-for="product in products" :key="product.productId">
+      <ion-list v-for="product in products" :key="product.productId" :data-testid="`shipment-add-product-row-${product.productId}`">
         <ion-item lines="none">
           <ion-thumbnail slot="start">
             <DxpShopifyImg :src="product.mainImageUrl" />
@@ -24,8 +24,8 @@
             <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(product.productId)) }}</p>
             <p>{{ getFeatures(getProduct(product.productId).productFeatures) }}</p>
           </ion-label>
-          <ion-icon v-if="isProductAvailableInShipment(product.productId)" color="success" :icon="checkmarkCircle" />
-          <ion-button v-else fill="outline" @click="addtoShipment(product)">{{ translate("Add to Shipment") }}</ion-button>
+          <ion-icon v-if="isProductAvailableInShipment(product.productId)" :data-testid="`shipment-add-product-added-icon-${product.productId}`" color="success" :icon="checkmarkCircle" />
+          <ion-button v-else :data-testid="`shipment-add-product-add-btn-${product.productId}`" fill="outline" @click="addtoShipment(product)">{{ translate("Add to Shipment") }}</ion-button>
         </ion-item>
       </ion-list>
        <!--
@@ -37,11 +37,11 @@
         If we do not define an extra variable and just use v-show to check for `isScrollable` then when coming back to the page infinite-scroll is called programatically.
         We have added an ionScroll event on ionContent to check whether the infiniteScroll can be enabled or not by toggling the value of isScrollingEnabled whenever the height < 0.
        -->
-      <ion-infinite-scroll @ionInfinite="loadMoreProducts($event)" threshold="100px" v-show="isScrollable" ref="infiniteScrollRef">
+      <ion-infinite-scroll data-testid="shipment-add-product-infinite-scroll" @ionInfinite="loadMoreProducts($event)" threshold="100px" v-show="isScrollable" ref="infiniteScrollRef">
         <ion-infinite-scroll-content loading-spinner="crescent" :loading-text="translate('Loading')" />
       </ion-infinite-scroll>
     </template>
-    <div v-else class="empty-state">
+    <div v-else data-testid="shipment-add-product-empty-state" class="empty-state">
       <img src="../assets/images/empty-state-add-product-modal.png" alt="empty-state" />
       <p>{{ translate("Enter a SKU, or product name to search a product") }}</p>
     </div>

@@ -12,5 +12,4 @@ jobs:
     uses: hotwax/dxp-components/.github/workflows/common-pull-request.yml@main
     with:
       config-path: .github/labeler.yml
-    secrets:
-      envPAT: ${{ secrets.envPAT }}
+    secrets: inherit

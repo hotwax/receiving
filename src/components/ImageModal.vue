@@ -1,17 +1,17 @@
 <template>
-  <ion-header :translucent="true">
+  <ion-header data-testid="product-image-modal-header" :translucent="true">
     <ion-toolbar>
       <ion-buttons slot="start">
-        <ion-button @click="closeModal">
+        <ion-button data-testid="product-image-modal-close-btn" @click="closeModal">
           <ion-icon :icon="closeOutline" slot="icon-only" />
         </ion-button>
       </ion-buttons>
-      <ion-title>{{ productName }}</ion-title>
+      <ion-title data-testid="product-image-modal-title">{{ productName }}</ion-title>
     </ion-toolbar>
   </ion-header>
 
-  <ion-content class="ion-text-center">
-    <DxpShopifyImg :src="imageUrl" />
+  <ion-content data-testid="product-image-modal-content" class="ion-text-center">
+    <DxpShopifyImg data-testid="product-image-modal-preview-img" :src="imageUrl" />
 
   </ion-content>
 </template>

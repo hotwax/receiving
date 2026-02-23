@@ -2,20 +2,20 @@
   <ion-page>
     <ion-header :translucent="true">
       <ion-toolbar>
-        <ion-back-button default-href="/transfer-orders" slot="start" />
+        <ion-back-button data-testid="transfer-order-detail-page-back-btn" default-href="/transfer-orders" slot="start" />
         <ion-title> {{ translate("Transfer Order Details") }} </ion-title>
         <ion-buttons slot="end">
-          <ion-button @click="receivingHistory()">
+          <ion-button data-testid="transfer-order-detail-page-history-btn" @click="receivingHistory()">
             <ion-icon slot="icon-only" :icon="timeOutline"/>
           </ion-button>
-          <ion-button :disabled="!hasPermission(Actions.APP_SHIPMENT_ADMIN) || isTOReceived()" @click="addProduct">
+          <ion-button data-testid="transfer-order-detail-page-add-product-btn" :disabled="!hasPermission(Actions.APP_SHIPMENT_ADMIN) || isTOReceived()" @click="addProduct">
             <ion-icon slot="icon-only" :icon="addOutline"/>
           </ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
 
-    <ion-content>
+    <ion-content data-testid="transfer-order-detail-page-content">
       <main>
         <div class="doc-id">
           <div>
@@ -34,7 +34,7 @@
           </div>
 
           <div class="doc-meta" v-if="!isTOReceived()">
-            <ion-item button lines="none" @click="openTOReceivingInstructions">
+            <ion-item data-testid="transfer-order-detail-page-instructions-btn" button lines="none" @click="openTOReceivingInstructions">
               <ion-icon :icon="informationCircleOutline" slot="start" />
               <ion-label slot="end">
                 {{ translate("Finish receiving the open items to complete this transfer order", { items: getTOItems("open").length }) }}
@@ -47,22 +47,22 @@
 
         <div class="scanner">
           <ion-item :lines="scanErrorText ? 'none' : 'full'">
-            <ion-input :class="{ 'ion-invalid ion-touched': scanErrorText }" :error-text="scanErrorText" :label="translate('Scan items')" label-placement="fixed" autofocus v-model="queryString" @keyup.enter="updateProductCount(null)" @ionInput="scanErrorText = ''"/>
+            <ion-input data-testid="transfer-order-detail-page-scan-input" :class="{ 'ion-invalid ion-touched': scanErrorText }" :error-text="scanErrorText" :label="translate('Scan items')" label-placement="fixed" autofocus v-model="queryString" @keyup.enter="updateProductCount(null)" @ionInput="scanErrorText = ''"/>
           </ion-item>
-          <ion-button expand="block" fill="outline" @click="scan">
+          <ion-button data-testid="transfer-order-detail-page-scan-btn" expand="block" fill="outline" @click="scan">
             <ion-icon slot="start" :icon="cameraOutline" />
             {{ translate("Scan") }}
           </ion-button>
         </div>
 
-        <ion-segment v-if="!isTOReceived()" :value="selectedSegment" @ionChange="segmentChanged($event.detail.value)">
-          <ion-segment-button value="all" content-id="all">
+        <ion-segment data-testid="transfer-order-detail-page-segment" v-if="!isTOReceived()" :value="selectedSegment" @ionChange="segmentChanged($event.detail.value)">
+          <ion-segment-button data-testid="transfer-order-detail-page-all-tab" value="all" content-id="all">
             <ion-label>{{ translate("All") }}</ion-label>
           </ion-segment-button>
-          <ion-segment-button value="open" content-id="open">
+          <ion-segment-button data-testid="transfer-order-detail-page-open-tab" value="open" content-id="open">
             <ion-label>{{ getTOItems("open")?.length }} {{ translate("Open") }}</ion-label>
           </ion-segment-button>
-          <ion-segment-button value="received" content-id="received">
+          <ion-segment-button data-testid="transfer-order-detail-page-received-tab" value="received" content-id="received">
             <ion-label>{{ getTOItems("received")?.length }} {{ translate("Received and completed") }}</ion-label>
           </ion-segment-button>
         </ion-segment>
@@ -78,7 +78,7 @@
                 {{ translate("Back to all items") }}
               </ion-button>
             </ion-item>
-            <ion-card v-for="(item, index) in getAllItems" :key="index">
+            <ion-card :data-testid="`transfer-order-detail-page-all-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in getAllItems" :key="index">
               <div class="product" :data-product-id="item.productId">
                 <div class="product-info">
                   <ion-item lines="none">
@@ -94,7 +94,7 @@
                 </div>
 
                 <div class="location">
-                  <ion-button v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
+                  <ion-button :data-testid="`transfer-order-detail-page-fetch-qoh-btn-${item.orderItemSeqId || item.productId}`" v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
                     <ion-icon color="medium" slot="icon-only" :icon="cubeOutline" />
                   </ion-button>
                   <ion-chip v-else outline>
@@ -105,7 +105,7 @@
 
                 <template v-if="!['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId)">
                   <div class="product-count">
-                    <ion-input fill="outline" :class="{ 'ion-invalid ion-touched': openItemsTemp.length }" :label="translate('Qty')" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" :error-text="openItemsTemp.length ? translate('Input quantity') : ''" />
+                    <ion-input :data-testid="`transfer-order-detail-page-qty-input-${item.orderItemSeqId || item.productId}`" fill="outline" :class="{ 'ion-invalid ion-touched': openItemsTemp.length }" :label="translate('Qty')" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" :error-text="openItemsTemp.length ? translate('Input quantity') : ''" />
                   </div>
                 </template>
                 <template v-else-if="!item.orderItemSeqId">
@@ -128,7 +128,7 @@
               <template v-if="!['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId)">
                 <div class="action border-top" v-if="item.orderItemSeqId">
                   <div class="receive-all-qty">
-                    <ion-button @click="receiveAll(item)" :disabled="isForceScanEnabled || isItemReceivedInFull(item)" slot="start" size="small" fill="outline">
+                    <ion-button :data-testid="`transfer-order-detail-page-receive-all-btn-${item.orderItemSeqId || item.productId}`" @click="receiveAll(item)" :disabled="isForceScanEnabled || isItemReceivedInFull(item)" slot="start" size="small" fill="outline">
                       {{ translate("Receive All") }}
                     </ion-button>
                   </div>
@@ -139,7 +139,7 @@
                   </div>
 
                   <div class="to-item-history">
-                    <ion-chip outline @click="receivingHistory(item.productId, item.orderItemSeqId)">
+                    <ion-chip :data-testid="`transfer-order-detail-page-item-history-chip-${item.orderItemSeqId || item.productId}`" outline @click="receivingHistory(item.productId, item.orderItemSeqId)">
                       <ion-icon :icon="checkmarkDone"/>
                       <ion-label> {{ item.totalReceivedQuantity ?? 0 }} {{ translate("received") }} </ion-label>
                     </ion-chip>
@@ -167,7 +167,7 @@
                 {{ translate("Back to open items") }}
               </ion-button>
             </ion-item>
-            <ion-card v-for="(item, index) in openItems" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+            <ion-card :data-testid="`transfer-order-detail-page-open-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in openItems" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
               <div class="product" :data-product-id="item.productId">
                 <div class="product-info">
                   <ion-item lines="none">
@@ -183,7 +183,7 @@
                 </div>
 
                 <div class="location">
-                  <ion-button color="medium" v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
+                  <ion-button :data-testid="`transfer-order-detail-page-open-fetch-qoh-btn-${item.orderItemSeqId || item.productId}`" color="medium" v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
                     <ion-icon slot="icon-only" :icon="cubeOutline" />
                   </ion-button>
                   <ion-chip v-else outline>
@@ -193,13 +193,13 @@
                 </div>
 
                 <div class="product-count">
-                  <ion-input fill="outline" :class="{ 'ion-invalid ion-touched': openItemsTemp.length }" :label="translate('Qty')" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" :error-text="openItemsTemp.length ? translate('Input quantity') : ''" />
+                  <ion-input :data-testid="`transfer-order-detail-page-open-qty-input-${item.orderItemSeqId || item.productId}`" fill="outline" :class="{ 'ion-invalid ion-touched': openItemsTemp.length }" :label="translate('Qty')" label-placement="floating" type="number" min="0" v-model="item.quantityAccepted" :disabled="isForceScanEnabled" :error-text="openItemsTemp.length ? translate('Input quantity') : ''" />
                 </div>
               </div>
 
               <div class="action border-top" v-if="item.orderItemSeqId">
                 <div class="receive-all-qty">
-                  <ion-button @click="receiveAll(item)" :disabled="isForceScanEnabled || isItemReceivedInFull(item)" size="small" fill="outline">
+                  <ion-button :data-testid="`transfer-order-detail-page-open-receive-all-btn-${item.orderItemSeqId || item.productId}`" @click="receiveAll(item)" :disabled="isForceScanEnabled || isItemReceivedInFull(item)" size="small" fill="outline">
                     {{ translate("Receive All") }}
                   </ion-button>
                 </div>
@@ -210,7 +210,7 @@
                 </div>
 
                 <div class="to-item-history">
-                  <ion-chip outline @click="receivingHistory(item.productId, item.orderItemSeqId)">
+                  <ion-chip :data-testid="`transfer-order-detail-page-open-history-chip-${item.orderItemSeqId || item.productId}`" outline @click="receivingHistory(item.productId, item.orderItemSeqId)">
                     <ion-icon :icon="checkmarkDone"/>
                     <ion-label> {{ item.totalReceivedQuantity ?? 0 }} {{ translate("received") }} </ion-label>
                   </ion-chip>
@@ -222,11 +222,11 @@
                 </div>
               </div>
             </ion-card>
-            <div v-if="!openItems?.length" class="empty-state">
+            <div data-testid="transfer-order-detail-page-open-empty-state" v-if="!openItems?.length" class="empty-state">
               <ion-label>
                 {{ "No items available for receiving, check completed tab" }}
               </ion-label>
-              <ion-button fill="clear" @click="segmentChanged('received')">
+              <ion-button data-testid="transfer-order-detail-page-open-empty-received-btn" fill="clear" @click="segmentChanged('received')">
                 <ion-icon slot="icon-only" :icon="openOutline" />
               </ion-button>
             </div>
@@ -237,7 +237,7 @@
             </ion-item>
           </template>
           <template v-if="selectedSegment === 'received'">
-            <ion-card v-for="(item, index) in completedItems" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+            <ion-card :data-testid="`transfer-order-detail-page-received-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in completedItems" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
               <div class="product" :data-product-id="item.productId">
                 <div class="product-info">
                   <ion-item lines="none">
@@ -253,7 +253,7 @@
                 </div>
 
                 <div class="location">
-                  <ion-button v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
+                  <ion-button :data-testid="`transfer-order-detail-page-received-fetch-qoh-btn-${item.orderItemSeqId || item.productId}`" v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
                     <ion-icon color="medium" slot="icon-only" :icon="cubeOutline" />
                   </ion-button>
                   <ion-chip v-else outline>
@@ -277,11 +277,11 @@
                 </div>
               </div>
             </ion-card>
-            <div v-if="!completedItems?.length" class="empty-state">
+            <div data-testid="transfer-order-detail-page-received-empty-state" v-if="!completedItems?.length" class="empty-state">
               <ion-label>
                 {{ "No items are marked as completed, check Open tab" }}
               </ion-label>
-              <ion-button fill="clear" @click="segmentChanged('open')">
+              <ion-button data-testid="transfer-order-detail-page-received-empty-open-btn" fill="clear" @click="segmentChanged('open')">
                 <ion-icon slot="icon-only" :icon="openOutline" />
               </ion-button>
             </div>
@@ -290,7 +290,7 @@
 
         <!-- TODO: update UI to have this information using the segment view -->
         <template v-if="isTOReceived()">
-          <ion-card v-for="(item, index) in completedItems" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+          <ion-card :data-testid="`transfer-order-detail-page-completed-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in completedItems" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
             <div class="product" :data-product-id="item.productId">
               <div class="product-info">
                 <ion-item lines="none">
@@ -306,7 +306,7 @@
               </div>
 
               <div class="location">
-                <ion-button v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
+                <ion-button :data-testid="`transfer-order-detail-page-completed-fetch-qoh-btn-${item.orderItemSeqId || item.productId}`" v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
                   <ion-icon color="medium" slot="icon-only" :icon="cubeOutline" />
                 </ion-button>
                 <ion-chip v-else outline>
@@ -342,11 +342,11 @@
       ></ion-toast>
     </ion-content>
 
-    <ion-footer id="footer" ref="footer" v-if="!isTOReceived() && selectedSegment !== 'received'">
+    <ion-footer data-testid="transfer-order-detail-page-footer" id="footer" ref="footer" v-if="!isTOReceived() && selectedSegment !== 'received'">
       <ion-toolbar>
         <ion-buttons slot="end">
-          <ion-button :disabled="!areAllItemsHaveQty" class="ion-margin-end" fill="outline" size="small" color="primary" @click="receiveTO">{{ translate("Save Progress") }}{{ ":" }} {{ getReceivedUnits() }}</ion-button>
-          <ion-button :disabled="!areAllItemsHaveQty" fill="solid" size="small" color="primary" @click="receiveAndCloseTO">{{ translate("Receive and complete") }}</ion-button>
+          <ion-button data-testid="transfer-order-detail-page-save-progress-btn" :disabled="!areAllItemsHaveQty" class="ion-margin-end" fill="outline" size="small" color="primary" @click="receiveTO">{{ translate("Save Progress") }}{{ ":" }} {{ getReceivedUnits() }}</ion-button>
+          <ion-button data-testid="transfer-order-detail-page-receive-complete-btn" :disabled="!areAllItemsHaveQty" fill="solid" size="small" color="primary" @click="receiveAndCloseTO">{{ translate("Receive and complete") }}</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-footer>

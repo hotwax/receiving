@@ -1,5 +1,5 @@
 <template>
-  <img :src="imageUrl"/>
+  <img :data-testid="testId" :src="imageUrl"/>
 </template>
 
 <script lang="ts">
@@ -7,7 +7,7 @@ import { defineComponent } from "vue";
 
 export default defineComponent({
   name: "Image",
-  props: ['src'],
+  props: ['src', 'testId'],
   components: {},
   created() {
     if (

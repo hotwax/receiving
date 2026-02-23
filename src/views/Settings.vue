@@ -2,12 +2,12 @@
   <ion-page>
     <ion-header :translucent="true">
       <ion-toolbar>
-        <ion-menu-button slot="start" />
+        <ion-menu-button data-testid="settings-page-menu-btn" slot="start" />
         <ion-title>{{ translate("Settings") }}</ion-title>
       </ion-toolbar>
     </ion-header>
     
-    <ion-content>
+    <ion-content data-testid="settings-page-content">
       <div class="user-profile">
         <ion-card>
           <ion-item lines="full">
@@ -22,8 +22,8 @@
               <ion-card-title>{{ userProfile.partyName }}</ion-card-title>
             </ion-card-header>
           </ion-item>
-          <ion-button color="danger" v-if="!authStore.isEmbedded" @click="logout()">{{ translate("Logout") }}</ion-button>
-          <ion-button :standalone-hidden="!hasPermission(Actions.APP_PWA_STANDALONE_ACCESS)" fill="outline" @click="goToLaunchpad()">
+          <ion-button data-testid="settings-page-logout-btn" color="danger" v-if="!authStore.isEmbedded" @click="logout()">{{ translate("Logout") }}</ion-button>
+          <ion-button data-testid="settings-page-launchpad-btn" :standalone-hidden="!hasPermission(Actions.APP_PWA_STANDALONE_ACCESS)" fill="outline" @click="goToLaunchpad()">
             {{ translate("Go to Launchpad") }}
             <ion-icon slot="end" :icon="openOutline" />
           </ion-button>
@@ -55,11 +55,11 @@
           </ion-card-header>
           <ion-card-content v-html="barcodeContentMessage"></ion-card-content>
           <ion-item :disabled="!hasPermission(Actions.APP_UPDT_FULFILL_FORCE_SCAN_CONFIG)">
-            <ion-toggle label-placement="start" :checked="isForceScanEnabled" @click.prevent="updateForceScanStatus($event)">{{ translate("Require scanning") }}</ion-toggle>
+            <ion-toggle data-testid="settings-page-force-scan-toggle" label-placement="start" :checked="isForceScanEnabled" @click.prevent="updateForceScanStatus($event)">{{ translate("Require scanning") }}</ion-toggle>
           </ion-item>
           <ion-item lines="none">
-            <ion-select :label="translate('Barcode Identifier')" interface="popover" :placeholder="translate('Select')" :value="barcodeIdentificationPref" @ionChange="setBarcodeIdentificationPref($event.detail.value)">
-              <ion-select-option v-for="identification in barcodeIdentificationOptions" :key="identification" :value="identification.goodIdentificationTypeId" >{{ identification.description ? identification.description : identification.goodIdentificationTypeId }}</ion-select-option>
+            <ion-select data-testid="settings-page-barcode-identifier-select" :label="translate('Barcode Identifier')" interface="popover" :placeholder="translate('Select')" :value="barcodeIdentificationPref" @ionChange="setBarcodeIdentificationPref($event.detail.value)">
+              <ion-select-option :data-testid="`settings-page-barcode-option-${identification.goodIdentificationTypeId}`" v-for="identification in barcodeIdentificationOptions" :key="identification" :value="identification.goodIdentificationTypeId" >{{ identification.description ? identification.description : identification.goodIdentificationTypeId }}</ion-select-option>
             </ion-select>
           </ion-item>
         </ion-card>
@@ -74,8 +74,8 @@
             {{ translate("Select the notifications you want to receive.") }}
           </ion-card-content>
           <ion-list>
-            <ion-item :key="pref.enumId" v-for="pref in notificationPrefs" lines="none">
-              <ion-toggle label-placement="start" @click.prevent="confirmNotificationPrefUpdate(pref.enumId, $event)" :checked="pref.isEnabled">{{ pref.description }}</ion-toggle>
+            <ion-item :data-testid="`settings-page-notification-row-${pref.enumId}`" :key="pref.enumId" v-for="pref in notificationPrefs" lines="none">
+              <ion-toggle :data-testid="`settings-page-notification-toggle-${pref.enumId}`" label-placement="start" @click.prevent="confirmNotificationPrefUpdate(pref.enumId, $event)" :checked="pref.isEnabled">{{ pref.description }}</ion-toggle>
             </ion-item>
           </ion-list>
         </ion-card>
@@ -90,7 +90,7 @@
             {{ translate("Define the receiving flow for TO items") }}
           </ion-card-content>
           <ion-item :disabled="!hasPermission(Actions.APP_UPDT_RECEIVE_FLOW_CONFIG)">
-            <ion-toggle label-placement="start" :checked="isReceivingByFulfillment" @click.prevent="updateReceiveFlowType($event)">{{ translate("Receive by fulfillment") }}</ion-toggle>
+            <ion-toggle data-testid="settings-page-receive-flow-toggle" label-placement="start" :checked="isReceivingByFulfillment" @click.prevent="updateReceiveFlowType($event)">{{ translate("Receive by fulfillment") }}</ion-toggle>
           </ion-item>
         </ion-card>
       </section>

@@ -2,16 +2,16 @@
   <ion-header>
     <ion-toolbar>
       <ion-buttons slot="start">
-        <ion-button @click="closeModal">
+        <ion-button data-testid="receiving-history-modal-close-btn" @click="closeModal">
           <ion-icon slot="icon-only" :icon="closeOutline" />
         </ion-button>
       </ion-buttons>
       <ion-title>{{ translate("History") }}</ion-title>
     </ion-toolbar>
   </ion-header>
-  <ion-content>
-    <ion-list v-for="(item, index) in items" :key="index">
-      <ion-item>
+  <ion-content data-testid="receiving-history-modal-content">
+    <ion-list v-for="(item, index) in items" :key="index" :data-testid="`receiving-history-modal-list-${item.orderItemSeqId || item.productId || item.shipmentId || item.datetimeReceived || 'entry'}`">
+      <ion-item :data-testid="`receiving-history-modal-row-${item.orderItemSeqId || item.productId || item.shipmentId || item.datetimeReceived || 'entry'}`">
         <ion-thumbnail slot="start">
           <DxpShopifyImg :src="getProduct(item.productId).mainImageUrl" />
         </ion-thumbnail>
@@ -29,7 +29,7 @@
     </ion-list>
 
     <!-- Empty state -->
-    <div class="empty-state" v-if="!items.length">
+    <div data-testid="receiving-history-modal-empty-state" class="empty-state" v-if="!items.length">
       <img src="../assets/images/empty-state-history-modal.png" alt="empty state">
       <p v-html="emptyStateMessage"></p>
     </div>

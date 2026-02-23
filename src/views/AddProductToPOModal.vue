@@ -2,17 +2,17 @@
   <ion-header>
     <ion-toolbar>
       <ion-buttons slot="start">
-        <ion-button @click="closeModal">
+        <ion-button data-testid="purchase-order-add-product-modal-close-btn" @click="closeModal">
           <ion-icon slot="icon-only" :icon="closeOutline" />
         </ion-button>
       </ion-buttons>
       <ion-title>{{ translate("Add a product") }}</ion-title>
     </ion-toolbar>
   </ion-header>
-  <ion-content ref="contentRef" :scroll-events="true" @ionScroll="enableScrolling()">
-    <ion-searchbar @ionFocus="selectSearchBarText($event)" v-model="queryString" :placeholder="translate('Search SKU or product name')" @keyup.enter="handleSearch" @ionInput='handleInput'/>
+  <ion-content data-testid="purchase-order-add-product-modal-content" ref="contentRef" :scroll-events="true" @ionScroll="enableScrolling()">
+    <ion-searchbar data-testid="purchase-order-add-product-search-input" @ionFocus="selectSearchBarText($event)" v-model="queryString" :placeholder="translate('Search SKU or product name')" @keyup.enter="handleSearch" @ionInput='handleInput'/>
     <template v-if="products.length">
-      <ion-list v-for="product in products" :key="product.productId">
+      <ion-list v-for="product in products" :key="product.productId" :data-testid="`purchase-order-add-product-row-${product.productId}`">
         <ion-item lines="none">
           <ion-thumbnail slot="start">
             <DxpShopifyImg :src="product.mainImageUrl" />
@@ -23,19 +23,19 @@
             <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(product.productId)) }}</p>
             <p>{{ getFeatures(getProduct(product.productId).productFeatures) }}</p>
           </ion-label>
-          <ion-icon v-if="isProductAvailableInOrder(product.productId)" color="success" :icon="checkmarkCircle" />
-          <ion-button v-else fill="outline" @click="addtoOrder(product)">{{ translate("Add to Purchase Order") }}</ion-button>
+          <ion-icon v-if="isProductAvailableInOrder(product.productId)" :data-testid="`purchase-order-add-product-added-icon-${product.productId}`" color="success" :icon="checkmarkCircle" />
+          <ion-button v-else :data-testid="`purchase-order-add-product-add-btn-${product.productId}`" fill="outline" @click="addtoOrder(product)">{{ translate("Add to Purchase Order") }}</ion-button>
         </ion-item>
       </ion-list>
 
-      <ion-infinite-scroll @ionInfinite="loadMoreProducts($event)" threshold="100px" v-show="isScrollable" ref="infiniteScrollRef">
+      <ion-infinite-scroll data-testid="purchase-order-add-product-infinite-scroll" @ionInfinite="loadMoreProducts($event)" threshold="100px" v-show="isScrollable" ref="infiniteScrollRef">
         <ion-infinite-scroll-content loading-spinner="crescent" :loading-text="translate('Loading')" />
       </ion-infinite-scroll>
     </template>
-    <div v-else-if="queryString && isSearching && !products.length" class="empty-state">
+    <div v-else-if="queryString && isSearching && !products.length" data-testid="purchase-order-add-product-search-empty-state" class="empty-state">
       <p>{{ translate("No products found") }}</p>
     </div>
-    <div v-else class="empty-state">
+    <div v-else data-testid="purchase-order-add-product-empty-state" class="empty-state">
       <img src="../assets/images/empty-state-add-product-modal.png" alt="empty-state" />
       <p>{{ translate("Enter a SKU, or product name to search a product") }}</p>
     </div>

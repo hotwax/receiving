@@ -2,23 +2,23 @@
   <ion-header>
     <ion-toolbar>
       <ion-buttons slot="start">
-        <ion-button @click="closeModal">
+        <ion-button data-testid="purchase-order-close-items-modal-back-btn" @click="closeModal">
           <ion-icon slot="icon-only" :icon="arrowBackOutline" />
         </ion-button>
       </ion-buttons>
       <ion-title>{{ translate("Close purchase order items") }}</ion-title>
       <ion-buttons slot="end" @click="selectAllItems">
-        <ion-button color="primary">{{ translate("Select all") }}</ion-button>
+        <ion-button data-testid="purchase-order-close-items-select-all-btn" color="primary">{{ translate("Select all") }}</ion-button>
       </ion-buttons>
     </ion-toolbar>
   </ion-header>
 
-  <ion-content>
+  <ion-content data-testid="purchase-order-close-items-modal-content">
     <ion-item lines="none">
       <ion-list-header>{{ translate("To close the purchase order, select all.") }}</ion-list-header>
     </ion-item>
     <ion-list>
-      <ion-item :button="isPOItemStatusPending(item)" v-for="(item, index) in getPOItems()" :key="index" @click="item.isChecked = !item.isChecked">
+      <ion-item :button="isPOItemStatusPending(item)" v-for="(item, index) in getPOItems()" :key="index" :data-testid="`purchase-order-close-items-row-${item.orderItemSeqId || item.productId}`" @click="item.isChecked = !item.isChecked">
         <ion-thumbnail slot="start">
           <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
         </ion-thumbnail>
@@ -28,14 +28,14 @@
           <p>{{ getFeatures(getProduct(item.productId).productFeatures) }}</p>
         </ion-label>
         <ion-buttons>
-          <ion-checkbox aria-label="itemStatus" slot="end" :modelValue="isPOItemStatusPending(item) ? item.isChecked : true" :disabled="isPOItemStatusPending(item) ? false : true" />
+          <ion-checkbox aria-label="itemStatus" slot="end" :data-testid="`purchase-order-close-items-select-checkbox-${item.orderItemSeqId || item.productId}`" :modelValue="isPOItemStatusPending(item) ? item.isChecked : true" :disabled="isPOItemStatusPending(item) ? false : true" />
         </ion-buttons>
       </ion-item>
     </ion-list>
   </ion-content>
 
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibleToClosePOItems()" @click="confirmSave">
+    <ion-fab-button data-testid="purchase-order-close-items-save-btn" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibleToClosePOItems()" @click="confirmSave">
       <ion-icon :icon="saveOutline" />
     </ion-fab-button>
   </ion-fab>
