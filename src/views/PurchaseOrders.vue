@@ -2,45 +2,45 @@
   <ion-page>
     <ion-header :translucent="true">
       <ion-toolbar>
-        <ion-menu-button slot="start" />
+        <ion-menu-button data-testid="purchase-orders-page-menu-btn" slot="start" />
         <ion-title>{{ translate("Purchase Orders") }}</ion-title>
       </ion-toolbar>
       <div>
-        <ion-searchbar :placeholder="translate('Search purchase orders')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getPurchaseOrders()" />
+        <ion-searchbar data-testid="purchase-orders-page-search-input" :placeholder="translate('Search purchase orders')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getPurchaseOrders()" />
 
-        <ion-segment v-model="selectedSegment" @ionChange="segmentChanged()">
-          <ion-segment-button value="open">
+        <ion-segment data-testid="purchase-orders-page-segment" v-model="selectedSegment" @ionChange="segmentChanged()">
+          <ion-segment-button data-testid="purchase-orders-page-open-tab" value="open">
             <ion-label>{{ translate("Open") }}</ion-label>
           </ion-segment-button>
-          <ion-segment-button value="completed">
+          <ion-segment-button data-testid="purchase-orders-page-completed-tab" value="completed">
             <ion-label>{{ translate("Completed") }}</ion-label>
           </ion-segment-button>
         </ion-segment>
       </div>
     </ion-header>
-    <ion-content>
+    <ion-content data-testid="purchase-orders-page-content">
       <main>
-        <PurchaseOrderItem v-for="(order, index) in orders" :key="index" :purchaseOrder="order.doclist.docs[0]" />
+        <PurchaseOrderItem :data-testid="`purchase-orders-page-row-${order.doclist.docs[0].orderId}`" v-for="(order, index) in orders" :key="index" :purchaseOrder="order.doclist.docs[0]" />
         
-        <div v-if="orders.length < ordersTotal" class="load-more-action ion-text-center">
-          <ion-button fill="outline" color="dark" @click="loadMoreOrders()">
+        <div v-if="orders.length < ordersTotal" data-testid="purchase-orders-page-load-more-section" class="load-more-action ion-text-center">
+          <ion-button data-testid="purchase-orders-page-load-more-btn" fill="outline" color="dark" @click="loadMoreOrders()">
             <ion-icon :icon="cloudDownloadOutline" slot="start" />
             {{ translate("Load more purchase order") }}
           </ion-button>
         </div>
 
         <!-- Empty state -->
-        <div class="empty-state" v-if="!orders.length && !fetchingOrders">
+        <div class="empty-state" data-testid="purchase-orders-page-empty-state" v-if="!orders.length && !fetchingOrders">
           <p v-if="showErrorMessage">{{ translate("No results found")}}</p>
           <img src="../assets/images/empty-state.png" alt="empty state">
           <p>{{ translate("There are no purchase orders to receive")}}</p>
-          <ion-button fill="outline" color="dark" @click="refreshPurchaseOrders()">
+          <ion-button data-testid="purchase-orders-page-refresh-btn" fill="outline" color="dark" @click="refreshPurchaseOrders()">
             <ion-icon :icon="reload" slot="start" />
             {{ translate("Refresh") }}
           </ion-button>
         </div>
 
-        <ion-refresher slot="fixed" @ionRefresh="refreshPurchaseOrders($event)">
+        <ion-refresher data-testid="purchase-orders-page-refresher" slot="fixed" @ionRefresh="refreshPurchaseOrders($event)">
           <ion-refresher-content pullingIcon="crescent" refreshingSpinner="crescent" />
         </ion-refresher>
       </main>

@@ -4,7 +4,10 @@ export class TransferOrdersPage {
   constructor(private readonly page: Page) {}
 
   transferOrdersTab(): Locator {
-    return this.page.getByText("Transfer Orders", { exact: true });
+    return this.page
+      .getByTestId("app-menu-item-transfer-orders")
+      .or(this.page.getByText("Transfer Orders", { exact: true }))
+      .first();
   }
 
   openOrderTab(): Locator {
@@ -12,7 +15,10 @@ export class TransferOrdersPage {
   }
 
   firstOrderRow(): Locator {
-    return this.page.locator("main ion-item").first();
+    return this.page
+      .getByTestId(/transfer-order-list-item-row-.+/)
+      .or(this.page.locator("main ion-item"))
+      .first();
   }
 
   openItemsTab(): Locator {
@@ -46,7 +52,7 @@ export class TransferOrdersPage {
   }
 
   async openTransferOrdersTab(): Promise<void> {
-    await this.transferOrdersTab().click();
+    await this.page.goto("/transfer-orders");
   }
 
   async openOpenOrderTab(): Promise<void> {

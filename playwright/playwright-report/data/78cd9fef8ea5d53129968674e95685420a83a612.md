@@ -1,0 +1,156 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic:
+    - navigation "menu" [ref=e4]:
+      - generic [ref=e5]:
+        - generic:
+          - generic [ref=e10]:
+            - generic: Boston
+          - list [ref=e14]:
+            - listitem [ref=e16]:
+              - link "Transfer Orders" [ref=e17] [cursor=pointer]:
+                - /url: /transfer-orders
+                - img [ref=e18]:
+                  - img [ref=e20]
+                - generic [ref=e27]: Transfer Orders
+            - listitem [ref=e29]:
+              - link "Returns" [ref=e30] [cursor=pointer]:
+                - /url: /returns
+                - img [ref=e31]:
+                  - img [ref=e33]
+                - generic [ref=e41]: Returns
+            - listitem [ref=e43]:
+              - link "Purchase Orders" [ref=e44] [cursor=pointer]:
+                - /url: /purchase-orders
+                - img [ref=e45]:
+                  - img [ref=e47]
+                - generic [ref=e51]: Purchase Orders
+            - listitem [ref=e53]:
+              - link "Settings" [ref=e54] [cursor=pointer]:
+                - /url: /settings
+                - img [ref=e55]:
+                  - img [ref=e57]
+                - generic [ref=e62]: Settings
+    - generic [ref=e64]:
+      - banner [ref=e65]:
+        - generic [ref=e67]:
+          - button "back" [ref=e69] [cursor=pointer]:
+            - generic [ref=e70]:
+              - img:
+                - generic:
+                  - img
+          - generic [ref=e73]:
+            - generic: Transfer Order Details
+          - generic [ref=e74]:
+            - button [ref=e76] [cursor=pointer]:
+              - generic [ref=e77]:
+                - generic:
+                  - img:
+                    - generic:
+                      - img
+            - button [ref=e79] [cursor=pointer]:
+              - generic [ref=e80]:
+                - generic:
+                  - img:
+                    - generic:
+                      - img
+      - main [ref=e81]:
+        - main [ref=e84]:
+          - generic [ref=e85]:
+            - generic [ref=e86]:
+              - generic [ref=e87]:
+                - paragraph [ref=e88]: M106480
+                - 'heading "Transfer Order: Test 1410 07" [level=1] [ref=e89]'
+                - paragraph [ref=e90]: "Item count: 3"
+              - generic [ref=e91]:
+                - generic:
+                  - generic [ref=e92] [cursor=pointer]:
+                    - generic:
+                      - text: "123"
+                      - img [ref=e93]:
+                        - img [ref=e95]
+                  - generic [ref=e98] [cursor=pointer]:
+                    - generic:
+                      - text: "123456789"
+                      - img [ref=e99]:
+                        - img [ref=e101]
+            - button "Finish receiving the 1 open items to complete this transfer order This transfer order can only be received on one device at a time. Make sure this transfer order is not open on any other device Tap to learn more" [ref=e106] [cursor=pointer]:
+              - img [ref=e107]:
+                - img [ref=e109]
+              - generic [ref=e114]:
+                - text: Finish receiving the 1 open items to complete this transfer order
+                - paragraph [ref=e115]:
+                  - generic: This transfer order can only be received on one device at a time. Make sure this transfer order is not open on any other device
+                - paragraph [ref=e116]: Tap to learn more
+          - generic [ref=e117]:
+            - generic [ref=e123]:
+              - generic:
+                - generic: Scan items
+              - textbox "Scan items" [ref=e125]:
+                - /placeholder: ""
+            - button "Scan" [ref=e127] [cursor=pointer]:
+              - generic [ref=e128]:
+                - generic:
+                  - img:
+                    - generic:
+                      - img
+                - generic: Scan
+          - tablist [ref=e129]:
+            - generic:
+              - generic [ref=e130] [cursor=pointer]:
+                - tab "All":
+                  - generic:
+                    - generic:
+                      - generic: All
+              - generic [ref=e131] [cursor=pointer]:
+                - tab "1 Open" [selected]:
+                  - generic:
+                    - generic:
+                      - generic: 1 Open
+              - generic [ref=e132] [cursor=pointer]:
+                - tab "1 Received and completed":
+                  - generic:
+                    - generic:
+                      - generic: 1 Received and completed
+          - generic [ref=e134]:
+            - generic:
+              - generic [ref=e135]:
+                - generic [ref=e138]:
+                  - img [ref=e140] [cursor=pointer]
+                  - generic [ref=e143]:
+                    - heading "MH01XSBlackHC" [level=2] [ref=e144]
+                    - paragraph [ref=e145]: MH01-XS-Black
+                    - paragraph [ref=e146]: Black XS
+                - generic [ref=e148] [cursor=pointer]:
+                  - generic:
+                    - text: 1415 on hand
+                    - img [ref=e149]:
+                      - img [ref=e151]
+                - generic [ref=e156]:
+                  - generic [ref=e158]:
+                    - generic: Qty
+                  - generic:
+                    - generic: Qty
+                  - spinbutton "Qty" [active] [ref=e160]: "1"
+              - generic [ref=e161]:
+                - button "Receive All" [ref=e164] [cursor=pointer]:
+                  - generic [ref=e165]:
+                    - generic: Receive All
+                - progressbar [ref=e167]
+                - generic [ref=e174] [cursor=pointer]:
+                  - generic:
+                    - img [ref=e175]:
+                      - img [ref=e177]
+                    - generic [ref=e179]: 1213 received
+                - generic [ref=e181]: 10000 ordered
+      - contentinfo [ref=e182]:
+        - generic [ref=e185]:
+          - 'button "Save Progress: 1 / 8787 units" [ref=e187] [cursor=pointer]':
+            - generic [ref=e188]:
+              - generic: "Save Progress: 1 / 8787 units"
+          - button "Receive and complete" [ref=e190] [cursor=pointer]:
+            - generic [ref=e191]:
+              - generic: Receive and complete
+```

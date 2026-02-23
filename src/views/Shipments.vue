@@ -2,18 +2,18 @@
   <ion-page>
     <ion-header :translucent="true">
       <ion-toolbar>
-        <ion-menu-button slot="start" />
+        <ion-menu-button data-testid="shipments-page-menu-btn" slot="start" />
         <ion-title>{{ translate("Shipments") }}</ion-title>
       </ion-toolbar>
 
       <div>
-        <ion-searchbar :placeholder="translate('Search')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getShipments();" />
+        <ion-searchbar data-testid="shipments-page-search-input" :placeholder="translate('Search')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getShipments();" />
 
-        <ion-segment v-model="selectedSegment" @ionChange="segmentChanged()">
-          <ion-segment-button value="open">
+        <ion-segment data-testid="shipments-page-segment" v-model="selectedSegment" @ionChange="segmentChanged()">
+          <ion-segment-button data-testid="shipments-page-open-tab" value="open">
             <ion-label>{{ translate("Open") }}</ion-label>
           </ion-segment-button>
-          <ion-segment-button value="completed">
+          <ion-segment-button data-testid="shipments-page-completed-tab" value="completed">
             <ion-label>{{ translate("Completed") }}</ion-label>
           </ion-segment-button>
         </ion-segment>
@@ -21,27 +21,27 @@
     </ion-header>
     <ion-content>
       <main>
-        <ShipmentListItem v-for="shipment in shipments" :key="shipment.shipmentId" :shipment="shipment"/>
+        <ShipmentListItem :data-testid="`shipments-page-row-${shipment.shipmentId}`" v-for="shipment in shipments" :key="shipment.shipmentId" :shipment="shipment"/>
 
-        <div v-if="shipments.length < shipmentsTotal" class="load-more-action ion-text-center">
-          <ion-button fill="outline" color="dark" @click="loadMoreShipments()">
+        <div data-testid="shipments-page-load-more-section" v-if="shipments.length < shipmentsTotal" class="load-more-action ion-text-center">
+          <ion-button data-testid="shipments-page-load-more-btn" fill="outline" color="dark" @click="loadMoreShipments()">
             <ion-icon :icon="cloudDownloadOutline" slot="start" />
             {{ translate("Load more shipments") }}
           </ion-button>
         </div>
 
         <!-- Empty state -->
-        <div class="empty-state" v-if="!shipments.length && !fetchingShipments">
+        <div data-testid="shipments-page-empty-state" class="empty-state" v-if="!shipments.length && !fetchingShipments">
           <p v-if="showErrorMessage">{{ translate("No results found")}}</p>
           <img src="../assets/images/empty-state.png" alt="empty state">
           <p>{{ translate("There are no incoming shipments")}}</p>
-          <ion-button fill="outline" color="dark" @click="refreshShipments()">
+          <ion-button data-testid="shipments-page-refresh-btn" fill="outline" color="dark" @click="refreshShipments()">
             <ion-icon :icon="reload" slot="start" />
             {{ translate("Refresh") }}
           </ion-button>
         </div>
 
-        <ion-refresher slot="fixed" @ionRefresh="refreshShipments($event)">
+        <ion-refresher data-testid="shipments-page-refresher" slot="fixed" @ionRefresh="refreshShipments($event)">
           <ion-refresher-content pullingIcon="crescent" refreshingSpinner="crescent" />
         </ion-refresher>
       </main>

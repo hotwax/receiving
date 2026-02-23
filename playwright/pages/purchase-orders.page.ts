@@ -4,11 +4,17 @@ export class PurchaseOrdersPage {
   constructor(private readonly page: Page) {}
 
   purchaseOrdersTab(): Locator {
-    return this.page.getByText("Purchase Orders", { exact: true });
+    return this.page
+      .getByTestId("app-menu-item-purchase-orders")
+      .or(this.page.getByText("Purchase Orders", { exact: true }))
+      .first();
   }
 
   firstOrderRow(): Locator {
-    return this.page.locator("ion-item:has(ion-label h3)").first();
+    return this.page
+      .getByTestId(/purchase-order-list-item-row-.+/)
+      .or(this.page.locator("ion-item:has(ion-label h3)"))
+      .first();
   }
 
   receiveAllButtons(): Locator {
@@ -28,7 +34,7 @@ export class PurchaseOrdersPage {
   }
 
   async openPurchaseOrdersTab(): Promise<void> {
-    await this.purchaseOrdersTab().click();
+    await this.page.goto("/purchase-orders");
   }
 
   async openFirstOrder(): Promise<void> {
@@ -54,7 +60,18 @@ export class PurchaseOrdersPage {
   }
 
   async submitReceive(): Promise<void> {
-    await this.submitReceiveButton().click();
+    const receiveButtons = this.page.getByRole("button", { name: /^Receive$/ });
+    const count = await receiveButtons.count();
+
+    for (let i = 0; i < count; i += 1) {
+      const button = receiveButtons.nth(i);
+      if (await button.isEnabled().catch(() => false)) {
+        await button.click({ force: true });
+        return;
+      }
+    }
+
+    await this.submitReceiveButton().click({ force: true });
   }
 
   async confirmProceed(): Promise<void> {

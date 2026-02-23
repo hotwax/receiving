@@ -38,6 +38,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^2.4.7",
+    "@playwright/test": "^1.58.2",
     "@types/luxon": "^3.2.0",
     "@typescript-eslint/eslint-plugin": "~5.26.0",
     "@typescript-eslint/parser": "~5.26.0",

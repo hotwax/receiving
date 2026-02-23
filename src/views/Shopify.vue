@@ -1,14 +1,15 @@
 <template>
   <ion-page>
-    <ion-content>
+    <ion-content data-testid="shopify-page-content">
       <div class="install">
         <!-- Commented form tag as when using it the install page reloads again and
         then redirect to shopify -->
-        <form @keyup.enter="install(shopOrigin)" @submit.prevent="install(shopOrigin)">
-          <ion-list>
+        <form data-testid="shopify-page-install-form" @keyup.enter="install(shopOrigin)" @submit.prevent="install(shopOrigin)">
+          <ion-list data-testid="shopify-page-install-list">
             <Logo />
-            <ion-item>
+            <ion-item data-testid="shopify-page-shop-input-item">
               <ion-input
+                data-testid="shopify-page-shop-input"
                 :label="translate('Shop')"
                 label-placement="floating"
                 v-model="shopOrigin"
@@ -20,7 +21,7 @@
             </ion-item>
           </ion-list>
           <div class="ion-padding">
-            <ion-button type="submit" expand="block">
+            <ion-button data-testid="shopify-page-install-btn" type="submit" expand="block">
               {{ translate("Install")  }}
             </ion-button>
           </div>
