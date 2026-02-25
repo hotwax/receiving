@@ -25,8 +25,8 @@
     </ion-header>
     <ion-content data-testid="transfer-orders-page-content">
       <main>
-        <TransferOrderItem :data-testid="`transfer-orders-page-row-${order.orderId || order.orderName}`" v-for="(order, index) in orders.list" :key="index" :transferOrder="order" />
-        <div v-if="orders.list.length < orders.total" data-testid="transfer-orders-page-load-more-section" class="load-more-action ion-text-center">
+        <TransferOrderItem v-for="(order, index) in orders.list" :key="index" :transferOrder="order" />
+        <div data-testid="transfer-orders-page-load-more-section" v-if="orders.list.length < orders.total" class="load-more-action ion-text-center">
           <ion-button data-testid="transfer-orders-page-load-more-btn" fill="outline" color="dark" @click="loadMoreOrders()">
             <ion-icon :icon="cloudDownloadOutline" slot="start" />
             {{ translate("Load more transfer order") }}
@@ -34,7 +34,7 @@
         </div>
 
         <!-- Empty state -->
-        <div class="empty-state" data-testid="transfer-orders-page-empty-state" v-if="!orders.total && !fetchingOrders">
+        <div data-testid="transfer-orders-page-empty-state" class="empty-state" v-if="!orders.total && !fetchingOrders">
           <p v-if="showErrorMessage">{{ translate("No results found")}}</p>
           <img src="../assets/images/empty-state.png" alt="empty state">
           <p>{{ translate("There are no transfer orders to receive")}}</p>

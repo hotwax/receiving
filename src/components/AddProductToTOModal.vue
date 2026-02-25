@@ -35,7 +35,7 @@
     <div v-else-if="queryString && isSearching && !products.length" data-testid="transfer-order-add-product-search-empty-state" class="empty-state">
       <p>{{ translate("No products found") }}</p>
     </div>
-    <div v-else data-testid="transfer-order-add-product-initial-empty-state" class="empty-state">
+    <div v-else data-testid="transfer-order-add-product-empty-state" class="empty-state">
       <img src="../assets/images/empty-state-add-product-modal.png" alt="empty-state" />
       <p>{{ translate("Enter a SKU, or product name to search a product") }}</p>
     </div>

@@ -22,7 +22,7 @@
       <main>
         <PurchaseOrderItem :data-testid="`purchase-orders-page-row-${order.doclist.docs[0].orderId}`" v-for="(order, index) in orders" :key="index" :purchaseOrder="order.doclist.docs[0]" />
         
-        <div v-if="orders.length < ordersTotal" data-testid="purchase-orders-page-load-more-section" class="load-more-action ion-text-center">
+        <div data-testid="purchase-orders-page-load-more-section" v-if="orders.length < ordersTotal" class="load-more-action ion-text-center">
           <ion-button data-testid="purchase-orders-page-load-more-btn" fill="outline" color="dark" @click="loadMoreOrders()">
             <ion-icon :icon="cloudDownloadOutline" slot="start" />
             {{ translate("Load more purchase order") }}
@@ -30,7 +30,7 @@
         </div>
 
         <!-- Empty state -->
-        <div class="empty-state" data-testid="purchase-orders-page-empty-state" v-if="!orders.length && !fetchingOrders">
+        <div data-testid="purchase-orders-page-empty-state" class="empty-state" v-if="!orders.length && !fetchingOrders">
           <p v-if="showErrorMessage">{{ translate("No results found")}}</p>
           <img src="../assets/images/empty-state.png" alt="empty state">
           <p>{{ translate("There are no purchase orders to receive")}}</p>
