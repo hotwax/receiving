@@ -3,6 +3,7 @@ import { test as base } from "@playwright/test";
 import { getTestUser, type Credentials } from "../data/users";
 import { LoginPage } from "../pages/login.page";
 import { PurchaseOrdersPage } from "../pages/purchase-orders.page";
+import { SettingsPage } from "../pages/settings.page";
 import { TransferOrdersPage } from "../pages/transfer-orders.page";
 
 type TestFixtures = {
@@ -10,6 +11,7 @@ type TestFixtures = {
   loginPage: LoginPage;
   transferOrdersPage: TransferOrdersPage;
   purchaseOrdersPage: PurchaseOrdersPage;
+  settingsPage: SettingsPage;
 };
 
 export const test = base.extend<TestFixtures>({
@@ -24,6 +26,9 @@ export const test = base.extend<TestFixtures>({
   },
   purchaseOrdersPage: async ({ page }, use) => {
     await use(new PurchaseOrdersPage(page));
+  },
+  settingsPage: async ({ page }, use) => {
+    await use(new SettingsPage(page));
   },
 });
 
