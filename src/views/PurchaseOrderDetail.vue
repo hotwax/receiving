@@ -5,10 +5,10 @@
         <ion-back-button data-testid="purchase-order-detail-page-back-btn" default-href="/purchase-orders" slot="start" />
         <ion-title> {{ translate("Purchase Order Details") }} </ion-title>
         <ion-buttons slot="end">
-          <ion-button data-testid="purchase-order-detail-page-history-btn" @click="receivingHistory()">
+          <ion-button data-testid="purchase-order-detail-page-history-btn" :aria-label="translate('Receiving history')" @click="receivingHistory()">
             <ion-icon slot="icon-only" :icon="timeOutline"/>
           </ion-button>
-          <ion-button data-testid="purchase-order-detail-page-add-product-btn" :disabled="!userStore.hasPermission('RECEIVING_ADMIN') || isPOReceived()" @click="addProduct">
+          <ion-button data-testid="purchase-order-detail-page-add-product-btn" :aria-label="translate('Add product')" :disabled="!userStore.hasPermission('RECEIVING_ADMIN') || isPOReceived()" @click="addProduct">
             <ion-icon slot="icon-only" :icon="addOutline"/>
           </ion-button>
         </ion-buttons>
@@ -108,7 +108,7 @@
           <ion-text v-else color="medium" class="ion-margin-end">
             {{ translate("Completed: item", { itemsCount: getPOItems('completed').length }) }}
           </ion-text>
-          <ion-button data-testid="purchase-order-detail-page-toggle-completed-btn" size="default" v-if="getPOItems('completed').length" @click="showCompletedItems = !showCompletedItems" color="medium" fill="clear">
+          <ion-button data-testid="purchase-order-detail-page-toggle-completed-btn" :aria-label="showCompletedItems ? translate('Hide completed items') : translate('Show completed items')" size="default" v-if="getPOItems('completed').length" @click="showCompletedItems = !showCompletedItems" color="medium" fill="clear">
             <ion-icon :icon="showCompletedItems ? eyeOutline : eyeOffOutline" slot="icon-only" />
           </ion-button>
         </ion-item>

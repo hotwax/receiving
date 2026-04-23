@@ -1,0 +1,3 @@
+## 2024-04-22 - Missing ARIA labels on icon-only buttons
+**Learning:** Found multiple instances where `<ion-button>` elements containing only an `<ion-icon>` lack `aria-label` attributes or text alternatives, making them inaccessible to screen readers. For instance, close buttons, back buttons, history/add buttons in the toolbar do not provide accessible labels.
+**Action:** Adding `aria-label` attribute using Vue translation helper `translate()` to the most critical and frequently used icon-only buttons such as modal close/back buttons or page toolbar buttons. Today I will fix the header toolbar buttons in `PurchaseOrderDetail.vue`.
