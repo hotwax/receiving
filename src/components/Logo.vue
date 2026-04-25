@@ -1,5 +1,5 @@
 <template>
-  <figure :aria-label="translate('HotWax Commerce')">
+  <figure>
     <img class="light" src="../assets/images/LogoLight.png" :alt="translate('HotWax Commerce')"/>
     <img class="dark" src="../assets/images/LogoDark.png" :alt="translate('HotWax Commerce')"/>
   </figure>

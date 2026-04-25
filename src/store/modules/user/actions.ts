@@ -287,7 +287,7 @@ const actions: ActionTree<UserState, RootState> = {
         let facilityLocations = resp.data.docs
 
         facilityLocations = facilityLocations.map((location: any) => {
-          const locationPath = (location.areaId || '') + (location.aisleId || '') + (location.sectionId || '') + (location.levelId || '') + (location.positionId || '');
+          const locationPath = `${location.areaId || ''}${location.aisleId || ''}${location.sectionId || ''}${location.levelId || ''}${location.positionId || ''}`;
           return {
             locationSeqId: location.locationSeqId,
             locationPath: locationPath
