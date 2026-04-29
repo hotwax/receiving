@@ -3,7 +3,6 @@ import { api, commonUtil, emitter, translate, useSolrSearch } from "@common";
 import { useProductStore as useProduct } from "@/store/product";
 import { useProductStore } from "@/store/productStore";
 import { useShipmentStore } from "@/store/shipment";
-import { useUserStore } from "@/store/user";
 import { usePartyStore } from "@/store/party";
 
 export const useOrderStore = defineStore("order", {
@@ -41,27 +40,26 @@ export const useOrderStore = defineStore("order", {
   },
   actions: {
     async findPurchaseOrders(payload: any) {
-      if (payload.json.params.start === 0) emitter.emit("presentLoader");
+      const start = (payload.limit || 0) * (payload.pageIndex || 0)
+      if (start == 0) emitter.emit("presentLoader");
       let resp: any;
       try {
-        resp = await useSolrSearch().runSolrQuery(payload)
+        resp = await api({
+          url: "oms/purchaseOrders",
+          method: "GET",
+          params: payload
+        })
 
-        if (resp.status === 200 && !commonUtil.hasError(resp) && resp.data.grouped?.orderId.groups?.length > 0) {
-          const orders = resp.data.grouped.orderId;
+        if (resp.status === 200 && !commonUtil.hasError(resp) && resp.data.orders?.length > 0) {
+          let orders = resp.data.orders;
 
-          orders.groups.forEach((order: any) => {
-            order.doclist.docs.forEach((item: any) => {
-              item.quantityAccepted = 0;
-            });
-          });
-
-          if (payload.json.params.start && payload.json.params.start > 0) orders.groups = this.purchaseOrders.list.concat(orders.groups);
+          if (start > 0) orders = this.purchaseOrders.list.concat(orders);
           this.purchaseOrders = {
-            list: orders.groups,
-            total: orders.ngroups,
+            list: orders,
+            total: resp.data.totalOrdersCount,
           };
         } else {
-          payload.json.params.start
+          start
             ? commonUtil.showToast(translate("Purchase orders not found"))
             : (this.purchaseOrders = { list: [], total: 0 });
         }
@@ -69,7 +67,7 @@ export const useOrderStore = defineStore("order", {
         console.error(error);
         commonUtil.showToast(translate("Something went wrong"));
       }
-      if (payload.json.params.start === 0) emitter.emit("dismissLoader");
+      if (start == 0) emitter.emit("dismissLoader");
       return resp;
     },
 
@@ -109,35 +107,24 @@ export const useOrderStore = defineStore("order", {
       let resp: any;
 
       try {
-        const payload = {
-          json: {
-            params: {
-              rows: 10,
-              group: true,
-              "group.field": "orderId",
-              "group.limit": 10000,
-            },
-            query: "docType:ORDER",
-            filter: [
-              `orderTypeId: PURCHASE_ORDER AND orderId: ${orderId} AND orderStatusId: (ORDER_APPROVED OR ORDER_CREATED OR ORDER_COMPLETED) AND facilityId: ${useProductStore().getCurrentFacility.facilityId}`,
-            ],
-          },
-        };
-        resp = await useSolrSearch().runSolrQuery(payload)
+        resp = await api({
+          url: `oms/purchaseOrders/${orderId}`,
+          method: "GET"
+        })
 
-        if (resp.status === 200 && !commonUtil.hasError(resp) && resp.data.grouped) {
-          const order = resp.data.grouped.orderId.groups[0];
-          order.doclist.docs.forEach((product: any) => {
+        if (resp.status === 200 && !commonUtil.hasError(resp) && resp.data?.order) {
+          const order = resp.data.order
+          order.items.forEach((product: any) => {
             product.quantityAccepted = 0;
           });
           const product = useProduct();
-          product.fetchProductInformation({ order: order.doclist.docs });
+          product.fetchProductInformation({ order: order.items });
           this.current = {
-            orderId: order.groupValue,
-            externalOrderId: order.doclist.docs[0]?.externalOrderId,
-            orderStatusId: order.doclist.docs[0]?.orderStatusId,
-            orderStatusDesc: order.doclist.docs[0]?.orderStatusDesc,
-            items: order.doclist.docs,
+            orderId: order.orderId,
+            externalOrderId: order.externalId,
+            orderStatusId: order.statusId,
+            orderStatusDesc: order.orderStatusDesc,
+            items: order.items,
             poHistory: { items: [] },
           };
         } else {
@@ -218,56 +205,25 @@ export const useOrderStore = defineStore("order", {
     async createAndReceiveIncomingShipment(payload: any) {
       let resp: any;
       try {
-        payload.items.map((item: any, index: number) => {
-          item.itemSeqId = `1000${index + 1}`;
-          item.quantity = item.quantityAccepted;
-        });
-
         const params = {
           orderId: payload.orderId,
-          destinationFacilityId: useProductStore().getCurrentFacility.facilityId,
-          type: "PURCHASE_SHIPMENT",
-          status: "PURCH_SHIP_CREATED",
+          facilityId: useProductStore().getCurrentFacility.facilityId,
           items: payload.items,
         };
         resp = await api({
-          url: "/service/createIncomingShipment",
+          url: `oms/purchaseOrders/${payload.orderId}/receive`,
           method: "POST",
-          baseURL: commonUtil.getOmsURL(),
-          data: { payload: params },
+          data: params
         });
 
-        if (resp.status === 200 && !commonUtil.hasError(resp) && resp.data.shipmentId) {
-          const productStore = useProductStore();
-          const facilityLocations = await productStore.getFacilityLocations(useProductStore().getCurrentFacility.facilityId);
-          if (facilityLocations.length) {
-            const locationSeqId = facilityLocations[0].locationSeqId;
-            payload.items.map((item: any) => {
-              item.locationSeqId = locationSeqId;
-              item.quantityReceived = item.quantityAccepted ? Number(item.quantityAccepted) : 0;
-            });
-          } else {
-            commonUtil.showToast(
-              translate(
-                "Facility locations were not found corresponding to destination facility of PO. Please add facility locations to avoid receive PO failure."
-              )
-            );
-          }
-          const poShipment = {
-            shipmentId: resp.data.shipmentId,
-            items: payload.items,
-            isMultiReceivingEnabled: true,
-          };
-          const shipmentStore = useShipmentStore();
-          return await shipmentStore.receiveShipmentJson(poShipment).catch((err: any) => console.error(err));
-        } else {
+        if (resp.status !== 200 || commonUtil.hasError(resp)) {
           commonUtil.showToast(translate("Something went wrong"));
         }
       } catch (error) {
         console.error(error);
         commonUtil.showToast(translate("Something went wrong"));
+        return Promise.reject(error);
       }
-      return false;
     },
 
     async fetchPOHistory(payload: any) {
@@ -282,36 +238,21 @@ export const useOrderStore = defineStore("order", {
         locationSeqId = facilityLocations.length > 0 ? facilityLocations[0].locationSeqId : "";
 
         do {
-          const params = {
-            inputFields: {
-              orderId: [payload.orderId],
-              orderId_op: "in",
-            },
-            entityName: "ShipmentReceiptAndItem",
-            fieldList: [
-              "datetimeReceived",
-              "productId",
-              "quantityAccepted",
-              "quantityRejected",
-              "receivedByUserLoginId",
-              "shipmentId",
-              "locationSeqId",
-            ],
-            orderBy: "datetimeReceived DESC",
-            viewSize,
-            viewIndex,
-          };
           resp = await api({
-            url: "/performFind",
-            method: "POST",
-            baseURL: commonUtil.getOmsURL(),
-            data: params,
+            url: `oms/purchaseOrders/${payload.orderId}/receipts`,
+            method: "GET",
+            params: {
+              pageSize: viewSize,
+              pageIndex: viewIndex,
+              orderId: payload.orderId,
+              orderByField: "datetimeReceived DESC"
+            },
           });
-          if (resp.status === 200 && !commonUtil.hasError(resp) && resp.data?.docs.length > 0) {
-            currentPOHistory = [...currentPOHistory, ...resp.data.docs];
+          if (resp.status === 200 && !commonUtil.hasError(resp) && resp.data.length > 0) {
+            currentPOHistory = [...currentPOHistory, ...resp.data];
           }
           viewIndex++;
-        } while (resp?.data?.docs?.length >= viewSize);
+        } while (resp?.data?.length >= viewSize);
       } catch (error) {
         console.error(error);
         currentPOHistory = [];

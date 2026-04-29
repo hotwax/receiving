@@ -20,7 +20,7 @@
     </ion-header>
     <ion-content data-testid="purchase-orders-page-content">
       <main>
-        <PurchaseOrderItem v-for="(order, index) in orders" :key="index" :purchaseOrder="order.doclist.docs[0]" />
+        <PurchaseOrderItem v-for="(order, index) in orders" :key="index" :purchaseOrder="order" />
         
         <div data-testid="purchase-orders-page-load-more-section" v-if="orders.length < ordersTotal" class="load-more-action ion-text-center">
           <ion-button data-testid="purchase-orders-page-load-more-btn" fill="outline" color="dark" @click="loadMoreOrders()">
@@ -76,25 +76,13 @@ const getPurchaseOrders = async (vSize?: any, vIndex?: any) => {
   const viewSize = vSize ? vSize : import.meta.env.VITE_VIEW_SIZE;
   const viewIndex = vIndex ? vIndex : 0;
   const payload = {
-    "json": {
-      "params": {
-        "rows": viewSize,
-        "start": viewSize * viewIndex,
-        "group": true,
-        "group.field": "orderId",
-        "group.limit": 10000,
-        "group.ngroups": true,
-      } as any,
-      "query": "*:*",
-      "filter": `docType: ORDER AND orderTypeId: PURCHASE_ORDER AND orderStatusId: ${selectedSegment.value === 'open' ? '(ORDER_APPROVED OR ORDER_CREATED)' : 'ORDER_COMPLETED'} AND facilityId: ${currentFacility.value?.facilityId}`
-    }
+    limit: viewSize,
+    pageIndex: viewIndex,
+    orderStatusId: selectedSegment.value === 'open' ? 'ORDER_APPROVED,ORDER_CREATED' : 'ORDER_COMPLETED',
+    facilityId: currentFacility.value?.facilityId,
+    keyword: queryString.value
   }
-  if (queryString.value) {
-    payload.json.query = queryString.value;
-    payload.json.params.defType = "edismax";
-    payload.json.params.qf = "orderId externalOrderId";
-    payload.json.params['q.op'] = "AND";
-  }
+
   await orderStore.findPurchaseOrders(payload);
   fetchingOrders.value = false;
 };
