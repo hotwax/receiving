@@ -107,6 +107,24 @@ export default defineComponent({
     })
   },
   methods: {
+    sortOrdersByLatestFirst(orders: Array<any> = []) {
+      return [...orders].sort((firstOrder: any, secondOrder: any) => {
+        const firstDoc = firstOrder?.doclist?.docs?.[0] || {};
+        const secondDoc = secondOrder?.doclist?.docs?.[0] || {};
+
+        // Prefer timestamp/date fields, fallback to PO number comparison.
+        const firstOrderTimestamp = Date.parse(firstDoc.lastUpdatedStamp || firstDoc.createdDate || firstDoc.orderDate || firstDoc.estimatedDeliveryDate || "");
+        const secondOrderTimestamp = Date.parse(secondDoc.lastUpdatedStamp || secondDoc.createdDate || secondDoc.orderDate || secondDoc.estimatedDeliveryDate || "");
+
+        if (!Number.isNaN(firstOrderTimestamp) && !Number.isNaN(secondOrderTimestamp)) {
+          return secondOrderTimestamp - firstOrderTimestamp;
+        }
+        if (!Number.isNaN(firstOrderTimestamp)) return -1;
+        if (!Number.isNaN(secondOrderTimestamp)) return 1;
+
+        return (secondDoc.orderId || "").localeCompare(firstDoc.orderId || "", undefined, { numeric: true });
+      });
+    },
     async getPurchaseOrders(vSize?: any, vIndex?: any){
       this.queryString ? this.showErrorMessage = true : this.showErrorMessage = false;
       this.fetchingOrders = true;
@@ -119,9 +137,12 @@ export default defineComponent({
             "start": viewSize * viewIndex,
             "group": true,
             "group.field": "orderId",
+            "group.sort": "orderDate desc",
             "group.limit": 10000,
             "group.ngroups": true,
+            "sort": "orderDate desc",
           } as any,
+          "sort": "orderDate desc",
           "query": "*:*",
           "filter": `docType: ORDER AND orderTypeId: PURCHASE_ORDER AND orderStatusId: ${this.selectedSegment === 'open' ? '(ORDER_APPROVED OR ORDER_CREATED)' : 'ORDER_COMPLETED'} AND facilityId: ${this.currentFacility?.facilityId}`
         }
@@ -133,6 +154,7 @@ export default defineComponent({
         payload.json.params['q.op'] = "AND";
       }
       await this.store.dispatch('order/findPurchaseOrders', payload);
+      this.store.dispatch('order/updatePurchaseOrders', { purchaseOrders: this.sortOrdersByLatestFirst(this.orders) })
       this.fetchingOrders = false;
       return Promise.resolve();
     },
