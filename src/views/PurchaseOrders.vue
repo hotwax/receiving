@@ -20,7 +20,7 @@
     </ion-header>
     <ion-content data-testid="purchase-orders-page-content">
       <main>
-        <PurchaseOrderItem v-for="(order, index) in orders" :key="index" :purchaseOrder="order.doclist.docs[0]" />
+        <PurchaseOrderItem v-for="(order, index) in sortedOrders" :key="order.groupValue || order.doclist.docs[0].orderId || index" :purchaseOrder="order.doclist.docs[0]" />
         
         <div data-testid="purchase-orders-page-load-more-section" v-if="orders.length < ordersTotal" class="load-more-action ion-text-center">
           <ion-button data-testid="purchase-orders-page-load-more-btn" fill="outline" color="dark" @click="loadMoreOrders()">
@@ -104,7 +104,26 @@ export default defineComponent({
       orders: 'order/getPurchaseOrders',
       ordersTotal: 'order/getPurchaseOrdersTotal',
       isScrollable: 'order/isScrollable',
-    })
+    }),
+    sortedOrders() {
+      return [...(this as any).orders].sort((firstOrder: any, secondOrder: any) => {
+        const firstDoc = firstOrder?.doclist?.docs?.[0] || {};
+        const secondDoc = secondOrder?.doclist?.docs?.[0] || {};
+
+        const firstDate = firstDoc.createdDate || firstDoc.estimatedDeliveryDate || firstDoc.orderDate || "";
+        const secondDate = secondDoc.createdDate || secondDoc.estimatedDeliveryDate || secondDoc.orderDate || "";
+
+        const firstTimestamp = Date.parse(firstDate);
+        const secondTimestamp = Date.parse(secondDate);
+
+        if (!Number.isNaN(firstTimestamp) && !Number.isNaN(secondTimestamp)) {
+          return secondTimestamp - firstTimestamp;
+        }
+        if (!Number.isNaN(firstTimestamp)) return -1;
+        if (!Number.isNaN(secondTimestamp)) return 1;
+        return (secondDoc.orderId || "").localeCompare(firstDoc.orderId || "", undefined, { numeric: true });
+      });
+    }
   },
   methods: {
     async getPurchaseOrders(vSize?: any, vIndex?: any){
@@ -120,7 +139,7 @@ export default defineComponent({
             "group": true,
             "group.field": "orderId",
             "group.limit": 10000,
-            "group.ngroups": true,
+            "group.ngroups": true
           } as any,
           "sort": "createdDate desc",
           "query": "*:*",
@@ -140,7 +159,7 @@ export default defineComponent({
     async loadMoreOrders() {
       this.getPurchaseOrders(
         undefined,
-        Math.ceil(this.orders.length / process.env.VUE_APP_VIEW_SIZE)
+        Math.ceil((this as any).orders.length / (process.env.VUE_APP_VIEW_SIZE as any))
       );
     },
     async refreshPurchaseOrders(event?: any) {
