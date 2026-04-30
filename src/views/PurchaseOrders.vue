@@ -20,7 +20,7 @@
     </ion-header>
     <ion-content data-testid="purchase-orders-page-content">
       <main>
-        <PurchaseOrderItem v-for="(order, index) in sortedOrders" :key="order.groupValue || order.doclist.docs[0].orderId || index" :purchaseOrder="order.doclist.docs[0]" />
+        <PurchaseOrderItem v-for="(order, index) in sortedOrders" :key="index" :purchaseOrder="order.doclist.docs[0]" />
         
         <div data-testid="purchase-orders-page-load-more-section" v-if="orders.length < ordersTotal" class="load-more-action ion-text-center">
           <ion-button data-testid="purchase-orders-page-load-more-btn" fill="outline" color="dark" @click="loadMoreOrders()">
@@ -110,8 +110,8 @@ export default defineComponent({
         const firstDoc = firstOrder?.doclist?.docs?.[0] || {};
         const secondDoc = secondOrder?.doclist?.docs?.[0] || {};
 
-        const firstDate = firstDoc.createdDate || firstDoc.estimatedDeliveryDate || firstDoc.orderDate || "";
-        const secondDate = secondDoc.createdDate || secondDoc.estimatedDeliveryDate || secondDoc.orderDate || "";
+        const firstDate = firstDoc.estimatedDeliveryDate || firstDoc.createdDate || firstDoc.orderDate || "";
+        const secondDate = secondDoc.estimatedDeliveryDate || secondDoc.createdDate || secondDoc.orderDate || "";
 
         const firstTimestamp = Date.parse(firstDate);
         const secondTimestamp = Date.parse(secondDate);
@@ -138,10 +138,12 @@ export default defineComponent({
             "start": viewSize * viewIndex,
             "group": true,
             "group.field": "orderId",
+            "group.sort": "orderDate desc",
             "group.limit": 10000,
-            "group.ngroups": true
+            "group.ngroups": true,
+            "sort": "orderDate desc"
           } as any,
-          "sort": "createdDate desc",
+          "sort": "orderDate desc",
           "query": "*:*",
           "filter": `docType: ORDER AND orderTypeId: PURCHASE_ORDER AND orderStatusId: ${this.selectedSegment === 'open' ? '(ORDER_APPROVED OR ORDER_CREATED)' : 'ORDER_COMPLETED'} AND facilityId: ${this.currentFacility?.facilityId}`
         }
