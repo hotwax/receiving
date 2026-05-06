@@ -4,11 +4,27 @@
       <ion-toolbar>
         <ion-menu-button data-testid="transfer-orders-page-menu-btn" slot="start" />
         <ion-title>{{ translate("Transfer Orders") }}</ion-title>
-        <!-- <ion-buttons slot="end">
-          <ion-button data-testid="notifications-button" @click="viewNotifications()">
-            <ion-icon slot="icon-only" :icon="notificationsOutline" :color="(unreadNotificationsStatus && notifications.length) ? 'primary' : ''" />
+        <ion-buttons slot="end">
+          <ion-button data-testid="transfer-orders-page-sort-btn" id="transfer-sort-popover-trigger">
+            <ion-icon slot="icon-only" :icon="swapVerticalOutline" />
           </ion-button>
-        </ion-buttons> -->
+        </ion-buttons>
+        <ion-popover data-testid="transfer-orders-page-sort-popover" trigger="transfer-sort-popover-trigger" trigger-action="click" :dismiss-on-select="true">
+          <ion-content>
+            <ion-list>
+              <ion-radio-group :value="sortOption">
+                <ion-item lines="none" button @click="sortOption = 'orderDate desc'; getTransferOrders()">
+                  <ion-label>{{ translate("Newest First") }}</ion-label>
+                  <ion-radio slot="end" value="orderDate desc" />
+                </ion-item>
+                <ion-item lines="none" button @click="sortOption = 'orderDate asc'; getTransferOrders()">
+                  <ion-label>{{ translate("Oldest First") }}</ion-label>
+                  <ion-radio slot="end" value="orderDate asc" />
+                </ion-item>
+              </ion-radio-group>
+            </ion-list>
+          </ion-content>
+        </ion-popover>
       </ion-toolbar>
       <div>
         <ion-searchbar data-testid="transfer-orders-page-search-input" :placeholder="translate('Search transfer orders')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getTransferOrders()" />
@@ -25,7 +41,7 @@
     </ion-header>
     <ion-content data-testid="transfer-orders-page-content">
       <main>
-        <TransferOrderItem v-for="(order, index) in orders.list" :key="index" :transferOrder="order" />
+        <TransferOrderItem v-for="(order, index) in sortedOrders" :key="index" :transferOrder="order" />
         <div data-testid="transfer-orders-page-load-more-section" v-if="orders.list.length < orders.total" class="load-more-action ion-text-center">
           <ion-button data-testid="transfer-orders-page-load-more-btn" fill="outline" color="dark" @click="loadMoreOrders()">
             <ion-icon :icon="cloudDownloadOutline" slot="start" />
@@ -55,12 +71,18 @@
 <script lang="ts">
 import {
   IonButton,
+  IonButtons,
   IonContent,
   IonHeader,
   IonIcon,
+  IonItem,
   IonLabel,
+  IonList,
   IonMenuButton,
   IonPage,
+  IonPopover,
+  IonRadio,
+  IonRadioGroup,
   IonRefresher,
   IonRefresherContent,
   IonSearchbar,
@@ -69,7 +91,7 @@ import {
   IonTitle,
   IonToolbar
 } from '@ionic/vue';
-import { cloudDownloadOutline, notificationsOutline, reload } from 'ionicons/icons'
+import { cloudDownloadOutline, notificationsOutline, reload, swapVerticalOutline } from 'ionicons/icons'
 import { defineComponent, computed } from 'vue';
 import { mapGetters, useStore } from 'vuex';
 import TransferOrderItem from '@/components/TransferOrderItem.vue'
@@ -80,12 +102,18 @@ export default defineComponent({
   name: 'TransferOrders',
   components: {
     IonButton,
+    IonButtons,
     IonContent,
     IonHeader,
     IonIcon, 
+    IonItem,
     IonLabel,
+    IonList,
     IonMenuButton,
     IonPage,
+    IonPopover,
+    IonRadio,
+    IonRadioGroup,
     IonRefresher,
     IonRefresherContent,
     IonSearchbar,
@@ -100,7 +128,8 @@ export default defineComponent({
       queryString: '',
       fetchingOrders: false,
       showErrorMessage: false,
-      selectedSegment: "open"
+      selectedSegment: "open",
+      sortOption: "orderDate desc"
     }
   },
   computed: {
@@ -109,7 +138,23 @@ export default defineComponent({
       isScrollable: 'order/isScrollable',
       notifications: 'user/getNotifications',
       unreadNotificationsStatus: 'user/getUnreadNotificationsStatus'
-    })
+    }),
+    sortedOrders() {
+      const isAscending = this.sortOption.endsWith('asc');
+      return [...(this as any).orders.list].sort((firstOrder: any, secondOrder: any) => {
+        const firstTimestamp = firstOrder.orderDate || 0;
+        const secondTimestamp = secondOrder.orderDate || 0;
+
+        if (firstTimestamp && secondTimestamp) {
+          return isAscending ? firstTimestamp - secondTimestamp : secondTimestamp - firstTimestamp;
+        }
+        if (firstTimestamp) return isAscending ? 1 : -1;
+        if (secondTimestamp) return isAscending ? -1 : 1;
+        
+        const idCompare = (secondOrder.orderId || "").localeCompare(firstOrder.orderId || "", undefined, { numeric: true });
+        return isAscending ? -idCompare : idCompare;
+      });
+    }
   },
   methods: {
     async getTransferOrders(vSize?: any, vIndex?: any){
@@ -132,7 +177,8 @@ export default defineComponent({
         statusFlowId: ["TO_Fulfill_And_Receive", "TO_Receive_Only"],
         limit,
         pageIndex,
-        orderName: this.queryString?.trim() || undefined,  // Kept this for backward compatibility, can be removed once the changes are pushed on oms
+        orderBy: this.sortOption,
+        orderName: this.queryString?.trim() || undefined,
         keyword: this.queryString?.trim() || undefined
       };
 
@@ -174,6 +220,7 @@ export default defineComponent({
       notificationsOutline,
       reload,
       store,
+      swapVerticalOutline,
       translate
     }
   }

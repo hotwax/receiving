@@ -3,7 +3,28 @@
     <ion-header :translucent="true">
       <ion-toolbar>
         <ion-menu-button data-testid="purchase-orders-page-menu-btn" slot="start" />
-        <ion-title>{{ translate("Purchase Orders") }}</ion-title>
+        <ion-title data-testid="purchase-orders-page-title">{{ translate("Purchase Orders") }}</ion-title>
+        <ion-buttons slot="end">
+          <ion-button data-testid="purchase-orders-page-sort-btn" id="sort-popover-trigger">
+            <ion-icon slot="icon-only" :icon="swapVerticalOutline" />
+          </ion-button>
+        </ion-buttons>
+        <ion-popover data-testid="purchase-orders-page-sort-popover" trigger="sort-popover-trigger" trigger-action="click" :dismiss-on-select="true">
+          <ion-content>
+            <ion-list>
+              <ion-radio-group :value="sortOption">
+                <ion-item lines="none" button @click="sortOption = 'orderDate desc'; getPurchaseOrders()">
+                  <ion-label>{{ translate("Newest First") }}</ion-label>
+                  <ion-radio slot="end" value="orderDate desc" />
+                </ion-item>
+                <ion-item lines="none" button @click="sortOption = 'orderDate asc'; getPurchaseOrders()">
+                  <ion-label>{{ translate("Oldest First") }}</ion-label>
+                  <ion-radio slot="end" value="orderDate asc" />
+                </ion-item>
+              </ion-radio-group>
+            </ion-list>
+          </ion-content>
+        </ion-popover>
       </ion-toolbar>
       <div>
         <ion-searchbar data-testid="purchase-orders-page-search-input" :placeholder="translate('Search purchase orders')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getPurchaseOrders()" />
@@ -20,7 +41,9 @@
     </ion-header>
     <ion-content data-testid="purchase-orders-page-content">
       <main>
-        <PurchaseOrderItem v-for="(order, index) in sortedOrders" :key="index" :purchaseOrder="order.doclist.docs[0]" />
+        <div data-testid="purchase-orders-page-list">
+          <PurchaseOrderItem v-for="(order, index) in sortedOrders" :key="index" :purchaseOrder="order.doclist.docs[0]" />
+        </div>
         
         <div data-testid="purchase-orders-page-load-more-section" v-if="orders.length < ordersTotal" class="load-more-action ion-text-center">
           <ion-button data-testid="purchase-orders-page-load-more-btn" fill="outline" color="dark" @click="loadMoreOrders()">
@@ -51,12 +74,18 @@
 <script lang="ts">
 import {
   IonButton,
+  IonButtons,
   IonContent,
   IonHeader,
   IonIcon,
+  IonItem,
   IonLabel,
+  IonList,
   IonMenuButton,
   IonPage,
+  IonPopover,
+  IonRadio,
+  IonRadioGroup,
   IonRefresher,
   IonRefresherContent,
   IonSearchbar,
@@ -65,7 +94,7 @@ import {
   IonTitle,
   IonToolbar
 } from '@ionic/vue';
-import { cloudDownloadOutline, reload } from 'ionicons/icons'
+import { cloudDownloadOutline, reload, swapVerticalOutline } from 'ionicons/icons'
 import { defineComponent, computed } from 'vue';
 import { mapGetters, useStore } from 'vuex';
 import PurchaseOrderItem from '@/components/PurchaseOrderItem.vue'
@@ -76,12 +105,18 @@ export default defineComponent({
   name: 'PurchaseOrders',
   components: {
     IonButton,
+    IonButtons,
     IonContent,
     IonHeader,
     IonIcon, 
+    IonItem,
     IonLabel,
+    IonList,
     IonMenuButton,
     IonPage,
+    IonPopover,
+    IonRadio,
+    IonRadioGroup,
     IonRefresher,
     IonRefresherContent,
     IonSearchbar,
@@ -96,7 +131,8 @@ export default defineComponent({
       queryString: '',
       fetchingOrders: false,
       showErrorMessage: false,
-      selectedSegment: "open"
+      selectedSegment: "open",
+      sortOption: "orderDate desc"
     }
   },
   computed: {
@@ -106,6 +142,7 @@ export default defineComponent({
       isScrollable: 'order/isScrollable',
     }),
     sortedOrders() {
+      const isAscending = this.sortOption.endsWith('asc');
       return [...(this as any).orders].sort((firstOrder: any, secondOrder: any) => {
         const firstDoc = firstOrder?.doclist?.docs?.[0] || {};
         const secondDoc = secondOrder?.doclist?.docs?.[0] || {};
@@ -117,11 +154,13 @@ export default defineComponent({
         const secondTimestamp = Date.parse(secondDate);
 
         if (!Number.isNaN(firstTimestamp) && !Number.isNaN(secondTimestamp)) {
-          return secondTimestamp - firstTimestamp;
+          return isAscending ? firstTimestamp - secondTimestamp : secondTimestamp - firstTimestamp;
         }
-        if (!Number.isNaN(firstTimestamp)) return -1;
-        if (!Number.isNaN(secondTimestamp)) return 1;
-        return (secondDoc.orderId || "").localeCompare(firstDoc.orderId || "", undefined, { numeric: true });
+        if (!Number.isNaN(firstTimestamp)) return isAscending ? 1 : -1;
+        if (!Number.isNaN(secondTimestamp)) return isAscending ? -1 : 1;
+        
+        const idCompare = (secondDoc.orderId || "").localeCompare(firstDoc.orderId || "", undefined, { numeric: true });
+        return isAscending ? -idCompare : idCompare;
       });
     }
   },
@@ -138,12 +177,12 @@ export default defineComponent({
             "start": viewSize * viewIndex,
             "group": true,
             "group.field": "orderId",
-            "group.sort": "orderDate desc",
+            "group.sort": this.sortOption,
             "group.limit": 10000,
             "group.ngroups": true,
-            "sort": "orderDate desc"
+            "sort": this.sortOption
           } as any,
-          "sort": "orderDate desc",
+          "sort": this.sortOption,
           "query": "*:*",
           "filter": `docType: ORDER AND orderTypeId: PURCHASE_ORDER AND orderStatusId: ${this.selectedSegment === 'open' ? '(ORDER_APPROVED OR ORDER_CREATED)' : 'ORDER_COMPLETED'} AND facilityId: ${this.currentFacility?.facilityId}`
         }
@@ -190,6 +229,7 @@ export default defineComponent({
       reload,
       router,
       store,
+      swapVerticalOutline,
       translate
     }
   }
