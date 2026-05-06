@@ -94,7 +94,7 @@ const actions: ActionTree<TransferOrderState, RootState> = {
     commit(types.ORDER_CURRENT_UPDATED, order);
     return resp;
   },
-  async updateProductCount({ commit, state }, payload ) {
+  async updateProductCount({ state }, payload ) {
     const barcodeIdentifier = store.getters['util/getBarcodeIdentificationPref'];
     const getProduct = store.getters['product/getProduct'];
 
@@ -107,9 +107,6 @@ const actions: ActionTree<TransferOrderState, RootState> = {
 
     if (item) {
       if(item.statusId === 'ITEM_COMPLETED') return { isCompleted: true }
-
-      item.quantityAccepted = Number(item.quantityAccepted) ? Number(item.quantityAccepted) + 1 : 1;
-      commit(types.ORDER_CURRENT_UPDATED, state.current)
       return { isProductFound: true }
     }
     
