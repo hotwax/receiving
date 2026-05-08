@@ -56,10 +56,9 @@ import { computed, onMounted, ref } from 'vue'
 import ReturnListItem from '@/components/ReturnListItem.vue'
 import { translate } from "@common"
 import { useProductStore } from '@/store/productStore';
-import { useRouter } from 'vue-router';
 import { useReturnStore } from '@/store/return';
+import router from '@/router';
 
-const router = useRouter();
 const productStore = useProductStore();
 const returnStore = useReturnStore();
 
@@ -78,40 +77,17 @@ const getReturns = async (vSize?: any, vIndex?: any) => {
   const viewSize = vSize ? vSize : import.meta.env.VITE_VIEW_SIZE;
   const viewIndex = vIndex ? vIndex : 0;
   const payload = {
-    "entityName": "SalesReturnShipmentView",
-    "inputFields": {
-      "destinationFacilityId": (currentFacility.value as any)?.facilityId,
-      "statusId": "PURCH_SHIP_RECEIVED",
-      "statusId_op": selectedSegment.value === "open" ? "notEqual" : "equals"
-    },
-    "fieldList": ["shipmentId", "externalId", "statusId", "shopifyOrderName", "hcOrderId", "trackingCode", "destinationFacilityId"],
-    "noConditionFind": "Y",
-    "viewSize": viewSize,
-    "viewIndex": viewIndex,
-    "orderBy": "createdDate ASC"
+    destinationFacilityId: (currentFacility.value as any)?.facilityId,
+    statusId: "PURCH_SHIP_RECEIVED",
+    statusId_not: selectedSegment.value === "open" ? "Y" : "N",
+    fieldsToSelect: "shipmentId,externalId,statusId,shopifyOrderName,hcOrderId,trackingCode,destinationFacilityId",
+    pageSize: viewSize,
+    pageIndex: viewIndex,
+    orderByField: "createdDate ASC"
   } as any
 
   if (queryString.value) {
-    payload.inputFields["shipmentId"] = queryString.value;
-    payload.inputFields["shipmentId_op"] = "contains";
-    payload.inputFields["shipmentId_ic"] = "Y";
-    payload.inputFields["shipmentId_grp"] = "1";
-    payload.inputFields["trackingCode"] = queryString.value;
-    payload.inputFields["trackingCode_op"] = "contains";
-    payload.inputFields["trackingCode_ic"] = "Y";
-    payload.inputFields["trackingCode_grp"] = "2";
-    payload.inputFields["externalId"] = queryString.value;
-    payload.inputFields["externalId_op"] = "contains";
-    payload.inputFields["externalId_ic"] = "Y";
-    payload.inputFields["externalId_grp"] = "3";
-    payload.inputFields["hcOrderId"] = queryString.value;
-    payload.inputFields["hcOrderId_op"] = "contains";
-    payload.inputFields["hcOrderId_ic"] = "Y";
-    payload.inputFields["hcOrderId_grp"] = "4";
-    payload.inputFields["shopifyOrderName"] = queryString.value;
-    payload.inputFields["shopifyOrderName_op"] = "contains";
-    payload.inputFields["shopifyOrderName_ic"] = "Y";
-    payload.inputFields["shopifyOrderName_grp"] = "5";
+    payload.keyword = queryString.value
   }
   await returnStore.findReturn(payload);
   fetchingReturns.value = false;

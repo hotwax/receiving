@@ -67,12 +67,12 @@
             </div>
           </div>
 
-          <ion-item lines="none" class="border-top" v-if="item.quantityOrdered > 0">
+          <ion-item lines="none" class="border-top" v-if="item.returnQuantity > 0">
             <ion-button :data-testid="`return-detail-page-receive-all-btn-${item.itemSeqId || item.productId}`" v-if="isReturnReceivable(current.statusId) && item.quantityReceived === 0" :disabled="isForceScanEnabled" @click="receiveAll(item)" slot="start" fill="outline">
               {{ translate("Receive All") }}
             </ion-button>
             <ion-progress-bar :color="getRcvdToOrdrdFraction(item) === 1 ? 'success' : getRcvdToOrdrdFraction(item) > 1 ? 'danger' : 'primary'" :value="getRcvdToOrdrdFraction(item)" />
-            <p slot="end">{{ item.quantityOrdered }} {{ translate("returned") }}</p>
+            <p slot="end">{{ item.returnQuantity }} {{ translate("returned") }}</p>
           </ion-item>
         </ion-card>
       </main>
@@ -92,26 +92,22 @@ import { ref, computed, nextTick } from 'vue';
 import { checkmarkDone, cubeOutline, barcodeOutline } from 'ionicons/icons';
 import { DxpShopifyImg, translate, commonUtil, useEmbeddedAppStore, useShopify } from '@common';
 import { useProductStore } from '@/store/productStore';
-import { useRoute, useRouter } from 'vue-router';
 import { useReturnStore } from '@/store/return';
 import { useProductStore as useProduct } from '@/store/product';
 import { useShipmentStore } from '@/store/shipment';
-import { useUtilStore } from '@/store/util';
 import Scanner from "@/components/Scanner.vue";
 import ImageModal from '@/components/ImageModal.vue';
 import { useUserStore } from '@/store/user'
+import router from '@/router';
 
 const props = defineProps(['shipment']);
 
 const returnStore = useReturnStore();
 const product = useProduct();
 const shipmentStore = useShipmentStore();
-const utilStore = useUtilStore();
 const productStore = useProductStore();
 const userStore = useUserStore();
-const route = useRoute();
-const router = useRouter();
-
+const route = router.currentRoute.value
 const queryString = ref('');
 const statusColorMapping = {
   'Received': 'success',
@@ -132,7 +128,7 @@ const barcodeIdentifier = computed(() => productStore.getBarcodeIdentifierPref);
 const productIdentificationPref = computed(() => productStore.getProductIdentificationPref);
 
 const getRcvdToOrdrdFraction = (item: any) => {
-  return item.quantityAccepted / item.quantityOrdered;
+  return item.quantityAccepted / item.returnQuantity;
 };
 
 const openImage = async (imageUrl: string, productName: string) => {
@@ -199,7 +195,7 @@ const completeShipment = async () => {
 const receiveReturn = async () => {
   const eligibleItems = current.value.items.filter((item: any) => item.quantityAccepted > 0)
   const shipmentId = current.value.shipment ? current.value.shipment.shipmentId : current.value.shipmentId 
-  let isReturnReceived = await shipmentStore.receiveShipmentJson({ items: eligibleItems, shipmentId });
+  let isReturnReceived = await shipmentStore.receiveReturnShipment({ items: eligibleItems, shipmentId });
   if (isReturnReceived) {
     commonUtil.showToast(translate("Return received successfully", { shipmentId: shipmentId }))
     router.push('/returns');
@@ -216,8 +212,8 @@ const isEligibleForReceivingReturns = () => {
 const receiveAll = (item: any) => {
   const ele = current.value.items.find((ele: any) => ele.itemSeqId == item.itemSeqId);
   if (ele) {
-    ele.quantityAccepted = ele.quantityOrdered;
-    ele.progress = ele.quantityAccepted / ele.quantityOrdered;
+    ele.quantityAccepted = ele.returnQuantity;
+    ele.progress = ele.quantityAccepted / ele.returnQuantity;
   }
 };
 

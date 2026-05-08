@@ -9,11 +9,10 @@
 </template>
 
 <script setup lang="ts">
+import router from '@/router';
 import { IonBadge, IonItem, IonLabel } from '@ionic/vue';
-import { useRouter } from 'vue-router';
 
 const props = defineProps(["returnShipment"]);
-const router = useRouter();
 
 const statusColorMapping = {
   'Received': 'success',
