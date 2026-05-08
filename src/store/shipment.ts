@@ -137,47 +137,44 @@ export const useShipmentStore = defineStore("shipment", {
       }
     },
 
-    async receiveShipmentItem(payload: any) {
-      let areAllSuccess = true;
+    async receiveReturnShipment(payload: any) {
+      emitter.emit("presentLoader");
       const productStore = useProductStore();
+      const itemsToReceive = payload.isMultiReceivingEnabled
+        ? payload.items
+        : payload.items.filter((item: any) => item.quantityReceived === 0);
+      const items = itemsToReceive.map((item: any) => {
+        return {
+          shipmentItemSeqId: item.itemSeqId,
+          productId: item.productId,
+          quantityAccepted: item.quantityAccepted,
+          orderId: item.orderId,
+          orderItemSeqId: item.orderItemSeqId,
+          unitCost: 0.0,
+          locationSeqId: item.locationSeqId,
+        };
+      });
 
-      for (const item of payload.items) {
-        if (payload.isMultiReceivingEnabled || item.quantityReceived === 0) {
-          if (!item.locationSeqId) {
-            console.error("Missing locationSeqId on item");
-            areAllSuccess = false;
-            continue;
-          }
-
-          const params = {
+      try {
+        const resp = await api({
+          url: `oms/returnShipments/${payload.shipmentId}/receive`,
+          method: "POST",
+          data: {
             shipmentId: payload.shipmentId,
-            facilityId: productStore.getCurrentFacility.facilityId,
-            shipmentItemSeqId: item.itemSeqId,
-            productId: item.productId,
-            quantityAccepted: item.quantityAccepted,
-            orderId: item.orderId,
-            orderItemSeqId: item.orderItemSeqId,
-            unitCost: 0.0,
-            locationSeqId: item.locationSeqId,
-          };
-
-          try {
-            const resp: any = await api({
-              url: "receiveShipmentItem",
-              method: "post",
-              baseURL: commonUtil.getOmsURL(),
-              data: params,
-            });
-            if (commonUtil.hasError(resp)) {
-              throw resp.data;
-            }
-          } catch (error: any) {
-            areAllSuccess = false;
+            items,
+            facilityId: productStore.getCurrentFacility.facilityId
           }
-        }
-      }
+        });
 
-      return areAllSuccess;
+        if (resp && resp?.status === 200) {
+          emitter.emit("dismissLoader");
+          return true;
+        }
+      } catch (err) {
+        commonUtil.showToast(translate("Something went wrong, please try again"));
+      }
+      emitter.emit("dismissLoader");
+      return false;
     },
 
     async receiveShipmentJson(payload: any) {
@@ -263,32 +260,6 @@ export const useShipmentStore = defineStore("shipment", {
         commonUtil.showToast(translate("Something went wrong, please try again"));
       }
       emitter.emit("dismissLoader");
-      return false;
-    },
-
-    async receiveShipment(payload: any) {
-      const areAllSuccess = await this.receiveShipmentItem(payload);
-      if (areAllSuccess) {
-        try {
-          const resp: any = await api({
-            url: "receiveShipment",
-            method: "post",
-            data: {
-              shipmentId: payload.shipmentId,
-              statusId: "PURCH_SHIP_RECEIVED",
-            },
-          });
-
-          if (resp.status == 200 && !commonUtil.hasError(resp)) {
-            commonUtil.showToast(translate("Shipment received successfully", { shipmentId: payload.shipmentId }));
-            return true;
-          } else {
-            throw resp.data;
-          }
-        } catch (error: any) {
-          console.error(error);
-        }
-      }
       return false;
     },
 
