@@ -146,66 +146,6 @@ export const useReturnStore = defineStore("return", {
       }
     },
 
-    receiveReturnItem(payload: any) {
-      const facilityId = this.current.return.destinationFacilityId;
-      return Promise.all(
-        payload.items.map(async (item: any) => {
-          const params = {
-            facilityId,
-            shipmentId: payload.shipmentId,
-            shipmentItemSeqId: item.itemSeqId,
-            productId: item.productId,
-            quantityAccepted: item.quantityAccepted,
-            orderId: item.orderId,
-            orderItemSeqId: item.orderItemSeqId,
-            unitCost: 0.0,
-            locationSeqId: item.locationSeqId,
-          };
-          return api({
-            url: "receiveShipmentItem",
-            method: "post",
-            baseURL: commonUtil.getOmsURL(),
-            data: params,
-          }).catch((err) => err);
-        })
-      );
-    },
-
-    async receiveReturn(payload: any) {
-      emitter.emit("presentLoader");
-      return await this.receiveReturnItem(payload)
-        .then(async (response: any) => {
-          if (response.some((res: any) => res.status !== 200 || commonUtil.hasError(res))) {
-            commonUtil.showToast(translate("Failed to receive some of the items"));
-            emitter.emit("dismissLoader");
-            return;
-          }
-
-          const resp: any = await api({
-            url: "receiveShipment",
-            method: "post",
-            baseURL: commonUtil.getOmsURL(),
-            data: {
-              shipmentId: payload.shipmentId,
-              statusId: "PURCH_SHIP_RECEIVED",
-            },
-          });
-          if (resp.status === 200 && !commonUtil.hasError(resp)) {
-            commonUtil.showToast(translate("Return received successfully", { shipmentId: payload.shipmentId }));
-          } else {
-            commonUtil.showToast(translate("Something went wrong"));
-            console.error("error", resp.data._ERROR_MESSAGE_);
-            return Promise.reject(new Error(resp.data._ERROR_MESSAGE_));
-          }
-          emitter.emit("dismissLoader");
-          return resp;
-        })
-        .catch((err) => {
-          console.error(err);
-          return err;
-        });
-    },
-
     clearReturns() {
       this.returns = { list: [], total: 0 };
       this.current = { return: {}, items: [] };
@@ -215,29 +155,22 @@ export const useReturnStore = defineStore("return", {
       let resp: any;
       try {
         resp = await api({
-          url: "/performFind",
-          method: "post",
-          baseURL: commonUtil.getOmsURL(),
-          data: {
-            inputFields: {
-              statusIdTo: "PURCH_SHIP_RECEIVED",
-              statusTypeId: "PURCH_SHIP_STATUS",
-              conditionExpression_op: "empty",
-            },
-            fieldList: ["statusId", "statusIdTo"],
-            entityName: "StatusValidChangeToDetail",
-            noConditionFind: "Y",
-            viewSize: 100,
+          url: "admin/statusFlows/transitions",
+          method: "GET",
+          params: {
+            toStatusId: "PURCH_SHIP_RECEIVED",
+            conditionExpression_op: "empty",
+            pageSize: 100
           },
         });
 
-        if (resp.status == 200 && resp.data.count && !commonUtil.hasError(resp)) {
-          const returnStatusValidChange = resp.data.docs.reduce((acc: any, obj: any) => {
+        if (resp.status == 200 && resp.data.length && !commonUtil.hasError(resp)) {
+          const returnStatusValidChange = resp.data.reduce((acc: any, obj: any) => {
             const status = obj["statusId"];
             if (!acc[status]) {
               acc[status] = [];
             }
-            acc[status].push(obj.statusIdTo);
+            acc[status].push(obj.toStatusId);
             return acc;
           }, {});
 

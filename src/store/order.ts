@@ -152,56 +152,6 @@ export const useOrderStore = defineStore("order", {
       return resp;
     },
 
-    async createPurchaseShipment(payload: any) {
-      let resp: any;
-      try {
-        const params = {
-          orderId: payload.orderId,
-          facilityId: useProductStore().getCurrentFacility.facilityId,
-        };
-
-        resp = await api({
-          url: "/service/createPurchaseShipment",
-          method: "POST",
-          baseURL: commonUtil.getOmsURL(),
-          data: params,
-        });
-
-        if (resp.status === 200 && !commonUtil.hasError(resp) && resp.data.shipmentId) {
-          const shipmentId = resp.data.shipmentId;
-          const shipmentStore = useShipmentStore();
-
-          await Promise.all(
-            payload.items.map((item: any, index: number) => {
-              const shipmentItemSeqId = `0000${index + 1}`;
-              return shipmentStore.addShipmentItem({ item, shipmentId, shipmentItemSeqId, orderId: params.orderId });
-            })
-          ).then(async (resp) => {
-            resp.map((response: any) => {
-              payload.items.map((item: any) => {
-                if (item.productId === response.data.productId) {
-                  item.itemSeqId = response.data.shipmentItemSeqId;
-                }
-              });
-            });
-
-            const poShipment = {
-              shipmentId,
-              items: payload.items,
-              isMultiReceivingEnabled: true,
-            };
-            await shipmentStore.receiveShipment(poShipment).catch((err) => console.error(err));
-          });
-        } else {
-          commonUtil.showToast(translate("Something went wrong"));
-        }
-      } catch (error) {
-        console.error(error);
-        commonUtil.showToast(translate("Something went wrong"));
-      }
-      return resp;
-    },
-
     async createAndReceiveIncomingShipment(payload: any) {
       let resp: any;
       try {
@@ -281,14 +231,6 @@ export const useOrderStore = defineStore("order", {
       });
 
       return resp;
-    },
-    async updatePOItemStatus(payload: any) {
-      return api({
-        url: "service/changeOrderItemStatus",
-        method: "POST",
-        baseURL: commonUtil.getOmsURL(),
-        data: payload,
-      });
     },
     setItemLocationSeqId(payload: any) {
       const item = this.current.items.find((item: any) => item.orderItemSeqId === payload.item.orderItemSeqId);
