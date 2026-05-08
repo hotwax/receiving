@@ -214,11 +214,8 @@ const isEligibleForReceivingReturns = () => {
 };
 
 const receiveAll = (item: any) => {
-  const ele = current.value.items.find((ele: any) => ele.itemSeqId == item.itemSeqId);
-  if (ele) {
-    ele.quantityAccepted = ele.quantityOrdered;
-    ele.progress = ele.quantityAccepted / ele.quantityOrdered;
-  }
+  item.quantityAccepted = item.quantityOrdered;
+  item.progress = item.quantityAccepted / item.quantityOrdered;
 };
 
 const updateProductCount = async (payload?: any) => {
