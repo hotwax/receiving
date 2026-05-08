@@ -411,13 +411,8 @@ export default defineComponent({
     },
     receiveAll(item: any) {
       const qtyAlreadyAccepted = this.getPOItemAccepted(item.productId)
-      this.order.items.find((ele: any) => {
-        if(ele.productId == item.productId) {
-          ele.quantityAccepted = ele.quantity - qtyAlreadyAccepted;
-          ele.progress = ele.quantityAccepted / ele.quantity;
-          return true;
-        }
-      })
+      item.quantityAccepted = item.quantity - qtyAlreadyAccepted;
+      item.progress = item.quantityAccepted / item.quantity;
     },
     isPOReceived() {
       return this.order.orderStatusId === "ORDER_COMPLETED"

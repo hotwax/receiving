@@ -268,13 +268,8 @@ export default defineComponent({
       return this.current.items.some((item: any) => item.quantityAccepted > 0)
     },
     receiveAll(item: any) {
-      this.current.items.find((ele: any) => {
-        if(ele.itemSeqId == item.itemSeqId) {
-          ele.quantityAccepted = ele.quantityOrdered;
-          ele.progress = ele.quantityAccepted / ele.quantityOrdered
-          return true;
-        }
-      })
+      item.quantityAccepted = item.quantityOrdered;
+      item.progress = item.quantityAccepted / item.quantityOrdered;
     },
     async updateProductCount(payload: any){
       if(this.queryString) payload = this.queryString
