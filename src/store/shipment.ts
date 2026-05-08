@@ -183,10 +183,10 @@ export const useShipmentStore = defineStore("shipment", {
     async receiveReturnShipment(payload: any) {
       emitter.emit("presentLoader");
       const productStore = useProductStore();
-      if (!payload.isMultiReceivingEnabled) {
-        payload.items = payload.items.filter((item: any) => item.quantityReceived === 0);
-      }
-      const items = payload.items.map((item: any) => {
+      const itemsToReceive = payload.isMultiReceivingEnabled
+        ? payload.items
+        : payload.items.filter((item: any) => item.quantityReceived === 0);
+      const items = itemsToReceive.map((item: any) => {
         return {
           shipmentItemSeqId: item.itemSeqId,
           productId: item.productId,
@@ -210,6 +210,7 @@ export const useShipmentStore = defineStore("shipment", {
         });
 
         if (resp && resp?.status === 200) {
+          emitter.emit("dismissLoader");
           return true;
         }
       } catch (err) {

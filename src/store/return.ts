@@ -32,7 +32,7 @@ export const useReturnStore = defineStore("return", {
           method: "GET",
           params: payload
         });
-        if (resp.status === 200 && !commonUtil.hasError(resp) && resp.data.returnShipments.length > 0) {
+        if (resp.status === 200 && !commonUtil.hasError(resp) && resp.data.returnShipments?.length > 0) {
           let returns = resp.data.returnShipments;
           const statusIds = [...new Set(returns.map((returnShipment: any) => returnShipment.statusId))] as Array<string>;
           const utilStore = useUtilStore();
@@ -91,7 +91,7 @@ export const useReturnStore = defineStore("return", {
             method: "GET",
             params: getReturnShipmentPayload
           });
-          if (resp.status === 200 && !commonUtil.hasError(resp) && resp.data.docs?.length > 0) {
+          if (resp.status === 200 && !commonUtil.hasError(resp) && resp.data.returnShipments?.length > 0) {
             returnShipment = resp.data.returnShipments[0];
             const utilStore = useUtilStore();
             const statuses = await utilStore.fetchStatus([returnShipment.statusId]);
