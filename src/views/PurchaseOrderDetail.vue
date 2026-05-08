@@ -374,7 +374,6 @@ const isEligibileForCreatingShipment = () => {
 const receiveAll = (item: any) => {
   const qtyAlreadyAccepted = getPOItemAccepted.value(item.productId)
   item.quantityAccepted = item.quantity - qtyAlreadyAccepted;
-  item.progress = item.quantityAccepted / item.quantity;
 };
 
 onIonViewWillEnter(() => {

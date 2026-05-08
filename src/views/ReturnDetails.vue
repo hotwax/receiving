@@ -215,7 +215,6 @@ const isEligibleForReceivingReturns = () => {
 
 const receiveAll = (item: any) => {
   item.quantityAccepted = item.quantityOrdered;
-  item.progress = item.quantityAccepted / item.quantityOrdered;
 };
 
 const updateProductCount = async (payload?: any) => {
