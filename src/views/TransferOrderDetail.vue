@@ -5,10 +5,10 @@
         <ion-back-button data-testid="transfer-order-detail-page-back-btn" default-href="/transfer-orders" slot="start" />
         <ion-title> {{ translate("Transfer Order Details") }} </ion-title>
         <ion-buttons slot="end">
-          <ion-button data-testid="transfer-order-detail-page-history-btn" @click="receivingHistory()">
+          <ion-button data-testid="transfer-order-detail-page-history-btn" :aria-label="translate('Receiving history')" @click="receivingHistory()">
             <ion-icon slot="icon-only" :icon="timeOutline"/>
           </ion-button>
-          <ion-button data-testid="transfer-order-detail-page-add-product-btn" :disabled="!userStore.hasPermission('RECEIVING_ADMIN') || isTOReceived()" @click="addProduct">
+          <ion-button data-testid="transfer-order-detail-page-add-product-btn" :aria-label="translate('Add product')" :disabled="!userStore.hasPermission('RECEIVING_ADMIN') || isTOReceived()" @click="addProduct">
             <ion-icon slot="icon-only" :icon="addOutline"/>
           </ion-button>
         </ion-buttons>
@@ -94,7 +94,7 @@
                 </div>
 
                 <div class="location">
-                  <ion-button :data-testid="`transfer-order-detail-page-fetch-qoh-btn-${item.orderItemSeqId || item.productId}`" v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
+                  <ion-button :data-testid="`transfer-order-detail-page-fetch-qoh-btn-${item.orderItemSeqId || item.productId}`" :aria-label="translate('Fetch quantity on hand')" v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
                     <ion-icon color="medium" slot="icon-only" :icon="cubeOutline" />
                   </ion-button>
                   <ion-chip v-else outline>
@@ -183,7 +183,7 @@
                 </div>
 
                 <div class="location">
-                  <ion-button :data-testid="`transfer-order-detail-page-open-fetch-qoh-btn-${item.orderItemSeqId || item.productId}`" color="medium" v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
+                  <ion-button :data-testid="`transfer-order-detail-page-open-fetch-qoh-btn-${item.orderItemSeqId || item.productId}`" :aria-label="translate('Fetch quantity on hand')" color="medium" v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
                     <ion-icon slot="icon-only" :icon="cubeOutline" />
                   </ion-button>
                   <ion-chip v-else outline>
@@ -226,7 +226,7 @@
               <ion-label>
                 {{ "No items available for receiving, check completed tab" }}
               </ion-label>
-              <ion-button data-testid="transfer-order-detail-page-open-empty-received-btn" fill="clear" @click="segmentChanged('received')">
+              <ion-button data-testid="transfer-order-detail-page-open-empty-received-btn" :aria-label="translate('View received items')" fill="clear" @click="segmentChanged('received')">
                 <ion-icon slot="icon-only" :icon="openOutline" />
               </ion-button>
             </div>
@@ -253,7 +253,7 @@
                 </div>
 
                 <div class="location">
-                  <ion-button :data-testid="`transfer-order-detail-page-received-fetch-qoh-btn-${item.orderItemSeqId || item.productId}`" v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
+                  <ion-button :data-testid="`transfer-order-detail-page-received-fetch-qoh-btn-${item.orderItemSeqId || item.productId}`" :aria-label="translate('Fetch quantity on hand')" v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
                     <ion-icon color="medium" slot="icon-only" :icon="cubeOutline" />
                   </ion-button>
                   <ion-chip v-else outline>
@@ -281,7 +281,7 @@
               <ion-label>
                 {{ "No items are marked as completed, check Open tab" }}
               </ion-label>
-              <ion-button data-testid="transfer-order-detail-page-received-empty-open-btn" fill="clear" @click="segmentChanged('open')">
+              <ion-button data-testid="transfer-order-detail-page-received-empty-open-btn" :aria-label="translate('View open items')" fill="clear" @click="segmentChanged('open')">
                 <ion-icon slot="icon-only" :icon="openOutline" />
               </ion-button>
             </div>
@@ -306,7 +306,7 @@
               </div>
 
               <div class="location">
-                <ion-button :data-testid="`transfer-order-detail-page-completed-fetch-qoh-btn-${item.orderItemSeqId || item.productId}`" v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
+                <ion-button :data-testid="`transfer-order-detail-page-completed-fetch-qoh-btn-${item.orderItemSeqId || item.productId}`" :aria-label="translate('Fetch quantity on hand')" v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
                   <ion-icon color="medium" slot="icon-only" :icon="cubeOutline" />
                 </ion-button>
                 <ion-chip v-else outline>
