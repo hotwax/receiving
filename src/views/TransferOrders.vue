@@ -133,7 +133,8 @@ export default defineComponent({
         limit,
         pageIndex,
         orderName: this.queryString?.trim() || undefined,  // Kept this for backward compatibility, can be removed once the changes are pushed on oms
-        keyword: this.queryString?.trim() || undefined
+        keyword: this.queryString?.trim() || undefined,
+        fieldsToSelect: "orderId,orderName,orderExternalId,orderStatusId,orderStatusDesc,facilityId,orderFacilityId,orderDate"
       };
 
       emitter.emit('presentLoader');
