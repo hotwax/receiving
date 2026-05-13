@@ -570,7 +570,6 @@ export default defineComponent({
         }
       }
 
-      // TODO: move the update product count logic in here, as there is no meaning of maintaining it in state
       const result = await this.store.dispatch('transferorder/updateProductCount', payload)
 
       if(result.isCompleted) {
@@ -581,6 +580,9 @@ export default defineComponent({
 
         // Identify the scanned value belongs to which segment and change the segment
         const item = this.filteredItems.find((item: any) => getProductIdentificationValue(this.barcodeIdentifier, this.getProduct(item.productId)) === payload)
+
+        item.quantityAccepted = Number(item.quantityAccepted) ? Number(item.quantityAccepted) + 1 : 1;
+
         if(item.statusId === "ITEM_COMPLETED") {
           this.segmentChanged("received")
         } else {
