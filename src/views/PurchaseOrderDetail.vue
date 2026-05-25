@@ -341,11 +341,20 @@ export default defineComponent({
       this.queryString = ''
     },
     getPOItems(orderType: string) {
+      let items = [];
       if(orderType === 'completed'){
-        return this.order.items.filter((item: any) => item.orderItemStatusId === 'ITEM_COMPLETED')
+        items = this.order.items.filter((item: any) => item.orderItemStatusId === 'ITEM_COMPLETED')
       } else {
-        return this.order.items.filter((item: any) => item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED')
+        items = this.order.items.filter((item: any) => item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED')
       }
+      items.sort((a: any, b: any) => {
+        const productA = this.getProduct(a.productId);
+        const productB = this.getProduct(b.productId);
+        const primaryIdA = this.getProductIdentificationValue(this.productIdentificationPref.primaryId, productA) || '';
+        const primaryIdB = this.getProductIdentificationValue(this.productIdentificationPref.primaryId, productB) || '';
+        return primaryIdA.localeCompare(primaryIdB);
+      });
+      return items;
     },
     async addProduct() {
       const modal = await modalController
