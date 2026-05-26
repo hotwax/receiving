@@ -16,14 +16,13 @@
 import { IonBadge, IonItem, IonLabel } from '@ionic/vue';
 import { useRouter } from 'vue-router';
 import { useOrderStore } from '@/store/order';
-import { getCurrentInstance } from 'vue';
+import { commonUtil } from '@common';
+import { useUserStore } from '@/store/user';
 
 const props = defineProps(["purchaseOrder"]);
 
 const router = useRouter();
 const orderStore = useOrderStore();
-const instance = getCurrentInstance();
-const filters = instance?.appContext.config.globalProperties.$filters;
 
 const orderStatusColor = {
   ORDER_CREATED: 'medium',
@@ -33,7 +32,7 @@ const orderStatusColor = {
 } as any;
 
 const formatDate = (value: string) => {
-  return filters?.formatUtcDate(value, 'YYYY-MM-DDTHH:mm:ssZ');
+  return commonUtil.formatUtcDate(value, useUserStore().current.timeZone);
 }
 
 const getOrderDetail = async (orderId: string) => {
