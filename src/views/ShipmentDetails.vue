@@ -223,13 +223,7 @@ const isEligibleForReceivingShipment = () => {
 };
 
 const receiveAll = (item: any) => {
-  current.value.items.find((ele: any) => {
-    if (ele.itemSeqId == item.itemSeqId) {
-      ele.quantityAccepted = ele.quantityOrdered;
-      ele.progress = ele.quantityAccepted / ele.quantityOrdered
-      return true;
-    }
-  })
+  item.quantityAccepted = item.quantityOrdered;
 };
 
 const updateProductCount = async (payload?: any) => {
