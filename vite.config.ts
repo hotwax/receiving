@@ -4,7 +4,7 @@ import legacy from '@vitejs/plugin-legacy'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
 import { defineConfig } from 'vite'
-import { versionInfoUtil } from '../../common/utils/versionInfoUtil'
+import { versionInfoUtil } from '../accxui/common/utils/versionInfoUtil'
 import pkg from './package.json'
 import { VitePWA } from 'vite-plugin-pwa'
 import manifest from './manifest.json'
@@ -29,7 +29,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
-      '@common': path.resolve(__dirname, '../../common'),
+      '@common': path.resolve(__dirname, '../accxui/common'),
       'vue': 'vue/dist/vue.esm-bundler.js'
     },
   },

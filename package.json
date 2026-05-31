@@ -17,6 +17,7 @@
     "@ionic/core": "catalog:",
     "@ionic/vue": "catalog:",
     "@ionic/vue-router": "catalog:",
+    "ionicons": "catalog:",
     "firebase": "catalog:",
     "luxon": "catalog:",
     "mitt": "catalog:",
@@ -41,6 +42,7 @@
     "terser": "^5.14.2",
     "typescript": "catalog:",
     "vite": "catalog:",
+    "vite-plugin-pwa": "1.2.0",
     "vitest": "catalog:"
   }
 }
