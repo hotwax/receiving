@@ -50,7 +50,7 @@ export const useOrderStore = defineStore("order", {
           params: payload
         })
 
-        if (resp.status === 200 && !commonUtil.hasError(resp) && resp.data.orders?.length > 0) {
+        if (resp.data.orders?.length > 0) {
           let orders = resp.data.orders;
 
           if (start > 0) orders = this.purchaseOrders.list.concat(orders);
@@ -166,8 +166,10 @@ export const useOrderStore = defineStore("order", {
           data: params
         });
 
-        if (resp.status !== 200 || commonUtil.hasError(resp)) {
-          commonUtil.showToast(translate("Something went wrong"));
+        if (resp.status === 200) {
+          return true;
+        } else {
+          throw resp;
         }
       } catch (error) {
         console.error(error);
@@ -178,8 +180,8 @@ export const useOrderStore = defineStore("order", {
 
     async fetchPOHistory(payload: any) {
       let resp: any;
-      let viewIndex = 0;
-      const viewSize = 250;
+      let pageIndex = 0;
+      const pageSize = 250;
       let currentPOHistory = [] as Array<any>;
       let locationSeqId = "";
       try {
@@ -192,8 +194,8 @@ export const useOrderStore = defineStore("order", {
             url: `oms/purchaseOrders/${payload.orderId}/receipts`,
             method: "GET",
             params: {
-              pageSize: viewSize,
-              pageIndex: viewIndex,
+              pageSize,
+              pageIndex,
               orderId: payload.orderId,
               orderByField: "datetimeReceived DESC"
             },
@@ -201,8 +203,8 @@ export const useOrderStore = defineStore("order", {
           if (resp.status === 200 && !commonUtil.hasError(resp) && resp.data.length > 0) {
             currentPOHistory = [...currentPOHistory, ...resp.data];
           }
-          viewIndex++;
-        } while (resp?.data?.length >= viewSize);
+          pageIndex++;
+        } while (resp?.data?.length >= pageSize);
       } catch (error) {
         console.error(error);
         currentPOHistory = [];
