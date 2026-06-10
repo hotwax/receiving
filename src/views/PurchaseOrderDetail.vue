@@ -352,6 +352,12 @@ export default defineComponent({
         const productB = this.getProduct(b.productId);
         const primaryIdA = this.getProductIdentificationValue(this.productIdentificationPref.primaryId, productA) || '';
         const primaryIdB = this.getProductIdentificationValue(this.productIdentificationPref.primaryId, productB) || '';
+           
+        if (primaryIdA === primaryIdB) {
+          const positionA = productA.position ? parseInt(productA.position) : 0;
+          const positionB = productB.position ? parseInt(productB.position) : 0;
+          return positionA - positionB;
+        }
         return primaryIdA.localeCompare(primaryIdB);
       });
       return items;
