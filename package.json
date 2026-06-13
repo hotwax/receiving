@@ -35,6 +35,7 @@
     "@typescript-eslint/parser": "~5.26.0",
     "@vitejs/plugin-legacy": "catalog:",
     "@vitejs/plugin-vue": "catalog:",
+    "chrome-ide-trace": "^0.1.0",
     "@vue/test-utils": "^2.0.0-0",
     "cypress": "^8.3.0",
     "eslint": "catalog:",
