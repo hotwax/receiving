@@ -331,7 +331,8 @@ export default defineComponent({
       const scannedElement = document.getElementById(this.queryString);
       if(scannedElement) {
         this.lastScannedId = this.queryString
-        scannedElement.scrollIntoView()
+        scannedElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        window.scrollBy(0, -40);
         // Scanned product should get un-highlighted after 3s for better experience hence adding setTimeOut
         setTimeout(() => {
           this.lastScannedId = ''
