@@ -121,6 +121,7 @@ export default defineComponent({
             "group.field": "orderId",
             "group.limit": 10000,
             "group.ngroups": true,
+            "sort": "orderDate desc"
           } as any,
           "query": "*:*",
           "filter": `docType: ORDER AND orderTypeId: PURCHASE_ORDER AND orderStatusId: ${this.selectedSegment === 'open' ? '(ORDER_APPROVED OR ORDER_CREATED)' : 'ORDER_COMPLETED'} AND facilityId: ${this.currentFacility?.facilityId}`

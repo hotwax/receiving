@@ -40,16 +40,16 @@
         </div>
 
         <ion-item lines="none" v-if="!isPOReceived()">
-          <ion-label v-if="getPOItems('pending').length > 1" color="medium" class="ion-margin-end">
-            {{ translate("Pending: items", { itemsCount: getPOItems('pending').length }) }}
+          <ion-label v-if="pendingItems.length > 1" color="medium" class="ion-margin-end">
+            {{ translate("Pending: items", { itemsCount: pendingItems.length }) }}
           </ion-label>
           <ion-label v-else color="medium" class="ion-margin-end">
-            {{ translate("Pending: item", { itemsCount: getPOItems('pending').length }) }}
+            {{ translate("Pending: item", { itemsCount: pendingItems.length }) }}
           </ion-label>
         </ion-item>
 
         <template v-if="!isPOReceived()">
-          <ion-card :data-testid="`purchase-order-detail-page-pending-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in getPOItems('pending')" v-show="item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED'" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+          <ion-card :data-testid="`purchase-order-detail-page-pending-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in pendingItems" v-show="item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED'" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
             <div  class="product">
               <div class="product-info">
                 <ion-item lines="none">
@@ -102,18 +102,18 @@
         </template>
 
         <ion-item lines="none" v-if="!isPOReceived()">
-          <ion-text v-if="getPOItems('completed').length > 1" color="medium" class="ion-margin-end">
-            {{ translate("Completed: items", { itemsCount: getPOItems('completed').length }) }}
+          <ion-text v-if="completedItems.length > 1" color="medium" class="ion-margin-end">
+            {{ translate("Completed: items", { itemsCount: completedItems.length }) }}
           </ion-text>
           <ion-text v-else color="medium" class="ion-margin-end">
-            {{ translate("Completed: item", { itemsCount: getPOItems('completed').length }) }}
+            {{ translate("Completed: item", { itemsCount: completedItems.length }) }}
           </ion-text>
-          <ion-button data-testid="purchase-order-detail-page-toggle-completed-btn" size="default" v-if="getPOItems('completed').length" @click="showCompletedItems = !showCompletedItems" color="medium" fill="clear">
+          <ion-button data-testid="purchase-order-detail-page-toggle-completed-btn" size="default" v-if="completedItems.length" @click="showCompletedItems = !showCompletedItems" color="medium" fill="clear">
             <ion-icon :icon="showCompletedItems ? eyeOutline : eyeOffOutline" slot="icon-only" />
           </ion-button>
         </ion-item>
         
-        <ion-card :data-testid="`purchase-order-detail-page-completed-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in getPOItems('completed')" v-show="showCompletedItems && item.orderItemStatusId === 'ITEM_COMPLETED'" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+        <ion-card :data-testid="`purchase-order-detail-page-completed-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in completedItems" v-show="showCompletedItems && item.orderItemStatusId === 'ITEM_COMPLETED'" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
           <div class="product">
             <div class="product-info">
               <ion-item lines="none">
@@ -235,7 +235,15 @@ export default defineComponent({
       facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
       isForceScanEnabled: 'util/isForceScanEnabled',
       barcodeIdentifier: 'util/getBarcodeIdentificationPref',
-    })
+    }),
+    pendingItems(): any {
+      const items = this.order?.items?.filter((item: any) => item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED') || [];
+      return this.sortItems(items);
+    },
+    completedItems(): any {
+      const items = this.order?.items?.filter((item: any) => item.orderItemStatusId === 'ITEM_COMPLETED') || [];
+      return this.sortItems(items);
+    }
   },
   methods: {
     isItemReceivedInFull(item: any) {
@@ -340,12 +348,22 @@ export default defineComponent({
       }
       this.queryString = ''
     },
-    getPOItems(orderType: string) {
-      if(orderType === 'completed'){
-        return this.order.items.filter((item: any) => item.orderItemStatusId === 'ITEM_COMPLETED')
-      } else {
-        return this.order.items.filter((item: any) => item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED')
-      }
+    sortItems(items: any) {
+      items.sort((a: any, b: any) => {
+        const productA = this.getProduct(a.productId);
+        const productB = this.getProduct(b.productId);
+        // primary identifier can not be null
+        const primaryIdA = this.getProductIdentificationValue(this.productIdentificationPref.primaryId, productA) || productA.productName || '';
+        const primaryIdB = this.getProductIdentificationValue(this.productIdentificationPref.primaryId, productB) || productB.productName || '';
+           
+        if (primaryIdA === primaryIdB) {
+          const positionA = productA.position ? parseInt(productA.position) : 0;
+          const positionB = productB.position ? parseInt(productB.position) : 0;
+          return positionA - positionB;
+        }
+        return primaryIdA.localeCompare(primaryIdB);
+      });
+      return items;
     },
     async addProduct() {
       const modal = await modalController
