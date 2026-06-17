@@ -48,7 +48,7 @@
             </div>
 
             <div class="location">
-              <ion-button :data-testid="`return-detail-page-fetch-qoh-btn-${item.itemSeqId || item.productId}`" v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
+              <ion-button :aria-label="translate('Fetch quantity on hand')" :data-testid="`return-detail-page-fetch-qoh-btn-${item.itemSeqId || item.productId}`" v-if="!productQoh[item.productId] && productQoh[item.productId] !== 0" fill="clear" @click.stop="fetchQuantityOnHand(item.productId)">
                 <ion-icon color="medium" slot="icon-only" :icon="cubeOutline" />
               </ion-button>
               <ion-chip v-else outline>

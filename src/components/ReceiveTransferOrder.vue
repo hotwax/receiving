@@ -2,7 +2,7 @@
   <ion-header>
     <ion-toolbar>
       <ion-buttons slot="start">
-        <ion-button data-testid="transfer-order-receive-modal-close-btn" @click="closeModal">
+        <ion-button data-testid="transfer-order-receive-modal-close-btn" :aria-label="translate('Back')" @click="closeModal">
           <ion-icon slot="icon-only" :icon="arrowBackOutline" />
         </ion-button>
       </ion-buttons>
