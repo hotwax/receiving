@@ -5,10 +5,10 @@
         <ion-back-button data-testid="transfer-order-detail-page-back-btn" :aria-label="translate('Back')" default-href="/transfer-orders" slot="start" />
         <ion-title> {{ translate("Transfer Order Details") }} </ion-title>
         <ion-buttons slot="end">
-          <ion-button data-testid="transfer-order-detail-page-history-btn" :aria-label="translate('Receiving history')" @click="receivingHistory()">
+          <ion-button data-testid="transfer-order-detail-page-history-btn" :aria-label="translate('History')" @click="receivingHistory()">
             <ion-icon slot="icon-only" :icon="timeOutline"/>
           </ion-button>
-          <ion-button data-testid="transfer-order-detail-page-add-product-btn" :aria-label="translate('Add product')" :disabled="!userStore.hasPermission('RECEIVING_ADMIN') || isTOReceived()" @click="addProduct">
+          <ion-button data-testid="transfer-order-detail-page-add-product-btn" :aria-label="translate('Add a product')" :disabled="!userStore.hasPermission('RECEIVING_ADMIN') || isTOReceived()" @click="addProduct">
             <ion-icon slot="icon-only" :icon="addOutline"/>
           </ion-button>
         </ion-buttons>
