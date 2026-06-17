@@ -2,7 +2,7 @@
   <ion-page>
     <ion-header :translucent="true">
       <ion-toolbar>
-        <ion-back-button data-testid="transfer-order-detail-page-back-btn" default-href="/transfer-orders" slot="start" />
+        <ion-back-button data-testid="transfer-order-detail-page-back-btn" :aria-label="translate('Back')" default-href="/transfer-orders" slot="start" />
         <ion-title> {{ translate("Transfer Order Details") }} </ion-title>
         <ion-buttons slot="end">
           <ion-button data-testid="transfer-order-detail-page-history-btn" :aria-label="translate('Receiving history')" @click="receivingHistory()">

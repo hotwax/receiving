@@ -2,7 +2,7 @@
   <ion-header>
     <ion-toolbar>
       <ion-buttons slot="start">
-        <ion-button @click="closeModal"> 
+        <ion-button :aria-label="translate('Close')" @click="closeModal"> 
           <ion-icon slot="icon-only" :icon="closeOutline" />
         </ion-button>
       </ion-buttons>
@@ -20,7 +20,7 @@
       </ion-item>
     </ion-list>
     <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-      <ion-fab-button :disabled="isButtonDisabled" @click="confirmSave()">
+      <ion-fab-button :aria-label="translate('Save')" :disabled="isButtonDisabled" @click="confirmSave()">
         <ion-icon :icon="save" />
       </ion-fab-button>
     </ion-fab>

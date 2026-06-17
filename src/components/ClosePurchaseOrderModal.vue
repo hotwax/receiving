@@ -1,8 +1,8 @@
 <template>
   <ion-header>
     <ion-toolbar>
-      <ion-buttons slot="start">
-        <ion-button data-testid="purchase-order-close-items-modal-back-btn" @click="closeModal">
+        <ion-buttons slot="start">
+        <ion-button data-testid="purchase-order-close-items-modal-back-btn" :aria-label="translate('Back')" @click="closeModal">
           <ion-icon slot="icon-only" :icon="arrowBackOutline" />
         </ion-button>
       </ion-buttons>
