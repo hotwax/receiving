@@ -109,13 +109,19 @@ const actions: ActionTree<ShipmentState, RootState> = {
   },
   async receiveShipmentItem(_, payload) {
     let areAllSuccess = true;
+    const batchSize = 10;
+    const maxRetries = 1;
 
-    for (const item of payload.items) {
-      if(payload.isMultiReceivingEnabled || item.quantityReceived === 0) {
+    // Filter items first to get only those we need to process
+    const itemsToProcess = payload.items.filter((item: any) => payload.isMultiReceivingEnabled || item.quantityReceived === 0);
+
+    for (let i = 0; i < itemsToProcess.length; i += batchSize) {
+      const batch = itemsToProcess.slice(i, i + batchSize);
+
+      const promises = batch.map(async (item: any) => {
         if (!item.locationSeqId) {
           console.error("Missing locationSeqId on item");
-          areAllSuccess = false;
-          continue;
+          return false;
         }
 
         const params = {
@@ -128,16 +134,29 @@ const actions: ActionTree<ShipmentState, RootState> = {
           orderItemSeqId: item.orderItemSeqId,
           unitCost: 0.00,
           locationSeqId: item.locationSeqId
-        }
+        };
 
-        try {
-          const resp = await ShipmentService.receiveShipmentItem(params)
-          if(hasError(resp)){
-            throw resp.data;
+        let retries = 0;
+        while (retries <= maxRetries) {
+          try {
+            const resp = await ShipmentService.receiveShipmentItem(params);
+            if (hasError(resp)) {
+              throw resp.data;
+            }
+            return true;
+          } catch (error: any) {
+            retries++;
+            if (retries > maxRetries) {
+              return false;
+            }
           }
-        } catch(error: any) {
-          areAllSuccess = false
         }
+        return false;
+      });
+
+      const results = await Promise.all(promises);
+      if (results.some((res) => res === false)) {
+        areAllSuccess = false;
       }
     }
 
