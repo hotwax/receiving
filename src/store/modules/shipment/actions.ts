@@ -25,7 +25,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
         const shipmentAttributes = await ShipmentService.fetchShipmentAttributes(shipmentIds)
         const trackingCodes = await ShipmentService.fetchTrackingCodes(shipmentIds)
         
-        shipments.map(async (shipment: any) => {
+        shipments.forEach((shipment: any) => {
           shipment.statusDesc = statuses[shipment.statusId]
           shipment.trackingIdNumber = trackingCodes?.[shipment.shipmentId];
           shipment.externalOrderId = shipmentAttributes[shipment.shipmentId]?.['EXTERNAL_ORDER_ID']
@@ -75,7 +75,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
         const facilityLocations = await this.dispatch('user/getFacilityLocations', getCurrentFacilityId());
         if(facilityLocations.length){
           const locationSeqId = facilityLocations[0].locationSeqId
-          resp.data.items.map((item: any) => {
+          resp.data.items.forEach((item: any) => {
             const orderShipment = orderShipmentData[shipmentDetail.shipmentId + "-" + item.itemSeqId];
             item.locationSeqId = locationSeqId;
             item.quantityReceived = item.quantityAccepted ? Number(item.quantityAccepted) : 0,
@@ -87,7 +87,7 @@ const actions: ActionTree<ShipmentState, RootState> = {
         }
         commit(types.SHIPMENT_CURRENT_UPDATED, { current: shipmentDetail })
         let productIds: any = new Set();
-        resp.data.items.map((item: any) => {
+        resp.data.items.forEach((item: any) => {
           productIds.add(item.productId)
         }); 
         productIds = [...productIds]

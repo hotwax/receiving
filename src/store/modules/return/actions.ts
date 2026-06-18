@@ -18,7 +18,7 @@ const actions: ActionTree<ReturnState, RootState> = {
         let returns = resp.data.docs;
         const statusIds = [...new Set(returns.map((returnShipment: any) => returnShipment.statusId))]
         const statuses = await this.dispatch('util/fetchStatus', statusIds);
-        returns.map(async (shipment: any) => {
+        returns.forEach((shipment: any) => {
           shipment.statusDesc = statuses[shipment.statusId]
         });
         if (payload.viewIndex && payload.viewIndex > 0) returns = state.returns.list.concat(returns);
@@ -88,7 +88,7 @@ const actions: ActionTree<ReturnState, RootState> = {
         const facilityLocations = await this.dispatch('user/getFacilityLocations', returnShipment.destinationFacilityId)
         if(facilityLocations.length){
           const locationSeqId = facilityLocations[0].locationSeqId
-          resp.data.items.map((item: any) => {
+          resp.data.items.forEach((item: any) => {
             item.locationSeqId = locationSeqId;
             item.quantityReceived = item.quantityAccepted ? Number(item.quantityAccepted) : 0
           });
