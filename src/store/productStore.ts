@@ -239,7 +239,7 @@ export const useProductStore = defineStore('productStore', {
           // Fetching all stores for the store name
           try {
             const productStoresResp = await api({
-              url: "oms/productStores",
+              url: "admin/productStores",
               method: "GET",
               params: {
                 pageSize: 200
