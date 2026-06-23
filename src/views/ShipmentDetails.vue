@@ -100,7 +100,7 @@ import { add, checkmarkDone, checkmarkDoneCircleOutline, cameraOutline, cubeOutl
 import AddProductModal from '@/views/AddProductModal.vue'
 import { DxpShopifyImg, translate, commonUtil, useEmbeddedAppStore, useShopify } from '@common';
 import { useProductStore } from '@/store/productStore';
-import { useRoute, useRouter } from 'vue-router';
+import router from '@/router';
 import Scanner from "@/components/Scanner.vue";
 import ImageModal from '@/components/ImageModal.vue';
 import { useUserStore } from '@/store/user'
@@ -108,8 +108,7 @@ import { useShipmentStore } from '@/store/shipment';
 import { useProductStore as useProduct } from '@/store/product';
 import { useUtilStore } from '@/store/util';
 
-const route = useRoute();
-const router = useRouter();
+const route = router.currentRoute.value;
 const shipmentStore = useShipmentStore();
 const product = useProduct();
 const utilStore = useUtilStore();

@@ -360,7 +360,6 @@ import { addOutline, cameraOutline, checkmarkDone, copyOutline, cubeOutline, inf
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import { DxpShopifyImg, translate, commonUtil, emitter, useEmbeddedAppStore, useShopify } from '@common';
 import { useProductStore } from '@/store/productStore';
-import { useRoute, useRouter } from 'vue-router';
 import { useTransferOrderStore } from '@/store/transferorder';
 import { useUserStore } from '@/store/user';
 import { useProductStore as useProduct } from '@/store/product';
