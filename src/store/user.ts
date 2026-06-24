@@ -194,6 +194,8 @@ export const useUserStore = defineStore("user", {
       try {
         const productStore = useProductStore();
         await this.fetchUserProfile()
+        // TODO: This should be set from the Login Component
+        this.oms = cookieHelper().get("oms");
         await this.fetchPermissions()
         await productStore.fetchUserFacilities()
         await productStore.fetchFacilityPreference();
