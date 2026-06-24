@@ -101,6 +101,8 @@ export const useUserStore = defineStore("user", {
         if (this.current.timeZone) {
           Settings.defaultZone = this.current.timeZone;
         }
+        // TODO: This should be set from the Login Component
+        this.oms = cookieHelper().get("oms");
       } catch (error: any) {
         commonUtil.showToast(translate("Failed to fetch user profile information"));
         console.error("error", error);
@@ -194,8 +196,6 @@ export const useUserStore = defineStore("user", {
       try {
         const productStore = useProductStore();
         await this.fetchUserProfile()
-        // TODO: This should be set from the Login Component
-        this.oms = cookieHelper().get("oms");
         await this.fetchPermissions()
         await productStore.fetchUserFacilities()
         await productStore.fetchFacilityPreference();
