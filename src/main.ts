@@ -47,6 +47,7 @@ const app = createApp(App)
 initialiseConfig({
   postLogin: useUserStore().postLogin,
   postLogout: useUserStore().postLogout,
+  preLogout: useUserStore().preLogout,
   get oms() { return useUserStore().oms },
   set oms(val) { useUserStore().oms = val },
   get current() { return useUserStore().current },

@@ -14,12 +14,11 @@
 
 <script setup lang="ts">
 import { IonItem, IonLabel } from '@ionic/vue';
-import { useRouter } from 'vue-router';
+import router from '@/router';
 import { useShipmentStore } from '@/store/shipment';
 import { getCurrentInstance } from 'vue';
 
 const props = defineProps(['shipment']);
-const router = useRouter();
 const shipmentStore = useShipmentStore();
 const instance = getCurrentInstance();
 const filters = instance?.appContext.config.globalProperties.$filters;

@@ -17,9 +17,6 @@
         </ion-thumbnail>
         <ion-label>
           {{ item.receiversFullName }}
-          <p v-if="orderType !== 'transferOrder'">
-            {{ translate("Shipment ID") }}: {{ item.shipmentId }}
-          </p>
         </ion-label>
         <ion-label>
           <ion-note>{{ item.quantityAccepted }} {{ translate("received") }} | {{ item.quantityRejected }} {{ translate("rejected") }}</ion-note>

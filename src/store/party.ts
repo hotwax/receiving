@@ -14,24 +14,18 @@ export const usePartyStore = defineStore("party", {
 
       let resp: any;
       const params = {
-        inputFields: {
-          userLoginId: unavailableReceiversLoginIds,
-          userLoginId_op: "in",
-        },
-        fieldList: ["firstName", "lastName", "userLoginId"],
-        entityName: "PartyAndUserLoginAndPerson",
-        viewSize: unavailableReceiversLoginIds.length,
-        noConditionFind: "Y",
+        userLoginId: unavailableReceiversLoginIds,
+        userLoginId_op: "in",
+        pageSize: unavailableReceiversLoginIds.length
       };
       try {
         resp = await api({
-          url: "performFind",
-          method: "post",
-          baseURL: commonUtil.getOmsURL(),
-          data: params,
+          url: "oms/users",
+          method: "GET",
+          params: params,
         });
-        if (resp.status == 200 && !commonUtil.hasError(resp) && resp.data.count > 0) {
-          const receiversDetails = resp.data.docs;
+        if (resp.status == 200 && !commonUtil.hasError(resp) && resp.data.length > 0) {
+          const receiversDetails = resp.data;
 
           receiversDetails.forEach((receiverDetails: any) => {
             receiverDetails.fullName = [receiverDetails.firstName, receiverDetails.lastName].filter(Boolean).join(" ");

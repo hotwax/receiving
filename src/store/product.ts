@@ -80,14 +80,13 @@ export const useProductStore = defineStore("product", {
 
       try {
         const resp: any = await api({
-          url: "service/getInventoryAvailableByFacility",
-          method: "post",
-          baseURL: commonUtil.getOmsURL(),
-          data: payload,
+          url: "poorti/getInventoryAvailableByFacility",
+          method: "GET",
+          params: payload,
         });
 
         if (!commonUtil.hasError(resp)) {
-          productQoh = resp?.data.quantityOnHandTotal;
+          productQoh = resp?.data.qoh;
         } else {
           throw resp.data;
         }

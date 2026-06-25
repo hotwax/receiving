@@ -21,24 +21,17 @@ export const useUtilStore = defineStore("util", {
       if (statusIdFilter.length <= 0) return cachedStatus;
 
       try {
-        const resp: any = await api({
-          url: "/performFind",
-          method: "post",
-          baseURL: commonUtil.getOmsURL(),
-          data: {
-            entityName: "StatusItem",
-            noConditionFind: "Y",
-            distinct: "Y",
-            viewSize: statusIdFilter.length,
-            inputFields: {
-              statusId: statusIdFilter,
-              statusId_op: "in",
-            },
-            fieldList: ["statusId", "description"],
+        const resp = await api({
+          url: "admin/status",
+          method: "GET",
+          params: {
+            pageSize: statusIdFilter.length,
+            statusId: statusIdFilter,
+            statusId_op: "in",
           },
         });
-        if (resp.status === 200 && !commonUtil.hasError(resp) && resp.data?.count) {
-          const statuses = resp.data.docs;
+        if (resp.status === 200 && !commonUtil.hasError(resp) && resp.data.length > 0) {
+          const statuses = resp.data;
           statuses.reduce((cached: any, status: any) => {
             cached[status.statusId] = status.description;
             return cached;

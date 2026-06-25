@@ -101,6 +101,8 @@ export const useUserStore = defineStore("user", {
         if (this.current.timeZone) {
           Settings.defaultZone = this.current.timeZone;
         }
+        // TODO: This should be set from the Login Component
+        this.oms = cookieHelper().get("oms");
       } catch (error: any) {
         commonUtil.showToast(translate("Failed to fetch user profile information"));
         console.error("error", error);
@@ -217,11 +219,10 @@ export const useUserStore = defineStore("user", {
         return Promise.reject(error);
       }
     },
-    async postLogout() {
+    async preLogout() {
       try {
         const notificationStore = useNotificationStore();
         if (notificationStore.getFirebaseDeviceId) await notificationStore.removeClientRegistrationToken(notificationStore.getFirebaseDeviceId, import.meta.env.VITE_NOTIF_APP_ID as any);
-        notificationStore.$reset();
       } catch (error) {
         logger.error(error);
       }
@@ -232,7 +233,8 @@ export const useUserStore = defineStore("user", {
         }, 100);
         useEmbeddedAppStore().$reset();
       }
-
+    },
+    async postLogout() {
       useNotificationStore().clearNotificationState();
       useOrderStore().$reset();
       usePartyStore().$reset();

@@ -50,14 +50,13 @@ import { useOrderStore } from '@/store/order';
 import { useProductStore as useProduct } from '@/store/product';
 import { DxpShopifyImg, translate, commonUtil, emitter } from '@common';
 import { useProductStore } from '@/store/productStore';
-import { useRouter } from 'vue-router';
+import router from '@/router';
 
 const props = defineProps(['isEligibileForCreatingShipment']);
 
 const orderStore = useOrderStore();
 const product = useProduct();
 const productStore = useProductStore();
-const router = useRouter();
 const userStore = useUserStore();
 
 const getProduct = computed(() => product.getProduct);
@@ -91,96 +90,26 @@ const itemStatusChangeErrorAlert = async (error: any) => {
 };
 
 const isPOItemStatusPending = (item: any) => {
-  return item.orderItemStatusId !== "ITEM_COMPLETED" && item.orderItemStatusId !== "ITEM_REJECTED"
+  return item.statusId !== "ITEM_COMPLETED" && item.statusId !== "ITEM_REJECTED"
 };
 
 const updatePOItemStatus = async () => {
   // Shipment can only be created if quantity is specified for atleast one PO item.
   // In some cases we don't need to create shipment instead directly need to close PO items.
-  if(props.isEligibileForCreatingShipment) {
-    const eligibleItemsForShipment = order.value.items.filter((item: any) => item.quantityAccepted > 0)
-    await orderStore.createPurchaseShipment({ items: eligibleItemsForShipment, orderId: order.value.orderId })
-  }
-
-  const eligibleItems = order.value.items.filter((item: any) => item.isChecked && isPOItemStatusPending(item))
-  let hasFailedItems = false;
-  let completedItems = [] as any;
-  let lastItem = {} as any;
-
-  if(eligibleItems.length > 1) {
-    const itemsToBatchUpdate = eligibleItems.slice(0, -1);
-    lastItem = eligibleItems[eligibleItems.length - 1];
-   
-    const batchSize = 10;
-    while(itemsToBatchUpdate.length) {
-      const itemsToUpdate = itemsToBatchUpdate.splice(0, batchSize)
-
-      const responses = await Promise.allSettled(itemsToUpdate.map(async(item: any) => {
-        await orderStore.updatePOItemStatus({
-          orderId: item.orderId,
-          orderItemSeqId: item.orderItemSeqId,
-          statusId: "ITEM_COMPLETED"
-        })
-        return item.orderItemSeqId
-      }))
-
-      responses.map((response: any) => {
-        if(response.status === "fulfilled") {
-          completedItems.push(response.value)
-        } else {
-          hasFailedItems = true
-        }
-      })
+  const currentOrder = JSON.parse(JSON.stringify(order.value));
+  currentOrder.items.forEach((item: any) => {
+    if (item.isChecked && isPOItemStatusPending(item)) {
+      item.statusId = 'ITEM_COMPLETED';
     }
-  } else {
-    lastItem = eligibleItems[0]
-  }
-
-  try{
-    const resp = await orderStore.updatePOItemStatus({
-      orderId: lastItem.orderId,
-      orderItemSeqId: lastItem.orderItemSeqId,
-      statusId: "ITEM_COMPLETED"
-    })
-
-    if(!commonUtil.hasError(resp)) {
-      completedItems.push(lastItem.orderItemSeqId)
-    } else {
-      throw resp.data;
-    }
-  } catch(error: any) {
-    hasFailedItems = true;
-    await itemStatusChangeErrorAlert(error);
-  }
-
-  if(hasFailedItems){
-    console.error('Failed to update the status of purchase order items.')
-  }
-
-  if(!completedItems.length) return;
-
-  order.value.items.map((item: any) => {
-    if(completedItems.includes(item.orderItemSeqId)) {
-      item.orderItemStatusId = "ITEM_COMPLETED"
-    }
-  })
-  await orderStore.updateCurrentOrder(order.value)
+  });
+  await orderStore.createAndReceiveIncomingShipment({ items: currentOrder.items, orderId: currentOrder.orderId })
+  const isPOCompleted = !currentOrder.items.some((item: any) => isPOItemStatusPending(item))
+  await orderStore.updateCurrentOrder(currentOrder)
 
   if(purchaseOrders.value.length) {
     let purchaseOrdersList = JSON.parse(JSON.stringify(purchaseOrders.value))
-    const currentOrder = purchaseOrdersList.find((purchaseOrder: any) => purchaseOrder.groupValue === order.value.orderId)
-    let isPOCompleted = true;
-
-    currentOrder.doclist.docs.map((item: any) => {
-      if(completedItems.includes(item.orderItemSeqId)) {
-        item.orderItemStatusId = "ITEM_COMPLETED"
-      } else if(item.orderItemStatusId !== "ITEM_COMPLETED" && item.orderItemStatusId !== "ITEM_REJECTED") {
-        isPOCompleted = false
-      }
-    })
-
     if(isPOCompleted) {
-      purchaseOrdersList = purchaseOrdersList.filter((purchaseOrder: any) => purchaseOrder.groupValue !== currentOrder.groupValue)
+      purchaseOrdersList = purchaseOrdersList.filter((purchaseOrder: any) => purchaseOrder.orderId !== currentOrder.orderId)
     }
     await orderStore.updatePurchaseOrders({ purchaseOrders: purchaseOrdersList })
   }
