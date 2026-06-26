@@ -91,30 +91,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  IonButton,
-  IonButtons,
-  IonCard, 
-  IonCardHeader,
-  IonCardTitle,
-  IonCardContent,
-  IonContent,
-  IonFab,
-  IonFabButton,
-  IonHeader,
-  IonIcon,
-  IonItem,
-  IonLabel,
-  IonList,
-  IonListHeader,
-  IonModal,
-  IonRadio,
-  IonRadioGroup,
-  IonSearchbar,
-  IonSpinner,
-  IonTitle,
-  IonToolbar
-} from '@ionic/vue';
+import { IonButton, IonButtons, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonItem, IonLabel, IonList, IonListHeader, IonModal, IonRadio, IonRadioGroup, IonSearchbar, IonSpinner, IonTitle, IonToolbar } from '@ionic/vue';
 import { closeOutline, saveOutline } from "ionicons/icons";
 import { useUserStore } from '@/store/user';
 import { computed, onBeforeMount, ref } from "vue";

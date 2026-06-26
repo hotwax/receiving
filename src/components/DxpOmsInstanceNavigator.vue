@@ -19,15 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import { 
-  IonButton,
-  IonCard,
-  IonCardContent,
-  IonCardHeader,
-  IonCardSubtitle,
-  IonCardTitle,
-  IonIcon
-} from '@ionic/vue';
+import { IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonIcon } from '@ionic/vue';
 import { commonUtil, cookieHelper, translate } from "@common";
 import { openOutline } from 'ionicons/icons'
 

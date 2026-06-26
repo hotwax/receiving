@@ -208,7 +208,7 @@ export const useUserStore = defineStore("user", {
 
         const facilityId = router.currentRoute.value.query.facilityId
         if (facilityId) {
-          const facility = this.current.facilities.find((facility: any) => facility.facilityId === facilityId);
+          const facility = productStore.getProductStores.find((facility: any) => facility.facilityId === facilityId);
           if (facility) {
             productStore.currentFacility = facility
           } else {
