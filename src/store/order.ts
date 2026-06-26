@@ -31,7 +31,7 @@ export const useOrderStore = defineStore("order", {
     getPOHistory: (state) => state.current.poHistory,
     getPOItemAccepted: (state) => {
       // Memoize PO history items accepted quantity to optimize lookups in lists.
-      const acceptedMap = state.current.poHistory.items?.reduce((acc: any, item: any) => {
+      const acceptedMap = state.current.poHistory?.items?.reduce((acc: any, item: any) => {
         acc[item.productId] = (acc[item.productId] || 0) + (Number(item.quantityAccepted) || 0);
         return acc;
       }, {}) || {};
