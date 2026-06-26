@@ -94,7 +94,8 @@ const getTransferOrders = async (vSize?: any, vIndex?: any) => {
     limit,
     pageIndex,
     orderName: queryString.value?.trim() || undefined,
-    keyword: queryString.value?.trim() || undefined
+    keyword: queryString.value?.trim() || undefined,
+    fieldsToSelect: "orderId,orderName,orderExternalId,orderStatusId,orderStatusDesc,facilityId,orderFacilityId,orderDate"
   };
 
   emitter.emit('presentLoader');

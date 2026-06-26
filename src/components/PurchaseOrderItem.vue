@@ -1,5 +1,5 @@
 <template>
-  <ion-item :data-testid="`purchase-order-list-item-row-${purchaseOrder.orderId}`" button @click="getOrderDetail(purchaseOrder.orderId)">
+  <ion-item :data-testid="`purchase-order-list-item-row-${purchaseOrder.orderId}`" button @click="goToOrderDetail(purchaseOrder.orderId)">
     <ion-label>
       <!-- TODO:- Handle this purchase order number property for now i have used OrderName or OrderId -->
       <h3>{{ purchaseOrder.orderExternalId }}</h3>
@@ -14,15 +14,11 @@
 
 <script setup lang="ts">
 import { IonBadge, IonItem, IonLabel } from '@ionic/vue';
-import { useOrderStore } from '@/store/order';
-import { getCurrentInstance } from 'vue';
 import router from '@/router';
+import { commonUtil } from '@common';
+import { useUserStore } from '@/store/user';
 
 const props = defineProps(["purchaseOrder"]);
-
-const orderStore = useOrderStore();
-const instance = getCurrentInstance();
-const filters = instance?.appContext.config.globalProperties.$filters;
 
 const orderStatusColor = {
   ORDER_CREATED: 'medium',
@@ -32,11 +28,10 @@ const orderStatusColor = {
 } as any;
 
 const formatDate = (value: string) => {
-  return filters?.formatUtcDate(value, 'YYYY-MM-DDTHH:mm:ssZ');
+  return commonUtil.formatUtcDate(value, useUserStore().current.timeZone);
 }
 
-const getOrderDetail = async (orderId: string) => {
-  await orderStore.getOrderDetail({ orderId })
-    .then(() => router.push({ path: `/purchase-order-detail/${orderId}` }));
+const goToOrderDetail = (orderId: string) => {
+  router.push({ path: `/purchase-order-detail/${orderId}` });
 }
 </script>
