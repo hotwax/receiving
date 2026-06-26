@@ -28,7 +28,7 @@ export const useProductStore = defineStore('productStore', {
         barcodeIdentifierOptions: [] as any[],
       },
     } as any,
-    userFacilities: {} as any,
+    userFacilities: [] as any,
     facilityLocationsByFacilityId: {} as any,
   }),
 
