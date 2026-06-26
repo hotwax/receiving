@@ -12,43 +12,26 @@
   </ion-item>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-import {
-  IonItem,
-  IonLabel
-} from '@ionic/vue'
-import { useRouter } from 'vue-router'
-import { useStore } from 'vuex';
+<script setup lang="ts">
+import { IonItem, IonLabel } from '@ionic/vue';
+import router from '@/router';
+import { useShipmentStore } from '@/store/shipment';
+import { getCurrentInstance } from 'vue';
 
-export default defineComponent({
-  name: "ShipmentListItem",
-  components: {
-    IonItem,
-    IonLabel,
+const props = defineProps(['shipment']);
+const shipmentStore = useShipmentStore();
+const instance = getCurrentInstance();
+const filters = instance?.appContext.config.globalProperties.$filters;
 
-  },
-  props: ["shipment"],
-  methods: {
-    formatDate(value: string) {
-      return (this as any).$filters.formatDate(value)
-    },
-    async viewShipment () {
-      this.store.dispatch('shipment/setCurrent', { shipmentId: this.shipment.shipmentId }).then((resp) => {
-        if (resp.items) {
-          this.router.push({ path: `/shipment/${this.shipment.shipmentId}` });
-        }
-      });
+const formatDate = (value: string) => {
+  return filters?.formatDate(value);
+};
+
+const viewShipment = async () => {
+  shipmentStore.setCurrent({ shipmentId: props.shipment.shipmentId }).then((resp: any) => {
+    if (resp?.items) {
+      router.push({ path: `/shipment/${props.shipment.shipmentId}` });
     }
-  },
-  setup() {
-    const router = useRouter();
-    const store = useStore();
-    
-    return {
-      router,
-      store
-    }
-  },
-})
+  });
+};
 </script>

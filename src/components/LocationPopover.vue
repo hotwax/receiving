@@ -7,58 +7,52 @@
   </ion-chip>
 </template>
 
-<script lang="ts">
-import {
-  IonChip,
-  IonIcon,  
-  IonSelect,
-  IonSelectOption 
-} from '@ionic/vue';
-import { defineComponent } from 'vue';
-import { mapGetters, useStore } from 'vuex';
+<script setup lang="ts">
+import { IonChip, IonIcon, IonSelect, IonSelectOption } from '@ionic/vue';
+import { ref, computed } from 'vue';
 import { locationOutline } from 'ionicons/icons'
-import { translate } from '@hotwax/dxp-components';
+import { translate } from '@common';
+import { useUserStore } from '@/store/user';
+import { useProductStore } from '@/store/productStore';
+import { useShipmentStore } from '@/store/shipment';
+import { useReturnStore } from '@/store/return';
+import { useTransferOrderStore } from '@/store/transferorder';
 
-export default defineComponent({
-  name: 'LocationPopover',
-  components: {
-    IonChip,
-    IonIcon,
-    IonSelect,
-    IonSelectOption
-  },
-  computed: {
-    ...mapGetters({
-      getFacilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
-    })
-  },
-  props: ['item', 'type', 'facilityId'],
-  methods: {
-    setFacilityLocation(event: CustomEvent) {
-      const facilityLocations = this.getFacilityLocationsByFacilityId(this.facilityId)
-      if (facilityLocations) {
-        const facilityLocation = facilityLocations.find((location: any) => location.locationSeqId === event['detail'].value)
-        if(facilityLocation) {
-          this.store.dispatch(`${this.type}/setItemLocationSeqId`, { item: this.item, locationSeqId: facilityLocation.locationSeqId });
-        }
+const props = defineProps(['item', 'type', 'facilityId']);
+const userStore = useUserStore();
+const productStore = useProductStore();
+const selectRef = ref(null) as any;
+
+const getFacilityLocationsByFacilityId = computed(() => productStore.getFacilityLocationsByFacilityId);
+
+const setFacilityLocation = (event: CustomEvent) => {
+  const locationSeqId = event.detail.value;
+  const facilityLocations = productStore.getFacilityLocationsByFacilityId(props.facilityId);
+  if (facilityLocations) {
+    const facilityLocation = facilityLocations.find((location: any) => location.locationSeqId === locationSeqId);
+    if (facilityLocation) {
+      let store: any;
+      if (props.type === 'shipment') {
+        store = useShipmentStore();
+      } else if (props.type === 'return') {
+        store = useReturnStore();
+      } else if (props.type === 'transferorder') {
+        store = useTransferOrderStore();
       }
-    },
-    triggerOpen(event: CustomEvent) {
-      const selectEl = (this.$refs.selectRef as any)?.$el;
-      if (selectEl) {
-        selectEl.open(event);
+
+      if (store) {
+        store.setItemLocationSeqId({ item: props.item, locationSeqId: facilityLocation.locationSeqId });
       }
-    }
-  },
-  setup() {
-    const store = useStore();
-    return {
-      locationOutline,
-      store,
-      translate
     }
   }
-});
+};
+
+const triggerOpen = (event: CustomEvent) => {
+  const selectEl = selectRef.value?.$el;
+  if (selectEl) {
+    selectEl.open(event);
+  }
+};
 </script>
 
 <style scoped>

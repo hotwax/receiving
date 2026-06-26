@@ -20,7 +20,7 @@
     </ion-header>
     <ion-content data-testid="purchase-orders-page-content">
       <main>
-        <PurchaseOrderItem v-for="(order, index) in orders" :key="index" :purchaseOrder="order.doclist.docs[0]" />
+        <PurchaseOrderItem v-for="(order, index) in orders" :key="index" :purchaseOrder="order" />
         
         <div data-testid="purchase-orders-page-load-more-section" v-if="orders.length < ordersTotal" class="load-more-action ion-text-center">
           <ion-button data-testid="purchase-orders-page-load-more-btn" fill="outline" color="dark" @click="loadMoreOrders()">
@@ -48,130 +48,66 @@
   </ion-page>
 </template>
 
-<script lang="ts">
-import {
-  IonButton,
-  IonContent,
-  IonHeader,
-  IonIcon,
-  IonLabel,
-  IonMenuButton,
-  IonPage,
-  IonRefresher,
-  IonRefresherContent,
-  IonSearchbar,
-  IonSegment,
-  IonSegmentButton,
-  IonTitle,
-  IonToolbar
-} from '@ionic/vue';
+<script setup lang="ts">
+import { IonButton, IonContent, IonHeader, IonIcon, IonLabel, IonMenuButton, IonPage, IonRefresher, IonRefresherContent, IonSearchbar, IonSegment, IonSegmentButton, IonTitle, IonToolbar, onIonViewWillEnter } from '@ionic/vue';
 import { cloudDownloadOutline, reload } from 'ionicons/icons'
-import { defineComponent, computed } from 'vue';
-import { mapGetters, useStore } from 'vuex';
+import { computed, ref } from 'vue';
 import PurchaseOrderItem from '@/components/PurchaseOrderItem.vue'
-import { translate, useUserStore } from "@hotwax/dxp-components"
-import { useRouter } from 'vue-router';
+import { translate } from "@common"
+import { useProductStore } from '@/store/productStore';
+import { useOrderStore } from '@/store/order';
+import router from '@/router';
 
-export default defineComponent({
-  name: 'PurchaseOrders',
-  components: {
-    IonButton,
-    IonContent,
-    IonHeader,
-    IonIcon, 
-    IonLabel,
-    IonMenuButton,
-    IonPage,
-    IonRefresher,
-    IonRefresherContent,
-    IonSearchbar,
-    IonSegment,
-    IonSegmentButton,
-    IonTitle,
-    IonToolbar,
-    PurchaseOrderItem
-  },
-  data() {
-    return {
-      queryString: '',
-      fetchingOrders: false,
-      showErrorMessage: false,
-      selectedSegment: "open"
-    }
-  },
-  computed: {
-    ...mapGetters({
-      orders: 'order/getPurchaseOrders',
-      ordersTotal: 'order/getPurchaseOrdersTotal',
-      isScrollable: 'order/isScrollable',
-    })
-  },
-  methods: {
-    async getPurchaseOrders(vSize?: any, vIndex?: any){
-      this.queryString ? this.showErrorMessage = true : this.showErrorMessage = false;
-      this.fetchingOrders = true;
-      const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
-      const viewIndex = vIndex ? vIndex : 0;
-      const payload = {
-        "json": {
-          "params": {
-            "rows": viewSize,
-            "start": viewSize * viewIndex,
-            "group": true,
-            "group.field": "orderId",
-            "group.limit": 10000,
-            "group.ngroups": true,
-            "sort": "orderDate desc"
-          } as any,
-          "query": "*:*",
-          "filter": `docType: ORDER AND orderTypeId: PURCHASE_ORDER AND orderStatusId: ${this.selectedSegment === 'open' ? '(ORDER_APPROVED OR ORDER_CREATED)' : 'ORDER_COMPLETED'} AND facilityId: ${this.currentFacility?.facilityId}`
-        }
-      }
-      if(this.queryString) {
-        payload.json.query = this.queryString;
-        payload.json.params.defType = "edismax";
-        payload.json.params.qf = "orderId externalOrderId";
-        payload.json.params['q.op'] = "AND";
-      }
-      await this.store.dispatch('order/findPurchaseOrders', payload);
-      this.fetchingOrders = false;
-      return Promise.resolve();
-    },
-    async loadMoreOrders() {
-      this.getPurchaseOrders(
-        undefined,
-        Math.ceil(this.orders.length / process.env.VUE_APP_VIEW_SIZE)
-      );
-    },
-    async refreshPurchaseOrders(event?: any) {
-      this.getPurchaseOrders().then(() => {
-        if (event) event.target.complete();
-      })
-    },
-    segmentChanged() {
-      this.getPurchaseOrders();
-    }
-  },
-  ionViewWillEnter () {
-    const forwardRoute = this.router.options.history.state.forward as any;
-    if(!forwardRoute?.startsWith('/purchase-order-detail/')) this.selectedSegment = "open";
-    this.getPurchaseOrders();
-  },
-  setup () {
-    const router = useRouter();
-    const store = useStore();
-    const userStore = useUserStore()
-    let currentFacility: any = computed(() => userStore.getCurrentFacility) 
+const productStore = useProductStore();
+const orderStore = useOrderStore();
 
-    return {
-      cloudDownloadOutline,
-      currentFacility,
-      reload,
-      router,
-      store,
-      translate
-    }
+const queryString = ref('');
+const fetchingOrders = ref(false);
+const showErrorMessage = ref(false);
+const selectedSegment = ref("open");
+
+const orders = computed(() => orderStore.getPurchaseOrders);
+const ordersTotal = computed(() => orderStore.getPurchaseOrdersTotal);
+const currentFacility = computed(() => productStore.getCurrentFacility);
+
+const getPurchaseOrders = async (vSize?: any, vIndex?: any) => {
+  queryString.value ? (showErrorMessage.value = true) : (showErrorMessage.value = false);
+  fetchingOrders.value = true;
+  const viewSize = vSize ? vSize : import.meta.env.VITE_VIEW_SIZE;
+  const viewIndex = vIndex ? vIndex : 0;
+  const payload = {
+    limit: viewSize,
+    pageIndex: viewIndex,
+    orderStatusId: selectedSegment.value === 'open' ? 'ORDER_APPROVED,ORDER_CREATED' : 'ORDER_COMPLETED',
+    facilityId: currentFacility.value?.facilityId,
+    keyword: queryString.value
   }
+
+  await orderStore.findPurchaseOrders(payload);
+  fetchingOrders.value = false;
+};
+
+const loadMoreOrders = async () => {
+  getPurchaseOrders(
+    undefined,
+    Math.ceil(orders.value.length / (import.meta.env.VITE_VIEW_SIZE as any))
+  );
+};
+
+const refreshPurchaseOrders = async (event?: any) => {
+  getPurchaseOrders().then(() => {
+    if (event) event.target.complete();
+  })
+};
+
+const segmentChanged = () => {
+  getPurchaseOrders();
+};
+
+onIonViewWillEnter(() => {
+  const forwardRoute = (router as any).options.history.state.forward as any;
+  if (!forwardRoute?.startsWith('/purchase-order-detail/')) selectedSegment.value = "open";
+  getPurchaseOrders();
 });
 </script>
 

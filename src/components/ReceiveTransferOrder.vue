@@ -25,9 +25,9 @@
           <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
         </ion-thumbnail>
         <ion-label>
-          <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
-          <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
-          <p>{{ getFeatures(getProduct(item.productId).productFeatures) }}</p>
+          <h2>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
+          <p>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+          <p>{{ commonUtil.getFeatures(getProduct(item.productId).productFeatures) }}</p>
           <template v-if="item.orderItemSeqId">
             <ion-note v-if="!closeTO" color="danger">{{ translate("Over received:") }} {{ getOverReceivedQtyForItem(item) }}</ion-note>
             <ion-note v-else color="danger">{{ getOverReceivedQtyForItem(item) > 0 ? translate("Over received:") : translate("Under received:") }} {{ getOverReceivedQtyForItem(item) }}</ion-note>
@@ -45,53 +45,40 @@
     <ion-toolbar class="ion-padding-start">
       <ion-label slot="start">{{ translate("Select all items to proceed") }}</ion-label>
       <ion-buttons slot="end">
-        <ion-button data-testid="transfer-order-receive-modal-save-btn" fill="solid" color="primary" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibleToCloseTOItems()" @click="saveProgress">{{ saveButtonLabel }}</ion-button>
+        <ion-button data-testid="transfer-order-receive-modal-save-btn" fill="solid" color="primary" :disabled="!userStore.hasPermission('RECEIVING_ADMIN') || !isEligibleToCloseTOItems()" @click="saveProgress">{{ saveButtonLabel }}</ion-button>
       </ion-buttons>
     </ion-toolbar>
   </ion-footer>
 </template>
 
 <script setup lang="ts">
-import {
-  IonButton,
-  IonButtons,
-  IonCheckbox,
-  IonContent,
-  IonFooter,
-  IonHeader,
-  IonIcon,
-  IonItem,
-  IonLabel,
-  IonList,
-  IonListHeader,
-  IonNote,
-  IonTitle,
-  IonToolbar,
-  IonThumbnail,
-  modalController
-} from '@ionic/vue';
-import { Actions, hasPermission } from '@/authorization'
+import { IonButton, IonButtons, IonCheckbox, IonContent, IonFooter, IonHeader, IonIcon, IonItem, IonLabel, IonList, IonListHeader, IonNote, IonTitle, IonToolbar, IonThumbnail, modalController } from '@ionic/vue';
+import { useUserStore } from '@/store/user'
 import { arrowBackOutline } from 'ionicons/icons';
-import { computed, defineProps, onMounted, ref } from 'vue';
-import { useStore } from 'vuex'
-import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore } from '@hotwax/dxp-components';
-import { getFeatures } from '@/utils';
+import { computed, onMounted, ref } from 'vue';
+import { useProductStore as useProduct } from '@/store/product'
+import { useUtilStore } from '@/store/util'
+import { useProductStore } from '@/store/productStore';
+import { commonUtil, DxpShopifyImg, translate } from '@common';
 
-const store = useStore()
-const productIdentificationStore = useProductIdentificationStore();
+const props = defineProps(["closeTO", "items", "receivedUnitsFraction"])
 
-const getProduct = computed(() => (id: any) => store.getters["product/getProduct"](id));
-const isReceivingByFulfillment = computed(() => store.getters["util/isReceivingByFulfillment"])
-const getOverReceivedQtyForItem = computed(() => (item: any): number => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0) - getItemQty(item)))
-let productIdentificationPref = computed(() => productIdentificationStore.getProductIdentificationPref)
+const product = useProduct()
+const utilStore = useUtilStore()
+const productStore = useProductStore();
+const userStore = useUserStore();
+
+
+const getProduct = computed(() => product.getProduct);
+const isReceivingByFulfillment = computed(() => productStore.isProductStoreSettingEnabled('RECEIVE_BY_FULFILL'))
+const getOverReceivedQtyForItem = (item: any): number => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0) - getItemQty(item))
+let productIdentificationPref = computed(() => productStore.getProductIdentificationPref)
 const saveButtonLabel = computed(() => props.closeTO ? translate("Complete transfer order") : canReceiveAndClose() ? translate("Receive and complete") : translate("Save progress"))
 
-let validTOItems = ref([])
+let validTOItems = ref([]) as any
 let overReceivedTOItems: any = ref([])
 let itemsToComplete: any = ref([])
 let receivedQty: any = ref(0)
-
-const props = defineProps(["closeTO", "items", "receivedUnitsFraction"])
 
 onMounted(() => {
   validTOItems.value = props.items?.filter((item: any) => !['ITEM_REJECTED', 'ITEM_CANCELLED', 'ITEM_COMPLETED'].includes(item.statusId))

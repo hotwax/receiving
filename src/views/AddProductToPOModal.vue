@@ -21,12 +21,12 @@
           </ion-thumbnail>
           <ion-label>
             <!-- Honouring the identifications set by the user on the settings page -->
-            <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(product.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(product.productId)) : getProduct(product.productId).productName }}</h2>
-            <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(product.productId)) }}</p>
-            <p>{{ getFeatures(getProduct(product.productId).productFeatures) }}</p>
+            <h2>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(product.productId)) ? commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(product.productId)) : getProduct(product.productId).productName }}</h2>
+            <p>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(product.productId)) ? commonUtil.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(product.productId)) : '' }}</p>
+            <p>{{ commonUtil.getFeatures(getProduct(product.productId).productFeatures) }}</p>
           </ion-label>
           <ion-icon v-if="isProductAvailableInOrder(product.productId)" :data-testid="`purchase-order-add-product-added-icon-${product.productId}`" color="success" :icon="checkmarkCircle" />
-          <ion-button v-else :data-testid="`purchase-order-add-product-add-btn-${product.productId}`" fill="outline" @click="addtoOrder(product)">{{ translate("Add to Purchase Order") }}</ion-button>
+          <ion-button v-else :data-testid="`purchase-order-add-product-add-btn-${product.productId}`" fill="outline" @click="addToOrder(product)">{{ translate("Add to Purchase Order") }}</ion-button>
         </ion-item>
       </ion-list>
 
@@ -44,153 +44,110 @@
   </ion-content>
 </template>
 
-<script lang="ts">
-import {
-  IonButton,
-  IonButtons,
-  IonContent,
-  IonHeader,
-  IonIcon,
-  IonInfiniteScroll,
-  IonInfiniteScrollContent,
-  IonItem,
-  IonLabel,
-  IonList,
-  IonSearchbar,
-  IonThumbnail,
-  IonTitle,
-  IonToolbar,
-  modalController,
-} from '@ionic/vue';
-import { defineComponent, computed } from 'vue';
+<script setup lang="ts">
+import { IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonInfiniteScroll, IonInfiniteScrollContent, IonItem, IonLabel, IonList, IonSearchbar, IonThumbnail, IonTitle, IonToolbar, modalController } from '@ionic/vue';
+import { ref, computed, onMounted } from 'vue';
 import { closeOutline, checkmarkCircle } from 'ionicons/icons';
-import { mapGetters } from 'vuex'
-import { useStore } from "@/store";
-import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore, useUserStore } from '@hotwax/dxp-components';
-import { getFeatures, showToast } from '@/utils'
+import { useProductStore as useProduct } from '@/store/product'
+import { useOrderStore } from '@/store/order'
+import { useUserStore } from '@/store/user'
+import { useProductStore } from '@/store/productStore';
+import { DxpShopifyImg, translate, commonUtil } from '@common';
 
-export default defineComponent({
-  name: "Modal",
-  components: {
-    IonButton,
-    IonButtons,
-    IonContent,
-    IonHeader,
-    IonIcon,
-    IonInfiniteScroll,
-    IonInfiniteScrollContent,
-    IonItem,
-    IonLabel,
-    IonList,
-    IonSearchbar,
-    IonThumbnail,
-    IonTitle,
-    IonToolbar,
-    DxpShopifyImg
-  },
-  data() {
-    return {
-      queryString: this.selectedSKU ? this.selectedSKU : '',
-      isScrollingEnabled: false,
-      isSearching: false
-    }
-  },
-  props: ["selectedSKU"],
-  computed: {
-    ...mapGetters({
-      products: 'product/getProducts',
-      getProduct: 'product/getProduct',
-      isScrollable: 'product/isScrollable',
-      isProductAvailableInOrder: 'order/isProductAvailableInOrder',
-      facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId'
-    })
-  },
-  mounted() {
-    if(this.selectedSKU) this.getProducts()
-  },
-  async ionViewWillEnter() {
-    this.isScrollingEnabled = false;
-  },
-  methods: {
-    async getProducts( vSize?: any, vIndex?: any) {
-      const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
-      const viewIndex = vIndex ? vIndex : 0;
-      const payload = {
-        viewSize,
-        viewIndex,
-        queryString: this.queryString.trim()
-      }
-      await this.store.dispatch("product/findProduct", payload);
-    },
-    async handleSearch(){    
-      if (!this.queryString.trim()){
-        showToast(translate("Enter product sku to search"))
-        this.isSearching = false
-        this.store.dispatch("product/clearSearchedProducts")
-        return
-      }
-      await this.getProducts()
-      this.isSearching = true
-    },
-    async handleInput(){
-      if (!this.queryString.trim()){
-        this.isSearching = false
-        this.store.dispatch("product/clearSearchedProducts")
-      }
-    },
-    enableScrolling() {
-      const parentElement = (this as any).$refs.contentRef.$el
-      const scrollEl = parentElement.shadowRoot.querySelector("div[part='scroll']")
-      let scrollHeight = scrollEl.scrollHeight, infiniteHeight = (this as any).$refs.infiniteScrollRef.$el.offsetHeight, scrollTop = scrollEl.scrollTop, threshold = 100, height = scrollEl.offsetHeight
-      const distanceFromInfinite = scrollHeight - infiniteHeight - scrollTop - threshold - height
-      if(distanceFromInfinite < 0) {
-        this.isScrollingEnabled = false;
-      } else {
-        this.isScrollingEnabled = true;
-      }
-    },
-    async loadMoreProducts(event: any) {
-       // Added this check here as if added on infinite-scroll component the Loading content does not gets displayed
-       if(!(this.isScrollingEnabled && this.isScrollable)) {
-        await event.target.complete();
-      }
-      this.getProducts(
-        undefined,
-        Math.ceil(this.products.length / process.env.VUE_APP_VIEW_SIZE).toString()
-      ).then(async () => {
-        await event.target.complete();
-      });
-    },
-    async addtoOrder (product: any) {
-      product.locationSeqId = this.facilityLocationsByFacilityId(this.currentFacility.facilityId) ? this.facilityLocationsByFacilityId(this.currentFacility.facilityId)[0]?.locationSeqId : ''
-      this.store.dispatch('order/addOrderItem', product)
-    },
-    closeModal() {
-      modalController.dismiss({ dismissed: true });
-    },
-    selectSearchBarText(event: any) {
-      event.target.getInputElement().then((element: any) => {
-        element.select();
-      })
-    },
-  },
-  setup() {
-    const store = useStore();
-    const userStore = useUserStore()
-    const productIdentificationStore = useProductIdentificationStore();
-    let productIdentificationPref = computed(() => productIdentificationStore.getProductIdentificationPref);
-    let currentFacility: any = computed(() => userStore.getCurrentFacility) 
+const props = defineProps(["selectedSKU"]);
 
-    return {
-      currentFacility,
-      closeOutline,
-      checkmarkCircle,
-      getFeatures,
-      store,
-      translate,
-      getProductIdentificationValue,
-      productIdentificationPref
-    };
-  },
+const product = useProduct();
+const orderStore = useOrderStore();
+const userStore = useUserStore();
+const productStore = useProductStore();
+
+const queryString = ref(props.selectedSKU ? props.selectedSKU : '');
+const isScrollingEnabled = ref(false);
+const isSearching = ref(false);
+const contentRef = ref(null) as any;
+const infiniteScrollRef = ref(null) as any;
+
+const products = computed(() => product.getProducts);
+const getProduct = computed(() => product.getProduct);
+const isScrollable = computed(() => product.isScrollable);
+const isProductAvailableInOrder = computed(() => orderStore.isProductAvailableInOrder);
+const facilityLocationsByFacilityId = computed(() => productStore.getFacilityLocationsByFacilityId);
+const currentFacility = computed(() => productStore.getCurrentFacility);
+const productIdentificationPref = computed(() => productStore.getProductIdentificationPref);
+
+const closeModal = () => {
+  modalController.dismiss({ dismissed: true });
+};
+
+const selectSearchBarText = (event: any) => {
+  event.target.getInputElement().then((element: any) => {
+    element.select();
+  })
+};
+
+const getProducts = async (vSize?: any, vIndex?: any) => {
+  const viewSize = vSize ? vSize : import.meta.env.VITE_VIEW_SIZE;
+  const viewIndex = vIndex ? vIndex : 0;
+  const payload = {
+    viewSize,
+    viewIndex,
+    queryString: queryString.value.trim()
+  }
+  await product.findProduct(payload);
+};
+
+const handleSearch = async () => {    
+  if (!queryString.value.trim()){
+    commonUtil.showToast(translate("Enter product sku to search"))
+    isSearching.value = false
+    await product.clearSearchedProducts()
+    return
+  }
+  await getProducts()
+  isSearching.value = true
+};
+
+const handleInput = async () => {
+  if (!queryString.value.trim()){
+    isSearching.value = false
+    await product.clearSearchedProducts()
+  }
+};
+
+const enableScrolling = () => {
+  const parentElement = contentRef.value?.$el
+  if (!parentElement) return;
+  const scrollEl = parentElement.shadowRoot.querySelector("div[part='scroll']")
+  if (!scrollEl) return;
+  let scrollHeight = scrollEl.scrollHeight, infiniteHeight = infiniteScrollRef.value?.$el.offsetHeight || 0, scrollTop = scrollEl.scrollTop, threshold = 100, height = scrollEl.offsetHeight
+  const distanceFromInfinite = scrollHeight - infiniteHeight - scrollTop - threshold - height
+  if(distanceFromInfinite < 0) {
+    isScrollingEnabled.value = false;
+  } else {
+    isScrollingEnabled.value = true;
+  }
+};
+
+const loadMoreProducts = async (event: any) => {
+  if(!(isScrollingEnabled.value && isScrollable.value)) {
+    await event.target.complete();
+  }
+  getProducts(
+    undefined,
+    Math.ceil(products.value.length / (import.meta.env.VITE_VIEW_SIZE as any)).toString()
+  ).then(async () => {
+    await event.target.complete();
+  });
+};
+
+const addToOrder = async (product: any) => {
+  const facilityId = currentFacility.value?.facilityId;
+  const facilityLocations = facilityLocationsByFacilityId.value(facilityId);
+  product.locationSeqId = facilityLocations ? facilityLocations[0]?.locationSeqId : ''
+  await orderStore.addOrderItem(product)
+};
+
+onMounted(() => {
+  if(props.selectedSKU) getProducts()
 });
 </script>

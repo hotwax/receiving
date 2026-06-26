@@ -2,188 +2,126 @@
   <ion-header>
     <ion-toolbar>
       <ion-buttons slot="start">
-        <ion-button data-testid="notification-preference-modal-close-btn" @click="closeModal"> 
+        <ion-button @click="closeModal"> 
           <ion-icon slot="icon-only" :icon="closeOutline" />
         </ion-button>
       </ion-buttons>
-      <ion-title data-testid="notification-preference-modal-title">{{ translate("Notification Preference") }}</ion-title>
+      <ion-title>{{ translate("Notification Preference") }}</ion-title>
     </ion-toolbar>
   </ion-header>
 
-  <ion-content data-testid="notification-preference-modal-content">
-    <div v-if="!notificationPrefs.length" data-testid="notification-preference-empty-state" class="ion-text-center">
+  <ion-content>
+    <div v-if="!notificationPrefs.length" class="ion-text-center">
       <p>{{ translate("Notification preferences not found.")}}</p>
     </div>
-    <ion-list v-else data-testid="notification-preference-list">
-      <ion-item :key="pref.enumId" :data-testid="`notification-preference-row-${pref.enumId}`" v-for="pref in notificationPrefs">
-        <ion-toggle :data-testid="`notification-preference-toggle-${pref.enumId}`" label-placement="start" @click="toggleNotificationPref(pref.enumId, $event)" :checked="pref.isEnabled">{{ pref.description }}</ion-toggle>
+    <ion-list v-else>
+      <ion-item :key="pref.enumId" v-for="pref in notificationPrefs">
+        <ion-toggle label-placement="start" @click="toggleNotificationPref(pref.enumId, $event)" :checked="pref.isEnabled">{{ pref.description }}</ion-toggle>
       </ion-item>
     </ion-list>
     <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-      <ion-fab-button data-testid="notification-preference-save-btn" :disabled="isButtonDisabled" @click="confirmSave()">
+      <ion-fab-button :disabled="isButtonDisabled" @click="confirmSave()">
         <ion-icon :icon="save" />
       </ion-fab-button>
     </ion-fab>
   </ion-content>
 </template>
 
-<script lang="ts">
-import { 
-  IonButtons,
-  IonButton,
-  IonContent,
-  IonFab,
-  IonFabButton,
-  IonHeader,
-  IonIcon,
-  IonItem,
-  IonList,
-  IonTitle,
-  IonToggle,
-  IonToolbar,
-  modalController,
-  alertController,
-} from "@ionic/vue";
-import { computed, defineComponent } from "vue";
+<script setup lang="ts">
+import { IonButtons, IonButton, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonItem, IonList, IonTitle, IonToggle, IonToolbar, modalController, alertController } from "@ionic/vue";
+import { computed, onBeforeMount, ref } from "vue";
 import { closeOutline, save } from "ionicons/icons";
-import { mapGetters, useStore } from "vuex";
-import { translate, useUserStore } from '@hotwax/dxp-components'
-import { showToast } from "@/utils";
-import emitter from "@/event-bus"
-import { generateTopicName } from "@/utils/firebase";
-import { NotificationService } from "@/services/NotificationService";
+import { commonUtil, emitter, firebaseMessaging, logger, translate, useNotificationStore } from "@common";
+import { useUserStore as useDxpUserStore } from "@/store/user";
+import { useProductStore } from "@/store/productStore";
+const productStore = useProductStore();
+const notificationPrefState = ref<Record<string, boolean>>({});
+const notificationPrefToUpdate = ref({ subscribe: [] as string[], unsubscribe: [] as string[] });
+const initialNotificationPrefState = ref<Record<string, boolean>>({});
 
-export default defineComponent({
-  name: "NotificationPreferenceModal",
-  components: { 
-    IonButton,
-    IonButtons,
-    IonContent,
-    IonHeader,
-    IonFab,
-    IonFabButton,
-    IonIcon,
-    IonItem,
-    IonList,
-    IonTitle,
-    IonToggle,
-    IonToolbar
-  },
-  data() {
-    return {
-      notificationPrefState: {} as any,
-      notificationPrefToUpdate: {
-        subscribe: [],
-        unsubscribe: []
-      } as any,
-      initialNotificationPrefState: {} as any
-    }
-  },
-  computed: {
-    ...mapGetters({
-      instanceUrl: 'user/getInstanceUrl',
-      notificationPrefs: 'user/getNotificationPrefs'
-    }),
-    // checks initial and final state of prefs to enable/disable the save button
-    isButtonDisabled(): boolean {
-      const enumTypeIds = Object.keys(this.initialNotificationPrefState);
-      return enumTypeIds.every((enumTypeId: string) => this.notificationPrefState[enumTypeId] === this.initialNotificationPrefState[enumTypeId]);
-    },
-  },
-  async beforeMount() {
-    await this.store.dispatch('user/fetchNotificationPreferences')
-    this.notificationPrefState = this.notificationPrefs.reduce((prefs: any, pref: any) => {
-      prefs[pref.enumId] = pref.isEnabled
-      return prefs
-    }, {})
-    this.initialNotificationPrefState = JSON.parse(JSON.stringify(this.notificationPrefState))
-  },
-  methods: {
-    closeModal() {
-      modalController.dismiss({ dismissed: true });
-    },
-    toggleNotificationPref(enumId: string, event: any) {
-      // used click event and extracted value this way as ionChange was
-      // running when the ion-toggle hydrates and hence, updated the 
-      // initialNotificationPrefState here
-      const value = !event.target.checked
-      // updates the notificationPrefToUpdate to check which pref
-      // values were updated from their initial values
-      if (value !== this.initialNotificationPrefState[enumId]) {
-        value
-          ? this.notificationPrefToUpdate.subscribe.push(enumId)
-          : this.notificationPrefToUpdate.unsubscribe.push(enumId)
-      } else {
-        !value
-          ? this.notificationPrefToUpdate.subscribe.splice(this.notificationPrefToUpdate.subscribe.indexOf(enumId), 1)
-          : this.notificationPrefToUpdate.unsubscribe.splice(this.notificationPrefToUpdate.subscribe.indexOf(enumId), 1)
-      }
+const notificationPrefs = computed(() => useNotificationStore().notificationPrefs);
+const currentFacility = computed(() => productStore.getCurrentFacility);
 
-      // updating this.notificationPrefState as it is used to
-      // determine the save button disable state, hence, updating
-      // is necessary to recompute isButtonDisabled property
-      this.notificationPrefState[enumId] = value
-    },
-    async updateNotificationPref() {
-      // added loader as the API call is in pending state for too long, blocking the flow
-      emitter.emit("presentLoader");
-      try {
-        await this.handleTopicSubscription()
-      } catch (error) {
-        console.error(error)
-      } finally {
-        emitter.emit("dismissLoader")
-      }
-    },
-    async handleTopicSubscription() {
-      const facilityId = this.currentFacility?.facilityId
-      const subscribeRequests = this.notificationPrefToUpdate.subscribe.map((enumId: string) => {
-        const topicName = generateTopicName(facilityId, enumId)
-        return NotificationService.subscribeTopic(topicName, process.env.VUE_APP_NOTIF_APP_ID)
-      })
-
-      const unsubscribeRequests = this.notificationPrefToUpdate.unsubscribe.map((enumId: string) => {
-        const topicName = generateTopicName(facilityId, enumId)
-        return NotificationService.unsubscribeTopic(topicName, process.env.VUE_APP_NOTIF_APP_ID)
-      })
-
-      const responses = await Promise.allSettled([...subscribeRequests, ...unsubscribeRequests])
-      const hasFailedResponse = responses.some((response: any) => response.status === "rejected")
-      showToast( hasFailedResponse ? translate('Notification preferences not updated. Please try again.') : translate('Notification preferences updated.'))
-    },
-    async confirmSave() {
-      const message = translate("Are you sure you want to update the notification preferences?");
-      const alert = await alertController.create({
-        header: translate("Update notification preferences"),
-        message,
-        buttons: [
-          {
-            text: translate("Cancel"),
-          },
-          {
-            text: translate("Confirm"),
-            handler: async () => {
-              await this.updateNotificationPref();
-              modalController.dismiss({ dismissed: true });
-            }
-          }
-        ],
-      });
-      return alert.present();
-    },
-  },
-  setup() {
-    const store = useStore();
-    const userStore = useUserStore()
-    let currentFacility: any = computed(() => userStore.getCurrentFacility) 
-
-    return {
-      closeOutline,
-      currentFacility,
-      translate,
-      save,
-      store
-    };
-  },
+const isButtonDisabled = computed(() => {
+  const enumTypeIds = Object.keys(initialNotificationPrefState.value);
+  return enumTypeIds.every((enumTypeId: string) => notificationPrefState.value[enumTypeId] === initialNotificationPrefState.value[enumTypeId]);
 });
+
+onBeforeMount(async () => {
+  const userStore = useDxpUserStore();
+  const notificationStore = useNotificationStore();
+  const omsInstanceName = commonUtil.getOMSInstanceName();
+  await (notificationStore as any).fetchNotificationPreferences(import.meta.env.VITE_NOTIF_ENUM_TYPE_ID, import.meta.env.VITE_NOTIF_APP_ID, userStore.getUserProfile.userLoginId, (enumId: string) => firebaseMessaging.generateTopicName(omsInstanceName, productStore.getCurrentFacility.facilityId, enumId));
+  notificationPrefState.value = notificationPrefs.value.reduce((prefs: any, pref: any) => {
+    prefs[pref.enumId] = pref.isEnabled;
+    return prefs;
+  }, {});
+  initialNotificationPrefState.value = JSON.parse(JSON.stringify(notificationPrefState.value));
+});
+
+const closeModal = () => {
+  modalController.dismiss({ dismissed: true });
+};
+
+const toggleNotificationPref = (enumId: string, event: any) => {
+  const value = !event.target.checked;
+  if (value !== initialNotificationPrefState.value[enumId]) {
+    value ? notificationPrefToUpdate.value.subscribe.push(enumId) : notificationPrefToUpdate.value.unsubscribe.push(enumId);
+  } else {
+    !value ? notificationPrefToUpdate.value.subscribe.splice(notificationPrefToUpdate.value.subscribe.indexOf(enumId), 1) : notificationPrefToUpdate.value.unsubscribe.splice(notificationPrefToUpdate.value.subscribe.indexOf(enumId), 1);
+  }
+  notificationPrefState.value[enumId] = value;
+};
+
+const handleTopicSubscription = async () => {
+  const userStore = useDxpUserStore();
+  const omsInstanceName = commonUtil.getOMSInstanceName();
+  const facilityId = (currentFacility.value as any)?.facilityId;
+  const subscribeRequests = [] as any;
+  const notificationStore = useNotificationStore();
+  notificationPrefToUpdate.value.subscribe.map((enumId: string) => {
+    const topicName = firebaseMessaging.generateTopicName(omsInstanceName, facilityId, enumId);
+    subscribeRequests.push((notificationStore as any).subscribeTopic(topicName, import.meta.env.VITE_NOTIF_APP_ID as any));
+  });
+
+  const unsubscribeRequests = [] as any;
+  notificationPrefToUpdate.value.unsubscribe.map((enumId: string) => {
+    const topicName = firebaseMessaging.generateTopicName(omsInstanceName, facilityId, enumId);
+    unsubscribeRequests.push((notificationStore as any).unsubscribeTopic(topicName, import.meta.env.VITE_NOTIF_APP_ID as any));
+  });
+
+  const responses = await Promise.allSettled([...subscribeRequests, ...unsubscribeRequests]);
+  const hasFailedResponse = responses.some((response: any) => response.status === "rejected");
+  commonUtil.showToast(hasFailedResponse ? translate("Notification preferences not updated. Please try again.") : translate("Notification preferences updated."));
+};
+
+const updateNotificationPref = async () => {
+  emitter.emit("presentLoader");
+  try {
+    await handleTopicSubscription();
+  } catch (error) {
+    logger.error(error);
+  } finally {
+    emitter.emit("dismissLoader");
+  }
+};
+
+const confirmSave = async () => {
+  const message = translate("Are you sure you want to update the notification preferences?");
+  const alert = await alertController.create({
+    header: translate("Update notification preferences"),
+    message,
+    buttons: [
+      { text: translate("Cancel") },
+      {
+        text: translate("Confirm"),
+        handler: async () => {
+          await updateNotificationPref();
+          modalController.dismiss({ dismissed: true });
+        }
+      }
+    ]
+  });
+  return alert.present();
+};
 </script>
