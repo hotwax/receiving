@@ -200,7 +200,7 @@ const updateNotificationPref = async (enumId: string) => {
     if (!allNotificationPrefs.value.length && isToggledOn) {
       await firebaseUtil.initialiseFirebaseMessaging();
     } else if (allNotificationPrefs.value.length === 1 && !isToggledOn) {
-      await notificationStore.unsubscribeTopic(firebaseDeviceId.value, import.meta.env.VITE_NOTIF_APP_ID)
+      await notificationStore.removeClientRegistrationToken(firebaseDeviceId.value, import.meta.env.VITE_NOTIF_APP_ID)
     }
     await notificationStore.fetchAllNotificationPrefs(import.meta.env.VITE_NOTIF_APP_ID, userProfile.value?.userId);
   } catch (error) {
