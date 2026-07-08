@@ -1,59 +1,37 @@
 <template>
-  <ion-item :data-testid="`purchase-order-list-item-row-${purchaseOrder.orderId}`" button @click="getOrderDetail(purchaseOrder.orderId)">
+  <ion-item :data-testid="`purchase-order-list-item-row-${purchaseOrder.orderId}`" button @click="goToOrderDetail(purchaseOrder.orderId)">
     <ion-label>
       <!-- TODO:- Handle this purchase order number property for now i have used OrderName or OrderId -->
-      <h3>{{ purchaseOrder.externalOrderId }}</h3>
+      <h3>{{ purchaseOrder.orderExternalId }}</h3>
       <p>{{ purchaseOrder.orderName ? purchaseOrder.orderName : purchaseOrder.orderId }}</p>
     </ion-label>
     <ion-label class="ion-text-end" slot="end">
-      <p>{{ purchaseOrder.estimatedDeliveryDate ? $filters.formatUtcDate(purchaseOrder.estimatedDeliveryDate, 'YYYY-MM-DDTHH:mm:ssZ') : " - " }}</p>
+      <p>{{ purchaseOrder.estimatedDeliveryDate ? formatDate(purchaseOrder.estimatedDeliveryDate) : " - " }}</p>
       <ion-badge :data-testid="`purchase-order-list-item-status-badge-${purchaseOrder.orderId}`" :color="orderStatusColor[purchaseOrder.orderStatusId]">{{ purchaseOrder.orderStatusDesc }}</ion-badge>
     </ion-label>
   </ion-item>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-import {
-  IonBadge,
-  IonItem,
-  IonLabel
-} from '@ionic/vue'
-import { useRouter } from 'vue-router'
-import { useStore } from 'vuex';
+<script setup lang="ts">
+import { IonBadge, IonItem, IonLabel } from '@ionic/vue';
+import router from '@/router';
+import { commonUtil } from '@common';
+import { useUserStore } from '@/store/user';
 
-export default defineComponent({
-  name: "PurchaseOrderItem",
-  components: {
-    IonBadge,
-    IonItem,
-    IonLabel
-  },
-  props: ["purchaseOrder"],
-  data(){
-    return {
-      orderStatusColor: {
-        ORDER_CREATED: 'medium',
-        ORDER_APPROVED: 'primary',
-        ORDER_REJECTED: 'danger',
-        ORDER_COMPLETED: 'success'
-      }
-    }
-  },
-  methods: {
-    async getOrderDetail(orderId?: any) {
-      await this.store.dispatch("order/getOrderDetail", {orderId})
-      .then(() => this.router.push({ path: `/purchase-order-detail/${orderId}` }))
-    }
-  },
-  setup() {
-    const router = useRouter();
-    const store = useStore();
-    
-    return {
-      router,
-      store
-    }
-  },
-})
+const props = defineProps(["purchaseOrder"]);
+
+const orderStatusColor = {
+  ORDER_CREATED: 'medium',
+  ORDER_APPROVED: 'primary',
+  ORDER_REJECTED: 'danger',
+  ORDER_COMPLETED: 'success'
+} as any;
+
+const formatDate = (value: string) => {
+  return commonUtil.formatUtcDate(value, useUserStore().current.timeZone);
+}
+
+const goToOrderDetail = (orderId: string) => {
+  router.push({ path: `/purchase-order-detail/${orderId}` });
+}
 </script>
