@@ -40,7 +40,7 @@ export const useShipmentStore = defineStore("shipment", {
           const shipmentAttributes = await this.fetchShipmentAttributes(shipmentIds);
           const trackingCodes = await this.fetchTrackingCodes(shipmentIds);
 
-          shipments.map((shipment: any) => {
+          shipments.forEach((shipment: any) => {
             shipment.statusDesc = statuses[shipment.statusId];
             shipment.trackingIdNumber = trackingCodes?.[shipment.shipmentId];
             shipment.externalOrderId = shipmentAttributes[shipment.shipmentId]?.["EXTERNAL_ORDER_ID"];
