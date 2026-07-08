@@ -28,49 +28,14 @@
   </ion-content>
 </template>
 
-<script lang="ts">
-import {
-  IonButton,
-  IonButtons,
-  IonContent,
-  IonHeader,
-  IonIcon,
-  IonItem,
-  IonLabel,
-  IonList,
-  IonTitle,
-  IonToolbar,
-  modalController
-} from '@ionic/vue';
-import { defineComponent } from 'vue';
+<script setup lang="ts">
+import { IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonItem, IonLabel, IonList, IonTitle, IonToolbar, modalController } from '@ionic/vue';
 import { closeOutline } from 'ionicons/icons';
-import { translate } from '@hotwax/dxp-components';
+import { translate } from '@common';
 
-export default defineComponent({
-  name: "ReceivingInstructions",
-  components: {
-    IonButton,
-    IonButtons,
-    IonContent,
-    IonHeader,
-    IonIcon,
-    IonItem,
-    IonLabel,
-    IonList,
-    IonTitle,
-    IonToolbar
-  },
-  props: ["items", "openItems"],
-  methods: {
-    closeModal() {
-      modalController.dismiss({ dismissed: true });
-    }
-  },
-  setup() {
-    return {
-      closeOutline,
-      translate
-    };
-  },
-});
+defineProps(["items", "openItems"]);
+
+const closeModal = () => {
+  modalController.dismiss({ dismissed: true });
+};
 </script>

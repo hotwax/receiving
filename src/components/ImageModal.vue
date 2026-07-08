@@ -12,49 +12,19 @@
 
   <ion-content data-testid="product-image-modal-content" class="ion-text-center">
     <DxpShopifyImg data-testid="product-image-modal-preview-img" :src="imageUrl" />
-
   </ion-content>
 </template>
 
-<script lang="ts">
-import {
-  IonButton,
-  IonButtons,
-  IonContent,
-  IonHeader,
-  IonIcon,
-  IonTitle,
-  IonToolbar,
-  modalController,
-} from '@ionic/vue';
-import { defineComponent } from 'vue';
+<script setup lang="ts">
+import { IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonTitle, IonToolbar, modalController } from '@ionic/vue';
 import { closeOutline } from 'ionicons/icons';
-import { DxpShopifyImg } from '@hotwax/dxp-components';
+import { DxpShopifyImg } from '@common';
 
-export default defineComponent({
-  name: 'ImageModal',
-  components: {
-    IonButton,
-    IonButtons,
-    IonContent,
-    IonHeader,
-    IonIcon,
-    IonTitle,
-    IonToolbar,
-    DxpShopifyImg
-  },
-  props: ["imageUrl", "productName"],
-  methods: {
-    closeModal() {
-      modalController.dismiss({ dismissed: true });
-    },
-  },
-  setup() {
-    return {
-      closeOutline,
-    };
-  },
-});
+defineProps(['imageUrl', 'productName']);
+
+const closeModal = () => {
+  modalController.dismiss({ dismissed: true });
+};
 </script>
 
 <style scoped>
