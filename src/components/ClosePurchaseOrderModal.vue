@@ -23,9 +23,9 @@
           <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
         </ion-thumbnail>
         <ion-label>
-          <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
-          <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
-          <p>{{ getFeatures(getProduct(item.productId).productFeatures) }}</p>
+          <h2>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
+          <p>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+          <p>{{ commonUtil.getFeatures(getProduct(item.productId).productFeatures) }}</p>
         </ion-label>
         <ion-buttons>
           <ion-checkbox aria-label="itemStatus" slot="end" :data-testid="`purchase-order-close-items-select-checkbox-${item.orderItemSeqId || item.productId}`" :modelValue="isPOItemStatusPending(item) ? item.isChecked : true" :disabled="isPOItemStatusPending(item) ? false : true" />
@@ -35,257 +35,136 @@
   </ion-content>
 
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button data-testid="purchase-order-close-items-save-btn" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibleToClosePOItems()" @click="confirmSave">
+    <ion-fab-button data-testid="purchase-order-close-items-save-btn" :disabled="!userStore.hasPermission('RECEIVING_ADMIN') || !isEligibleToClosePOItems()" @click="confirmSave">
       <ion-icon :icon="saveOutline" />
     </ion-fab-button>
   </ion-fab>
 </template>
 
-<script lang="ts">
-import {
-  IonButton,
-  IonButtons,
-  IonCheckbox,
-  IonContent,
-  IonFab,
-  IonFabButton,
-  IonHeader,
-  IonIcon,
-  IonItem,
-  IonLabel,
-  IonList,
-  IonListHeader,
-  IonTitle,
-  IonToolbar,
-  IonThumbnail,
-  alertController,
-  modalController
-} from '@ionic/vue';
-import { Actions, hasPermission } from '@/authorization'
-import { closeOutline, checkmarkCircle, arrowBackOutline, saveOutline } from 'ionicons/icons';
-import { defineComponent, computed } from 'vue';
-import { mapGetters, useStore } from 'vuex'
-import { OrderService } from "@/services/OrderService";
-import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore } from '@hotwax/dxp-components';
-import { useRouter } from 'vue-router';
-import { copyToClipboard, getFeatures, hasError } from '@/utils';
-import emitter from '@/event-bus';
+<script setup lang="ts">
+import { IonButton, IonButtons, IonCheckbox, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonItem, IonLabel, IonList, IonListHeader, IonTitle, IonToolbar, IonThumbnail, alertController, modalController } from '@ionic/vue';
+import { useUserStore } from '@/store/user'
+import { arrowBackOutline, saveOutline } from 'ionicons/icons';
+import { computed, onMounted } from 'vue';
+import { useOrderStore } from '@/store/order';
+import { useProductStore as useProduct } from '@/store/product';
+import { DxpShopifyImg, translate, commonUtil, emitter } from '@common';
+import { useProductStore } from '@/store/productStore';
+import router from '@/router';
 
-export default defineComponent({
-  name: "ClosePurchaseOrderModal",
-  components: {
-    IonButton,
-    IonButtons,
-    IonCheckbox,
-    IonContent,
-    IonFab,
-    IonFabButton,
-    IonHeader,
-    IonIcon,
-    IonItem,
-    IonLabel,
-    IonList,
-    IonListHeader,
-    IonTitle,
-    IonThumbnail,
-    IonToolbar,
-    DxpShopifyImg
-  },
-  computed: {
-    ...mapGetters({
-      getProduct: 'product/getProduct',
-      getPOItemAccepted: 'order/getPOItemAccepted',
-      order: 'order/getCurrent',
-      purchaseOrders: 'order/getPurchaseOrders'
-    })
-  },
-  props: ['isEligibileForCreatingShipment'],
-  methods: {
-    closeModal() {
-      modalController.dismiss({ dismissed: true });
-    },
-    async confirmSave() {
-      const alert = await alertController.create({
-        header: translate('Close purchase order items'),
-        message: translate("The selected items won't be available for receiving later."),
-        buttons: [{
-          text: translate('Cancel'),
-          role: 'cancel'
-        },
-        {
-          text: translate('Proceed'),
-          role: 'proceed',
-          handler: async() => {
-            emitter.emit("presentLoader", {message: translate('Receiving in progress...'), backdropDismiss: false});
-            await this.updatePOItemStatus()
-            modalController.dismiss()
-            emitter.emit("dismissLoader");
-            this.router.push('/purchase-orders');
-          }
-        }]
-      });
-      return alert.present();
-    },
-    async itemStatusChangeErrorAlert(error: any) {
-      const message = error.response?.data?.error?.message || 'Failed to update the status of purchase order items.';
-      const alert = await alertController.create({
-        header: translate('Error while receiving'),
-        message,
-        buttons: [{
-          text: translate('Copy & Dismiss'),
-          handler: async() => {
-            copyToClipboard(message)
-            return;
-          }
-        },
-        {
-          text: translate('Dismiss'),
-          role: 'cancel',
-        }]
-      });
-      await alert.present();
-    },
-    async updatePOItemStatus() {
-      // Shipment can only be created if quantity is specified for atleast one PO item.
-      // In some cases we don't need to create shipment instead directly need to close PO items.
-      if(this.isEligibileForCreatingShipment) {
-        const eligibleItemsForShipment = this.order.items.filter((item: any) => item.quantityAccepted > 0)
-        await this.store.dispatch('order/createPurchaseShipment', { items: eligibleItemsForShipment, orderId: this.order.orderId })
-      }
+const props = defineProps(['isEligibileForCreatingShipment']);
 
-      const eligibleItems = this.order.items.filter((item: any) => item.isChecked && this.isPOItemStatusPending(item))
-      let hasFailedItems = false;
-      let completedItems = [] as any;
-      let lastItem = {} as any;
+const orderStore = useOrderStore();
+const product = useProduct();
+const productStore = useProductStore();
+const userStore = useUserStore();
 
-      if(eligibleItems.length > 1) {
-        const itemsToBatchUpdate = eligibleItems.slice(0, -1);
-        lastItem = eligibleItems[eligibleItems.length - 1];
-       
-        const batchSize = 10;
-        while(itemsToBatchUpdate.length) {
-          const itemsToUpdate = itemsToBatchUpdate.splice(0, batchSize)
-  
-          const responses = await Promise.allSettled(itemsToUpdate.map(async(item: any) => {
-            await OrderService.updatePOItemStatus({
-              orderId: item.orderId,
-              orderItemSeqId: item.orderItemSeqId,
-              statusId: "ITEM_COMPLETED"
-            })
-            return item.orderItemSeqId
-          }))
+const getProduct = computed(() => product.getProduct);
+const getPOItemAccepted = computed(() => orderStore.getPOItemAccepted);
+const order = computed(() => orderStore.getCurrent);
+const purchaseOrders = computed(() => orderStore.getPurchaseOrders);
+const productIdentificationPref = computed(() => productStore.getProductIdentificationPref);
 
-          responses.map((response: any) => {
-            if(response.status === "fulfilled") {
-              completedItems.push(response.value)
-            } else {
-              hasFailedItems = true
-            }
-          })
-        }
-      } else {
-        lastItem = eligibleItems[0]
-      }
+const closeModal = () => {
+  modalController.dismiss({ dismissed: true });
+};
 
-      try{
-        const resp = await OrderService.updatePOItemStatus({
-          orderId: lastItem.orderId,
-          orderItemSeqId: lastItem.orderItemSeqId,
-          statusId: "ITEM_COMPLETED"
-        })
-
-        if(!hasError(resp)) {
-          completedItems.push(lastItem.orderItemSeqId)
-        } else {
-          throw resp.data;
-        }
-      } catch(error: any) {
-        hasFailedItems = true;
-        await this.itemStatusChangeErrorAlert(error);
-      }
-
-      if(hasFailedItems){
-        console.error('Failed to update the status of purchase order items.')
-      }
-
-      if(!completedItems.length) return;
-
-      this.order.items.map((item: any) => {
-        if(completedItems.includes(item.orderItemSeqId)) {
-          item.orderItemStatusId = "ITEM_COMPLETED"
-        }
-      })
-      this.store.dispatch("order/updateCurrentOrder", this.order)
-
-      if(this.purchaseOrders.length) {
-        let purchaseOrders = JSON.parse(JSON.stringify(this.purchaseOrders))
-        const currentOrder = purchaseOrders.find((purchaseOrder: any) => purchaseOrder.groupValue === this.order.orderId)
-        let isPOCompleted = true;
-
-        currentOrder.doclist.docs.map((item: any) => {
-          if(completedItems.includes(item.orderItemSeqId)) {
-            item.orderItemStatusId = "ITEM_COMPLETED"
-          } else if(item.orderItemStatusId !== "ITEM_COMPLETED" && item.orderItemStatusId !== "ITEM_REJECTED") {
-            isPOCompleted = false
-          }
-        })
-
-        if(isPOCompleted) {
-          purchaseOrders = purchaseOrders.filter((purchaseOrder: any) => purchaseOrder.groupValue !== currentOrder.groupValue)
-        }
-        this.store.dispatch("order/updatePurchaseOrders", { purchaseOrders })
+const itemStatusChangeErrorAlert = async (error: any) => {
+  const message = error.response?.data?.error?.message || 'Failed to update the status of purchase order items.';
+  const alert = await alertController.create({
+    header: translate('Error while receiving'),
+    message,
+    buttons: [{
+      text: translate('Copy & Dismiss'),
+      handler: async() => {
+        commonUtil.copyToClipboard(message)
+        return;
       }
     },
-    isEligibleToClosePOItems() {
-      return this.order.items.some((item: any) => item.isChecked && this.isPOItemStatusPending(item))
-    },
-    isPOItemStatusPending(item: any) {
-      return item.orderItemStatusId !== "ITEM_COMPLETED" && item.orderItemStatusId !== "ITEM_REJECTED"
-    },
-    selectAllItems() {
-      this.order.items.map((item:any) => {
-        // Purchase Order may contains items without orderId, there status can't be updated
-        // Hence not allowing to select those items.
-        if(item.orderId && this.isPOItemStatusPending(item)) {
-          item.isChecked = true;
-        } 
-      })
-    },
-    getPOItems() {
-      return this.order.items.filter((item: any) => item.orderId)
-    },
-    checkAlreadyFulfilledItems() {
-      this.order.items.map((item: any) => {
-        if(this.isPOItemStatusPending(item) && this.getPOItemAccepted(item.productId) > 0) {
-          item.isChecked = true;
-        }
-      })
+    {
+      text: translate('Dismiss'),
+      role: 'cancel',
+    }]
+  });
+  await alert.present();
+};
+
+const isPOItemStatusPending = (item: any) => {
+  return item.statusId !== "ITEM_COMPLETED" && item.statusId !== "ITEM_REJECTED"
+};
+
+const updatePOItemStatus = async () => {
+  // Shipment can only be created if quantity is specified for atleast one PO item.
+  // In some cases we don't need to create shipment instead directly need to close PO items.
+  const currentOrder = JSON.parse(JSON.stringify(order.value));
+  currentOrder.items.forEach((item: any) => {
+    if (item.isChecked && isPOItemStatusPending(item)) {
+      item.statusId = 'ITEM_COMPLETED';
     }
-  },
-  mounted() {
-    this.checkAlreadyFulfilledItems()
-  },
-  setup() {
-    const router = useRouter()
-    const store = useStore()
-    const productIdentificationStore = useProductIdentificationStore();
-    let productIdentificationPref = computed(() => productIdentificationStore.getProductIdentificationPref)
+  });
+  await orderStore.createAndReceiveIncomingShipment({ items: currentOrder.items, orderId: currentOrder.orderId })
+  const isPOCompleted = !currentOrder.items.some((item: any) => isPOItemStatusPending(item))
+  await orderStore.updateCurrentOrder(currentOrder)
 
-    return {
-      arrowBackOutline,
-      Actions,
-      closeOutline,
-      checkmarkCircle,
-      getFeatures,
-      hasPermission,
-      OrderService,
-      router,
-      saveOutline,
-      store,
-      translate,
-      getProductIdentificationValue,
-      productIdentificationPref
-    };
+  if(purchaseOrders.value.length) {
+    let purchaseOrdersList = JSON.parse(JSON.stringify(purchaseOrders.value))
+    if(isPOCompleted) {
+      purchaseOrdersList = purchaseOrdersList.filter((purchaseOrder: any) => purchaseOrder.orderId !== currentOrder.orderId)
+    }
+    await orderStore.updatePurchaseOrders({ purchaseOrders: purchaseOrdersList })
   }
+};
+
+const confirmSave = async () => {
+  const alert = await alertController.create({
+    header: translate('Close purchase order items'),
+    message: translate("The selected items won't be available for receiving later."),
+    buttons: [{
+      text: translate('Cancel'),
+      role: 'cancel'
+    },
+    {
+      text: translate('Proceed'),
+      role: 'proceed',
+      handler: async() => {
+        emitter.emit("presentLoader", {message: translate('Receiving in progress...'), backdropDismiss: false});
+        await updatePOItemStatus()
+        modalController.dismiss()
+        emitter.emit("dismissLoader");
+        router.push('/purchase-orders');
+      }
+    }]
+  });
+  return alert.present();
+};
+
+const isEligibleToClosePOItems = () => {
+  return order.value.items.some((item: any) => item.isChecked && isPOItemStatusPending(item))
+};
+
+const selectAllItems = () => {
+  order.value.items.map((item:any) => {
+    // Purchase Order may contains items without orderId, there status can't be updated
+    // Hence not allowing to select those items.
+    if(item.orderId && isPOItemStatusPending(item)) {
+      item.isChecked = true;
+    } 
+  })
+};
+
+const getPOItems = () => {
+  return order.value.items.filter((item: any) => item.orderId)
+};
+
+const checkAlreadyFulfilledItems = () => {
+  order.value.items.map((item: any) => {
+    if(isPOItemStatusPending(item) && getPOItemAccepted.value(item.productId) > 0) {
+      item.isChecked = true;
+    }
+  })
+};
+
+onMounted(() => {
+  checkAlreadyFulfilledItems()
 });
 </script>

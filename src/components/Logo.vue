@@ -5,12 +5,8 @@
   </figure>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-
-export default defineComponent({
-  name: "Logo",
-})
+<script setup lang="ts">
+// Logo component
 </script>
 
 <style scoped>

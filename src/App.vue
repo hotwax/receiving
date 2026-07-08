@@ -1,150 +1,146 @@
 <template>
   <ion-app>
-    <IonSplitPane content-id="main-content" when="lg">
-      <Menu />
+    <ion-split-pane content-id="main-content" when="lg">
+      <ion-menu content-id="main-content" type="overlay" :disabled="!isAuthenticated || (router.currentRoute.value.name as string) === 'Login'">
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>{{ currentFacility.facilityName }}</ion-title>
+          </ion-toolbar>
+        </ion-header>
+
+        <ion-content>
+          <ion-list id="receiving-list">
+            <ion-menu-toggle :auto-hide="false" v-for="(p, i) in menuItems" :key="i">
+              <ion-item button router-direction="root" :router-link="p.url" class="hydrated" :class="{ selected: selectedIndex === i }">
+                <ion-icon slot="start" :ios="p.icon" :md="p.icon" />
+                <ion-label>{{ translate(p.title) }}</ion-label>
+              </ion-item>
+            </ion-menu-toggle>
+          </ion-list>
+        </ion-content>
+      </ion-menu>
       <ion-router-outlet id="main-content"></ion-router-outlet>
-    </IonSplitPane>
+    </ion-split-pane>
   </ion-app>
 </template>
 
-<script lang="ts">
-import { IonApp, IonRouterOutlet, IonSplitPane } from '@ionic/vue';
-import Menu from '@/components/Menu.vue';
-import { defineComponent } from 'vue';
-import { loadingController } from '@ionic/vue';
-import emitter from "@/event-bus"
-import { mapGetters, useStore } from "vuex";
+<script setup lang="ts">
+import { IonApp, IonContent, IonHeader, IonIcon, IonItem, IonLabel, IonList, IonMenu, IonMenuToggle, IonRouterOutlet, IonSplitPane, IonTitle, IonToolbar, loadingController } from '@ionic/vue';
+import { ref, computed, onBeforeMount, onMounted, onUnmounted } from 'vue';
+import router from '@/router'
 import { Settings } from 'luxon';
-import { initialise, resetConfig } from '@/adapter'
-import { useRouter } from 'vue-router';
-import { initialiseFirebaseApp, translate , useAuthStore, useProductIdentificationStore } from "@hotwax/dxp-components"
-import { addNotification, storeClientRegistrationToken } from '@/utils/firebase';
+import { translate, emitter, useNotificationStore, logger, useAuth } from "@common";
+import { firebaseUtil } from '@/utils/firebaseUtil';
+import { useUserStore } from '@/store/user';
+import { useProductStore } from '@/store/productStore';
 
-export default defineComponent({
-  name: 'App',
-  components: {
-    IonApp,
-    IonRouterOutlet,
-    IonSplitPane,
-    Menu
-  },
-  data() {
-    return {
-      loader: null as any,
-      maxAge: process.env.VUE_APP_CACHE_MAX_AGE ? parseInt(process.env.VUE_APP_CACHE_MAX_AGE) : 0,
-      appFirebaseConfig: JSON.parse(process.env.VUE_APP_FIREBASE_CONFIG),
-      appFirebaseVapidKey: process.env.VUE_APP_FIREBASE_VAPID_KEY || '',
-    }
-  },
-  computed: {
-    ...mapGetters({
-      currentEComStore: 'user/getCurrentEComStore',
-      userProfile: 'user/getUserProfile',
-      userToken: 'user/getUserToken',
-      instanceUrl: 'user/getInstanceUrl',
-      allNotificationPrefs: 'user/getAllNotificationPrefs'
+const userStore = useUserStore();
+const productStore = useProductStore();
+
+const { isAuthenticated } = useAuth();
+
+const currentFacility = computed(() => productStore.getCurrentFacility);
+
+const menuItems = computed(() => {
+  return router.getRoutes()
+    .filter(route => route.meta && route.meta.menuIndex)
+    .filter(route => {
+      if(userStore.hasPermission("FULFILLMENT_LEGACY_APP_VIEW") && userStore.hasPermission("FULFILLMENT_APP_VIEW") && route.meta.title === "Transfer Orders") {
+        return false;
+      } else if(!userStore.hasPermission("FULFILLMENT_LEGACY_APP_VIEW") && !userStore.hasPermission("FULFILLMENT_APP_VIEW") && route.meta.title === "Shipments") {
+        return true;
+      }
+      return !route.meta.permissionId || userStore.hasPermission(route.meta.permissionId as string);
     })
-  },
-  methods: {
-    async presentLoader(options = { message: '', backdropDismiss: true }) {
-      // When having a custom message remove already existing loader
-      if(options.message && this.loader) this.dismissLoader();
+    .sort((a, b) => (a.meta!.menuIndex as number) - (b.meta!.menuIndex as number))
+    .map(route => ({
+      title: route.meta!.title as string,
+      url: route.path,
+      icon: route.meta!.icon as string,
+      childRoutes: route.meta!.childRoutes as string[]
+    }));
+});
 
-      if (!this.loader) {
-        this.loader = await loadingController
-          .create({
-            message: options.message ? translate(options.message) : translate("Click the backdrop to dismiss."),
-            translucent: true,
-            backdropDismiss: options.backdropDismiss
-          });
-      }
-      this.loader.present();
-    },
-    dismissLoader() {
-      if (this.loader) {
-        this.loader.dismiss();
-        this.loader = null as any;
-      } else {
-        // Added this else case as there are some scenarios in which the loader is not created and before that the dismissLoader gets called, resulting in the loader not getting dismissed
-        // So checking that when the loader is not found then try dismissing the loader again after 3 secs.
-        // The above case appears when directly hitting the shipment detail page and then the receive shipment api throws error
-        // TODO: need to find a more better approach to dismiss the loader in such case
-        setTimeout(() => {
-          if (this.loader) {
-            this.dismissLoader();
-          }
-        }, 3000)
-      }
-    },
-    async unauthorized() {
-      const isEmbedded = this.authStore.isEmbedded;
-      const shop = this.authStore.shop;
-      const host = this.authStore.host;
-      // Mark the user as unauthorised, this will help in not making the logout api call in actions
-      this.store.dispatch("user/logout", { isUserUnauthorised: true });
-      const redirectUrl = window.location.origin + '/login';
-      window.location.href = isEmbedded? `${redirectUrl}?embedded=1&shop=${shop}&host=${host}` : `${process.env.VUE_APP_LOGIN_URL}?redirectUrl=${redirectUrl}`;
-    }
-  },
-  created() {
-    initialise({
-      token: this.userToken,
-      instanceUrl: this.instanceUrl,
-      cacheMaxAge: this.maxAge,
-      events: {
-        unauthorised: this.unauthorized,
-        responseError: () => {
-          setTimeout(() => this.dismissLoader(), 100);
-        },
-        queueTask: (payload: any) => {
-          emitter.emit("queueTask", payload);
-        }
-      }
-    })
-  },
-  beforeMount() {
-    emitter.on('presentLoader', this.presentLoader);
-    emitter.on('dismissLoader', this.dismissLoader);
-  },
-  async mounted(){
-    if(this.userToken) {
-      // Get product identification from api using dxp-component
-      await useProductIdentificationStore().getIdentificationPref(this.currentEComStore?.productStoreId)
-        .catch((error) => console.error(error));
+const selectedIndex = computed(() => {
+  const path = router.currentRoute.value.path;
+  return menuItems.value.findIndex((item) => item.url === path || item.childRoutes?.includes(path) || item.childRoutes?.some((route: any) => path.includes(route)));
+});
 
-      // check if firebase configurations are there.
-      if (this.appFirebaseConfig && this.appFirebaseConfig.apiKey && this.allNotificationPrefs?.length) {
-        // initialising and connecting firebase app for notification support
-        await initialiseFirebaseApp(
-          this.appFirebaseConfig,
-          this.appFirebaseVapidKey,
-          storeClientRegistrationToken,
-          addNotification,
-        )
+const loader = ref(null as any);
+const userProfile = computed(() => userStore.getUserProfile);
+const allNotificationPrefs = computed(() => useNotificationStore().getAllNotificationPrefs);
+
+
+
+const presentLoader = async (options = { message: '', backdropDismiss: true }) => {
+  // When having a custom message remove already existing loader
+  if (options.message && loader.value) dismissLoader();
+
+  if (!loader.value) {
+    loader.value = await loadingController
+      .create({
+        message: options.message ? translate(options.message) : translate("Click the backdrop to dismiss."),
+        translucent: true,
+        backdropDismiss: options.backdropDismiss
+      });
+  }
+  await loader.value.present();
+};
+
+const dismissLoader = () => {
+  if (loader.value) {
+    loader.value.dismiss();
+    loader.value = null;
+  } else {
+    // Added this else case as there are some scenarios in which the loader is not created and before that the dismissLoader gets called, resulting in the loader not getting dismissed
+    // So checking that when the loader is not found then try dismissing the loader again after 3 secs.
+    // The above case appears when directly hitting the shipment detail page and then the receive shipment api throws error
+    // TODO: need to find a more better approach to dismiss the loader in such case
+    setTimeout(() => {
+      if (loader.value) {
+        dismissLoader();
       }
-    }
+    }, 3000)
+  }
+};
 
-    // Handles case when user resumes or reloads the app
-    // Luxon timezzone should be set with the user's selected timezone
-    if (this.userProfile && this.userProfile.userTimeZone) {
-      Settings.defaultZone = this.userProfile.userTimeZone;
-    }
-  },
-  unmounted() {
-    emitter.off('presentLoader', this.presentLoader);
-    emitter.off('dismissLoader', this.dismissLoader);
-    resetConfig()
-  },
-  setup() {
-    const store = useStore();
-    const router = useRouter();
-    const authStore = useAuthStore();
+onBeforeMount(() => {
+  emitter.on('presentLoader', (options: any) => {
+    presentLoader(options);
+  });
+  emitter.on('dismissLoader', dismissLoader);
+});
 
-    return {
-      router,
-      store,
-      authStore
+onMounted(async () => {
+  const currentProductStore: any = productStore.getCurrentProductStore;
+  if (isAuthenticated.value && currentProductStore?.productStoreId) {
+    await productStore.fetchProductStoreSettings(currentProductStore.productStoreId).catch((error) => logger.error(error));
+
+    if (allNotificationPrefs.value?.length) {
+      await firebaseUtil.initialiseFirebaseMessaging();
     }
   }
+
+  // Handles case when user resumes or reloads the app
+  // Luxon timezzone should be set with the user's selected timezone
+  if (userProfile.value && userProfile.value.timeZone) {
+    Settings.defaultZone = userProfile.value.timeZone;
+  }
+});
+
+onUnmounted(() => {
+  emitter.off('presentLoader', (options: any) => {
+    presentLoader(options);
+  });
+  emitter.off('dismissLoader', dismissLoader);
 });
 </script>
+
+<style scoped>
+ion-item.selected ion-icon {
+  color: var(--ion-color-secondary);
+}
+ion-item.selected {
+  --color: var(--ion-color-secondary);
+}
+</style>

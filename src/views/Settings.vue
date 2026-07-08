@@ -2,50 +2,45 @@
   <ion-page>
     <ion-header :translucent="true">
       <ion-toolbar>
-        <ion-menu-button data-testid="settings-page-menu-btn" slot="start" />
+        <ion-menu-button slot="start" />
         <ion-title>{{ translate("Settings") }}</ion-title>
       </ion-toolbar>
     </ion-header>
-    
-    <ion-content data-testid="settings-page-content">
+
+    <ion-content>
       <div class="user-profile">
         <ion-card>
           <ion-item lines="full">
             <ion-avatar slot="start" v-if="userProfile?.partyImageUrl">
-              <Image :src="userProfile.partyImageUrl"/>
+              <Image :src="userProfile.partyImageUrl" />
             </ion-avatar>
-            <!-- ion-no-padding to remove extra side/horizontal padding as additional padding 
-            is added on sides from ion-item and ion-padding-vertical to compensate the removed
-            vertical padding -->
             <ion-card-header class="ion-no-padding ion-padding-vertical">
-              <ion-card-subtitle>{{ userProfile.userLoginId }}</ion-card-subtitle>
-              <ion-card-title>{{ userProfile.partyName }}</ion-card-title>
+              <ion-card-subtitle>{{ userProfile?.username }}</ion-card-subtitle>
+              <ion-card-title>{{ userProfile?.userFullName }}</ion-card-title>
             </ion-card-header>
           </ion-item>
-          <ion-button data-testid="settings-page-logout-btn" color="danger" v-if="!authStore.isEmbedded" @click="logout()">{{ translate("Logout") }}</ion-button>
-          <ion-button data-testid="settings-page-launchpad-btn" v-if="!authStore.isEmbedded" :standalone-hidden="!hasPermission(Actions.APP_PWA_STANDALONE_ACCESS)" fill="outline" @click="goToLaunchpad()">
+          <ion-button v-if="!commonUtil.isAppEmbedded()" color="danger" @click="logout()">{{ translate("Logout") }}</ion-button>
+          <ion-button v-if="!commonUtil.isAppEmbedded()" fill="outline" @click="goToLaunchpad()">
             {{ translate("Go to Launchpad") }}
             <ion-icon slot="end" :icon="openOutline" />
           </ion-button>
-          <!-- Commenting this code as we currently do not have reset password functionality -->
-          <!-- <ion-button fill="outline" color="medium">{{ translate("Reset password") }}</ion-button> -->
         </ion-card>
       </div>
 
       <div class="section-header">
         <h1>{{ translate('OMS') }}</h1>
       </div>
+
       <section>
-        <DxpOmsInstanceNavigator />
-        <DxpFacilitySwitcher @updateFacility="updateFacility" />
+        <DxpOmsInstanceNavigator :is-embedded="commonUtil.isAppEmbedded()" />
+        <DxpFacilitySwitcher @updateFacility="fetchFacilityDependencies($event)" />
       </section>
       <hr />
-
       <DxpAppVersionInfo />
 
       <section>
         <DxpProductIdentifier />
-        <DxpTimeZoneSwitcher @timeZoneUpdated="timeZoneUpdated" />
+        <DxpTimeZoneSwitcher />
 
         <ion-card>
           <ion-card-header>
@@ -54,43 +49,43 @@
             </ion-card-title>
           </ion-card-header>
           <ion-card-content v-html="barcodeContentMessage"></ion-card-content>
-          <ion-item :disabled="!hasPermission(Actions.APP_UPDT_FULFILL_FORCE_SCAN_CONFIG)">
-            <ion-toggle data-testid="settings-page-force-scan-toggle" label-placement="start" :checked="isForceScanEnabled" @click.prevent="updateForceScanStatus($event)">{{ translate("Require scanning") }}</ion-toggle>
+          <ion-item lines="none" :disabled="!userStore.hasPermission('COMMON_ADMIN')">
+            <ion-toggle label-placement="start" :checked="isProductStoreSettingEnabled('RECEIVE_FORCE_SCAN')" @click.prevent="updateForceScanStatus($event)">{{ translate("Require scan") }}</ion-toggle>
           </ion-item>
-          <ion-item lines="none">
-            <ion-select data-testid="settings-page-barcode-identifier-select" :label="translate('Barcode Identifier')" interface="popover" :placeholder="translate('Select')" :value="barcodeIdentificationPref" @ionChange="setBarcodeIdentificationPref($event.detail.value)">
-              <ion-select-option :data-testid="`settings-page-barcode-option-${identification.goodIdentificationTypeId}`" v-for="identification in barcodeIdentificationOptions" :key="identification" :value="identification.goodIdentificationTypeId" >{{ identification.description ? identification.description : identification.goodIdentificationTypeId }}</ion-select-option>
+          <ion-item lines="none" :disabled="!userStore.hasPermission('COMMON_ADMIN')">
+            <ion-select :label="translate('Barcode Identifier')" interface="popover" :placeholder="translate('Select')" :value="barcodeIdentificationPref" @ionChange="setBarcodeIdentificationPref($event.detail.value)">
+              <ion-select-option v-for="identification in barcodeIdentificationOptions" :key="identification.goodIdentificationTypeId" :value="identification.goodIdentificationTypeId">{{ identification.description ? translate(identification.description) : identification.goodIdentificationTypeId }}</ion-select-option>
             </ion-select>
           </ion-item>
         </ion-card>
 
-        <!-- <ion-card v-if="notificationPrefs.length">
+        <ion-card v-if="notificationPrefs.length">
           <ion-card-header>
             <ion-card-title>
               {{ translate("Notification Preference") }}
             </ion-card-title>
           </ion-card-header>
           <ion-card-content>
-            {{ translate("Select the notifications you want to receive.") }}
+            {{ translate('Select the notifications you want to receive.') }}
           </ion-card-content>
           <ion-list>
-            <ion-item :data-testid="`settings-page-notification-row-${pref.enumId}`" :key="pref.enumId" v-for="pref in notificationPrefs" lines="none">
-              <ion-toggle :data-testid="`settings-page-notification-toggle-${pref.enumId}`" label-placement="start" @click.prevent="confirmNotificationPrefUpdate(pref.enumId, $event)" :checked="pref.isEnabled">{{ pref.description }}</ion-toggle>
+            <ion-item :key="pref.enumId" v-for="pref in notificationPrefs" lines="none">
+              <ion-toggle label-placement="start" @click.prevent="confirmNotificationPrefUpdate(pref.enumId, $event)" :checked="pref.isEnabled">{{ pref.description }}</ion-toggle>
             </ion-item>
           </ion-list>
-        </ion-card> -->
+        </ion-card>
 
         <ion-card>
           <ion-card-header>
             <ion-card-title>
-              {{ translate("Receive flow type") }}
+              {{ translate("Inventory receiving flow") }}
             </ion-card-title>
           </ion-card-header>
           <ion-card-content>
-            {{ translate("Define the receiving flow for TO items") }}
+            {{ translate("Inventory of the transferred items will be received by fulfillment app.") }}
           </ion-card-content>
-          <ion-item :disabled="!hasPermission(Actions.APP_UPDT_RECEIVE_FLOW_CONFIG)">
-            <ion-toggle data-testid="settings-page-receive-flow-toggle" label-placement="start" :checked="isReceivingByFulfillment" @click.prevent="updateReceiveFlowType($event)">{{ translate("Receive by fulfillment") }}</ion-toggle>
+          <ion-item lines="none" :disabled="!userStore.hasPermission('COMMON_ADMIN')">
+            <ion-toggle label-placement="start" :checked="isProductStoreSettingEnabled('RECEIVE_BY_FULFILL')" @click.prevent="confirmReceiveByFulfillment($event)">{{ translate("Receive by fulfillment") }}</ion-toggle>
           </ion-item>
         </ion-card>
       </section>
@@ -98,222 +93,179 @@
   </ion-page>
 </template>
 
-<script lang="ts">
-import { IonAvatar, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader,IonIcon, IonItem, IonMenuButton, IonPage, IonSelect, IonSelectOption, IonTitle, IonToggle, IonToolbar, alertController } from '@ionic/vue';
-import { computed, defineComponent } from 'vue';
-import { openOutline } from 'ionicons/icons'
-import { mapGetters, useStore } from 'vuex';
-import { useRouter } from 'vue-router';
-import { getCurrentFacilityId, showToast } from '@/utils';
-import emitter from '@/event-bus';
-import Image from '@/components/Image.vue'
-import { Actions, hasPermission } from '@/authorization';
-import { initialiseFirebaseApp, translate, useAuthStore, useProductIdentificationStore } from "@hotwax/dxp-components"
-import { addNotification, generateTopicName, isFcmConfigured, storeClientRegistrationToken } from "@/utils/firebase";
-import { NotificationService } from '@/services/NotificationService';
+<script setup lang="ts">
+import { IonAvatar, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonContent, IonHeader, IonIcon, IonItem, IonList, IonMenuButton, IonPage, IonSelect, IonSelectOption, IonTitle, IonToggle, IonToolbar, alertController, onIonViewWillEnter } from "@ionic/vue";
+import { computed } from "vue";
+import { openOutline } from "ionicons/icons";
+import { commonUtil, emitter, firebaseMessaging, logger, translate, useNotificationStore, useAuth } from "@common";
+import { useProductStore } from "@/store/productStore";
+import { useUserStore } from "@/store/user";
+import Image from "@/components/Image.vue";
+import DxpOmsInstanceNavigator from "@/components/DxpOmsInstanceNavigator.vue";
+import DxpFacilitySwitcher from "@/components/DxpFacilitySwitcher.vue";
+import DxpAppVersionInfo from "@/components/DxpAppVersionInfo.vue";
+import DxpProductIdentifier from "@/components/DxpProductIdentifier.vue";
+import DxpTimeZoneSwitcher from "@/components/DxpTimeZoneSwitcher.vue";
+import { firebaseUtil } from "@/utils/firebaseUtil"
 
-export default defineComponent({
-  name: 'Settings',
-  components: {
-    IonAvatar,
-    IonButton, 
-    IonCard,
-    IonCardContent,
-    IonCardHeader,
-    IonCardSubtitle,
-    IonCardTitle,
-    IonContent, 
-    IonHeader, 
-    IonIcon,
-    IonItem,
-    IonMenuButton,
-    IonPage, 
-    IonSelect, 
-    IonSelectOption,
-    IonTitle, 
-    IonToggle,
-    IonToolbar,
-    Image
-  },
-  data() {
-    return {
-      baseURL: process.env.VUE_APP_BASE_URL,
-      currentStore: '',
-      appInfo: (process.env.VUE_APP_VERSION_INFO ? JSON.parse(process.env.VUE_APP_VERSION_INFO) : {}) as any,
-      appVersion: "",
-      barcodeContentMessage: translate("Only allow received quantity to be incremented by scanning the barcode of products. If the identifier is not found, the scan will default to using the internal name.", { space: '<br /><br />' })
-    };
-  },
-  computed: {
-    ...mapGetters({
-      userProfile: 'user/getUserProfile',
-      currentEComStore: 'user/getCurrentEComStore',
-      isForceScanEnabled: 'util/isForceScanEnabled',
-      isReceivingByFulfillment: 'util/isReceivingByFulfillment',
-      barcodeIdentificationPref: 'util/getBarcodeIdentificationPref',
-      notificationPrefs: 'user/getNotificationPrefs',
-      allNotificationPrefs: 'user/getAllNotificationPrefs',
-      firebaseDeviceId: 'user/getFirebaseDeviceId'
-    })
-  },
-  mounted() {
-    this.appVersion = this.appInfo.branch ? (this.appInfo.branch + "-" + this.appInfo.revision) : this.appInfo.tag;
-  },
-  async ionViewWillEnter() {
-    // as notification prefs can also be updated from the notification pref modal,
-    // latest state is fetched each time we open the settings page
-    await this.store.dispatch('user/fetchNotificationPreferences')
-  },
-  methods: {
-    async timeZoneUpdated(tzId: string) {
-      await this.store.dispatch("user/setUserTimeZone", tzId)
-    },
-    async updateFacility(facility: any) {
-      this.store.dispatch('shipment/clearShipments');
-      await this.store.dispatch('user/setFacility', facility?.facilityId);
-      await this.store.dispatch('user/fetchNotificationPreferences')
-    },
-    async logout() {
-      // remove firebase notification registration token -
-      // OMS and auth is required hence, removing it before logout (clearing state)
-      try {
-        await NotificationService.removeClientRegistrationToken(this.firebaseDeviceId, process.env.VUE_APP_NOTIF_APP_ID)
-      } catch (error) {
-        console.error(error)
-      }
+const userStore = useUserStore();
+const productStore = useProductStore();
+const notificationStore = useNotificationStore();
 
-      // Clears the stored firebase device ID from the app state
-      this.store.dispatch("user/clearDeviceId", {})
+const barcodeContentMessage = translate("Only allow received quantity to be incremented by scanning the barcode of products. If the identifier is not found, the scan will default to using the internal name.", { space: "<br /><br />" });
 
-      this.store.dispatch('user/logout', { isUserUnauthorised: false }).then((redirectionUrl) => {
-        this.store.dispatch('shipment/clearShipments');
-        this.store.dispatch('return/clearReturns');
-        this.store.dispatch("party/resetReceiversDetails");
+const userProfile = computed(() => userStore.getUserProfile);
+const notifications = computed(() => notificationStore.getNotifications);
+const unreadNotificationsStatus = computed(() => notificationStore.getUnreadNotificationsStatus);
+const notificationPrefs = computed(() => notificationStore.getNotificationPrefs);
+const allNotificationPrefs = computed(() => notificationStore.getAllNotificationPrefs);
+const firebaseDeviceId = computed(() => notificationStore.getFirebaseDeviceId);
+const isProductStoreSettingEnabled = computed(() => (settingTypeEnumId: string) => productStore.isProductStoreSettingEnabled(settingTypeEnumId));
+const barcodeIdentificationPref = computed(() => productStore.getBarcodeIdentifierPref);
+const currentFacility = computed(() => productStore.getCurrentFacility);
+const preferredStore = computed(() => productStore.getCurrentProductStore);
+const barcodeIdentificationOptions = computed(() => productStore.getBarcodeIdentifierOptions);
 
-        // if not having redirection url then redirect the user to launchpad
-        if (!redirectionUrl) {
-          const redirectUrl = window.location.origin + '/login'
-          window.location.href = `${process.env.VUE_APP_LOGIN_URL}?isLoggedOut=true&redirectUrl=${redirectUrl}`
+const logout = async () => {
+  await useAuth().logout({ isUserUnauthorised: false })
+}
+
+const goToLaunchpad = () => {
+  window.location.href = `${import.meta.env.VITE_LOGIN_URL}`
+};
+
+const fetchFacilityDependencies = async (facility: any) => {
+  await productStore.fetchProductStores(facility?.facilityId)
+  await productStore.fetchProductStoreDependencies(productStore.getCurrentProductStore.productStoreId)
+  await notificationStore.fetchNotificationPreferences(import.meta.env.VITE_NOTIF_ENUM_TYPE_ID, import.meta.env.VITE_NOTIF_APP_ID, userStore.getUserProfile.userLoginId, (enumId: string) => firebaseMessaging.generateTopicName(commonUtil.getOMSInstanceName(), productStore.getCurrentFacility.facilityId, enumId));
+};
+
+const updateForceScanStatus = async (event: any) => {
+  event.stopImmediatePropagation();
+  await productStore.setProductStoreSetting(
+    preferredStore.value.productStoreId,
+    "RECEIVE_FORCE_SCAN",
+    !isProductStoreSettingEnabled.value("RECEIVE_FORCE_SCAN") ? "Y" : "N"
+  );
+};
+
+const confirmReceiveByFulfillment = async (event: any) => {
+  event.stopImmediatePropagation();
+  const isChecked = !isProductStoreSettingEnabled.value("RECEIVE_BY_FULFILL");
+  const message = translate("Are you sure you want to perform this action?");
+  const header = isChecked ? translate("Receive by fulfillment") : translate("Do not receive by fulfillment");
+
+  const alert = await alertController.create({
+    header,
+    message,
+    buttons: [
+      {
+        text: translate("Cancel"),
+        role: "cancel"
+      },
+      {
+        text: translate("Confirm"),
+        handler: async () => {
+          await productStore.setProductStoreSetting(
+            preferredStore.value.productStoreId,
+            "RECEIVE_BY_FULFILL",
+            isChecked ? "Y" : "N"
+          );
         }
-      })
-    },
-    goToLaunchpad() {
-      window.location.href = `${process.env.VUE_APP_LOGIN_URL}`
-    },
-    setBarcodeIdentificationPref(value: string) {
-      this.store.dispatch('util/setBarcodeIdentificationPref', value)
-    },
-    async updateForceScanStatus(event: any) {
-      event.stopImmediatePropagation();
-      this.store.dispatch("util/setForceScanSetting", !this.isForceScanEnabled)
-    },
-    async updateReceiveFlowType(event: any) {
-      event.stopImmediatePropagation();
-      this.store.dispatch("util/setReceivingByFulfillmentSetting", !this.isReceivingByFulfillment)
-    },
-    async confirmNotificationPrefUpdate(enumId: string, event: CustomEvent) {
-      event.stopImmediatePropagation();
-
-      const message = translate("Are you sure you want to update the notification preferences?");
-      const alert = await alertController.create({
-        header: translate("Update notification preferences"),
-        message,
-        buttons: [
-          {
-            text: translate("Cancel"),
-            role: "cancel"
-          },
-          {
-            text: translate("Confirm"),
-            handler: async () => {
-              // passing event reference for updation in case the API success
-              alertController.dismiss()
-              await this.updateNotificationPref(enumId)
-            }
-          }
-        ],
-      });
-      return alert.present();
-    },
-    async updateNotificationPref(enumId: string) {
-      let isToggledOn = false;
-
-      try {
-        if (!isFcmConfigured()) {
-          console.error("FCM is not configured.");
-          showToast(translate('Notification preferences not updated. Please try again.'))
-          return;
-        }
-
-        emitter.emit('presentLoader',  { backdropDismiss: false })
-        const facilityId = getCurrentFacilityId();
-        const topicName = generateTopicName(facilityId, enumId)
-
-        const notificationPref = this.notificationPrefs.find((pref: any) => pref.enumId === enumId)
-        notificationPref.isEnabled ? await NotificationService.unsubscribeTopic(topicName, process.env.VUE_APP_NOTIF_APP_ID) : await NotificationService.subscribeTopic(topicName, process.env.VUE_APP_NOTIF_APP_ID)
-        isToggledOn = !notificationPref.isEnabled
-        notificationPref.isEnabled = !notificationPref.isEnabled
-
-        await this.store.dispatch('user/updateNotificationPreferences', this.notificationPrefs)
-        showToast(translate('Notification preferences updated.'))
-      } catch (error) {
-        showToast(translate('Notification preferences not updated. Please try again.'))
-      } finally {
-        emitter.emit("dismissLoader")
       }
-      
-      try {
-        if(!this.allNotificationPrefs.length && isToggledOn) {
-          await initialiseFirebaseApp(JSON.parse(process.env.VUE_APP_FIREBASE_CONFIG), process.env.VUE_APP_FIREBASE_VAPID_KEY, storeClientRegistrationToken, addNotification)
-        } else if(this.allNotificationPrefs.length == 1 && !isToggledOn) {
-          await NotificationService.removeClientRegistrationToken(this.firebaseDeviceId, process.env.VUE_APP_NOTIF_APP_ID)
-        }
-        await this.store.dispatch("user/fetchAllNotificationPrefs");
-      } catch(error) {
-        console.error(error);
-      }
-    }
-  },
-  setup(){
-    const store = useStore();
-    const router = useRouter();
-    const productIdentificationStore = useProductIdentificationStore();
-    let barcodeIdentificationOptions = computed(() => productIdentificationStore.getGoodIdentificationOptions)
-    const authStore = useAuthStore();
-    return {
-      Actions,
-      barcodeIdentificationOptions,
-      hasPermission,
-      openOutline,
-      store,
-      router,
-      translate,
-      authStore
-    }
+    ]
+  });
+  return alert.present();
+};
+
+const updateNotificationPref = async (enumId: string) => {
+  let isToggledOn = false;
+  try {
+    const notificationPref = notificationStore.getNotificationPrefs.find((pref: any) => pref.enumId === enumId);
+    const topicName = firebaseMessaging.generateTopicName(commonUtil.getOMSInstanceName(), currentFacility.value.facilityId, enumId);
+    notificationPref.isEnabled
+      ? await notificationStore.unsubscribeTopic(topicName, import.meta.env.VITE_NOTIF_APP_ID as any)
+      : await notificationStore.subscribeTopic(topicName, import.meta.env.VITE_NOTIF_APP_ID as any);
+
+    notificationPref.isEnabled = !notificationPref.isEnabled;
+    notificationStore.setNotificationPrefs(notificationPrefs.value);
+    isToggledOn = notificationPref.isEnabled;
+    commonUtil.showToast(translate("Notification preferences updated."));
+  } catch (error) {
+    commonUtil.showToast(translate("Notification preferences not updated. Please try again."));
+  } finally {
+    emitter.emit("dismissLoader");
   }
+  try {
+    if (!allNotificationPrefs.value.length && isToggledOn) {
+      await firebaseUtil.initialiseFirebaseMessaging();
+    } else if (allNotificationPrefs.value.length === 1 && !isToggledOn) {
+      await notificationStore.removeClientRegistrationToken(firebaseDeviceId.value, import.meta.env.VITE_NOTIF_APP_ID)
+    }
+    await notificationStore.fetchAllNotificationPrefs(import.meta.env.VITE_NOTIF_APP_ID, userProfile.value?.userId);
+  } catch (error) {
+    logger.error(error);
+  }
+};
+
+const confirmNotificationPrefUpdate = async (enumId: string, event: CustomEvent) => {
+  event.stopImmediatePropagation();
+
+  const message = translate("Are you sure you want to update the notification preferences?");
+  const alert = await alertController.create({
+    header: translate("Update notification preferences"),
+    message,
+    buttons: [
+      {
+        text: translate("Cancel"),
+        role: "cancel"
+      },
+      {
+        text: translate("Confirm"),
+        handler: async () => {
+          await updateNotificationPref(enumId);
+        }
+      }
+    ]
+  });
+  return alert.present();
+};
+
+const setBarcodeIdentificationPref = async (value: string) => {
+  await productStore.setProductStoreSetting(
+    preferredStore.value.productStoreId,
+    "BARCODE_IDEN_PREF",
+    value
+  );
+};
+
+onIonViewWillEnter(async () => {
+  await productStore.fetchProductStoreSettings(preferredStore.value.productStoreId);
+  await notificationStore.fetchNotificationPreferences(import.meta.env.VITE_NOTIF_ENUM_TYPE_ID, import.meta.env.VITE_NOTIF_APP_ID, userStore.getUserProfile.userLoginId, (enumId: string) => firebaseMessaging.generateTopicName(commonUtil.getOMSInstanceName(), productStore.getCurrentFacility.facilityId, enumId));
 });
 </script>
 
 <style scoped>
-  ion-card > ion-button {
-    margin: var(--spacer-xs);
-  }
-  section {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    align-items: start;
-  }
-  .user-profile {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-  }
-  hr {
-    border-top: 1px solid var(--ion-color-medium);
-  }
-  .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--spacer-xs) 10px 0px;
-  }
+ion-card > ion-button {
+  margin: var(--spacer-xs);
+}
+section {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  align-items: start;
+}
+.user-profile {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+}
+hr {
+  border-top: 1px solid var(--ion-color-medium);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacer-xs) 10px 0px;
+}
 </style>
