@@ -848,37 +848,6 @@ const observeProductVisibility = () => {
   });
 };
 
-const refreshTransferOrderDetail = async () => {
-  const orderId = router.currentRoute.value.params.slug;
-
-  transferOrderStore.clearTransferOrderDetail();
-  filteredItems.value = [];
-  completedItems.value = [];
-  openItems.value = [];
-  openItemsTemp.value = [];
-  fulfilledItems.value = 0;
-  productQoh.value = {};
-
-  await transferOrderStore.fetchMisShippedItems({ orderId });
-  await transferOrderStore.fetchTransferOrderDetail({ orderId });
-  if (order.value.orderId) {
-    await transferOrderStore.fetchTOHistory({
-      payload: {
-        orderId: order.value.orderId,
-        orderByField: "-datetimeReceived"
-      }
-    });
-  }
-
-  showCompletedItems.value = isTOReceived();
-  filteredItems.value = order.value.items ? [...order.value.items] : [];
-  completedItems.value = filteredItems.value.filter((item: any) => item.statusId === 'ITEM_COMPLETED');
-  openItems.value = filteredItems.value.filter((item: any) => !['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId));
-  fulfilledItems.value = filteredItems.value.filter((item: any) => item.totalIssuedQuantity)?.length;
-
-  observeProductVisibility();
-};
-
 const fetchQuantityOnHand = async (productId: any) => {
   productQoh.value[productId] = await product.getInventoryAvailableByFacility(productId);
 };
@@ -896,11 +865,27 @@ const openTOReceivingInstructions = async () => {
 
 onIonViewWillEnter(async () => {
   emitter.emit('presentLoader', { backdropDismiss: false, message: translate("Fetching details...") });
-  try {
-    await refreshTransferOrderDetail();
-  } finally {
-    emitter.emit('dismissLoader');
+  transferOrderStore.clearTransferOrderDetail();
+
+  await transferOrderStore.fetchMisShippedItems({ orderId: router.currentRoute.value.params.slug });
+  await transferOrderStore.fetchTransferOrderDetail({ orderId: router.currentRoute.value.params.slug });
+  await transferOrderStore.fetchTOHistory({
+    payload: {
+      orderId: order.value.orderId,
+      orderByField: "-datetimeReceived"
+    }
+  });
+  if (isTOReceived()) {
+    showCompletedItems.value = true;
   }
+
+  filteredItems.value = order.value.items ? [...order.value.items] : [];
+  completedItems.value = filteredItems.value.filter((item: any) => item.statusId === 'ITEM_COMPLETED');
+  openItems.value = filteredItems.value.filter((item: any) => !['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId));
+  fulfilledItems.value = filteredItems.value.filter((item: any) => item.totalIssuedQuantity)?.length;
+
+  observeProductVisibility();
+  emitter.emit('dismissLoader');
 });
 
 onIonViewDidLeave(() => {
