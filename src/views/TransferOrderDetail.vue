@@ -715,6 +715,7 @@ export default defineComponent({
         return;
       }
       this.receiveFlowBusy = true;
+      let shouldReleaseReceiveLock = true;
 
       this.dismissToast();
       try {
@@ -758,13 +759,18 @@ export default defineComponent({
         if(shouldReceive) {
           emitter.emit("presentLoader", { message: translate("Receiving in progress..."), backdropDismiss: false });
           try {
-            await this.receiveTransferOrder();
+            const received = await this.receiveTransferOrder();
+            if(received) {
+              shouldReleaseReceiveLock = await this.navigateAfterReceipt();
+            }
           } finally {
             emitter.emit("dismissLoader");
           }
         }
       } finally {
-        this.receiveFlowBusy = false;
+        if(shouldReleaseReceiveLock) {
+          this.receiveFlowBusy = false;
+        }
       }
     },
     showAllOpenItems() {
@@ -776,6 +782,7 @@ export default defineComponent({
         return;
       }
       this.receiveFlowBusy = true;
+      let shouldReleaseReceiveLock = true;
 
       this.dismissToast();
       try {
@@ -824,18 +831,36 @@ export default defineComponent({
         if(shouldReceive) {
           emitter.emit("presentLoader", { message: translate("Receiving in progress..."), backdropDismiss: false });
           try {
-            await this.receiveTransferOrder(true);
+            const received = await this.receiveTransferOrder(true);
+            if(received) {
+              shouldReleaseReceiveLock = await this.navigateAfterReceipt();
+            }
           } finally {
             emitter.emit("dismissLoader");
           }
         }
       } finally {
-        this.receiveFlowBusy = false;
+        if(shouldReleaseReceiveLock) {
+          this.receiveFlowBusy = false;
+        }
       }
     },
     getCurrentFacilityId() {
       const currentFacility: any = useUserStore().getCurrentFacility;
       return currentFacility?.facilityId
+    },
+    async navigateAfterReceipt() {
+      try {
+        const navigationFailure = await this.router.push('/transfer-orders');
+        if(!navigationFailure) {
+          return true;
+        }
+      } catch (error) {
+        console.error(error);
+      }
+
+      showToast(translate("Transfer order was received, but navigation failed. Return to Transfer Orders before receiving again."));
+      return false;
     },
     async receiveTransferOrder(isClosingTO = false) {
       let eligibleItems: any = []
@@ -875,12 +900,16 @@ export default defineComponent({
 
       try {
         const resp = await TransferOrderService.receiveTransferOrder(this.order.orderId, payload)
-        if (!hasError(resp)) {
-          showToast(translate("Transfer order received successfully", { orderId: this.order.orderId }))
-          await this.router.push('/transfer-orders')
-        } 
+        if (hasError(resp)) {
+          showToast(translate("Error in receiving transfer order", { orderId: this.order.orderId }))
+          return false;
+        }
+
+        showToast(translate("Transfer order received successfully", { orderId: this.order.orderId }))
+        return true;
       } catch (error) {
         showToast(translate("Error in receiving transfer order", { orderId: this.order.orderId }))
+        return false;
       }
     },
     isEligibleForCreatingShipment(isClosingTO = false) {
