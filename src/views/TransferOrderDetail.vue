@@ -373,6 +373,7 @@ import ReceivingInstructions from '@/components/ReceivingInstructions.vue';
 import ReceiveTransferOrder from '@/components/ReceiveTransferOrder.vue';
 import router from '@/router';
 import { useReceiveFlowState } from '@/composables/useReceiveFlowState';
+import { runTransferOrderDetailReceiveWorkflow, type TransferOrderReceiveMode } from '@/views/transferOrderDetailReceiveWorkflow';
 
 const transferOrderStore = useTransferOrderStore();
 const product = useProduct();
@@ -651,61 +652,43 @@ const isAnyItemOverReceived = () => {
   return [...openItems.value, ...openItemsTemp.value].some((item: any) => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) > getItemQty(item));
 };
 
-const receiveTO = async () => {
-  if (!startReceiveConfirmation()) {
-    return;
-  }
-
+const confirmSaveProgress = async () => {
   dismissToast();
-  try {
-    if (!isEligibleForCreatingShipment() || !userStore.hasPermission('RECEIVING_ADMIN')) {
-      await receivingAlert();
-      return;
-    }
-
-    let shouldReceive = false;
-    if (!isAnyItemOverReceived()) {
-      const alert = await alertController.create({
-        header: translate("Save progress and receive more later"),
-        message: translate("Your receiving progress will be saved and will be added to your inventory. Come back to this transfer order and finish receiving later. Fully received items auto close.", { space: "<br /><br />", units: getReceivedUnits() }),
-        buttons: [{
-          text: translate('Cancel'),
-          role: 'cancel'
-        },
-        {
-          text: translate('Proceed'),
-          role: 'proceed'
-        }]
-      });
-      await alert.present();
-      const result = await alert.onDidDismiss();
-      shouldReceive = result.role === 'proceed';
-    } else {
-      const modal = await modalController.create({
-        component: ReceiveTransferOrder,
-        componentProps: {
-          items: filteredItems.value,
-          receivedUnitsFraction: getReceivedUnits()
-        }
-      });
-
-      await modal.present();
-      const value = await modal.onDidDismiss();
-      filteredItems.value.forEach((item: any) => item.isChecked = false);
-      shouldReceive = Boolean(value?.data?.updateItems);
-    }
-
-    if (shouldReceive && startReceiveSubmission()) {
-      emitter.emit("presentLoader", { message: translate("Receiving in progress..."), backdropDismiss: false });
-      try {
-        await receiveTransferOrder();
-      } finally {
-        emitter.emit("dismissLoader");
-      }
-    }
-  } finally {
-    resetReceiveFlow();
+  if (!isEligibleForCreatingShipment() || !userStore.hasPermission('RECEIVING_ADMIN')) {
+    await receivingAlert();
+    return false;
   }
+
+  if (!isAnyItemOverReceived()) {
+    const alert = await alertController.create({
+      header: translate("Save progress and receive more later"),
+      message: translate("Your receiving progress will be saved and will be added to your inventory. Come back to this transfer order and finish receiving later. Fully received items auto close.", { space: "<br /><br />", units: getReceivedUnits() }),
+      buttons: [{
+        text: translate('Cancel'),
+        role: 'cancel'
+      },
+      {
+        text: translate('Proceed'),
+        role: 'proceed'
+      }]
+    });
+    await alert.present();
+    const result = await alert.onDidDismiss();
+    return result.role === 'proceed';
+  }
+
+  const modal = await modalController.create({
+    component: ReceiveTransferOrder,
+    componentProps: {
+      items: filteredItems.value,
+      receivedUnitsFraction: getReceivedUnits()
+    }
+  });
+
+  await modal.present();
+  const value = await modal.onDidDismiss();
+  filteredItems.value.forEach((item: any) => item.isChecked = false);
+  return Boolean(value?.data?.updateItems);
 };
 
 const showAllOpenItems = () => {
@@ -713,67 +696,73 @@ const showAllOpenItems = () => {
   openItemsTemp.value = [];
 };
 
-const receiveAndCloseTO = async () => {
-  if (!startReceiveConfirmation()) {
-    return;
-  }
-
+const confirmReceiveAndClose = async () => {
   dismissToast();
-  try {
-    if (!isEligibleForCreatingShipment(true) || !userStore.hasPermission('RECEIVING_ADMIN')) {
-      await receivingAlert();
-      return;
-    }
-
-    const itemsReceived = [] as any;
-    const itemsNotReceived = [] as any;
-    openItems.value.map((item: any) => {
-      if (!(item.quantityAccepted && item.quantityAccepted >= 0)) {
-        itemsNotReceived.push(item);
-      } else {
-        itemsReceived.push(item);
-      }
-    });
-    if (itemsNotReceived.length) {
-      openItemsTemp.value = itemsReceived;
-      openItems.value = itemsNotReceived;
-      document.querySelector("ion-segment")?.scrollIntoView();
-      return;
-    }
-
-    const items = [...openItems.value, ...openItemsTemp.value];
-    const isAnyItemUnderReceived = items.some((item: any) => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) != getItemQty(item));
-    let shouldReceive = false;
-    if (!isAnyItemOverReceived() && !isAnyItemUnderReceived) {
-      shouldReceive = await confirmComplete();
-    } else {
-      const modal = await modalController.create({
-        component: ReceiveTransferOrder,
-        componentProps: {
-          closeTO: true,
-          items: filteredItems.value,
-          receivedUnitsFraction: getReceivedUnits()
-        }
-      });
-
-      await modal.present();
-      const value = await modal.onDidDismiss();
-      filteredItems.value.forEach((item: any) => item.isChecked = false);
-      shouldReceive = Boolean(value?.data?.updateItems);
-    }
-
-    if (shouldReceive && startReceiveSubmission()) {
-      emitter.emit("presentLoader", { message: translate("Receiving in progress..."), backdropDismiss: false });
-      try {
-        await receiveTransferOrder(true);
-      } finally {
-        emitter.emit("dismissLoader");
-      }
-    }
-  } finally {
-    resetReceiveFlow();
+  if (!isEligibleForCreatingShipment(true) || !userStore.hasPermission('RECEIVING_ADMIN')) {
+    await receivingAlert();
+    return false;
   }
+
+  const itemsReceived = [] as any;
+  const itemsNotReceived = [] as any;
+  openItems.value.map((item: any) => {
+    if (!(item.quantityAccepted && item.quantityAccepted >= 0)) {
+      itemsNotReceived.push(item);
+    } else {
+      itemsReceived.push(item);
+    }
+  });
+  if (itemsNotReceived.length) {
+    openItemsTemp.value = itemsReceived;
+    openItems.value = itemsNotReceived;
+    document.querySelector("ion-segment")?.scrollIntoView();
+    return false;
+  }
+
+  const items = [...openItems.value, ...openItemsTemp.value];
+  const isAnyItemUnderReceived = items.some((item: any) => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) != getItemQty(item));
+  if (!isAnyItemOverReceived() && !isAnyItemUnderReceived) {
+    return confirmComplete();
+  }
+
+  const modal = await modalController.create({
+    component: ReceiveTransferOrder,
+    componentProps: {
+      closeTO: true,
+      items: filteredItems.value,
+      receivedUnitsFraction: getReceivedUnits()
+    }
+  });
+
+  await modal.present();
+  const value = await modal.onDidDismiss();
+  filteredItems.value.forEach((item: any) => item.isChecked = false);
+  return Boolean(value?.data?.updateItems);
 };
+
+const runReceiveWorkflow = (mode: TransferOrderReceiveMode, confirm: () => Promise<boolean>) => {
+  return runTransferOrderDetailReceiveWorkflow({
+    mode,
+    startConfirmation: startReceiveConfirmation,
+    startSubmission: startReceiveSubmission,
+    reset: resetReceiveFlow,
+    confirm,
+    submit: () => receiveTransferOrder(mode === 'complete'),
+    refresh: refreshTransferOrderDetail,
+    navigate: async () => {
+      await router.push('/transfer-orders');
+    },
+    onSubmissionStart: () => {
+      emitter.emit("presentLoader", { message: translate("Receiving in progress..."), backdropDismiss: false });
+    },
+    onSubmissionEnd: () => {
+      emitter.emit("dismissLoader");
+    }
+  });
+};
+
+const receiveTO = () => runReceiveWorkflow('save-progress', confirmSaveProgress);
+const receiveAndCloseTO = () => runReceiveWorkflow('complete', confirmReceiveAndClose);
 
 const receiveTransferOrder = async (isClosingTO = false) => {
   let eligibleItems: any = [];
@@ -811,11 +800,12 @@ const receiveTransferOrder = async (isClosingTO = false) => {
     const resp = await transferOrderStore.receiveTransferOrder(order.value.orderId, payload);
     if (!commonUtil.hasError(resp)) {
       commonUtil.showToast(translate("Transfer order received successfully", { orderId: order.value.orderId }));
-      router.push('/transfer-orders');
+      return true;
     }
   } catch (error) {
     commonUtil.showToast(translate("Error in receiving transfer order", { orderId: order.value.orderId }));
   }
+  return false;
 };
 
 const isEligibleForCreatingShipment = (isClosingTO = false) => {
@@ -860,6 +850,37 @@ const observeProductVisibility = () => {
   });
 };
 
+const refreshTransferOrderDetail = async () => {
+  const orderId = router.currentRoute.value.params.slug;
+
+  transferOrderStore.clearTransferOrderDetail();
+  filteredItems.value = [];
+  completedItems.value = [];
+  openItems.value = [];
+  openItemsTemp.value = [];
+  fulfilledItems.value = 0;
+  productQoh.value = {};
+
+  await transferOrderStore.fetchMisShippedItems({ orderId });
+  await transferOrderStore.fetchTransferOrderDetail({ orderId });
+  if (order.value.orderId) {
+    await transferOrderStore.fetchTOHistory({
+      payload: {
+        orderId: order.value.orderId,
+        orderByField: "-datetimeReceived"
+      }
+    });
+  }
+
+  showCompletedItems.value = isTOReceived();
+  filteredItems.value = order.value.items ? [...order.value.items] : [];
+  completedItems.value = filteredItems.value.filter((item: any) => item.statusId === 'ITEM_COMPLETED');
+  openItems.value = filteredItems.value.filter((item: any) => !['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId));
+  fulfilledItems.value = filteredItems.value.filter((item: any) => item.totalIssuedQuantity)?.length;
+
+  observeProductVisibility();
+};
+
 const fetchQuantityOnHand = async (productId: any) => {
   productQoh.value[productId] = await product.getInventoryAvailableByFacility(productId);
 };
@@ -877,27 +898,11 @@ const openTOReceivingInstructions = async () => {
 
 onIonViewWillEnter(async () => {
   emitter.emit('presentLoader', { backdropDismiss: false, message: translate("Fetching details...") });
-  transferOrderStore.clearTransferOrderDetail();
-
-  await transferOrderStore.fetchMisShippedItems({ orderId: router.currentRoute.value.params.slug });
-  await transferOrderStore.fetchTransferOrderDetail({ orderId: router.currentRoute.value.params.slug });
-  await transferOrderStore.fetchTOHistory({
-    payload: {
-      orderId: order.value.orderId,
-      orderByField: "-datetimeReceived"
-    }
-  });
-  if (isTOReceived()) {
-    showCompletedItems.value = true;
+  try {
+    await refreshTransferOrderDetail();
+  } finally {
+    emitter.emit('dismissLoader');
   }
-
-  filteredItems.value = order.value.items ? [...order.value.items] : [];
-  completedItems.value = filteredItems.value.filter((item: any) => item.statusId === 'ITEM_COMPLETED');
-  openItems.value = filteredItems.value.filter((item: any) => !['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId));
-  fulfilledItems.value = filteredItems.value.filter((item: any) => item.totalIssuedQuantity)?.length;
-
-  observeProductVisibility();
-  emitter.emit('dismissLoader');
 });
 
 onIonViewDidLeave(() => {
