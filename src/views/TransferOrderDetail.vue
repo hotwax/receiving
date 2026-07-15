@@ -373,7 +373,7 @@ import ReceivingInstructions from '@/components/ReceivingInstructions.vue';
 import ReceiveTransferOrder from '@/components/ReceiveTransferOrder.vue';
 import router from '@/router';
 import { useReceiveFlowState } from '@/composables/useReceiveFlowState';
-import { runTransferOrderDetailReceiveWorkflow, type TransferOrderReceiveMode } from '@/views/transferOrderDetailReceiveWorkflow';
+import { runTransferOrderDetailReceiveWorkflow } from '@/views/transferOrderDetailReceiveWorkflow';
 
 const transferOrderStore = useTransferOrderStore();
 const product = useProduct();
@@ -740,15 +740,13 @@ const confirmReceiveAndClose = async () => {
   return Boolean(value?.data?.updateItems);
 };
 
-const runReceiveWorkflow = (mode: TransferOrderReceiveMode, confirm: () => Promise<boolean>) => {
+const runReceiveWorkflow = (isClosingTO: boolean, confirm: () => Promise<boolean>) => {
   return runTransferOrderDetailReceiveWorkflow({
-    mode,
     startConfirmation: startReceiveConfirmation,
     startSubmission: startReceiveSubmission,
     reset: resetReceiveFlow,
     confirm,
-    submit: () => receiveTransferOrder(mode === 'complete'),
-    refresh: refreshTransferOrderDetail,
+    submit: () => receiveTransferOrder(isClosingTO),
     navigate: async () => {
       await router.push('/transfer-orders');
     },
@@ -761,8 +759,8 @@ const runReceiveWorkflow = (mode: TransferOrderReceiveMode, confirm: () => Promi
   });
 };
 
-const receiveTO = () => runReceiveWorkflow('save-progress', confirmSaveProgress);
-const receiveAndCloseTO = () => runReceiveWorkflow('complete', confirmReceiveAndClose);
+const receiveTO = () => runReceiveWorkflow(false, confirmSaveProgress);
+const receiveAndCloseTO = () => runReceiveWorkflow(true, confirmReceiveAndClose);
 
 const receiveTransferOrder = async (isClosingTO = false) => {
   let eligibleItems: any = [];
