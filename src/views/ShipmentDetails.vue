@@ -5,7 +5,7 @@
         <ion-back-button data-testid="shipment-detail-page-back-btn" default-href="/" slot="start"></ion-back-button>
         <ion-title>{{ translate("Shipment Details") }}</ion-title>
         <ion-buttons slot="end" v-if="!isShipmentReceived()">
-          <ion-button data-testid="shipment-detail-page-add-product-btn" :disabled="!userStore.hasPermission('RECEIVING_ADMIN')" @click="addProduct"><ion-icon :icon="add"/></ion-button>
+          <ion-button data-testid="shipment-detail-page-add-product-btn" :aria-label="translate('Add product')" :disabled="!userStore.hasPermission('RECEIVING_ADMIN')" @click="addProduct"><ion-icon :icon="add"/></ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
