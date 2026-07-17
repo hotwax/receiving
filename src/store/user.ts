@@ -7,7 +7,6 @@ import { useOrderStore } from "@/store/order";
 import { usePartyStore } from "@/store/party";
 import { useProductStore as useProduct } from "@/store/product";
 import { useReturnStore } from "@/store/return";
-import { useShipmentStore } from "@/store/shipment";
 import { useTransferOrderStore } from "@/store/transferorder";
 import { useUtilStore } from "@/store/util";
 import { firebaseUtil } from "@/utils/firebaseUtil";
@@ -232,7 +231,6 @@ export const useUserStore = defineStore("user", {
       useProduct().$reset();
       useProductStore().$reset();
       useReturnStore().$reset();
-      useShipmentStore().$reset();
       useTransferOrderStore().$reset();
       this.$reset();
       useUtilStore().$reset();
