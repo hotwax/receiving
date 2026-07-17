@@ -1,6 +1,5 @@
 import { defineStore } from "pinia";
 import { api, commonUtil, emitter, useSolrSearch } from "@common";
-import { useShipmentStore } from "@/store/shipment";
 import { useProductStore as useFacilityStore } from "@/store/productStore";
 
 export const useProductStore = defineStore("product", {
@@ -15,10 +14,6 @@ export const useProductStore = defineStore("product", {
     getProduct: (state) => (productId: string) => state.cached[productId] ? state.cached[productId] : {},
     getProducts: (state) => state.list.items,
     isScrollable: (state) => state.list.items.length > 0 && state.list.items.length < state.list.total,
-    isProductAvailableInShipment: (state) => (productId: string) => {
-      const shipmentStore = useShipmentStore();
-      return shipmentStore.getCurrent.items.some((item: any) => item.productId === productId);
-    },
   },
   actions: {
     async fetchProducts({ productIds }: { productIds: Array<string> }) {
