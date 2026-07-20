@@ -49,146 +49,74 @@
   </ion-page>
 </template>
   
-<script lang="ts">
-import {
-  IonButton,
-  IonContent,
-  IonHeader,
-  IonIcon,
-  IonLabel,
-  IonMenuButton,
-  IonPage,
-  IonRefresher,
-  IonRefresherContent,
-  IonSearchbar,
-  IonSegment,
-  IonSegmentButton,
-  IonTitle,
-  IonToolbar
-} from '@ionic/vue';
+<script setup lang="ts">
+import { IonButton, IonContent, IonHeader, IonIcon, IonLabel, IonMenuButton, IonPage, IonRefresher, IonRefresherContent, IonSearchbar, IonSegment, IonSegmentButton, IonTitle, IonToolbar, onIonViewDidEnter } from '@ionic/vue';
 import { cloudDownloadOutline, reload } from 'ionicons/icons'
-import { defineComponent, computed } from 'vue'
-import { mapGetters, useStore } from 'vuex'
+import { computed, onMounted, ref } from 'vue'
 import ReturnListItem from '@/components/ReturnListItem.vue'
-import { translate, useUserStore } from "@hotwax/dxp-components"
-import { useRouter } from 'vue-router';
+import { translate } from "@common"
+import { useProductStore } from '@/store/productStore';
+import { useReturnStore } from '@/store/return';
+import router from '@/router';
 
-export default defineComponent({
-  name: "Returns",
-  components: {
-    IonButton,
-    IonContent,
-    IonHeader,
-    IonIcon,
-    IonLabel,
-    IonMenuButton,
-    IonSearchbar,
-    IonPage,
-    IonRefresher,
-    IonRefresherContent,
-    IonSegment,
-    IonSegmentButton,
-    IonTitle,
-    IonToolbar,
-    ReturnListItem
-  },
-  computed: {
-    ...mapGetters({
-      returns: 'return/getReturns',
-      returnsTotal: 'return/getReturnsTotal'
-    })
-  },
-  data () {
-    return {
-      queryString: '',
-      fetchingReturns: false,
-      showErrorMessage: false,
-      selectedSegment: "open"
-    }
-  },
-  mounted () {
-    this.store.dispatch('return/fetchValidReturnStatuses');
-  },
-  ionViewDidEnter(){
-    const forwardRoute = this.router.options.history.state.forward as any;
-    if(!forwardRoute?.startsWith('/return/')) this.selectedSegment = "open";
-    this.getReturns();
-  },
-  methods: {
-    async getReturns(vSize?: any, vIndex?: any) {
-      this.queryString ? this.showErrorMessage = true : this.showErrorMessage = false;
-      this.fetchingReturns = true;
-      const viewSize = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
-      const viewIndex = vIndex ? vIndex : 0;
-      const payload = {
-        "entityName": "SalesReturnShipmentView",
-        "inputFields": {
-          "destinationFacilityId": this.currentFacility?.facilityId,
-          "statusId": "PURCH_SHIP_RECEIVED",
-          "statusId_op": this.selectedSegment === "open" ? "notEqual" : "equals"
-        },
-        "fieldList" : [ "shipmentId","externalId","statusId","shopifyOrderName","hcOrderId","trackingCode", "destinationFacilityId" ],
-        "noConditionFind": "Y",
-        "viewSize": viewSize,
-        "viewIndex": viewIndex,
-        "orderBy": "createdDate ASC"
-      } as any
-      
-      if(this.queryString){
-        // Search query done on shipmentId, trackingCode and externalId
-        payload.inputFields["shipmentId"] = this.queryString;
-        payload.inputFields["shipmentId_op"] = "contains";
-        payload.inputFields["shipmentId_ic"] = "Y";
-        payload.inputFields["shipmentId_grp"] = "1";
-        payload.inputFields["trackingCode"] = this.queryString;
-        payload.inputFields["trackingCode_op"] = "contains";
-        payload.inputFields["trackingCode_ic"] = "Y";
-        payload.inputFields["trackingCode_grp"] = "2";
-        payload.inputFields["externalId"] = this.queryString;
-        payload.inputFields["externalId_op"] = "contains";
-        payload.inputFields["externalId_ic"] = "Y";
-        payload.inputFields["externalId_grp"] = "3";
-        payload.inputFields["hcOrderId"] = this.queryString;
-        payload.inputFields["hcOrderId_op"] = "contains";
-        payload.inputFields["hcOrderId_ic"] = "Y";
-        payload.inputFields["hcOrderId_grp"] = "4";
-        payload.inputFields["shopifyOrderName"] = this.queryString;
-        payload.inputFields["shopifyOrderName_op"] = "contains";
-        payload.inputFields["shopifyOrderName_ic"] = "Y";
-        payload.inputFields["shopifyOrderName_grp"] = "5";
-      }
-      await this.store.dispatch("return/findReturn", payload);
-      this.fetchingReturns = false;
-      return Promise.resolve();
-    },
-    loadMoreReturns() {
-      this.getReturns(process.env.VUE_APP_VIEW_SIZE, Math.ceil(this.returns.length / process.env.VUE_APP_VIEW_SIZE));
-    },
-    async refreshReturns(event?: any) {
-      this.getReturns().then(() => {
-        if (event) event.target.complete();
-      })
-    },
-    segmentChanged() {
-      this.getReturns();
-    }
-  },
-  setup() {
-    const router = useRouter()
-    const store = useStore();
-    const userStore = useUserStore()
-    let currentFacility: any = computed(() => userStore.getCurrentFacility) 
+const productStore = useProductStore();
+const returnStore = useReturnStore();
 
-    return {
-      cloudDownloadOutline,
-      currentFacility,
-      reload,
-      router,
-      store,
-      translate
-    }
+const queryString = ref('');
+const fetchingReturns = ref(false);
+const showErrorMessage = ref(false);
+const selectedSegment = ref("open")
+
+const returns = computed(() => returnStore.getReturns);
+const returnsTotal = computed(() => returnStore.getReturnsTotal);
+const currentFacility = computed(() => productStore.getCurrentFacility);
+
+const getReturns = async (vSize?: any, vIndex?: any) => {
+  queryString.value ? (showErrorMessage.value = true) : (showErrorMessage.value = false);
+  fetchingReturns.value = true;
+  const viewSize = vSize ? vSize : import.meta.env.VITE_VIEW_SIZE;
+  const viewIndex = vIndex ? vIndex : 0;
+  const payload = {
+    destinationFacilityId: (currentFacility.value as any)?.facilityId,
+    statusId: "PURCH_SHIP_RECEIVED",
+    statusId_not: selectedSegment.value === "open" ? "Y" : "N",
+    fieldsToSelect: "shipmentId,externalId,statusId,shopifyOrderName,hcOrderId,trackingCode,destinationFacilityId",
+    pageSize: viewSize,
+    pageIndex: viewIndex,
+    orderByField: "createdDate ASC"
+  } as any
+
+  if (queryString.value) {
+    payload.keyword = queryString.value
   }
-})
+  await returnStore.findReturn(payload);
+  fetchingReturns.value = false;
+  return Promise.resolve();
+};
+
+const loadMoreReturns = () => {
+  getReturns(import.meta.env.VITE_VIEW_SIZE, Math.ceil(returns.value.length / (import.meta.env.VITE_VIEW_SIZE as any)));
+};
+
+const refreshReturns = async (event?: any) => {
+  getReturns().then(() => {
+    if (event) event.target.complete();
+  })
+};
+
+const segmentChanged = () => {
+  getReturns();
+};
+
+onMounted(() => {
+  returnStore.fetchValidReturnStatuses();
+});
+
+onIonViewDidEnter(() => {
+  const forwardRoute = (router as any).options.history.state.forward as any;
+  if (!forwardRoute?.startsWith('/return/')) selectedSegment.value = "open";
+  getReturns();
+});
 </script>
 
 <style scoped>

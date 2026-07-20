@@ -1,22 +1,12 @@
 <template>
   <figure>
-    <img class="light" src="../assets/images/LogoLight.png" :alt="translate('HotWax Commerce')"/>
-    <img class="dark" src="../assets/images/LogoDark.png" :alt="translate('HotWax Commerce')"/>
+    <img class="light" src="../assets/images/LogoLight.png"/>
+    <img class="dark" src="../assets/images/LogoDark.png"/>
   </figure>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-import { translate } from '@hotwax/dxp-components'
-
-export default defineComponent({
-  setup() {
-    return {
-      translate
-    }
-  },
-  name: "Logo",
-})
+<script setup lang="ts">
+// Logo component
 </script>
 
 <style scoped>
