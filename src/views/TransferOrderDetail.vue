@@ -514,9 +514,6 @@ const updateProductCount = async (payload: any) => {
     return;
   }
 
-  if (openItemsTemp.value.length) {
-    const item = openItems.value.find((item: any) => commonUtil.getProductIdentificationValue(barcodeIdentifier.value, getProduct.value(item.productId)) === payload);
-
     if (!item) {
       queryString.value = "";
       scanErrorText.value = "Scanned item not found in filtered view, switch to all open items and scan again";
