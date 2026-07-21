@@ -52,132 +52,76 @@
   </ion-page>
 </template>
 
-<script lang="ts">
-import {
-  IonButton,
-  IonContent,
-  IonHeader,
-  IonIcon,
-  IonLabel,
-  IonMenuButton,
-  IonPage,
-  IonRefresher,
-  IonRefresherContent,
-  IonSearchbar,
-  IonSegment,
-  IonSegmentButton,
-  IonTitle,
-  IonToolbar
-} from '@ionic/vue';
-import { cloudDownloadOutline, notificationsOutline, reload } from 'ionicons/icons'
-import { defineComponent, computed } from 'vue';
-import { mapGetters, useStore } from 'vuex';
+<script setup lang="ts">
+import { IonButton, IonContent, IonHeader, IonIcon, IonLabel, IonMenuButton, IonPage, IonRefresher, IonRefresherContent, IonSearchbar, IonSegment, IonSegmentButton, IonTitle, IonToolbar, onIonViewWillEnter } from '@ionic/vue';
+import { cloudDownloadOutline, reload } from 'ionicons/icons'
+import { ref, computed } from 'vue';
+import { useTransferOrderStore } from '@/store/transferorder';
+import { useUserStore } from '@/store/user';
 import TransferOrderItem from '@/components/TransferOrderItem.vue'
-import { translate, useUserStore } from "@hotwax/dxp-components"
-import emitter from '@/event-bus';
+import { translate, commonUtil, emitter } from "@common"
+import { useProductStore } from '@/store/productStore';
 
-export default defineComponent({
-  name: 'TransferOrders',
-  components: {
-    IonButton,
-    IonContent,
-    IonHeader,
-    IonIcon, 
-    IonLabel,
-    IonMenuButton,
-    IonPage,
-    IonRefresher,
-    IonRefresherContent,
-    IonSearchbar,
-    IonSegment,
-    IonSegmentButton,
-    IonTitle,
-    IonToolbar,
-    TransferOrderItem
-  },
-  data() {
-    return {
-      queryString: '',
-      fetchingOrders: false,
-      showErrorMessage: false,
-      selectedSegment: "open"
-    }
-  },
-  computed: {
-    ...mapGetters({
-      orders: 'transferorder/getTransferOrders',
-      isScrollable: 'order/isScrollable',
-      notifications: 'user/getNotifications',
-      unreadNotificationsStatus: 'user/getUnreadNotificationsStatus'
-    })
-  },
-  methods: {
-    async getTransferOrders(vSize?: any, vIndex?: any){
-      this.queryString ? this.showErrorMessage = true : this.showErrorMessage = false;
-      this.fetchingOrders = true;
-      const limit = vSize ? vSize : process.env.VUE_APP_VIEW_SIZE;
-      const pageIndex = vIndex ? vIndex : 0;
+const transferOrderStore = useTransferOrderStore();
+const productStore = useProductStore();
 
-      let orderStatusId;
-      if (this.selectedSegment === 'open') {
-        orderStatusId = 'ORDER_APPROVED';
-      } else {
-        orderStatusId = 'ORDER_COMPLETED';
-      }
+const queryString = ref('');
+const fetchingOrders = ref(false);
+const showErrorMessage = ref(false);
+const selectedSegment = ref("open");
 
-      const payload = {
-        orderStatusId,
-        destinationFacilityId: this.currentFacility?.facilityId,
-        excludeOriginFacilityIds: "REJECTED_ITM_PARKING",
-        statusFlowId: ["TO_Fulfill_And_Receive", "TO_Receive_Only"],
-        limit,
-        pageIndex,
-        orderName: this.queryString?.trim() || undefined,  // Kept this for backward compatibility, can be removed once the changes are pushed on oms
-        keyword: this.queryString?.trim() || undefined,
-        fieldsToSelect: "orderId,orderName,orderExternalId,orderStatusId,orderStatusDesc,facilityId,orderFacilityId,orderDate"
-      };
+const orders = computed(() => transferOrderStore.getTransferOrders);
+const currentFacility: any = computed(() => productStore.getCurrentFacility);
 
-      emitter.emit('presentLoader');
-      await this.store.dispatch('transferorder/fetchTransferOrders', payload);
-      emitter.emit('dismissLoader');
-      this.fetchingOrders = false;
-      return Promise.resolve();
-    },
-    async loadMoreOrders() {
-      const limit = process.env.VUE_APP_VIEW_SIZE;
-      const pageIndex = Math.ceil(this.orders.list.length / limit);
-      await this.getTransferOrders(limit, pageIndex);
-    },
-    async refreshTransferOrders(event?: any) {
-      this.getTransferOrders().then(() => {
-        if (event) event.target.complete();
-      })
-    },
-    segmentChanged() {
-      this.getTransferOrders();
-    },
-    viewNotifications() {
-      this.store.dispatch('user/setUnreadNotificationsStatus', false)
-      this.$router.push({ path: '/notifications' })
-    },
-  },
-  async ionViewWillEnter () {
-    await this.getTransferOrders();
-  },
-  setup () {
-    const store = useStore();
-    const userStore = useUserStore()
-    let currentFacility: any = computed(() => userStore.getCurrentFacility) 
+const getTransferOrders = async (vSize?: any, vIndex?: any) => {
+  queryString.value ? showErrorMessage.value = true : showErrorMessage.value = false;
+  fetchingOrders.value = true;
+  const limit = vSize ? vSize : import.meta.env.VITE_VIEW_SIZE;
+  const pageIndex = vIndex ? vIndex : 0;
 
-    return {
-      cloudDownloadOutline,
-      currentFacility,
-      notificationsOutline,
-      reload,
-      store,
-      translate
-    }
+  let orderStatusId;
+  if (selectedSegment.value === 'open') {
+    orderStatusId = 'ORDER_APPROVED';
+  } else {
+    orderStatusId = 'ORDER_COMPLETED';
   }
+
+  const payload = {
+    orderStatusId,
+    destinationFacilityId: currentFacility.value?.facilityId,
+    excludeOriginFacilityIds: "REJECTED_ITM_PARKING",
+    statusFlowId: ["TO_Fulfill_And_Receive", "TO_Receive_Only"],
+    limit,
+    pageIndex,
+    orderName: queryString.value?.trim() || undefined,
+    keyword: queryString.value?.trim() || undefined,
+    fieldsToSelect: "orderId,orderName,orderExternalId,orderStatusId,orderStatusDesc,facilityId,orderFacilityId,orderDate"
+  };
+
+  emitter.emit('presentLoader');
+  await transferOrderStore.fetchTransferOrders(payload);
+  emitter.emit('dismissLoader');
+  fetchingOrders.value = false;
+};
+
+const loadMoreOrders = async () => {
+  const limit = import.meta.env.VITE_VIEW_SIZE;
+  const pageIndex = Math.ceil(orders.value.list.length / limit);
+  await getTransferOrders(limit, pageIndex);
+};
+
+const refreshTransferOrders = async (event?: any) => {
+  getTransferOrders().then(() => {
+    if (event) event.target.complete();
+  })
+};
+
+const segmentChanged = () => {
+  getTransferOrders();
+};
+
+onIonViewWillEnter(async () => {
+  await getTransferOrders();
 });
 </script>
 

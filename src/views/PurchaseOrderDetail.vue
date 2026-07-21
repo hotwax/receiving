@@ -8,7 +8,7 @@
           <ion-button data-testid="purchase-order-detail-page-history-btn" @click="receivingHistory()">
             <ion-icon slot="icon-only" :icon="timeOutline"/>
           </ion-button>
-          <ion-button data-testid="purchase-order-detail-page-add-product-btn" :disabled="!hasPermission(Actions.APP_SHIPMENT_ADMIN) || isPOReceived()" @click="addProduct">
+          <ion-button data-testid="purchase-order-detail-page-add-product-btn" :disabled="!userStore.hasPermission('RECEIVING_ADMIN') || isPOReceived()" @click="addProduct">
             <ion-icon slot="icon-only" :icon="addOutline"/>
           </ion-button>
         </ion-buttons>
@@ -24,7 +24,7 @@
           </ion-label>
 
           <div class="doc-meta">
-            <ion-chip data-testid="purchase-order-detail-page-order-id-chip" @click="copyToClipboard(order.orderId, 'Internal ID saved to clipboard')">{{ order.orderId }}<ion-icon :icon="copyOutline"/></ion-chip>
+            <ion-chip data-testid="purchase-order-detail-page-order-id-chip" @click="commonUtil.copyToClipboard(order.orderId, 'Internal ID saved to clipboard')">{{ order.orderId }}<ion-icon :icon="copyOutline"/></ion-chip>
             <ion-badge :color="order.orderStatusId === 'ORDER_CREATED' ? 'medium' : 'primary'">{{ order.orderStatusDesc }}</ion-badge>
           </div>
         </div>
@@ -40,16 +40,16 @@
         </div>
 
         <ion-item lines="none" v-if="!isPOReceived()">
-          <ion-label v-if="getPOItems('pending').length > 1" color="medium" class="ion-margin-end">
-            {{ translate("Pending: items", { itemsCount: getPOItems('pending').length }) }}
+          <ion-label v-if="pendingItems.length > 1" color="medium" class="ion-margin-end">
+            {{ translate("Pending: items", { itemsCount: pendingItems.length }) }}
           </ion-label>
           <ion-label v-else color="medium" class="ion-margin-end">
-            {{ translate("Pending: item", { itemsCount: getPOItems('pending').length }) }}
+            {{ translate("Pending: item", { itemsCount: pendingItems.length }) }}
           </ion-label>
         </ion-item>
 
         <template v-if="!isPOReceived()">
-          <ion-card :data-testid="`purchase-order-detail-page-pending-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in getPOItems('pending')" v-show="item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED'" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+          <ion-card :data-testid="`purchase-order-detail-page-pending-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in pendingItems" v-show="item.statusId !== 'ITEM_COMPLETED' && item.statusId !== 'ITEM_REJECTED'" :key="index" :class="commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
             <div  class="product">
               <div class="product-info">
                 <ion-item lines="none">
@@ -57,9 +57,9 @@
                     <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
                   </ion-thumbnail>
                   <ion-label class="ion-text-wrap">
-                    <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
-                    <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
-                    <p>{{ getFeatures(getProduct(item.productId).productFeatures) }}</p>
+                    <h2>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
+                    <p>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                    <p>{{ commonUtil.getFeatures(getProduct(item.productId).productFeatures) }}</p>
                   </ion-label>
                 </ion-item>
               </div>
@@ -102,18 +102,18 @@
         </template>
 
         <ion-item lines="none" v-if="!isPOReceived()">
-          <ion-text v-if="getPOItems('completed').length > 1" color="medium" class="ion-margin-end">
-            {{ translate("Completed: items", { itemsCount: getPOItems('completed').length }) }}
+          <ion-text v-if="completedItems.length > 1" color="medium" class="ion-margin-end">
+            {{ translate("Completed: items", { itemsCount: completedItems.length }) }}
           </ion-text>
           <ion-text v-else color="medium" class="ion-margin-end">
-            {{ translate("Completed: item", { itemsCount: getPOItems('completed').length }) }}
+            {{ translate("Completed: item", { itemsCount: completedItems.length }) }}
           </ion-text>
-          <ion-button data-testid="purchase-order-detail-page-toggle-completed-btn" size="default" v-if="getPOItems('completed').length" @click="showCompletedItems = !showCompletedItems" color="medium" fill="clear">
+          <ion-button data-testid="purchase-order-detail-page-toggle-completed-btn" size="default" v-if="completedItems.length" @click="showCompletedItems = !showCompletedItems" color="medium" fill="clear">
             <ion-icon :icon="showCompletedItems ? eyeOutline : eyeOffOutline" slot="icon-only" />
           </ion-button>
         </ion-item>
         
-        <ion-card :data-testid="`purchase-order-detail-page-completed-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in getPOItems('completed')" v-show="showCompletedItems && item.orderItemStatusId === 'ITEM_COMPLETED'" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+        <ion-card :data-testid="`purchase-order-detail-page-completed-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in completedItems" v-show="showCompletedItems && item.statusId === 'ITEM_COMPLETED'" :key="index" :class="commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
           <div class="product">
             <div class="product-info">
               <ion-item lines="none">
@@ -121,9 +121,9 @@
                   <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
-                  <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
-                  <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
-                  <p>{{ getFeatures(getProduct(item.productId).productFeatures) }}</p>
+                  <h2>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
+                  <p>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                  <p>{{ commonUtil.getFeatures(getProduct(item.productId).productFeatures) }}</p>
                 </ion-label>
               </ion-item>
             </div>
@@ -149,322 +149,266 @@
     <ion-footer data-testid="purchase-order-detail-page-footer" v-if="!isPOReceived()">
       <ion-toolbar>
         <ion-buttons slot="end">
-          <ion-button data-testid="purchase-order-detail-page-receive-close-btn" fill="outline" size="small" color="primary" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE)" class="ion-margin-end" @click="closePO">{{ translate("Receive And Close") }}</ion-button>
-          <ion-button data-testid="purchase-order-detail-page-receive-btn" fill="solid" size="small" color="primary" :disabled="!hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibileForCreatingShipment()" @click="savePODetails">{{ translate("Receive") }}</ion-button>
+          <ion-button data-testid="purchase-order-detail-page-receive-close-btn" fill="outline" size="small" color="primary" :disabled="!userStore.hasPermission('RECEIVING_ADMIN')" class="ion-margin-end" @click="closePO">{{ translate("Receive And Close") }}</ion-button>
+          <ion-button data-testid="purchase-order-detail-page-receive-btn" fill="solid" size="small" color="primary" :disabled="!userStore.hasPermission('RECEIVING_ADMIN') || !isEligibileForCreatingShipment()" @click="savePODetails">{{ translate("Receive") }}</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-footer>
   </ion-page>
 </template>
 
-<script lang="ts">
-import {
-  IonBackButton,
-  IonBadge,
-  IonButton,
-  IonButtons,
-  IonCard,
-  IonChip,
-  IonContent,
-  IonHeader,
-  IonFooter,
-  IonIcon,
-  IonItem,
-  IonInput,
-  IonLabel,
-  IonPage,
-  IonProgressBar,
-  IonText,
-  IonThumbnail,
-  IonTitle,
-  IonToolbar,
-  alertController,
-  modalController
-} from '@ionic/vue';
-import { defineComponent, computed } from 'vue';
+<script setup lang="ts">
+import { IonBackButton, IonBadge, IonButton, IonButtons, IonCard, IonChip, IonContent, IonHeader, IonFooter, IonIcon, IonItem, IonInput, IonLabel, IonPage, IonProgressBar, IonText, IonThumbnail, IonTitle, IonToolbar, alertController, modalController, onIonViewWillEnter } from '@ionic/vue';
+import { computed, ref } from 'vue';
 import { addOutline, cameraOutline, checkmarkDone, checkmarkDoneCircleOutline, copyOutline, eyeOffOutline, eyeOutline, locationOutline, saveOutline, timeOutline, warningOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
-import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore, useUserStore, useAuthStore, openPosScanner } from '@hotwax/dxp-components';
-import { useStore, mapGetters } from 'vuex';
-import { useRouter } from 'vue-router';
+import { DxpShopifyImg, translate, commonUtil, useEmbeddedAppStore, useShopify } from '@common';
 import Scanner from "@/components/Scanner.vue"
 import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
 import ClosePurchaseOrderModal from '@/components/ClosePurchaseOrderModal.vue'
 import LocationPopover from '@/components/LocationPopover.vue'
 import ImageModal from '@/components/ImageModal.vue';
-import { copyToClipboard, getFeatures, showToast, hasWebcamAccess } from '@/utils';
-import { Actions, hasPermission } from '@/authorization'
 
-export default defineComponent({
-  name: "PurchaseOrderDetails",
-  components: {
-    DxpShopifyImg,
-    IonBackButton,
-    IonBadge,
-    IonButton,
-    IonButtons,
-    IonCard,
-    IonChip,
-    IonContent,
-    IonHeader,
-    IonFooter,
-    IonIcon,
-    IonItem,
-    IonInput,
-    IonLabel,
-    IonPage,
-    IonProgressBar,
-    IonText,
-    IonThumbnail,
-    IonTitle,
-    IonToolbar,
-    LocationPopover
-  },
-  data() {
-    return {
-      queryString: '',
-      showCompletedItems: false,
-      lastScannedId: ''
+import { useOrderStore } from '@/store/order';
+import { useProductStore as useProduct } from '@/store/product';
+import { useUserStore } from '@/store/user';
+import { useProductStore } from '@/store/productStore';
+import router from '@/router';
+
+const route = router.currentRoute.value
+const orderStore = useOrderStore();
+const product = useProduct();
+const userStore = useUserStore();
+const productStore = useProductStore();
+
+const queryString = ref('');
+const showCompletedItems = ref(false);
+const lastScannedId = ref('');
+
+const order = computed(() => orderStore.getCurrent);
+const getProduct = computed(() => product.getProduct);
+const getPOItemAccepted = computed(() => orderStore.getPOItemAccepted);
+const isForceScanEnabled = computed(() => productStore.isProductStoreSettingEnabled('FORCE_SCAN'));
+const barcodeIdentifier = computed(() => productStore.getBarcodeIdentifierPref);
+const productIdentificationPref = computed(() => productStore.getProductIdentificationPref);
+const currentFacility = computed(() => productStore.getCurrentFacility);
+
+const isPOReceived = () => order.value.orderStatusId === "ORDER_COMPLETED";
+
+const isItemReceivedInFull = (item: any) => {
+  const qtyAlreadyAccepted = getPOItemAccepted.value(item.productId)
+  return order.value.items.some((ele: any) => ele.productId == item.productId && qtyAlreadyAccepted >= ele.quantity)
+};
+
+const getRcvdToOrderedFraction = (item: any) => {
+  return (parseInt(item.quantityAccepted || 0) + getPOItemAccepted.value(item.productId)) / (item.quantity)
+};
+
+const openImage = async (imageUrl: string, productName: string) => {
+  const imageModal = await modalController.create({
+    component: ImageModal,
+    componentProps: { imageUrl, productName }
+  });
+  return imageModal.present();
+};
+
+const scan = async () => {
+  if (useEmbeddedAppStore().getPosLocationId) {
+    try {
+      const scannedCode = await useShopify().openPosScanner();
+      if (scannedCode) updateProductCount(scannedCode);
+    } catch (err) {
+      console.error("POS Scanner error:", err);
     }
-  },
-  computed: {
-    ...mapGetters({
-      order: 'order/getCurrent',
-      getProduct: 'product/getProduct',
-      getPOItemAccepted: 'order/getPOItemAccepted',
-      facilityLocationsByFacilityId: 'user/getFacilityLocationsByFacilityId',
-      isForceScanEnabled: 'util/isForceScanEnabled',
-      barcodeIdentifier: 'util/getBarcodeIdentificationPref',
-    })
-  },
-  methods: {
-    isItemReceivedInFull(item: any) {
-      const qtyAlreadyAccepted = this.getPOItemAccepted(item.productId)
-      return this.order.items.some((ele: any) => ele.productId == item.productId && qtyAlreadyAccepted >= ele.quantity)
-    },
-    getRcvdToOrderedFraction(item: any) {
-      return (parseInt(item.quantityAccepted || 0) + this.getPOItemAccepted(item.productId))/(item.quantity)
-    },
-    async openImage(imageUrl: string, productName: string) {
-      const imageModal = await modalController.create({
-        component: ImageModal,
-        componentProps: { imageUrl , productName }
-      });
-      return imageModal.present();
-    },
-    async scan() {
-      if (useAuthStore().isEmbedded) {
-        const scanData = await openPosScanner();
-        if(scanData) {
-          this.updateProductCount(scanData);
-        } else {
-          showToast(translate("No data received from scanner"));
-        }
-        return;
-      }
-      if (!(await hasWebcamAccess())) {
-        showToast(translate("Camera access not allowed, please check permissions."));
-        return;
-      } 
-      const modal = await modalController
-      .create({
-        component: Scanner,
-      });
-      modal.onDidDismiss()
-      .then((result) => {
-        if (result.role) {
-          this.updateProductCount(result.role);
-        }
-      })
-      return modal.present();
-    },
-    async updateProductCount(payload: any) {
-      if(this.queryString) payload = this.queryString
-
-      if(!payload) {
-        showToast(translate("Please provide a valid barcode identifier."))
-        return;
-      }
-      const result = await this.store.dispatch('order/updateProductCount', payload)
-
-      if(result.isCompleted) {
-        showToast(translate("Product is already received:", { itemName: payload }))
-      } else if(result.isProductFound) {
-        showToast(translate("Scanned successfully.", { itemName: payload }))
-        this.lastScannedId = payload
-        // Highlight specific element
-        const scannedElement = document.getElementById(payload);
-        scannedElement && scannedElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        window.scrollBy(0, -40);
-
-        // Scanned product should get un-highlighted after 3s for better experience hence adding setTimeOut
-        setTimeout(() => {
-          this.lastScannedId = ''
-        }, 3000)
-      } else {
-        showToast(translate("Scanned item is not present within the shipment:", { itemName: payload }), {
-          buttons: [{
-            text: translate('Add'),
-            handler: async() => {
-              const modal = await modalController.create({
-                component: AddProductToPOModal,
-                componentProps: { selectedSKU: payload }
-              })
-
-              modal.onDidDismiss().then(() => {
-                this.store.dispatch('product/clearSearchedProducts');
-              })
-
-              return modal.present();
-            }
-          }],
-          duration: 5000
-        })
-      }
-      this.queryString = ''
-    },
-    searchProduct() {
-      if(!this.queryString) {
-        showToast(translate("Please provide a valid barcode identifier."))
-        return;
-      }
-      const scannedElement = document.getElementById(this.queryString);
-      if(scannedElement) {
-        this.lastScannedId = this.queryString
-        scannedElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        window.scrollBy(0, -40);
-        // Scanned product should get un-highlighted after 3s for better experience hence adding setTimeOut
-        setTimeout(() => {
-          this.lastScannedId = ''
-        }, 3000)
-      } else {
-        showToast(translate("Searched item is not present within the shipment:", { itemName: this.queryString }));
-      }
-      this.queryString = ''
-    },
-    getPOItems(orderType: string) {
-      if(orderType === 'completed'){
-        return this.order.items.filter((item: any) => item.orderItemStatusId === 'ITEM_COMPLETED')
-      } else {
-        return this.order.items.filter((item: any) => item.orderItemStatusId !== 'ITEM_COMPLETED' && item.orderItemStatusId !== 'ITEM_REJECTED')
-      }
-    },
-    async addProduct() {
-      const modal = await modalController
-        .create({
-          component: AddProductToPOModal
-        })
-      modal.onDidDismiss()
-      .then(() => {
-        this.store.dispatch('product/clearSearchedProducts');
-      })  
-      return modal.present();
-    },
-    async receivingHistory(productId?: string) {
-      const modal = await modalController
-        .create({
-          component: ReceivingHistoryModal,
-          componentProps: {productId}
-        })
-      return modal.present();
-    },
-    async savePODetails() {
-      const alert = await alertController.create({
-        header: translate('Receive inventory'),
-        message: translate('Inventory can be received for purchase orders in multiple shipments. Proceeding will receive a new shipment for this purchase order but it will still be available for receiving later', { space: '<br /><br />' }),
-        buttons: [{
-          text: translate('Cancel'),
-          role: 'cancel'
-        },
-        {
-          text: translate('Proceed'),
-          role: 'proceed',
-          handler: () => {
-            this.createShipment();
-          }
-        }]
-      });
-      return alert.present();
-    },
-    async closePO() {
-      const modal = await modalController.create({
-        component: ClosePurchaseOrderModal,
-        componentProps: {
-          isEligibileForCreatingShipment: this.isEligibileForCreatingShipment()
-        }
-      })
-
-      return modal.present();
-    },
-    async createShipment() {
-      const eligibleItems = this.order.items.filter((item: any) => item.quantityAccepted > 0)
-      const isShipmentReceived = await this.store.dispatch('order/createAndReceiveIncomingShipment', { items: eligibleItems, orderId: this.order.orderId })
-      if (isShipmentReceived) {
-        showToast(translate("Purchase order received successfully", { orderId: this.order.orderId }))
-        this.router.push('/purchase-orders')
-      } else {
-        this.store.dispatch("order/getOrderDetail", { orderId: this.$route.params.slug }).then(() => {
-          this.store.dispatch('order/getPOHistory', { orderId: this.order.orderId })
-        })
-      }
-    },
-    isEligibileForCreatingShipment() {
-      return this.order.items.some((item: any) => item.quantityAccepted > 0)
-    },
-    receiveAll(item: any) {
-      const qtyAlreadyAccepted = this.getPOItemAccepted(item.productId)
-      this.order.items.find((ele: any) => {
-        if(ele.productId == item.productId) {
-          ele.quantityAccepted = ele.quantity - qtyAlreadyAccepted;
-          ele.progress = ele.quantityAccepted / ele.quantity;
-          return true;
-        }
-      })
-    },
-    isPOReceived() {
-      return this.order.orderStatusId === "ORDER_COMPLETED"
+  } else {
+  if (!(await commonUtil.hasWebcamAccess())) {
+    commonUtil.showToast(translate("Camera access not allowed, please check permissions."));
+    return;
+  }
+  const modal = await modalController.create({
+    component: Scanner,
+  });
+  modal.onDidDismiss().then((result) => {
+    if (result.role) {
+      updateProductCount(result.role);
     }
-  }, 
-  ionViewWillEnter() {
-    this.store.dispatch("order/getOrderDetail", { orderId: this.$route.params.slug }).then(async () => {
-      await this.store.dispatch('order/getPOHistory', { orderId: this.order.orderId })
-      if(this.isPOReceived()) {
-        this.showCompletedItems = true;
-      }
-    })
-  },
-  setup() {
-    const store = useStore();
-    const router = useRouter();
-    const userStore = useUserStore()
-    const productIdentificationStore = useProductIdentificationStore();
-    let productIdentificationPref = computed(() => productIdentificationStore.getProductIdentificationPref);
-    let currentFacility: any = computed(() => userStore.getCurrentFacility) 
+  })
+  return modal.present();
+  }
+};
 
-    return {
-      Actions,
-      addOutline,
-      cameraOutline,
-      checkmarkDone,
-      checkmarkDoneCircleOutline,
-      copyOutline,
-      copyToClipboard,
-      currentFacility,
-      eyeOffOutline,
-      eyeOutline,
-      getFeatures,
-      hasPermission,
-      locationOutline,
-      router,
-      saveOutline,
-      store,
-      timeOutline,
-      translate,
-      getProductIdentificationValue,
-      productIdentificationPref,
-      warningOutline
-    };
-  },
+const updateProductCount = async (payload?: any) => {
+  if (queryString.value) payload = queryString.value
+
+  if (!payload) {
+    commonUtil.showToast(translate("Please provide a valid barcode identifier."))
+    return;
+  }
+  const result = await orderStore.updateProductCount(payload)
+
+  if (result.isCompleted) {
+    commonUtil.showToast(translate("Product is already received:", { itemName: payload }))
+  } else if (result.isProductFound) {
+    commonUtil.showToast(translate("Scanned successfully.", { itemName: payload }))
+    lastScannedId.value = payload
+    // Highlight specific element
+    const scannedElement = document.getElementById(payload);
+    scannedElement && scannedElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window.scrollBy(0, -40);
+
+    // Scanned product should get un-highlighted after 3s for better experience hence adding setTimeOut
+    setTimeout(() => {
+      lastScannedId.value = ''
+    }, 3000)
+  } else {
+    commonUtil.showToast(translate("Scanned item is not present within the shipment:", { itemName: payload }), {
+      buttons: [{
+        text: translate('Add'),
+        handler: async () => {
+          const modal = await modalController.create({
+            component: AddProductToPOModal,
+            componentProps: { selectedSKU: payload }
+          })
+          modal.onDidDismiss().then(() => {
+            product.clearSearchedProducts();
+          })
+          return modal.present();
+        }
+      }]
+    })
+  }
+  queryString.value = ''
+};
+
+const searchProduct = () => {
+  if (!queryString.value) {
+    commonUtil.showToast(translate("Please provide a valid barcode identifier."))
+    return;
+  }
+  const scannedElement = document.getElementById(queryString.value);
+  if (scannedElement) {
+    lastScannedId.value = queryString.value
+    scannedElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window.scrollBy(0, -40);
+    // Scanned product should get un-highlighted after 3s for better experience hence adding setTimeOut
+    setTimeout(() => {
+      lastScannedId.value = ''
+    }, 3000)
+  } else {
+    commonUtil.showToast(translate("Searched item is not present within the shipment:", { itemName: queryString.value }));
+  }
+  queryString.value = ''
+};
+
+const sortItems = (items: any[]) => {
+  return items.sort((a: any, b: any) => {
+    const productA = getProduct.value(a.productId);
+    const productB = getProduct.value(b.productId);
+    // primary identifier can not be null
+    const primaryIdA = commonUtil.getProductIdentificationValue(productIdentificationPref.value.primaryId, productA) || productA.productName || '';
+    const primaryIdB = commonUtil.getProductIdentificationValue(productIdentificationPref.value.primaryId, productB) || productB.productName || '';
+
+    if (primaryIdA === primaryIdB) {
+      const positionA = productA.position ? parseInt(productA.position) : 0;
+      const positionB = productB.position ? parseInt(productB.position) : 0;
+      return positionA - positionB;
+    }
+    return primaryIdA.localeCompare(primaryIdB);
+  });
+};
+
+const pendingItems = computed(() => {
+  const items = order.value.items.filter((item: any) => item.statusId !== 'ITEM_COMPLETED' && item.statusId !== 'ITEM_REJECTED');
+  return sortItems(items);
+});
+
+const completedItems = computed(() => {
+  const items = order.value.items.filter((item: any) => item.statusId === 'ITEM_COMPLETED');
+  return sortItems(items);
+});
+
+const addProduct = async () => {
+  const modal = await modalController.create({
+    component: AddProductToPOModal
+  })
+  modal.onDidDismiss().then(() => {
+    product.clearSearchedProducts();
+  })
+  return modal.present();
+};
+
+const receivingHistory = async (productId?: string) => {
+  const modal = await modalController.create({
+    component: ReceivingHistoryModal,
+    componentProps: { productId }
+  })
+  return modal.present();
+};
+
+const savePODetails = async () => {
+  const alert = await alertController.create({
+    header: translate('Receive inventory'),
+    message: translate('Inventory can be received for purchase orders in multiple shipments. Proceeding will receive a new shipment for this purchase order but it will still be available for receiving later', { space: '<br /><br />' }),
+    buttons: [{
+      text: translate('Cancel'),
+      role: 'cancel'
+    },
+    {
+      text: translate('Proceed'),
+      role: 'proceed',
+      handler: () => {
+        createShipment();
+      }
+    }]
+  });
+  return alert.present();
+};
+
+const closePO = async () => {
+  const modal = await modalController.create({
+    component: ClosePurchaseOrderModal,
+    componentProps: {
+      isEligibileForCreatingShipment: isEligibileForCreatingShipment()
+    }
+  })
+  return modal.present();
+};
+
+const createShipment = async () => {
+  const eligibleItems = order.value.items.filter((item: any) => item.quantityAccepted > 0)
+  const isShipmentReceived = await orderStore.createAndReceiveIncomingShipment({ items: eligibleItems, orderId: order.value.orderId })
+  if (isShipmentReceived) {
+    commonUtil.showToast(translate("Purchase order received successfully", { orderId: order.value.orderId }))
+    router.push('/purchase-orders')
+  } else {
+    orderStore.getOrderDetail({ orderId: route.params.slug as string }).then(() => {
+      orderStore.fetchPOHistory({ orderId: order.value.orderId })
+    })
+  }
+};
+
+const isEligibileForCreatingShipment = () => {
+  return order.value.items.some((item: any) => item.quantityAccepted > 0)
+};
+
+const receiveAll = (item: any) => {
+  const qtyAlreadyAccepted = getPOItemAccepted.value(item.productId)
+  order.value.items.find((ele: any) => {
+    if (ele.productId == item.productId) {
+      ele.quantityAccepted = ele.quantity - qtyAlreadyAccepted;
+      ele.progress = ele.quantityAccepted / ele.quantity;
+      return true;
+    }
+  })
+};
+
+onIonViewWillEnter(() => {
+  orderStore.getOrderDetail({ orderId: route.params.slug as string }).then(async () => {
+    await orderStore.fetchPOHistory({ orderId: order.value.orderId })
+    if (isPOReceived()) {
+      showCompletedItems.value = true;
+    }
+  })
 });
 </script>
 

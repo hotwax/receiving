@@ -8,7 +8,7 @@
           <ion-button data-testid="transfer-order-detail-page-history-btn" @click="receivingHistory()">
             <ion-icon slot="icon-only" :icon="timeOutline"/>
           </ion-button>
-          <ion-button data-testid="transfer-order-detail-page-add-product-btn" :disabled="!hasPermission(Actions.APP_SHIPMENT_ADMIN) || isTOReceived()" @click="addProduct">
+          <ion-button data-testid="transfer-order-detail-page-add-product-btn" :disabled="!userStore.hasPermission('RECEIVING_ADMIN') || isTOReceived()" @click="addProduct">
             <ion-icon slot="icon-only" :icon="addOutline"/>
           </ion-button>
         </ion-buttons>
@@ -26,7 +26,7 @@
               <p v-if="isReceivingByFulfillment && !isTOReceived()">{{ translate("Unfulfilled items") }}: {{ order.items?.length - fulfilledItems }}</p>
             </ion-label>
             <ion-row>
-              <ion-chip v-for="(pkg, index) in trackedPackages" :key="index" @click="copyToClipboard(pkg.trackingCode, 'Tracking code copied to clipboard')">
+              <ion-chip v-for="(pkg, index) in trackedPackages" :key="index" @click="commonUtil.copyToClipboard(pkg.trackingCode, 'Tracking code copied to clipboard')">
                 {{ pkg.trackingCode }}
                 <ion-icon :icon="copyOutline"/>
               </ion-chip>
@@ -55,7 +55,7 @@
           </ion-button>
         </div>
 
-        <ion-segment data-testid="transfer-order-detail-page-segment" v-if="!isTOReceived()" :value="selectedSegment" @ionChange="segmentChanged($event.detail.value)">
+        <ion-segment data-testid="transfer-order-detail-page-segment" v-if="!isTOReceived()" :value="selectedSegment" @ionChange="segmentChanged($event.detail.value as any)">
           <ion-segment-button data-testid="transfer-order-detail-page-all-tab" value="all" content-id="all">
             <ion-label>{{ translate("All") }}</ion-label>
           </ion-segment-button>
@@ -86,9 +86,9 @@
                       <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
                     </ion-thumbnail>
                     <ion-label class="ion-text-wrap">
-                      <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
-                      <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
-                      <p>{{ getFeatures(getProduct(item.productId).productFeatures) }}</p>
+                      <h2>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
+                      <p>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                      <p>{{ commonUtil.getFeatures(getProduct(item.productId).productFeatures) }}</p>
                     </ion-label>
                   </ion-item>
                 </div>
@@ -167,7 +167,7 @@
                 {{ translate("Back to open items") }}
               </ion-button>
             </ion-item>
-            <ion-card :data-testid="`transfer-order-detail-page-open-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in openItems" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+            <ion-card :data-testid="`transfer-order-detail-page-open-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in openItems" :key="index" :class="commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
               <div class="product" :data-product-id="item.productId">
                 <div class="product-info">
                   <ion-item lines="none">
@@ -175,9 +175,9 @@
                       <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
                     </ion-thumbnail>
                     <ion-label class="ion-text-wrap">
-                      <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
-                      <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
-                      <p>{{ getFeatures(getProduct(item.productId).productFeatures) }}</p>
+                      <h2>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
+                      <p>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                      <p>{{ commonUtil.getFeatures(getProduct(item.productId).productFeatures) }}</p>
                     </ion-label>
                   </ion-item>
                 </div>
@@ -237,7 +237,7 @@
             </ion-item>
           </template>
           <template v-if="selectedSegment === 'received'">
-            <ion-card :data-testid="`transfer-order-detail-page-received-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in completedItems" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+            <ion-card :data-testid="`transfer-order-detail-page-received-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in completedItems" :key="index" :class="commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
               <div class="product" :data-product-id="item.productId">
                 <div class="product-info">
                   <ion-item lines="none">
@@ -245,9 +245,9 @@
                       <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
                     </ion-thumbnail>
                     <ion-label class="ion-text-wrap">
-                      <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
-                      <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
-                      <p>{{ getFeatures(getProduct(item.productId).productFeatures) }}</p>
+                      <h2>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
+                      <p>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                      <p>{{ commonUtil.getFeatures(getProduct(item.productId).productFeatures) }}</p>
                     </ion-label>
                   </ion-item>
                 </div>
@@ -290,7 +290,7 @@
 
         <!-- TODO: update UI to have this information using the segment view -->
         <template v-if="isTOReceived()">
-          <ion-card :data-testid="`transfer-order-detail-page-completed-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in completedItems" :key="index" :class="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+          <ion-card :data-testid="`transfer-order-detail-page-completed-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in completedItems" :key="index" :class="commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
             <div class="product" :data-product-id="item.productId">
               <div class="product-info">
                 <ion-item lines="none">
@@ -298,9 +298,9 @@
                     <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
                   </ion-thumbnail>
                   <ion-label class="ion-text-wrap">
-                    <h2>{{ getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
-                    <p>{{ getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
-                    <p>{{ getFeatures(getProduct(item.productId).productFeatures) }}</p>
+                    <h2>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
+                    <p>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                    <p>{{ commonUtil.getFeatures(getProduct(item.productId).productFeatures) }}</p>
                   </ion-label>
                 </ion-item>
               </div>
@@ -334,7 +334,7 @@
       </main>
 
       <ion-toast
-        :isOpen="showToast"
+        :isOpen="isToastOpen"
         :message="translate('All items are ready for receiving')"
         position="bottom"
         :buttons="toastButtons"
@@ -353,652 +353,544 @@
   </ion-page>
 </template>
 
-<script lang="ts">
-import {
-  IonBackButton,
-  IonButton,
-  IonButtons,
-  IonCard,
-  IonChip,
-  IonContent,
-  IonHeader,
-  IonFooter,
-  IonIcon,
-  IonItem,
-  IonInput,
-  IonLabel,
-  IonPage,
-  IonProgressBar,
-  IonRow,
-  IonSegment,
-  IonSegmentButton,
-  IonText,
-  IonThumbnail,
-  IonTitle,
-  IonToast,
-  IonToolbar,
-  alertController,
-  modalController
-} from '@ionic/vue';
-import { defineComponent, computed, nextTick } from 'vue';
-import { addOutline, cameraOutline, checkmarkDone, copyOutline, cubeOutline, eyeOffOutline, eyeOutline, informationCircleOutline, locationOutline, openOutline, saveOutline, timeOutline } from 'ionicons/icons';
+<script setup lang="ts">
+import { IonBackButton, IonButton, IonButtons, IonCard, IonChip, IonContent, IonHeader, IonFooter, IonIcon, IonItem, IonInput, IonLabel, IonPage, IonProgressBar, IonRow, IonSegment, IonSegmentButton, IonText, IonThumbnail, IonTitle, IonToast, IonToolbar, alertController, modalController, onIonViewWillEnter, onIonViewDidLeave } from '@ionic/vue';
+import { nextTick, ref, computed } from 'vue';
+import { addOutline, cameraOutline, checkmarkDone, copyOutline, cubeOutline, informationCircleOutline, openOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
-import { DxpShopifyImg, translate, getProductIdentificationValue, useProductIdentificationStore, useUserStore, useAuthStore, openPosScanner } from '@hotwax/dxp-components';
-import { useStore, mapGetters } from 'vuex';
-import { useRouter } from 'vue-router';
+import { DxpShopifyImg, translate, commonUtil, emitter, useEmbeddedAppStore, useShopify } from '@common';
+import { useProductStore } from '@/store/productStore';
+import { useTransferOrderStore } from '@/store/transferorder';
+import { useUserStore } from '@/store/user';
+import { useProductStore as useProduct } from '@/store/product';
+import { useUtilStore } from '@/store/util';
 import Scanner from "@/components/Scanner.vue"
 import ImageModal from '@/components/ImageModal.vue';
-import { copyToClipboard, getFeatures, hasError, showToast, hasWebcamAccess } from '@/utils';
-import { Actions, hasPermission } from '@/authorization'
-import { TransferOrderService } from '@/services/TransferOrderService';
+
 import AddProductToTOModal from '@/components/AddProductToTOModal.vue';
 import { DateTime } from 'luxon';
-import { ProductService } from '@/services/ProductService';
-import emitter from "@/event-bus";
 import ReceivingInstructions from '@/components/ReceivingInstructions.vue';
 import ReceiveTransferOrder from '@/components/ReceiveTransferOrder.vue';
+import router from '@/router';
 
-export default defineComponent({
-  name: "TransferOrderDetails",
-  components: {
-    DxpShopifyImg,
-    IonBackButton,
-    IonButton,
-    IonButtons,
-    IonCard,
-    IonChip,
-    IonContent,
-    IonHeader,
-    IonFooter,
-    IonIcon,
-    IonItem,
-    IonInput,
-    IonLabel,
-    IonPage,
-    IonProgressBar,
-    IonRow,
-    IonSegment,
-    IonSegmentButton,
-    IonText,
-    IonThumbnail,
-    IonTitle,
-    IonToast,
-    IonToolbar
-  },
-  data() {
-    return {
-      queryString: '',
-      showCompletedItems: false,
-      lastScannedId: '',
-      productQoh: {} as any,
-      observer: null as IntersectionObserver | null,
-      selectedSegment: "open",
-      filteredItems: [] as any,
-      openItems: [] as any,
-      completedItems: [] as any,
-      openItemsTemp: [] as any,
-      fulfilledItems: 0,
-      toast: null as any,
-      showToast: false,
-      toastButtons: [{
-        text: translate("Receive and complete"),
-        handler: async() => this.receiveAndCloseTO()
-      }],
-      scanErrorText: ""
+const transferOrderStore = useTransferOrderStore();
+const product = useProduct();
+const utilStore = useUtilStore();
+const userStore = useUserStore();
+const productStore = useProductStore();
+
+const queryString = ref('');
+const showCompletedItems = ref(false);
+const lastScannedId = ref('');
+const productQoh = ref({} as any);
+const observer = ref(null as IntersectionObserver | null);
+const selectedSegment = ref("open");
+const filteredItems = ref([] as any);
+const openItems = ref([] as any);
+const completedItems = ref([] as any);
+const openItemsTemp = ref([] as any);
+const fulfilledItems = ref(0);
+const isToastOpen = ref(false);
+const scanErrorText = ref("");
+
+const order = computed(() => transferOrderStore.getCurrent);
+const getProduct = computed(() => product.getProduct);
+const isForceScanEnabled = computed(() => productStore.isProductStoreSettingEnabled('FORCE_SCAN'));
+const isReceivingByFulfillment = computed(() => productStore.isProductStoreSettingEnabled('RECEIVE_BY_FULFILLMENT'));
+const barcodeIdentifier = computed(() => productStore.getBarcodeIdentifierPref);
+const productIdentificationPref = computed(() => productStore.getProductIdentificationPref);
+
+const toastButtons = [
+  {
+    text: translate("Receive and complete"),
+    handler: async () => receiveAndCloseTO()
+  }
+];
+
+const trackedPackages = computed(() => order.value?.shipmentPackages?.filter((pkg: any) => pkg.trackingCode) || []);
+
+const areAllItemsHaveQty = computed(() => {
+  if (openItemsTemp.value.length) {
+    const isAllItemsReceived = openItems.value.every((item: any) => (item.quantityAccepted && Number(item.quantityAccepted) >= 0))
+    if (isAllItemsReceived) {
+      displayToast();
+    } else {
+      dismissToast();
     }
-  },
-  computed: {
-    ...mapGetters({
-      order: 'transferorder/getCurrent',
-      getProduct: 'product/getProduct',
-      isForceScanEnabled: 'util/isForceScanEnabled',
-      isReceivingByFulfillment: 'util/isReceivingByFulfillment',
-      barcodeIdentifier: 'util/getBarcodeIdentificationPref',
-    }),
-    trackedPackages(): any[] {
-      return this.order?.shipmentPackages?.filter((pkg: any) => pkg.trackingCode) || [];
-    },
-    areAllItemsHaveQty(): boolean {
-      if(this.openItemsTemp.length) {
-        const isAllItemsReceived = this.openItems.every((item: any) => (item.quantityAccepted && Number(item.quantityAccepted) >= 0))
-        if(isAllItemsReceived) {
-          this.displayToast();
-        } else {
-          this.dismissToast();
-        }
-        return isAllItemsReceived
-      } else {
-        return true;
-      }
-    },
-    getTOItems() {
-      return (orderType: string) => {
-        let items: Array<any> = [];
-        if (!this.order.items) return items;
-        if (orderType === "received") {
-          items = this.order.items.filter((item: any) => item.statusId === 'ITEM_COMPLETED')
-        } else if(orderType === "open") {
-          items = this.order.items.filter((item: any) => !['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId))
-        } else {
-          items = this.order.items
-        }
+    return isAllItemsReceived
+  } else {
+    return true;
+  }
+});
 
-        return items
-      }
-    },
-    getAllItems(): any {
-      return this.openItemsTemp.length ? this.openItems : this.filteredItems
+const getTOItems = (orderType: string) => {
+  let items: Array<any> = [];
+  if (!order.value.items) return items;
+  if (orderType === "received") {
+    items = order.value.items.filter((item: any) => item.statusId === 'ITEM_COMPLETED')
+  } else if (orderType === "open") {
+    items = order.value.items.filter((item: any) => !['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId))
+  } else {
+    items = order.value.items
+  }
+  return items;
+};
+
+const getAllItems = computed(() => openItemsTemp.value.length ? openItems.value : filteredItems.value);
+
+const displayToast = () => {
+  isToastOpen.value = true;
+};
+
+const dismissToast = () => {
+  isToastOpen.value = false;
+};
+
+const getItemQty = (item: any) => {
+  return (isReceivingByFulfillment.value ? Number(item.totalIssuedQuantity) : Number(item.quantity)) || 0;
+};
+
+const getReceivedUnits = () => {
+  const items = [...openItems.value, ...openItemsTemp.value];
+  const totalReceived = items.reduce((qty: any, item: any) => qty + (Number(item.quantityAccepted) || 0), 0);
+  const totalUnits = items.reduce((qty: any, item: any) => qty + ((isReceivingByFulfillment.value ? item.totalIssuedQuantity : item.quantity) - item.totalReceivedQuantity || 0), 0);
+  return `${totalReceived} / ${totalUnits >= 0 ? totalUnits : 0} units`;
+};
+
+const segmentChanged = (value: string) => {
+  selectedSegment.value = value;
+};
+
+const isItemReceivedInFull = (item: any) => {
+  return (Number(item.totalReceivedQuantity) || 0) >= getItemQty(item);
+};
+
+const getRcvdToOrderedFraction = (item: any) => {
+  const totalQty = (Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0);
+  if (!totalQty) {
+    return 0;
+  }
+  return ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) / ((isReceivingByFulfillment.value ? Number(item.totalIssuedQuantity) : Number(item.quantity)) || (isReceivingByFulfillment.value ? 0 : 1));
+};
+
+const openImage = async (imageUrl: string, productName: string) => {
+  const imageModal = await modalController.create({
+    component: ImageModal,
+    componentProps: { imageUrl, productName }
+  });
+  return imageModal.present();
+};
+
+const scan = async () => {
+  if (useEmbeddedAppStore().getPosLocationId) {
+    try {
+      const scannedCode = await useShopify().openPosScanner();
+      if (scannedCode) updateProductCount(scannedCode);
+    } catch (err) {
+      console.error("POS Scanner error:", err);
     }
-  },
-  methods: {
-    async displayToast() {
-      this.showToast = true
-    },
-    dismissToast() {
-      this.showToast = false;
-    },
-    getItemQty(item: any) {
-      return (this.isReceivingByFulfillment ? Number(item.totalIssuedQuantity) : Number(item.quantity)) || 0
-    },
-    getReceivedUnits() {
-      const items = [...this.openItems, ...this.openItemsTemp]
-      const totalReceived = items.reduce((qty: any, item: any) => qty + (Number(item.quantityAccepted) || 0), 0)
-      const totalUnits = items.reduce((qty: any, item: any) => qty + ((this.isReceivingByFulfillment ? item.totalIssuedQuantity : item.quantity) - item.totalReceivedQuantity || 0), 0)
-      return `${totalReceived} / ${totalUnits >= 0 ? totalUnits : 0} units`
-    },
-    segmentChanged(value: string) {
-      this.selectedSegment = value
-    },
-    isItemReceivedInFull(item: any) {
-      return (Number(item.totalReceivedQuantity) || 0) >= this.getItemQty(item)
-    },
-    getRcvdToOrderedFraction(item: any) {
-      const totalQty = (Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)
-      if(!totalQty) {
-        return 0;
-      }
-      return ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) / ((this.isReceivingByFulfillment ? Number(item.totalIssuedQuantity) : Number(item.quantity)) || (this.isReceivingByFulfillment ? 0 : 1))
-    },
-    async openImage(imageUrl: string, productName: string) {
-      const imageModal = await modalController.create({
-        component: ImageModal,
-        componentProps: { imageUrl , productName }
-      });
-      return imageModal.present();
-    },
-    async scan() {
-      if (useAuthStore().isEmbedded) {
-        const scanData = await openPosScanner();
-        if(scanData) {
-          this.updateProductCount(scanData);
-        } else {
-          showToast(translate("No data received from scanner"));
-        }
-        return;
-      }
-      if (!(await hasWebcamAccess())) {
-        showToast(translate("Camera access not allowed, please check permissions."));
-        return;
-      } 
-      const modal = await modalController
-      .create({
-        component: Scanner,
-      });
-      modal.onDidDismiss()
-      .then((result) => {
-        if (result.role && result.role !=='backdrop') {
-          this.updateProductCount(result.role);
-        }
-      })
-      return modal.present();
-    },
-    async updateProductCount(payload: any) {
-      if(this.queryString) payload = this.queryString
+  } else {
+  if (!(await commonUtil.hasWebcamAccess())) {
+    commonUtil.showToast(translate("Camera access not allowed, please check permissions."));
+    return;
+  }
+  const modal = await modalController.create({
+    component: Scanner,
+  });
+  modal.onDidDismiss().then((result) => {
+    if (result.role && result.role !== 'backdrop') {
+      updateProductCount(result.role);
+    }
+  });
+  return modal.present();
+  }
+};
 
-      if(!payload) {
-        showToast(translate("Please provide a valid barcode identifier."))
-        return;
-      }
+const updateProductCount = async (payload: any) => {
+  if (queryString.value) payload = queryString.value;
 
-      if(this.openItemsTemp.length) {
-        const item = this.openItems.find((item: any) => getProductIdentificationValue(this.barcodeIdentifier, this.getProduct(item.productId)) === payload)
+  if (!payload) {
+    commonUtil.showToast(translate("Please provide a valid barcode identifier."));
+    return;
+  }
 
-        if(!item) {
-          this.queryString = ""
-          this.scanErrorText = "Scanned item not found in filtered view, switch to all open items and scan again"
-          return;
-        }
-      }
+  if (openItemsTemp.value.length) {
+    const item = openItems.value.find((item: any) => commonUtil.getProductIdentificationValue(barcodeIdentifier.value, getProduct.value(item.productId)) === payload);
 
-      // TODO: move the update product count logic in here, as there is no meaning of maintaining it in state
-      const result = await this.store.dispatch('transferorder/updateProductCount', payload)
+    if (!item) {
+      queryString.value = "";
+      scanErrorText.value = "Scanned item not found in filtered view, switch to all open items and scan again";
+      return;
+    }
+  }
 
-      if(result.isCompleted) {
-        showToast(translate("Product is already received:", { itemName: payload }))
-      } else if(result.isProductFound) {
-        showToast(translate("Scanned successfully.", { itemName: payload }))
-        this.lastScannedId = payload
+  const result = await transferOrderStore.updateProductCount(payload);
 
-        // Identify the scanned value belongs to which segment and change the segment
-        const item = this.filteredItems.find((item: any) => getProductIdentificationValue(this.barcodeIdentifier, this.getProduct(item.productId)) === payload)
-        if(item.statusId === "ITEM_COMPLETED") {
-          this.segmentChanged("received")
-        } else {
-          this.segmentChanged("open")
-        }
+  if (result.isCompleted) {
+    commonUtil.showToast(translate("Product is already received:", { itemName: payload }));
+  } else if (result.isProductFound) {
+    commonUtil.showToast(translate("Scanned successfully.", { itemName: payload }));
+    lastScannedId.value = payload;
 
-        await nextTick();
+    const item = filteredItems.value.find((item: any) => commonUtil.getProductIdentificationValue(barcodeIdentifier.value, getProduct.value(item.productId)) === payload);
+    if (item.statusId === "ITEM_COMPLETED") {
+      segmentChanged("received");
+    } else {
+      segmentChanged("open");
+    }
 
-        // Highlight specific element
-        const scannedElement = document.getElementById(payload);
-        scannedElement && (scannedElement.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+    await nextTick();
 
-        // Scanned product should get un-highlighted after 3s for better experience hence adding setTimeOut
-        setTimeout(() => {
-          this.lastScannedId = ''
-        }, 3000)
-      } else {
-        showToast(translate("Scanned item is not present within the shipment:", { itemName: payload }), {
-          buttons: [{
-            text: translate('Add'),
-            handler: async() => {
-              const modal = await modalController.create({
-                component: AddProductToTOModal,
-                componentProps: { selectedSKU: payload }
-              })
+    const scannedElement = document.getElementById(payload);
+    scannedElement && (scannedElement.scrollIntoView({ behavior: 'smooth', block: 'center' }));
 
-              modal.onDidDismiss().then((value: any) => {
-                if(value.data.product?.productId) {
-                  this.openItems.push(value.data.product)
-                  this.filteredItems.push(value.data.product)
-                }
-                this.store.dispatch('product/clearSearchedProducts');
-              })
-
-              return modal.present();
-            }
-          }],
-          duration: 5000
-        })
-      }
-      this.queryString = ''
-    },
-    searchProduct() {
-      if(!this.queryString) {
-        showToast(translate("Please provide a valid barcode identifier."))
-        return;
-      }
-      const scannedElement = document.getElementById(this.queryString);
-      if(scannedElement) {
-        this.lastScannedId = this.queryString
-        scannedElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        // Scanned product should get un-highlighted after 3s for better experience hence adding setTimeOut
-        setTimeout(() => {
-          this.lastScannedId = ''
-        }, 3000)
-      } else {
-        showToast(translate("Searched item is not present within the shipment:", { itemName: this.queryString }));
-      }
-      this.queryString = ''
-    },
-    async addProduct() {
-      const modal = await modalController
-        .create({
-          component: AddProductToTOModal
-        })
-      modal.onDidDismiss().then((value: any) => {
-        this.store.dispatch('product/clearSearchedProducts');
-
-        if(value.data.product?.productId) {
-          this.openItems.push(value.data.product)
-          this.filteredItems.push(value.data.product)
-        }
-
-        this.observeProductVisibility();
-      })
-      return modal.present();
-    },
-    async receivingHistory(productId?: string, orderItemSeqId?: string) {
-      const modal = await modalController
-        .create({
-          component: ReceivingHistoryModal,
-          componentProps: {
-            productId,
-            orderItemSeqId,
-            orderType: 'transferOrder'
-          }
-        })
-      return modal.present();
-    },
-    async receivingAlert() {
-      let message = "Specify quantity for at least one of the items to receive"
-
-      if(!hasPermission(Actions.APP_SHIPMENT_UPDATE)) {
-        message = "You do not have permission to receive items"
-      }
-
-      const alert = await alertController.create({
-        header: translate("Receiving"),
-        message: translate(message),
-        buttons: [{
-          text: translate("Ok"),
-          role: "cancel"
-        }]
-      });
-
-      return alert.present();
-    },
-    async confirmComplete() {
-      const alert = await alertController.create({
-        header: translate("Close transfer order items"),
-        message: translate("All the TO items will be marked as completed"),
-        buttons: [{
-          text: translate("Cancel"),
-          role: "cancel"
-        },
-        {
-          text: translate("Proceed"),
-          role: "proceed",
-          handler: async () => {
-            // Dismiss alert before showing loader to prevent overlay stacking
-            alert.dismiss();
-            emitter.emit("presentLoader", { message: translate("Receiving in progress..."), backdropDismiss: false });
-            try {
-              await this.receiveTransferOrder(true);
-            } finally {
-              emitter.emit("dismissLoader");
-            }
-          }
-        }]
-      });
-      return alert.present();
-    },
-    isAnyItemOverReceived() {
-      return [...this.openItems, ...this.openItemsTemp].some((item: any) => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) > this.getItemQty(item))
-    },
-    async receiveTO() {
-      this.dismissToast();
-      if(!this.isEligibleForCreatingShipment() || !hasPermission(Actions.APP_SHIPMENT_UPDATE)) {
-        return await this.receivingAlert();
-      }
-
-      if(!this.isAnyItemOverReceived()) {
-        const alert = await alertController.create({
-          header: translate("Save progress and receive more later"),
-          message: translate("Your receiving progress will be saved and will be added to your inventory. Come back to this transfer order and finish receiving later. Fully received items auto close.", { space: "<br /><br />", units: this.getReceivedUnits() }),
-          buttons: [{
-            text: translate('Cancel'),
-            role: 'cancel'
-          },
-          {
-            text: translate('Proceed'),
-            role: 'proceed',
-            handler: async () => {
-              // Dismiss alert before showing loader to prevent overlay stacking
-              alert.dismiss();
-              emitter.emit("presentLoader", { message: translate("Receiving in progress..."), backdropDismiss: false });
-              try {
-                await this.receiveTransferOrder();
-              } finally {
-                emitter.emit("dismissLoader");
-              }
-            }
-          }]
-        });
-        return alert.present();
-      } else {
-        const modal = await modalController
-          .create({
-            component: ReceiveTransferOrder,
-            componentProps: {
-              items: this.filteredItems,
-              receivedUnitsFraction: this.getReceivedUnits()
-            }
+    setTimeout(() => {
+      lastScannedId.value = '';
+    }, 3000);
+  } else {
+    commonUtil.showToast(translate("Scanned item is not present within the shipment:", { itemName: payload }), {
+      buttons: [{
+        text: translate('Add'),
+        handler: async () => {
+          const modal = await modalController.create({
+            component: AddProductToTOModal,
+            componentProps: { selectedSKU: payload }
           });
 
-        modal.onDidDismiss().then(async (value: any) => {
-          this.filteredItems.forEach((item: any) => item.isChecked = false)
-          if(value?.data?.updateItems) {
-            emitter.emit("presentLoader", { message: translate("Receiving in progress..."), backdropDismiss: false });
-            try { 
-              await this.receiveTransferOrder();
-            } finally {
-              emitter.emit("dismissLoader");
+          modal.onDidDismiss().then((value: any) => {
+            if (value.data.product?.productId) {
+              openItems.value.push(value.data.product);
+              filteredItems.value.push(value.data.product);
             }
-          }
-        })
-        
-        return modal.present();
-      }
-    },
-    showAllOpenItems() {
-      this.openItems = [...this.openItemsTemp, ...this.openItems].sort((a, b) => (Number(a.orderItemSeqId) || 0) - (Number(b.orderItemSeqId) || 0))
-      this.openItemsTemp = [];
-    },
-    async receiveAndCloseTO() {
-      this.dismissToast();
-      if(!this.isEligibleForCreatingShipment(true) || !hasPermission(Actions.APP_SHIPMENT_UPDATE)) {
-        return await this.receivingAlert();
-      }
+            product.clearSearchedProducts();
+          });
 
-      let itemsReceived = [] as any
-      let itemsNotReceived = [] as any
-      this.openItems.map((item: any) => {
-        if(!(item.quantityAccepted && item.quantityAccepted >= 0)) {
-          itemsNotReceived.push(item)
-        } else {
-          itemsReceived.push(item)
+          return modal.present();
         }
-      })
-      if(itemsNotReceived.length) {
-        this.openItemsTemp = itemsReceived
-        this.openItems = itemsNotReceived
-        document.querySelector("ion-segment")?.scrollIntoView();
-        return;
-      }
+      }]
+    });
+  }
+  queryString.value = '';
+};
 
-      const items = [...this.openItems, ...this.openItemsTemp]
+const addProduct = async () => {
+  const modal = await modalController.create({
+    component: AddProductToTOModal
+  });
+  modal.onDidDismiss().then((value: any) => {
+    product.clearSearchedProducts();
 
-      const isAnyItemUnderReceived = items.some((item: any) => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) != this.getItemQty(item))
-      if(!this.isAnyItemOverReceived() && !isAnyItemUnderReceived) {
-        return await this.confirmComplete()
-      }
+    if (value.data.product?.productId) {
+      openItems.value.push(value.data.product);
+      filteredItems.value.push(value.data.product);
+    }
 
-      const modal = await modalController.create({
-        component: ReceiveTransferOrder,
-        componentProps: {
-          closeTO: true,  // define if we need to initiate close TO flow from the modal
-          items: this.filteredItems,
-          receivedUnitsFraction: this.getReceivedUnits()
+    observeProductVisibility();
+  });
+  return modal.present();
+};
+
+const receivingHistory = async (productId?: string, orderItemSeqId?: string) => {
+  const modal = await modalController.create({
+    component: ReceivingHistoryModal,
+    componentProps: {
+      productId,
+      orderItemSeqId,
+      orderType: 'transferOrder'
+    }
+  });
+  return modal.present();
+};
+
+const receivingAlert = async () => {
+  let message = "Specify quantity for at least one of the items to receive";
+
+  if (!userStore.hasPermission('RECEIVING_ADMIN')) {
+    message = "You do not have permission to receive items";
+  }
+
+  const alert = await alertController.create({
+    header: translate("Receiving"),
+    message: translate(message),
+    buttons: [{
+      text: translate("Ok"),
+      role: "cancel"
+    }]
+  });
+
+  return alert.present();
+};
+
+const confirmComplete = async () => {
+  const alert = await alertController.create({
+    header: translate("Close transfer order items"),
+    message: translate("All the TO items will be marked as completed"),
+    buttons: [{
+      text: translate("Cancel"),
+      role: "cancel"
+    },
+    {
+      text: translate("Proceed"),
+      role: "proceed",
+      handler: async () => {
+        alert.dismiss();
+        emitter.emit("presentLoader", { message: translate("Receiving in progress..."), backdropDismiss: false });
+        try {
+          await receiveTransferOrder(true);
+        } finally {
+          emitter.emit("dismissLoader");
         }
-      })
+      }
+    }]
+  });
+  return alert.present();
+};
 
-      // Mark as the items as unchecked
-      modal.onDidDismiss().then(async (value: any) => {
-        this.filteredItems.forEach((item: any) => item.isChecked = false)
-        if(value?.data?.updateItems) {
+const isAnyItemOverReceived = () => {
+  return [...openItems.value, ...openItemsTemp.value].some((item: any) => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) > getItemQty(item));
+};
+
+const receiveTO = async () => {
+  dismissToast();
+  if (!isEligibleForCreatingShipment() || !userStore.hasPermission('RECEIVING_ADMIN')) {
+    return await receivingAlert();
+  }
+
+  if (!isAnyItemOverReceived()) {
+    const alert = await alertController.create({
+      header: translate("Save progress and receive more later"),
+      message: translate("Your receiving progress will be saved and will be added to your inventory. Come back to this transfer order and finish receiving later. Fully received items auto close.", { space: "<br /><br />", units: getReceivedUnits() }),
+      buttons: [{
+        text: translate('Cancel'),
+        role: 'cancel'
+      },
+      {
+        text: translate('Proceed'),
+        role: 'proceed',
+        handler: async () => {
+          alert.dismiss();
           emitter.emit("presentLoader", { message: translate("Receiving in progress..."), backdropDismiss: false });
-          try { 
-            await this.receiveTransferOrder(true);
+          try {
+            await receiveTransferOrder();
           } finally {
             emitter.emit("dismissLoader");
           }
         }
-      })
-
-      return modal.present();
-    },
-    getCurrentFacilityId() {
-      const currentFacility: any = useUserStore().getCurrentFacility;
-      return currentFacility?.facilityId
-    },
-    async receiveTransferOrder(isClosingTO = false) {
-      let eligibleItems: any = []
-      const itemsToReceive =  JSON.parse(JSON.stringify([...this.openItems, ...this.openItemsTemp]))
-      if(!isClosingTO) {
-        itemsToReceive.forEach((item: any) => {
-          const isItemFullyReceived = item.quantityAccepted >= 0 && ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) >= this.getItemQty(item)
-          if(isItemFullyReceived) {
-            item.statusId = "ITEM_COMPLETED"
-          }
-  
-          if(item.quantityAccepted > 0) {
-            eligibleItems.push(item)
-          }
-        })
-      } else {
-        eligibleItems = itemsToReceive.map((item: any) => ({
-          ...item,
-          statusId: "ITEM_COMPLETED"
-        }))
+      }]
+    });
+    return alert.present();
+  } else {
+    const modal = await modalController.create({
+      component: ReceiveTransferOrder,
+      componentProps: {
+        items: filteredItems.value,
+        receivedUnitsFraction: getReceivedUnits()
       }
+    });
 
-      const payload = {
-        facilityId: this.getCurrentFacilityId(),
-        receivedDateTime: DateTime.now().toMillis(),
-        items: eligibleItems.map((item: any) => {
-          const params = {          
-            orderItemSeqId: item.orderItemSeqId,
-            productId: item.productId,
-            quantityAccepted: item.quantityAccepted,
-            statusId: item.statusId
-          } as any
-
-          return params;
-        })
+    modal.onDidDismiss().then(async (value: any) => {
+      filteredItems.value.forEach((item: any) => item.isChecked = false);
+      if (value?.data?.updateItems) {
+        emitter.emit("presentLoader", { message: translate("Receiving in progress..."), backdropDismiss: false });
+        try {
+          await receiveTransferOrder();
+        } finally {
+          emitter.emit("dismissLoader");
+        }
       }
+    });
 
+    return modal.present();
+  }
+};
+
+const showAllOpenItems = () => {
+  openItems.value = [...openItemsTemp.value, ...openItems.value].sort((a, b) => (Number(a.orderItemSeqId) || 0) - (Number(b.orderItemSeqId) || 0));
+  openItemsTemp.value = [];
+};
+
+const receiveAndCloseTO = async () => {
+  dismissToast();
+  if (!isEligibleForCreatingShipment(true) || !userStore.hasPermission('RECEIVING_ADMIN')) {
+    return await receivingAlert();
+  }
+
+  const itemsReceived = [] as any;
+  const itemsNotReceived = [] as any;
+  openItems.value.map((item: any) => {
+    if (!(item.quantityAccepted && item.quantityAccepted >= 0)) {
+      itemsNotReceived.push(item);
+    } else {
+      itemsReceived.push(item);
+    }
+  });
+  if (itemsNotReceived.length) {
+    openItemsTemp.value = itemsReceived;
+    openItems.value = itemsNotReceived;
+    document.querySelector("ion-segment")?.scrollIntoView();
+    return;
+  }
+
+  const items = [...openItems.value, ...openItemsTemp.value];
+  const isAnyItemUnderReceived = items.some((item: any) => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) != getItemQty(item));
+  if (!isAnyItemOverReceived() && !isAnyItemUnderReceived) {
+    return await confirmComplete();
+  }
+
+  const modal = await modalController.create({
+    component: ReceiveTransferOrder,
+    componentProps: {
+      closeTO: true,
+      items: filteredItems.value,
+      receivedUnitsFraction: getReceivedUnits()
+    }
+  });
+
+  modal.onDidDismiss().then(async (value: any) => {
+    filteredItems.value.forEach((item: any) => item.isChecked = false);
+    if (value?.data?.updateItems) {
+      emitter.emit("presentLoader", { message: translate("Receiving in progress..."), backdropDismiss: false });
       try {
-        const resp = await TransferOrderService.receiveTransferOrder(this.order.orderId, payload)
-        if (!hasError(resp)) {
-          showToast(translate("Transfer order received successfully", { orderId: this.order.orderId }))
-          this.router.push('/transfer-orders')
-        } 
-      } catch (error) {
-        showToast(translate("Error in receiving transfer order", { orderId: this.order.orderId }))
+        await receiveTransferOrder(true);
+      } finally {
+        emitter.emit("dismissLoader");
       }
-    },
-    isEligibleForCreatingShipment(isClosingTO = false) {
-      return [...this.openItems, ...this.openItemsTemp]?.some((item: any) => !isClosingTO ? (item.quantityAccepted && Number(item.quantityAccepted) > 0) : (item.quantityAccepted && Number(item.quantityAccepted) >= 0))
-    },
-    receiveAll(item: any) {
-      const qtyAlreadyAccepted = Number(item.totalReceivedQuantity) || 0
-      const qty = this.isReceivingByFulfillment ? item.totalIssuedQuantity : item.quantity
-      item.quantityAccepted = Math.max(qty - qtyAlreadyAccepted, 0);
-      item.progress = item.quantityAccepted / qty;
-    },
-    isTOReceived() {
-      return this.order.statusId === "ORDER_COMPLETED"
-    },
-    observeProductVisibility() {
-      if(this.observer) {
-        this.observer.disconnect();
-      }
-
-      this.observer = new IntersectionObserver((entries: any) => {
-        entries.forEach((entry: any) => {
-          if (entry.isIntersecting) {
-            const productId = entry.target.getAttribute('data-product-id');
-            if (productId && (!this.productQoh[productId] && this.productQoh[productId] !== 0)) {
-              this.fetchQuantityOnHand(productId);
-            }
-          }
-        });
-      }, {
-        root: null,
-        threshold: 0.4
-      });
-
-      this.$nextTick(() => {
-        const products = document.querySelectorAll('.product');
-        if (products) {
-          products.forEach((product: any) => {
-            this.observer?.observe(product);
-          });
-        }
-      });
-    },
-    async fetchQuantityOnHand(productId: any) {
-      this.productQoh[productId] = await ProductService.getInventoryAvailableByFacility(productId);
-    },
-    async openTOReceivingInstructions() {
-      const modal = await modalController
-        .create({
-          component: ReceivingInstructions,
-          componentProps: {
-            openItems: [...this.openItems, ...this.openItemsTemp].length,
-            items: this.filteredItems.length
-          }
-        });
-      
-      return modal.present();
     }
-  }, 
-  async ionViewWillEnter() {
-    emitter.emit('presentLoader', { backdropDismiss: false, message: translate("Fetching details...") });
-    this.store.dispatch("transferorder/clearTransferOrderDetail");
-    
-    await this.store.dispatch('transferorder/fetchMisShippedItems', { orderId: this.$route.params.slug });
-    await this.store.dispatch("transferorder/fetchTransferOrderDetail", { orderId: this.$route.params.slug }).then(async () => {
-      await this.store.dispatch('transferorder/fetchTOHistory', {
-        payload: { 
-          orderId: this.order.orderId,
-          orderByField: "-datetimeReceived"
-        }
-      })
-      if(this.isTOReceived()) {
-        this.showCompletedItems = true;
+  });
+
+  return modal.present();
+};
+
+const receiveTransferOrder = async (isClosingTO = false) => {
+  let eligibleItems: any = [];
+  const itemsToReceive = JSON.parse(JSON.stringify([...openItems.value, ...openItemsTemp.value]));
+  if (!isClosingTO) {
+    itemsToReceive.forEach((item: any) => {
+      const isItemFullyReceived = item.quantityAccepted >= 0 && ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) >= getItemQty(item);
+      if (isItemFullyReceived) {
+        item.statusId = "ITEM_COMPLETED";
       }
 
-      this.filteredItems = this.order.items ? [...this.order.items] : []
-      this.completedItems = this.filteredItems.filter((item: any) => item.statusId === 'ITEM_COMPLETED')
-      this.openItems = this.filteredItems.filter((item: any) => !['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId))
+      if (item.quantityAccepted > 0) {
+        eligibleItems.push(item);
+      }
+    });
+  } else {
+    eligibleItems = itemsToReceive.map((item: any) => ({
+      ...item,
+      statusId: "ITEM_COMPLETED"
+    }));
+  }
 
-      this.fulfilledItems = this.filteredItems.filter((item: any) => item.totalIssuedQuantity)?.length
+  const payload = {
+    facilityId: (productStore.getCurrentFacility as any)?.facilityId,
+    receivedDateTime: DateTime.now().toMillis(),
+    items: eligibleItems.map((item: any) => ({
+      orderItemSeqId: item.orderItemSeqId,
+      productId: item.productId,
+      quantityAccepted: item.quantityAccepted,
+      statusId: item.statusId
+    }))
+  };
 
-      this.observeProductVisibility();
-    })
-    emitter.emit('dismissLoader');
-  },
-  ionViewDidLeave() {
-    this.productQoh = {};
-    if(this.observer) {
-      this.observer.disconnect();
+  try {
+    const resp = await transferOrderStore.receiveTransferOrder(order.value.orderId, payload);
+    if (!commonUtil.hasError(resp)) {
+      commonUtil.showToast(translate("Transfer order received successfully", { orderId: order.value.orderId }));
+      router.push('/transfer-orders');
     }
-  },
-  setup() {
-    const store = useStore();
-    const router = useRouter();
-    const userStore = useUserStore()
-    const productIdentificationStore = useProductIdentificationStore();
-    let productIdentificationPref = computed(() => productIdentificationStore.getProductIdentificationPref);
-    let currentFacility: any = computed(() => userStore.getCurrentFacility) 
+  } catch (error) {
+    commonUtil.showToast(translate("Error in receiving transfer order", { orderId: order.value.orderId }));
+  }
+};
 
-    return {
-      Actions,
-      addOutline,
-      cameraOutline,
-      checkmarkDone,
-      copyOutline,
-      copyToClipboard,
-      cubeOutline,
-      currentFacility,
-      eyeOffOutline,
-      eyeOutline,
-      getFeatures,
-      hasPermission,
-      informationCircleOutline,
-      locationOutline,
-      router,
-      openOutline,
-      saveOutline,
-      store,
-      timeOutline,
-      translate,
-      getProductIdentificationValue,
-      productIdentificationPref,
-    };
-  },
+const isEligibleForCreatingShipment = (isClosingTO = false) => {
+  return [...openItems.value, ...openItemsTemp.value]?.some((item: any) => !isClosingTO ? (item.quantityAccepted && Number(item.quantityAccepted) > 0) : (item.quantityAccepted && Number(item.quantityAccepted) >= 0));
+};
+
+const receiveAll = (item: any) => {
+  const qtyAlreadyAccepted = Number(item.totalReceivedQuantity) || 0;
+  const qty = isReceivingByFulfillment.value ? item.totalIssuedQuantity : item.quantity;
+  item.quantityAccepted = Math.max(qty - qtyAlreadyAccepted, 0);
+  item.progress = item.quantityAccepted / qty;
+};
+
+const isTOReceived = () => order.value.statusId === "ORDER_COMPLETED";
+
+const observeProductVisibility = () => {
+  if (observer.value) {
+    observer.value.disconnect();
+  }
+
+  observer.value = new IntersectionObserver((entries: any) => {
+    entries.forEach((entry: any) => {
+      if (entry.isIntersecting) {
+        const productId = entry.target.getAttribute('data-product-id');
+        if (productId && (!productQoh.value[productId] && productQoh.value[productId] !== 0)) {
+          fetchQuantityOnHand(productId);
+        }
+      }
+    });
+  }, {
+    root: null,
+    threshold: 0.4
+  });
+
+  nextTick(() => {
+    const products = document.querySelectorAll('.product');
+    if (products) {
+      products.forEach((product: any) => {
+        observer.value?.observe(product);
+      });
+    }
+  });
+};
+
+const fetchQuantityOnHand = async (productId: any) => {
+  productQoh.value[productId] = await product.getInventoryAvailableByFacility(productId);
+};
+
+const openTOReceivingInstructions = async () => {
+  const modal = await modalController.create({
+    component: ReceivingInstructions,
+    componentProps: {
+      openItems: [...openItems.value, ...openItemsTemp.value].length,
+      items: filteredItems.value.length
+    }
+  });
+  return modal.present();
+};
+
+onIonViewWillEnter(async () => {
+  emitter.emit('presentLoader', { backdropDismiss: false, message: translate("Fetching details...") });
+  transferOrderStore.clearTransferOrderDetail();
+
+  await transferOrderStore.fetchMisShippedItems({ orderId: router.currentRoute.value.params.slug });
+  await transferOrderStore.fetchTransferOrderDetail({ orderId: router.currentRoute.value.params.slug });
+  await transferOrderStore.fetchTOHistory({
+    payload: {
+      orderId: order.value.orderId,
+      orderByField: "-datetimeReceived"
+    }
+  });
+  if (isTOReceived()) {
+    showCompletedItems.value = true;
+  }
+
+  filteredItems.value = order.value.items ? [...order.value.items] : [];
+  completedItems.value = filteredItems.value.filter((item: any) => item.statusId === 'ITEM_COMPLETED');
+  openItems.value = filteredItems.value.filter((item: any) => !['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId));
+  fulfilledItems.value = filteredItems.value.filter((item: any) => item.totalIssuedQuantity)?.length;
+
+  observeProductVisibility();
+  emitter.emit('dismissLoader');
+});
+
+onIonViewDidLeave(() => {
+  productQoh.value = {};
+  if (observer.value) {
+    observer.value.disconnect();
+  }
 });
 </script>
 

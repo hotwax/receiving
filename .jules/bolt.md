@@ -1,0 +1,3 @@
+## 2024-04-22 - O(N*M) State Getters in Vue Lists
+**Learning:** Found a specific performance anti-pattern in the Pinia store getters (`getPOItemAccepted`), where a getter parameterized by `productId` performs an `O(M)` `filter().reduce()` operation over history items, and this getter is called inside `v-for` loops or computed properties for every item in an order list (`O(N)`). This creates an `O(N*M)` rendering bottleneck as the number of items and history grows.
+**Action:** When optimizing parameterized getters used in lists, memoize the underlying data transformation within the outer getter function by reducing the array to a hash map `O(M)`, returning a function that performs an `O(1)` map lookup.
