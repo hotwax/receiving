@@ -352,5 +352,7 @@ main {
   main:has(.scanner) {
     height: 100%;
     overflow-y: scroll;
+    /* Keep the scrolled-to item clear of the sticky scanner (matches its ~40px height) */
+    scroll-padding-top: 2.5rem;
   }
 }

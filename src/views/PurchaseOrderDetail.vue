@@ -254,7 +254,6 @@ const updateProductCount = async (payload?: any) => {
     // Highlight specific element
     const scannedElement = document.getElementById(payload);
     scannedElement && scannedElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    window.scrollBy(0, -40);
 
     // Scanned product should get un-highlighted after 3s for better experience hence adding setTimeOut
     setTimeout(() => {
@@ -289,7 +288,6 @@ const searchProduct = () => {
   if (scannedElement) {
     lastScannedId.value = queryString.value
     scannedElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    window.scrollBy(0, -40);
     // Scanned product should get un-highlighted after 3s for better experience hence adding setTimeOut
     setTimeout(() => {
       lastScannedId.value = ''
