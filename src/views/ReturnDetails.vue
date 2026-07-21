@@ -210,11 +210,7 @@ const isEligibleForReceivingReturns = () => {
 };
 
 const receiveAll = (item: any) => {
-  const ele = current.value.items.find((ele: any) => ele.itemSeqId == item.itemSeqId);
-  if (ele) {
-    ele.quantityAccepted = ele.returnQuantity;
-    ele.progress = ele.quantityAccepted / ele.returnQuantity;
-  }
+  item.quantityAccepted = item.returnQuantity;
 };
 
 const updateProductCount = async (payload?: any) => {

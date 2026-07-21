@@ -812,7 +812,6 @@ const receiveAll = (item: any) => {
   const qtyAlreadyAccepted = Number(item.totalReceivedQuantity) || 0;
   const qty = isReceivingByFulfillment.value ? item.totalIssuedQuantity : item.quantity;
   item.quantityAccepted = Math.max(qty - qtyAlreadyAccepted, 0);
-  item.progress = item.quantityAccepted / qty;
 };
 
 const isTOReceived = () => order.value.statusId === "ORDER_COMPLETED";
