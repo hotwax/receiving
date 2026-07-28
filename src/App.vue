@@ -1,7 +1,7 @@
 <template>
   <ion-app>
     <ion-split-pane content-id="main-content" when="lg">
-      <ion-menu content-id="main-content" type="overlay" :disabled="!isAuthenticated || (router.currentRoute.value.name as string) === 'Login'">
+      <ion-menu content-id="main-content" type="overlay" :disabled="!useAuth().isAuthenticated || (router.currentRoute.value.name as string) === 'Login'">
         <ion-header>
           <ion-toolbar>
             <ion-title>{{ currentFacility.facilityName }}</ion-title>
@@ -44,14 +44,7 @@ const currentFacility = computed(() => productStore.getCurrentFacility);
 const menuItems = computed(() => {
   return router.getRoutes()
     .filter(route => route.meta && route.meta.menuIndex)
-    .filter(route => {
-      if(userStore.hasPermission("FULFILLMENT_LEGACY_APP_VIEW") && userStore.hasPermission("FULFILLMENT_APP_VIEW") && route.meta.title === "Transfer Orders") {
-        return false;
-      } else if(!userStore.hasPermission("FULFILLMENT_LEGACY_APP_VIEW") && !userStore.hasPermission("FULFILLMENT_APP_VIEW") && route.meta.title === "Shipments") {
-        return true;
-      }
-      return !route.meta.permissionId || userStore.hasPermission(route.meta.permissionId as string);
-    })
+    .filter(route => !route.meta.permissionId || userStore.hasPermission(route.meta.permissionId as string))
     .sort((a, b) => (a.meta!.menuIndex as number) - (b.meta!.menuIndex as number))
     .map(route => ({
       title: route.meta!.title as string,

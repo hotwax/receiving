@@ -2,7 +2,6 @@ import { defineStore } from "pinia";
 import { api, commonUtil, emitter, translate, useSolrSearch } from "@common";
 import { useProductStore as useProduct } from "@/store/product";
 import { useProductStore } from "@/store/productStore";
-import { useShipmentStore } from "@/store/shipment";
 import { usePartyStore } from "@/store/party";
 
 export const useOrderStore = defineStore("order", {

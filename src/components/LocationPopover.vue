@@ -14,7 +14,6 @@ import { locationOutline } from 'ionicons/icons'
 import { translate } from '@common';
 import { useUserStore } from '@/store/user';
 import { useProductStore } from '@/store/productStore';
-import { useShipmentStore } from '@/store/shipment';
 import { useReturnStore } from '@/store/return';
 import { useTransferOrderStore } from '@/store/transferorder';
 
@@ -32,9 +31,7 @@ const setFacilityLocation = (event: CustomEvent) => {
     const facilityLocation = facilityLocations.find((location: any) => location.locationSeqId === locationSeqId);
     if (facilityLocation) {
       let store: any;
-      if (props.type === 'shipment') {
-        store = useShipmentStore();
-      } else if (props.type === 'return') {
+      if (props.type === 'return') {
         store = useReturnStore();
       } else if (props.type === 'transferorder') {
         store = useTransferOrderStore();
