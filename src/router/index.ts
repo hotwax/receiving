@@ -148,6 +148,10 @@ const router = createRouter({
 
 
 router.beforeEach((to, from) => {
+  // Enforce the canonical version URL on every navigation (no-op until the version is resolved, or if
+  // already canonical). Redirect cancels this navigation. Logic lives in useAuth so it's shared.
+  if (useAuth().checkAppVersionRedirect()) return false;
+
   const userStore = useUserStore();
   if (to.meta.permissionId && !userStore.hasPermission(to.meta.permissionId)) {
     let redirectToPath = from.path;
