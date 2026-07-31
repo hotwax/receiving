@@ -784,7 +784,7 @@ const receiveTransferOrder = async (isClosingTO = false) => {
 
   const payload = {
     facilityId: (productStore.getCurrentFacility as any)?.facilityId,
-    receivedDateTime: DateTime.now().toMillis(),
+    receivedDateTime: String(DateTime.now().toMillis()),
     items: eligibleItems.map((item: any) => ({
       orderItemSeqId: item.orderItemSeqId,
       productId: item.productId,
