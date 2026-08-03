@@ -342,5 +342,17 @@ main {
   
   .scanner {
     padding-inline-end: var(--spacer-xs);
+    padding-block-start: var(--spacer-sm);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: var(--ion-background-color);
+  }
+
+  main:has(.scanner) {
+    height: 100%;
+    overflow-y: scroll;
+    /* Keep the scrolled-to item clear of the sticky scanner */
+    scroll-padding-top: var(--spacer-xl);
   }
 }
