@@ -387,13 +387,7 @@ const isEligibileForCreatingShipment = () => {
 
 const receiveAll = (item: any) => {
   const qtyAlreadyAccepted = getPOItemAccepted.value(item.productId)
-  order.value.items.find((ele: any) => {
-    if (ele.productId == item.productId) {
-      ele.quantityAccepted = ele.quantity - qtyAlreadyAccepted;
-      ele.progress = ele.quantityAccepted / ele.quantity;
-      return true;
-    }
-  })
+  item.quantityAccepted = Math.max(item.quantity - qtyAlreadyAccepted, 0);
 };
 
 onIonViewWillEnter(() => {
