@@ -188,7 +188,7 @@ const lastScannedId = ref('');
 const order = computed(() => orderStore.getCurrent);
 const getProduct = computed(() => product.getProduct);
 const getPOItemAccepted = computed(() => orderStore.getPOItemAccepted);
-const isForceScanEnabled = computed(() => productStore.isProductStoreSettingEnabled('FORCE_SCAN'));
+const isForceScanEnabled = computed(() => productStore.isProductStoreSettingEnabled('RECEIVE_FORCE_SCAN'));
 const barcodeIdentifier = computed(() => productStore.getBarcodeIdentifierPref);
 const productIdentificationPref = computed(() => productStore.getProductIdentificationPref);
 const currentFacility = computed(() => productStore.getCurrentFacility);
