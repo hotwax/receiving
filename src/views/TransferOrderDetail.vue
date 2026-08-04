@@ -403,8 +403,8 @@ const scanErrorText = ref("");
 
 const order = computed(() => transferOrderStore.getCurrent);
 const getProduct = computed(() => product.getProduct);
-const isForceScanEnabled = computed(() => productStore.isProductStoreSettingEnabled('FORCE_SCAN'));
-const isReceivingByFulfillment = computed(() => productStore.isProductStoreSettingEnabled('RECEIVE_BY_FULFILLMENT'));
+const isForceScanEnabled = computed(() => productStore.isProductStoreSettingEnabled('RECEIVE_FORCE_SCAN'));
+const isReceivingByFulfillment = computed(() => productStore.isProductStoreSettingEnabled('RECEIVE_BY_FULFILL'));
 const barcodeIdentifier = computed(() => productStore.getBarcodeIdentifierPref);
 const productIdentificationPref = computed(() => productStore.getProductIdentificationPref);
 

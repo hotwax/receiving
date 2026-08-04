@@ -123,7 +123,7 @@ const observer = ref(null as IntersectionObserver | null);
 const current = computed(() => returnStore.getCurrent);
 const getProduct = computed(() => product.getProduct);
 const isReturnReceivable = computed(() => returnStore.isReturnReceivable);
-const isForceScanEnabled = computed(() => productStore.isProductStoreSettingEnabled('FORCE_SCAN'));
+const isForceScanEnabled = computed(() => productStore.isProductStoreSettingEnabled('RECEIVE_FORCE_SCAN'));
 const barcodeIdentifier = computed(() => productStore.getBarcodeIdentifierPref);
 const productIdentificationPref = computed(() => productStore.getProductIdentificationPref);
 
