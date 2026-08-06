@@ -35,7 +35,7 @@
   </ion-content>
 
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button data-testid="purchase-order-close-items-save-btn" :disabled="!userStore.hasPermission('RECEIVING_ADMIN') || !isEligibleToClosePOItems()" @click="confirmSave">
+    <ion-fab-button data-testid="purchase-order-close-items-save-btn" :disabled="!userStore.hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibleToClosePOItems()" @click="confirmSave">
       <ion-icon :icon="saveOutline" />
     </ion-fab-button>
   </ion-fab>
@@ -51,6 +51,7 @@ import { useProductStore as useProduct } from '@/store/product';
 import { DxpShopifyImg, translate, commonUtil, emitter } from '@common';
 import { useProductStore } from '@/store/productStore';
 import router from '@/router';
+import Actions from "@/authorization/actions";
 
 const props = defineProps(['isEligibileForCreatingShipment']);
 

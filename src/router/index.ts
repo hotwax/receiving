@@ -8,6 +8,7 @@ import ReturnDetails from '@/views/ReturnDetails.vue'
 import TransferOrders from '@/views/TransferOrders.vue';
 import TransferOrderDetail from '@/views/TransferOrderDetail.vue';
 import { useUserStore } from '@/store/user';
+import Actions from '@/authorization/actions';
 import { translate, commonUtil, useAuth, ShopifyLogin, ShopifyAppInstall, Login } from '@common'
 
 import { businessOutline, calendar, gitPullRequestOutline, settingsOutline } from "ionicons/icons";
@@ -68,7 +69,7 @@ const routes: Array<RouteRecordRaw> = [
     component: PurchaseOrders,
     beforeEnter: authGuard,
     meta: {
-      permissionId: "",
+      permissionId: Actions.APP_PURCHASEORDERS_VIEW,
       title: "Purchase Orders",
       icon: calendar,
       menuIndex: 4,
@@ -81,7 +82,7 @@ const routes: Array<RouteRecordRaw> = [
     component: PurchaseOrderDetail,
     beforeEnter: authGuard,
     meta: {
-      permissionId: ""
+      permissionId: Actions.APP_PURCHASEORDER_DETAIL_VIEW
     }
   },
   {
@@ -95,7 +96,7 @@ const routes: Array<RouteRecordRaw> = [
     component: Returns,
     beforeEnter: authGuard,
     meta: {
-      permissionId: "",
+      permissionId: Actions.APP_RETURNS_VIEW,
       title: "Returns",
       icon: gitPullRequestOutline,
       menuIndex: 3,
@@ -108,7 +109,7 @@ const routes: Array<RouteRecordRaw> = [
     component: ReturnDetails,
     beforeEnter: authGuard,
     meta: {
-      permissionId: ""
+      permissionId: Actions.APP_RETURN_DETAIL_VIEW
     }
   },
   {
@@ -117,7 +118,7 @@ const routes: Array<RouteRecordRaw> = [
     component: TransferOrders,
     beforeEnter: authGuard,
     meta: {
-      permissionId: "",
+      permissionId: Actions.APP_TRANSFERORDERS_VIEW,
       title: "Transfer Orders",
       icon: businessOutline,
       menuIndex: 2,
@@ -130,7 +131,7 @@ const routes: Array<RouteRecordRaw> = [
     component: TransferOrderDetail,
     beforeEnter: authGuard,
     meta: {
-      permissionId: ""
+      permissionId: Actions.APP_TRANSFERORDER_DETAIL_VIEW
     }
   },
   // {

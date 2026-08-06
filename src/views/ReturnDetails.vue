@@ -78,7 +78,7 @@
       </main>
 
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button data-testid="return-detail-page-complete-btn" :disabled="!userStore.hasPermission('RECEIVING_ADMIN') || !isEligibleForReceivingReturns()" v-if="isReturnReceivable(current.statusId)" @click="completeShipment">
+        <ion-fab-button data-testid="return-detail-page-complete-btn" :disabled="!userStore.hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibleForReceivingReturns()" v-if="isReturnReceivable(current.statusId)" @click="completeShipment">
           <ion-icon :icon="checkmarkDone" />
         </ion-fab-button>
       </ion-fab>
@@ -99,6 +99,7 @@ import Scanner from "@/components/Scanner.vue";
 import ImageModal from '@/components/ImageModal.vue';
 import { useUserStore } from '@/store/user'
 import router from '@/router';
+import Actions from "@/authorization/actions";
 
 const props = defineProps(['shipment']);
 

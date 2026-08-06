@@ -8,7 +8,7 @@
           <ion-button data-testid="transfer-order-detail-page-history-btn" @click="receivingHistory()">
             <ion-icon slot="icon-only" :icon="timeOutline"/>
           </ion-button>
-          <ion-button data-testid="transfer-order-detail-page-add-product-btn" :disabled="!userStore.hasPermission('RECEIVING_ADMIN') || isTOReceived()" @click="addProduct">
+          <ion-button data-testid="transfer-order-detail-page-add-product-btn" :disabled="!userStore.hasPermission(Actions.APP_SHIPMENT_UPDATE) || isTOReceived()" @click="addProduct">
             <ion-icon slot="icon-only" :icon="addOutline"/>
           </ion-button>
         </ion-buttons>
@@ -374,6 +374,7 @@ import ReceiveTransferOrder from '@/components/ReceiveTransferOrder.vue';
 import router from '@/router';
 import { useReceiveFlowState } from '@/composables/useReceiveFlowState';
 import { runTransferOrderDetailReceiveWorkflow } from '@/views/transferOrderDetailReceiveWorkflow';
+import Actions from "@/authorization/actions";
 
 const transferOrderStore = useTransferOrderStore();
 const product = useProduct();
@@ -613,7 +614,7 @@ const receivingHistory = async (productId?: string, orderItemSeqId?: string) => 
 const receivingAlert = async () => {
   let message = "Specify quantity for at least one of the items to receive";
 
-  if (!userStore.hasPermission('RECEIVING_ADMIN')) {
+  if (!userStore.hasPermission(Actions.APP_SHIPMENT_UPDATE)) {
     message = "You do not have permission to receive items";
   }
 
@@ -654,7 +655,7 @@ const isAnyItemOverReceived = () => {
 
 const confirmSaveProgress = async () => {
   dismissToast();
-  if (!isEligibleForCreatingShipment() || !userStore.hasPermission('RECEIVING_ADMIN')) {
+  if (!isEligibleForCreatingShipment() || !userStore.hasPermission(Actions.APP_SHIPMENT_UPDATE)) {
     await receivingAlert();
     return false;
   }
@@ -698,7 +699,7 @@ const showAllOpenItems = () => {
 
 const confirmReceiveAndClose = async () => {
   dismissToast();
-  if (!isEligibleForCreatingShipment(true) || !userStore.hasPermission('RECEIVING_ADMIN')) {
+  if (!isEligibleForCreatingShipment(true) || !userStore.hasPermission(Actions.APP_SHIPMENT_UPDATE)) {
     await receivingAlert();
     return false;
   }
