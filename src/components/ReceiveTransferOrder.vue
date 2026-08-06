@@ -45,7 +45,7 @@
     <ion-toolbar class="ion-padding-start">
       <ion-label slot="start">{{ translate("Select all items to proceed") }}</ion-label>
       <ion-buttons slot="end">
-        <ion-button data-testid="transfer-order-receive-modal-save-btn" fill="solid" color="primary" :disabled="!userStore.hasPermission('RECEIVING_ADMIN') || !isEligibleToCloseTOItems()" @click="saveProgress">{{ saveButtonLabel }}</ion-button>
+        <ion-button data-testid="transfer-order-receive-modal-save-btn" fill="solid" color="primary" :disabled="!userStore.hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibleToCloseTOItems()" @click="saveProgress">{{ saveButtonLabel }}</ion-button>
       </ion-buttons>
     </ion-toolbar>
   </ion-footer>
@@ -60,6 +60,7 @@ import { useProductStore as useProduct } from '@/store/product'
 import { useUtilStore } from '@/store/util'
 import { useProductStore } from '@/store/productStore';
 import { commonUtil, DxpShopifyImg, translate } from '@common';
+import Actions from "@/authorization/actions";
 
 const props = defineProps(["closeTO", "items", "receivedUnitsFraction"])
 

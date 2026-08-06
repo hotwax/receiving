@@ -49,10 +49,10 @@
             </ion-card-title>
           </ion-card-header>
           <ion-card-content v-html="barcodeContentMessage"></ion-card-content>
-          <ion-item lines="none" :disabled="!userStore.hasPermission('COMMON_ADMIN')">
+          <ion-item lines="none" :disabled="!userStore.hasPermission(Actions.APP_UPDT_FULFILL_FORCE_SCAN_CONFIG)">
             <ion-toggle label-placement="start" :checked="isProductStoreSettingEnabled('RECEIVE_FORCE_SCAN')" @click.prevent="updateForceScanStatus($event)">{{ translate("Require scan") }}</ion-toggle>
           </ion-item>
-          <ion-item lines="none" :disabled="!userStore.hasPermission('COMMON_ADMIN')">
+          <ion-item lines="none" :disabled="!userStore.hasPermission(Actions.APP_BARCODE_IDENTIFIER_UPDATE)">
             <ion-select :label="translate('Barcode Identifier')" interface="popover" :placeholder="translate('Select')" :value="barcodeIdentificationPref" @ionChange="setBarcodeIdentificationPref($event.detail.value)">
               <ion-select-option v-for="identification in barcodeIdentificationOptions" :key="identification.goodIdentificationTypeId" :value="identification.goodIdentificationTypeId">{{ identification.description ? translate(identification.description) : identification.goodIdentificationTypeId }}</ion-select-option>
             </ion-select>
@@ -84,7 +84,7 @@
           <ion-card-content>
             {{ translate("Inventory of the transferred items will be received by fulfillment app.") }}
           </ion-card-content>
-          <ion-item lines="none" :disabled="!userStore.hasPermission('COMMON_ADMIN')">
+          <ion-item lines="none" :disabled="!userStore.hasPermission(Actions.APP_UPDT_RECEIVE_FLOW_CONFIG)">
             <ion-toggle label-placement="start" :checked="isProductStoreSettingEnabled('RECEIVE_BY_FULFILL')" @click.prevent="confirmReceiveByFulfillment($event)">{{ translate("Receive by fulfillment") }}</ion-toggle>
           </ion-item>
         </ion-card>
@@ -107,6 +107,7 @@ import DxpAppVersionInfo from "@/components/DxpAppVersionInfo.vue";
 import DxpProductIdentifier from "@/components/DxpProductIdentifier.vue";
 import DxpTimeZoneSwitcher from "@/components/DxpTimeZoneSwitcher.vue";
 import { firebaseUtil } from "@/utils/firebaseUtil"
+import Actions from "@/authorization/actions"
 
 const userStore = useUserStore();
 const productStore = useProductStore();

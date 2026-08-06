@@ -8,7 +8,7 @@
           <ion-button data-testid="purchase-order-detail-page-history-btn" @click="receivingHistory()">
             <ion-icon slot="icon-only" :icon="timeOutline"/>
           </ion-button>
-          <ion-button data-testid="purchase-order-detail-page-add-product-btn" :disabled="!userStore.hasPermission('RECEIVING_ADMIN') || isPOReceived()" @click="addProduct">
+          <ion-button data-testid="purchase-order-detail-page-add-product-btn" :disabled="!userStore.hasPermission(Actions.APP_SHIPMENT_UPDATE) || isPOReceived()" @click="addProduct">
             <ion-icon slot="icon-only" :icon="addOutline"/>
           </ion-button>
         </ion-buttons>
@@ -149,8 +149,8 @@
     <ion-footer data-testid="purchase-order-detail-page-footer" v-if="!isPOReceived()">
       <ion-toolbar>
         <ion-buttons slot="end">
-          <ion-button data-testid="purchase-order-detail-page-receive-close-btn" fill="outline" size="small" color="primary" :disabled="!userStore.hasPermission('RECEIVING_ADMIN')" class="ion-margin-end" @click="closePO">{{ translate("Receive And Close") }}</ion-button>
-          <ion-button data-testid="purchase-order-detail-page-receive-btn" fill="solid" size="small" color="primary" :disabled="!userStore.hasPermission('RECEIVING_ADMIN') || !isEligibileForCreatingShipment()" @click="savePODetails">{{ translate("Receive") }}</ion-button>
+          <ion-button data-testid="purchase-order-detail-page-receive-close-btn" fill="outline" size="small" color="primary" :disabled="!userStore.hasPermission(Actions.APP_SHIPMENT_UPDATE)" class="ion-margin-end" @click="closePO">{{ translate("Receive And Close") }}</ion-button>
+          <ion-button data-testid="purchase-order-detail-page-receive-btn" fill="solid" size="small" color="primary" :disabled="!userStore.hasPermission(Actions.APP_SHIPMENT_UPDATE) || !isEligibileForCreatingShipment()" @click="savePODetails">{{ translate("Receive") }}</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-footer>
@@ -174,6 +174,7 @@ import { useProductStore as useProduct } from '@/store/product';
 import { useUserStore } from '@/store/user';
 import { useProductStore } from '@/store/productStore';
 import router from '@/router';
+import Actions from "@/authorization/actions";
 
 const route = router.currentRoute.value
 const orderStore = useOrderStore();

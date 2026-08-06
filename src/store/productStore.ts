@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { api, commonUtil, logger, translate, useEmbeddedAppStore, useSolrSearch } from '@common'
 import { useUserStore } from '@/store/user'
+import Actions from "@/authorization/actions"
 const defaultProductStoreSettings = JSON.parse(import.meta.env.VITE_DEFAULT_PRODUCT_STORE_SETTINGS as string || '{}')
 
 export const useProductStore = defineStore('productStore', {
@@ -65,7 +66,7 @@ export const useProductStore = defineStore('productStore', {
       let resp = {} as any
 
       const partyId = userStore.getUserProfile?.partyId;
-      const isAdminUser = userStore.hasPermission("COMMON_ADMIN");
+      const isAdminUser = userStore.hasPermission(Actions.APP_RECVG_ADMIN);
 
       try {
         this.currentFacility = {
