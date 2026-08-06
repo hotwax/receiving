@@ -18,6 +18,9 @@
       "hosting": {
         "prod": [
           "hotwax-receiving"
+        ],
+        "prod-legacy": [
+          "hotwax-receiving-legacy"
         ]
       }
     }
