@@ -48,22 +48,31 @@
           <ion-refresher-content pullingIcon="crescent" refreshingSpinner="crescent" />
         </ion-refresher>
       </main>
+
+      <ion-fab v-if="userStore.hasPermission(Actions.APP_TRANSFERORDER_CREATE)" vertical="bottom" horizontal="end" slot="fixed">
+        <ion-fab-button data-testid="transfer-orders-page-create-order-btn" @click="router.push('/create-order')">
+          <ion-icon :icon="addOutline" />
+        </ion-fab-button>
+      </ion-fab>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
-import { IonButton, IonContent, IonHeader, IonIcon, IonLabel, IonMenuButton, IonPage, IonRefresher, IonRefresherContent, IonSearchbar, IonSegment, IonSegmentButton, IonTitle, IonToolbar, onIonViewWillEnter } from '@ionic/vue';
-import { cloudDownloadOutline, reload } from 'ionicons/icons'
+import { IonButton, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonLabel, IonMenuButton, IonPage, IonRefresher, IonRefresherContent, IonSearchbar, IonSegment, IonSegmentButton, IonTitle, IonToolbar, onIonViewWillEnter } from '@ionic/vue';
+import { addOutline, cloudDownloadOutline, reload } from 'ionicons/icons'
 import { ref, computed } from 'vue';
+import router from '@/router';
 import { useTransferOrderStore } from '@/store/transferorder';
 import { useUserStore } from '@/store/user';
 import TransferOrderItem from '@/components/TransferOrderItem.vue'
 import { translate, commonUtil, emitter } from "@common"
 import { useProductStore } from '@/store/productStore';
+import Actions from "@/authorization/actions"
 
 const transferOrderStore = useTransferOrderStore();
 const productStore = useProductStore();
+const userStore = useUserStore();
 
 const queryString = ref('');
 const fetchingOrders = ref(false);

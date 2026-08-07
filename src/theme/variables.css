@@ -304,6 +304,41 @@ main {
   margin-left: auto;
 }
 
+.date-time-button::part(native) {
+  box-shadow: none;
+  border-radius: 8px;
+  padding-inline: 12px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  background: var(--ion-color-step-300, #edeef0);
+  color: var(--ion-text-color, #000);
+  font-family: inherit;
+}
+
+.find {
+  display: grid;
+  grid-template-areas: "search"
+                       "filters"
+                       "main";
+  align-items: start;
+}
+
+.find > .filters{
+  display: none;
+}
+
+.find > main {
+  grid-area: main;
+}
+
+.filters {
+  grid-area: filters;
+}
+
+.search {
+  grid-area: search;
+}
+
 .empty-state {
   max-width: 100%;
   display: flex;
@@ -342,5 +377,23 @@ main {
   
   .scanner {
     padding-inline-end: var(--spacer-xs);
+  }
+}
+
+@media (min-width: 991px) {
+  .find {
+    grid: "search  main" min-content
+          "filters main" 1fr
+          / 375px;
+    column-gap: var(--spacer-2xl);
+    margin: var(--spacer-lg);
+  }
+
+  .filters {
+    margin-top: var(--spacer-lg);
+  }
+
+  .find > .filters{
+    display: unset;
   }
 }

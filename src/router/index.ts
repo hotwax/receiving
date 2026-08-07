@@ -7,6 +7,7 @@ import Returns from '@/views/Returns.vue'
 import ReturnDetails from '@/views/ReturnDetails.vue'
 import TransferOrders from '@/views/TransferOrders.vue';
 import TransferOrderDetail from '@/views/TransferOrderDetail.vue';
+import CreateOrder from '@/views/CreateOrder.vue';
 import { useUserStore } from '@/store/user';
 import Actions from '@/authorization/actions';
 import { translate, commonUtil, useAuth, ShopifyLogin, ShopifyAppInstall, Login } from '@common'
@@ -123,6 +124,15 @@ const routes: Array<RouteRecordRaw> = [
       icon: businessOutline,
       menuIndex: 2,
       childRoutes: ["/transfer-order-detail/"]
+    }
+  },
+  {
+    path: '/create-order',
+    name: 'CreateOrder',
+    component: CreateOrder,
+    beforeEnter: authGuard,
+    meta: {
+      permissionId: Actions.APP_TRANSFERORDER_CREATE
     }
   },
   {
