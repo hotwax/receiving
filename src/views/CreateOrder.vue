@@ -223,50 +223,26 @@
 
           <hr />
 
-          <template v-if="currentOrder.items?.length">
-            <div class="list-item ion-padding-vertical">
-              <ion-item lines="none" class="item-qty-actions" style="grid-column: span 2;">
-                <ion-button fill="outline" color="medium" @click="updateBulkOrderItemQuantity('bookQOH')">{{ translate("Book QoH") }}</ion-button>
-                <ion-button fill="outline" color="medium" @click="updateBulkOrderItemQuantity('bookATP')">{{ translate("Book ATP") }}</ion-button>
-                <ion-button fill="outline" color="medium" @click="updateBulkOrderItemQuantity('customQty')">{{ translate("Custom Qty") }}</ion-button>
-              </ion-item>
-              <div></div>
-              <div class="tablet">
-                <ion-checkbox :modelValue="isEligibleForBulkAction()" @ionChange="toggleBulkSelection($event.detail.checked)" />
-              </div>
-              <ion-button slot="end" fill="clear" color="medium" :disabled="!isEligibleForBulkAction()" @click="openOrderItemActionsPopover($event, null, true)">
-                <ion-icon :icon="ellipsisVerticalOutline" slot="icon-only" />
-              </ion-button>
-            </div>
-
-            <div class="list-item" v-for="(item, index) in currentOrder.items" :key="index" :id="item.scannedId ? item.scannedId : commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
-              <ion-item lines="none">
-                <ion-thumbnail slot="start">
-                  <Image :src="getProduct(item.productId)?.mainImageUrl" />
-                </ion-thumbnail>
-                <ion-label>
-                  {{ commonUtil.getProductIdentificationValue(useProductStore().getProductIdentificationPref.primaryId, getProduct(item.productId)) || getProduct(item.productId).productName }}
-                  <p>{{ commonUtil.getProductIdentificationValue(useProductStore().getProductIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
-                </ion-label>
-              </ion-item>
-              <div class="tablet">
-                <ion-chip outline :color="isQOHAvailable(item) ? '' : 'warning'">
-                  <ion-icon slot="start" :icon="sendOutline" />
-                  <ion-label>{{ item.qoh ?? 0 }} {{ translate("QOH") }}</ion-label>
-                </ion-chip>
-              </div>
-              <ion-item>
-                <ion-input type="number" :label="translate('Qty')" label-placement="floating" min="0" v-model="item.quantity" :clear-input="true" />
-              </ion-item>
-              <div class="tablet">
-                <ion-checkbox v-model="item.isChecked" />
-              </div>
-              <ion-button slot="end" fill="clear" color="medium" @click="openOrderItemActionsPopover($event, item)">
-                <ion-icon :icon="ellipsisVerticalOutline" slot="icon-only" />
-              </ion-button>
-            </div>
-          </template>
-          <div v-else class="empty-state" data-testid="create-order-empty">
+          <div class="list-item" v-for="(item, index) in currentOrder.items" :key="index" :id="item.scannedId ? item.scannedId : commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+            <ion-item lines="none">
+              <ion-thumbnail slot="start">
+                <Image :src="getProduct(item.productId)?.mainImageUrl" />
+              </ion-thumbnail>
+              <ion-label>
+                {{ commonUtil.getProductIdentificationValue(useProductStore().getProductIdentificationPref.primaryId, getProduct(item.productId)) || getProduct(item.productId).productName }}
+                <p>{{ commonUtil.getProductIdentificationValue(useProductStore().getProductIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+              </ion-label>
+            </ion-item>
+            <!-- <div class="tablet"></div> -->
+            <ion-item>
+              <ion-input type="number" :label="translate('Qty')" label-placement="floating" min="0" v-model="item.quantity" :clear-input="true" />
+            </ion-item>
+            <!-- <div class="tablet"></div> -->
+            <ion-button slot="end" fill="clear" color="danger" @click="removeItem(item)">
+              <ion-icon :icon="trashBinOutline" slot="icon-only" />
+            </ion-button>
+          </div>
+          <div v-if="!currentOrder.items?.length" class="empty-state" data-testid="create-order-empty">
             <p>{{ translate("No item added to order") }}</p>
           </div>
         </main>
@@ -283,7 +259,7 @@
 
 <script setup lang="ts">
 import { IonBackButton, IonBadge, IonButton, IonCard, IonCardHeader, IonCardTitle, IonCheckbox, IonChip, IonContent, IonDatetime, IonFab, IonFabButton, IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonList, IonModal, IonPage, IonSearchbar, IonSegment, IonSegmentButton, IonSelect, IonSelectOption, IonSpinner, IonThumbnail, IonTitle, IonToolbar, onIonViewDidEnter, alertController, modalController, popoverController } from '@ionic/vue';
-import { addCircleOutline, barcodeOutline, checkmarkCircle, checkmarkDoneOutline, cloudOfflineOutline, ellipsisVerticalOutline, informationCircleOutline, locateOutline, searchOutline, sendOutline, shirtOutline, storefrontOutline, downloadOutline } from 'ionicons/icons';
+import { addCircleOutline, barcodeOutline, checkmarkCircle, checkmarkDoneOutline, cloudOfflineOutline, ellipsisVerticalOutline, informationCircleOutline, locateOutline, searchOutline, sendOutline, shirtOutline, storefrontOutline, downloadOutline, trashBinOutline } from 'ionicons/icons';
 import { computed, nextTick, ref, watch } from "vue";
 import { commonUtil, DxpShopifyImg, emitter, logger, translate, useSolrSearch } from '@common';
 import Image from '@/components/Image.vue';
@@ -597,57 +573,12 @@ function selectUpdatedMethod() {
   if(shipmentMethods?.length) currentOrder.value.shipmentMethodTypeId = shipmentMethods[0]?.shipmentMethodTypeId
 }
 
-function isQOHAvailable(item: any) {
-  return item.qoh && Number(item.qoh) > Number(item.quantity)
-}
-
 function getCarrierShipmentMethods() {
   return currentOrder.value.carrierPartyId && shipmentMethodsByCarrier.value[currentOrder.value.carrierPartyId]
 }
 
 function getFacilityName(facilityId: any) {
   return facilities.value?.find((facility: any) => facility.facilityId === facilityId)?.facilityName
-}
-
-async function updateBulkOrderItemQuantity(action: any) {
-  if(!isEligibleForBulkAction()) {
-    commonUtil.showToast(translate("No order item is selected for bulk action."), { position: 'top' })
-    return;
-  }
-
-  if(action === "bookQOH" || action === "bookATP") {
-    currentOrder.value.items.map((item: any) => {
-      if(item.isChecked) {
-        item.quantity = (action === "bookQOH") ? item.qoh : item.atp
-      }
-    })
-  } else if(action === "customQty") {
-    const alert = await alertController.create({
-      header: translate("Custom Qty"),
-      buttons: [{
-        text: translate("Cancel"),
-        role: "cancel"
-      }, {
-        text: translate("Save"),
-        handler: async (data: any) => {
-          if(!data?.quantity) return false;
-          const customQty = Number(data.quantity);
-          currentOrder.value.items.map((item: any) => {
-            if(item.isChecked) {
-              item.quantity = customQty
-            }
-          })
-        }
-      }],
-      inputs: [{
-        name: "quantity",
-        placeholder: translate("Order quantity"),
-        min: 0,
-        type: "number"
-      }]
-    })
-    alert.present()
-  }
 }
 
 async function createOrder() {
@@ -767,41 +698,8 @@ async function createOrder() {
   }
 }
 
-function toggleBulkSelection(isChecked: any) {
-  currentOrder.value.items.map((item: any) => item.isChecked = isChecked)
-}
-
-function isEligibleForBulkAction() {
-  return currentOrder.value.items?.some((item: any) => item.isChecked)
-}
-
-async function openOrderItemActionsPopover(event: any, selectedItem: any, isBulkOperation = false){
-  const popover = await popoverController.create({
-    component: OrderItemActionsPopover,
-    componentProps: { item: selectedItem },
-    event,
-    showBackdrop: false,
-  });
-
-  popover.onDidDismiss().then((result: any) => {
-    const action = result.data?.action
-
-    if(action === "bookQOH" || action === "bookATP") {
-      if(isBulkOperation) {
-        currentOrder.value.items.map((item: any) => {
-          if(item.isChecked) {
-            item.quantity = (action === "boolean") ? item.qoh : item.atp
-          }
-        })
-      } else {
-        selectedItem.quantity = (action === "bookQOH") ? selectedItem.qoh : selectedItem.atp
-      }
-    } else if(action === "remove") {
-      currentOrder.value.items = isBulkOperation ? currentOrder.value.items.filter((item: any) => !item.isChecked) : currentOrder.value.items.filter((item: any) => selectedItem.productId !== item.productId)
-    }
-  })
-
-  await popover.present();
+function removeItem(selectedItem: any) {
+  currentOrder.value.items = currentOrder.value.items.filter((item: any) => selectedItem.productId !== item.productId)
 }
 
 async function openSelectFacilityModal(facilityType: any) {
