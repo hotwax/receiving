@@ -1,6 +1,6 @@
 <template>
   <ion-page>
-    <ion-header :translucent="true">
+    <ion-header>
       <ion-toolbar>
         <ion-back-button data-testid="create-order-back-btn" slot="start" :default-href="`/transfer-orders`" />
         <ion-title>{{ translate("Create transfer order") }}</ion-title>
@@ -239,7 +239,7 @@
             </ion-item>
             <!-- <div class="tablet"></div> -->
             <ion-button slot="end" fill="clear" color="danger" @click="removeItem(item)">
-              <ion-icon :icon="trashBinOutline" slot="icon-only" />
+              <ion-icon :icon="trashOutline" slot="icon-only" />
             </ion-button>
           </div>
           <div v-if="!currentOrder.items?.length" class="empty-state" data-testid="create-order-empty">
@@ -258,13 +258,12 @@
 </template>
 
 <script setup lang="ts">
-import { IonBackButton, IonBadge, IonButton, IonCard, IonCardHeader, IonCardTitle, IonCheckbox, IonChip, IonContent, IonDatetime, IonFab, IonFabButton, IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonList, IonModal, IonPage, IonSearchbar, IonSegment, IonSegmentButton, IonSelect, IonSelectOption, IonSpinner, IonThumbnail, IonTitle, IonToolbar, onIonViewDidEnter, alertController, modalController, popoverController } from '@ionic/vue';
-import { addCircleOutline, barcodeOutline, checkmarkCircle, checkmarkDoneOutline, cloudOfflineOutline, ellipsisVerticalOutline, informationCircleOutline, locateOutline, searchOutline, sendOutline, shirtOutline, storefrontOutline, downloadOutline, trashBinOutline } from 'ionicons/icons';
+import { IonBackButton, IonBadge, IonButton, IonCard, IonCardHeader, IonCardTitle, IonChip, IonContent, IonDatetime, IonFab, IonFabButton, IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonList, IonModal, IonPage, IonSearchbar, IonSegment, IonSegmentButton, IonSelect, IonSelectOption, IonSpinner, IonThumbnail, IonTitle, IonToolbar, onIonViewDidEnter, modalController } from '@ionic/vue';
+import { addCircleOutline, barcodeOutline, checkmarkCircle, checkmarkDoneOutline, cloudOfflineOutline, informationCircleOutline, locateOutline, searchOutline, sendOutline, shirtOutline, storefrontOutline, downloadOutline, trashOutline } from 'ionicons/icons';
 import { computed, nextTick, ref, watch } from "vue";
 import { commonUtil, DxpShopifyImg, emitter, logger, translate, useSolrSearch } from '@common';
 import Image from '@/components/Image.vue';
 import AddProductModal from '@/components/AddProductModal.vue';
-import OrderItemActionsPopover from '@/components/OrderItemActionsPopover.vue';
 import SelectFacilityModal from '@/components/SelectFacilityModal.vue';
 import router from '@/router';
 import { DateTime } from 'luxon';

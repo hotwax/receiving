@@ -329,6 +329,8 @@ main {
 
 .find > main {
   grid-area: main;
+  max-width: unset;
+  margin-inline: 0;
 }
 
 .filters {
@@ -386,7 +388,7 @@ main {
       "search main"
       "filters main";
     grid-template-columns: 375px 1fr;
-    column-gap: var(--spacer-2xl);
+    column-gap: var(--spacer-sm);
     margin: var(--spacer-lg);
   }
 
