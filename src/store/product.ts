@@ -91,6 +91,21 @@ export const useProductStore = defineStore("product", {
 
       return productQoh;
     },
+    async fetchBarcodeIdentificationDesc(params: any): Promise<any> {
+      return api({
+        url: "oms/goodIdentificationTypes",
+        method: "GET",
+        params,
+      });
+    },
+    addProductToCached(payload: any) {
+      this.cached[payload.productId] = payload;
+    },
+    addProductToCachedMultiple(payload: { products?: Array<any> }) {
+      payload.products?.forEach((product: any) => {
+        this.cached[product.productId] = product;
+      });
+    },
     async fetchProductInformation(payload: any) {
       let productIds: any = new Set();
       payload.order.map((item: any) => {
