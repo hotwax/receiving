@@ -260,10 +260,6 @@ export const useProductStore = defineStore('productStore', {
         }
 
         const productStores = [...stores]
-        productStores.push({
-          productStoreId: "",
-          storeName: "None",
-        });
 
         this.currentFacility = {
           ...this.currentFacility,
