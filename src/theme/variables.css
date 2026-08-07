@@ -382,9 +382,10 @@ main {
 
 @media (min-width: 991px) {
   .find {
-    grid: "search  main" min-content
-          "filters main" 1fr
-          / 375px;
+    grid-template-areas:
+      "search main"
+      "filters main";
+    grid-template-columns: 375px 1fr;
     column-gap: var(--spacer-2xl);
     margin: var(--spacer-lg);
   }
