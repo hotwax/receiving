@@ -11,7 +11,7 @@ import { useUserStore } from '@/store/user';
 import Actions from '@/authorization/actions';
 import { translate, commonUtil, useAuth, ShopifyLogin, ShopifyAppInstall, Login } from '@common'
 
-import { businessOutline, calendar, gitPullRequestOutline, settingsOutline } from "ionicons/icons";
+import { businessOutline, calendarOutline, gitPullRequestOutline, settingsOutline } from "ionicons/icons";
 
 // Defining types for the meta values
 declare module 'vue-router' {
@@ -71,7 +71,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       permissionId: Actions.APP_PURCHASEORDERS_VIEW,
       title: "Purchase Orders",
-      icon: calendar,
+      icon: calendarOutline,
       menuIndex: 4,
       childRoutes: ["/purchase-order-detail/"]
     }
