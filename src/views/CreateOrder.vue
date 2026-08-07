@@ -20,11 +20,15 @@
             <ion-card-header>
               <ion-card-title>{{ translate("Assign") }}</ion-card-title>
             </ion-card-header>
-            <ion-item>
+            <ion-item :lines="stores.length <= 1 ? 'inset' : undefined">
               <ion-icon :icon="storefrontOutline" slot="start" />
-              <ion-select data-testid="create-order-store-select" value="" :label="translate('Product Store')" :placeholder="translate('Select')" interface="popover" v-model="currentOrder.productStoreId" @ionChange="productStoreUpdated()">
+              <ion-select v-if="stores.length > 1" data-testid="create-order-store-select" value="" :label="translate('Product Store')" :placeholder="translate('Select')" interface="popover" v-model="currentOrder.productStoreId" @ionChange="productStoreUpdated()">
                 <ion-select-option v-for="store in stores" :value="store.productStoreId" :key="store.productStoreId">{{ store.storeName ? store.storeName : store.productStoreId }}</ion-select-option>
               </ion-select>
+              <template v-else>
+                <ion-label data-testid="create-order-store-label">{{ translate('Product Store') }}</ion-label>
+                <ion-label slot="end" data-testid="create-order-store-value">{{ stores[0].storeName ? stores[0].storeName : stores[0].productStoreId }}</ion-label>
+              </template>
             </ion-item>
             <ion-item>
               <ion-icon :icon="sendOutline" slot="start" />
@@ -313,7 +317,6 @@ const searchInput = ref("") as any;
 const productSearchCount = ref(0);
 const barcodeIdentificationDesc = ref({}) as any;
 const pendingProductIds = ref(new Set()) as any;
-const stores = ref([]) as any;
 const dateTimeModalOpen = ref(false);
 const selectedDateFilter = ref("");
 const currencyUom = ref("");
@@ -363,6 +366,7 @@ const productIdentificationPref = computed(() => productStore.getProductIdentifi
 const shipmentMethodsByCarrier = computed(() => utilStore.getShipmentMethodsByCarrier)
 const getCarrierDesc = computed(() => utilStore.getCarrierDesc)
 const facilities = computed(() => productStore.getProductStoreFacilities)
+const stores = computed(() => productStore.currentFacility.productStores)
 // Implemented watcher to display the search spinner correctly. Mainly the watcher is needed to not make the findProduct call always and to create the debounce effect.
 // Previously we were using the `debounce` property of ion-input but it was updating the searchedString and making other related effects after the debounce effect thus the spinner is also displayed after the debounce
 // effect is completed.
@@ -394,7 +398,6 @@ onIonViewDidEnter(async () => {
     utilStore.fetchStoreCarrierAndMethods(currentProductStoreId),
     utilStore.fetchCarriersDetail()
   ])
-  stores.value = productStore.getAllProductStores
   await fetchProductStoreDetails(currentProductStoreId);
   await fetchBarcodeIdentificationDesc();
   if(Object.keys(shipmentMethodsByCarrier.value)?.length) {
