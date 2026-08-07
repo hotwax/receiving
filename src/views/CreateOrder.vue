@@ -754,7 +754,8 @@ async function createOrder() {
   try {
     const resp = await orderStore.createOrder({ payload: order })
     if(!commonUtil.hasError(resp)) {
-      router.replace(`/transfer-order-detail/${resp.data.orderId}`)
+      commonUtil.showToast(translate("Order has been created and sent for admin approval"))
+      router.replace("/transfer-orders")
       emitter.emit("dismissLoader")
     } else {
       throw resp.data;
