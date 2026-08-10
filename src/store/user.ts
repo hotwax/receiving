@@ -208,6 +208,10 @@ export const useUserStore = defineStore("user", {
           const facility = productStore.getFacilities.find((facility: any) => facility.facilityId === facilityId);
           if (facility) {
             productStore.currentFacility = facility
+            const orderId = router.currentRoute.value.query.orderId
+            if (orderId) {
+              localStorage.setItem("requestedPagePath", `/transfer-order-detail/${orderId}`)
+            }
           } else {
             commonUtil.showToast(translate("Redirecting to home page due to incorrect information being passed."))
           }
@@ -226,7 +230,8 @@ export const useUserStore = defineStore("user", {
 
       if (commonUtil.isAppEmbedded()) {
         setTimeout(() => {
-          window.location.href = window.location.origin + `/shopify-login?shop=${useEmbeddedAppStore().getShop}&host=${useEmbeddedAppStore().getHost}&embedded=1`;
+          // BASE_URL keeps the re-login on this build's version prefix ("/vX.Y.Z/" or "/" at root).
+          window.location.href = window.location.origin + import.meta.env.BASE_URL + `shopify-login?shop=${useEmbeddedAppStore().getShop}&host=${useEmbeddedAppStore().getHost}&embedded=1`;
         }, 100);
         useEmbeddedAppStore().$reset();
       }
