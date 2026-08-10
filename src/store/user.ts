@@ -208,6 +208,10 @@ export const useUserStore = defineStore("user", {
           const facility = productStore.getFacilities.find((facility: any) => facility.facilityId === facilityId);
           if (facility) {
             productStore.currentFacility = facility
+            const orderId = router.currentRoute.value.query.orderId
+            if (orderId) {
+              localStorage.setItem("requestedPagePath", `/transfer-order-detail/${orderId}`)
+            }
           } else {
             commonUtil.showToast(translate("Redirecting to home page due to incorrect information being passed."))
           }
