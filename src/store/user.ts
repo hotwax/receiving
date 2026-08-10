@@ -230,8 +230,7 @@ export const useUserStore = defineStore("user", {
 
       if (commonUtil.isAppEmbedded()) {
         setTimeout(() => {
-          // BASE_URL keeps the re-login on this build's version prefix ("/vX.Y.Z/" or "/" at root).
-          window.location.href = window.location.origin + import.meta.env.BASE_URL + `shopify-login?shop=${useEmbeddedAppStore().getShop}&host=${useEmbeddedAppStore().getHost}&embedded=1`;
+          window.location.href = window.location.origin + `/shopify-login?shop=${useEmbeddedAppStore().getShop}&host=${useEmbeddedAppStore().getHost}&embedded=1`;
         }, 100);
         useEmbeddedAppStore().$reset();
       }
