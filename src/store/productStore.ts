@@ -31,6 +31,8 @@ export const useProductStore = defineStore('productStore', {
     } as any,
     userFacilities: [] as any,
     facilityLocationsByFacilityId: {} as any,
+    allProductStores: [] as any[],
+    facilityAddresses: {} as any,
   }),
 
   getters: {
@@ -48,7 +50,9 @@ export const useProductStore = defineStore('productStore', {
       const stateKey = defaultProductStoreSettings[settingTypeEnumId]?.stateKey || settingTypeEnumId
       return state.settings[stateKey] === "Y"
     },
-    getFacilityLocationsByFacilityId: (state) => (facilityId: string) => state.facilityLocationsByFacilityId[facilityId] ? state.facilityLocationsByFacilityId[facilityId] : []
+    getFacilityLocationsByFacilityId: (state) => (facilityId: string) => state.facilityLocationsByFacilityId[facilityId] ? state.facilityLocationsByFacilityId[facilityId] : [],
+    getAllProductStores: (state) => state.allProductStores,
+    getProductStoreFacilities: (state) => state.currentProductStore.facilities || []
   },
 
   actions: {
@@ -256,10 +260,6 @@ export const useProductStore = defineStore('productStore', {
         }
 
         const productStores = [...stores]
-        productStores.push({
-          productStoreId: "",
-          storeName: "None",
-        });
 
         this.currentFacility = {
           ...this.currentFacility,
@@ -274,6 +274,112 @@ export const useProductStore = defineStore('productStore', {
     async fetchProductStoreDependencies(productStoreId: string) {
       await useProductStore().fetchProductStoreSettings(productStoreId)
         .catch((error) => logger.error(error))
+    },
+
+    async fetchAllProductStores() {
+      let stores = []
+      try {
+        const resp = await api({
+          url: "admin/productStores",
+          method: "GET",
+          params: {
+            fieldsToSelect: ["productStoreId", "storeName"],
+            pageSize: 250
+          }
+        });
+
+        if (!commonUtil.hasError(resp)) {
+          stores = resp.data
+        } else {
+          throw resp.data
+        }
+      } catch (err) {
+        logger.error("Failed to fetch product stores", err)
+      }
+      this.allProductStores = stores
+    },
+
+    async fetchProductStoreFacilities(productStoreId: string) {
+      let facilities = [] as any[];
+
+      try {
+        const resp = await api({
+          url: `admin/productStores/${productStoreId}/facilities`,
+          method: "GET",
+          params: {
+            productStoreId,
+            facilityTypeId: "VIRTUAL_FACILITY",
+            facilityTypeId_op: "equals",
+            facilityTypeId_not: "Y",
+            parentFacilityTypeId: "VIRTUAL_FACILITY",
+            parentFacilityTypeId_op: "equals",
+            parentFacilityTypeId_not: "Y",
+            fieldsToSelect: ["facilityId", "facilityName"],
+            pageSize: 200
+          }
+        });
+
+        if (!commonUtil.hasError(resp)) {
+          facilities = resp.data;
+        } else {
+          throw resp.data;
+        }
+      } catch (error) {
+        logger.error("Failed to fetch product store facilities", error);
+      }
+
+      this.currentProductStore.facilities = facilities;
+    },
+
+    async fetchProductStoreDetails(payload: any): Promise<any> {
+      return api({
+        url: `admin/productStores/${payload.productStoreId}`,
+        method: "GET"
+      });
+    },
+
+    async fetchFacilityAddresses(facilityIds: string[]) {
+      const facilityAddresses = this.facilityAddresses ? JSON.parse(JSON.stringify(this.facilityAddresses)) : {};
+      const addresses = [] as any[];
+      const remainingFacilityIds = [] as string[];
+
+      facilityIds.forEach((facilityId) => {
+        facilityAddresses[facilityId] ? addresses.push(facilityAddresses[facilityId]) : remainingFacilityIds.push(facilityId);
+      });
+
+      if (!remainingFacilityIds.length) return addresses;
+
+      try {
+        const responses = await Promise.allSettled(
+          remainingFacilityIds.map((facilityId) => api({
+            url: "oms/facilityContactMechs",
+            method: "GET",
+            params: {
+              contactMechPurposeTypeId: "PRIMARY_LOCATION",
+              contactMechTypeId: "POSTAL_ADDRESS",
+              facilityId
+            }
+          }))
+        );
+
+        if (responses.some((response: any) => response.status === "rejected")) {
+          throw responses;
+        }
+
+        responses.forEach((response: any) => {
+          if ((response.value as any).data?.facilityContactMechs?.length) {
+            (response.value as any).data.facilityContactMechs.forEach((facilityAddress: any) => {
+              facilityAddresses[facilityAddress.facilityId] = facilityAddress;
+              addresses.push(facilityAddress);
+            });
+          }
+        });
+      } catch (error) {
+        logger.error("Failed to fetch facility addresses", error);
+      }
+
+      this.facilityAddresses = facilityAddresses;
+      return addresses;
     },
 
     async fetchProductStoreSettings(productStoreId: string) {

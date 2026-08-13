@@ -252,6 +252,14 @@ export const useTransferOrderStore = defineStore("transferorder", {
       }
       return resp;
     },
+    async createOrder(payload: any): Promise<any> {
+      return api({
+        url: "oms/transferOrders",
+        method: "post",
+        data: payload,
+      });
+    },
+
     async receiveTransferOrder(orderId: string, payload: any) {
       return api({
         url: `poorti/transferOrders/${orderId}/receipts`,
