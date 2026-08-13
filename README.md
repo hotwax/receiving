@@ -1,22 +1,43 @@
 # receiving
 HotWax Commerce receiving app
 
-# Build Notes
+# Prerequisite
 
-### Clone the repository (code)
+- Node `v22.12.0` or higher
+- `pnpm`
 
-- Open a Terminal window
-- Clone app
-- Go to app directory
-- Run following command to download dependencies 
-    npm i
 
-### Start App
+# Build Notes (Users)
 
-- To test the app in browser: ionic serve
+This app is developed and run from the [`accxui`](https://github.com/hotwax/accxui) pnpm workspace. It is not started by running commands inside this app folder directly.
 
-https://ionicframework.com/docs/intro/cli
--To install Ionic CLI, follow instructions in the above link
+1. Open a Terminal window.
+2. Clone the workspace using the command: `git clone https://github.com/hotwax/accxui.git`
+3. Go to the workspace root using command: `cd accxui`
+4. Download the app from the [release](https://github.com/hotwax/receiving/releases) page, extract it, and place it at `apps/receiving`.
+5. Create a `.env` file in `apps/receiving` by taking reference from its `.env.example`.
+6. Run following command from the `accxui` root to download dependencies  
+    `pnpm install`
+7. To run the app in browser use the command from the `accxui` root:  
+    `pnpm --filter receiving dev`
+
+
+# Build Notes (Contributors)
+
+1. Open a Terminal window.
+2. Clone the workspace using the command: `git clone https://github.com/hotwax/accxui.git`
+3. Go to the workspace root using command: `cd accxui`
+4. Clone this app under `apps/` using the command:  
+    `git clone https://github.com/hotwax/receiving.git apps/receiving`
+5. Create a `.env` file in `apps/receiving` by taking reference from its `.env.example`.
+6. Run following command from the `accxui` root to download dependencies  
+    `pnpm install`
+7. To run the app in browser use the command from the `accxui` root:  
+    `pnpm --filter receiving dev`
+8. To build the app use the command from the `accxui` root:  
+    `pnpm --filter receiving build`
+
+Run `pnpm install` from the `accxui` root again whenever you add another app under `apps/`. See the [accxui README](https://github.com/hotwax/accxui/blob/main/README.md) for the full workspace guide.
 
 #### Upload instance specific build
 
