@@ -252,8 +252,11 @@ const updateProductCount = async (payload?: any) => {
   } else if (result.isProductFound) {
     commonUtil.showToast(translate("Scanned successfully.", { itemName: payload }))
     lastScannedId.value = payload
+    // Highlight specific element
     const scannedElement = document.getElementById(payload);
-    scannedElement && (scannedElement.scrollIntoView());
+    scannedElement && scannedElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Scanned product should get un-highlighted after 3s for better experience hence adding setTimeOut
     setTimeout(() => {
       lastScannedId.value = ''
     }, 3000)
@@ -285,7 +288,8 @@ const searchProduct = () => {
   const scannedElement = document.getElementById(queryString.value);
   if (scannedElement) {
     lastScannedId.value = queryString.value
-    scannedElement.scrollIntoView()
+    scannedElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Scanned product should get un-highlighted after 3s for better experience hence adding setTimeOut
     setTimeout(() => {
       lastScannedId.value = ''
     }, 3000)
