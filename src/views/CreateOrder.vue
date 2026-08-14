@@ -553,13 +553,11 @@ async function openAddProductModal() {
 }
 
 async function productStoreUpdated() {
+  await productStore.fetchProductStoreFacilities(currentOrder.value.productStoreId)
 
-  const isFacilityUpdated = currentOrder.value.originFacilityId !== facilities.value[0]?.facilityId
-  if(isFacilityUpdated) {
-    currentOrder.value.originFacilityId = "";
-    if(userStore.hasPermission(Actions.APP_RECVG_ADMIN)) currentOrder.value.destinationFacilityId = "";
-    if(currentOrder.value.items.length) refetchAllItemsStock()
-  }
+  currentOrder.value.originFacilityId = "";
+  if(currentOrder.value.items.length) refetchAllItemsStock()
+
   await utilStore.fetchStoreCarrierAndMethods(currentOrder.value.productStoreId);
   if(Object.keys(shipmentMethodsByCarrier.value)?.length) {
     currentOrder.value.carrierPartyId = Object.keys(shipmentMethodsByCarrier.value)[0]
