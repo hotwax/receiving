@@ -552,9 +552,9 @@ async function openAddProductModal() {
 }
 
 async function productStoreUpdated() {
+  currentOrder.value.originFacilityId = "";
   await productStore.fetchProductStoreFacilities(currentOrder.value.productStoreId)
 
-  currentOrder.value.originFacilityId = "";
   if(currentOrder.value.items.length) refetchAllItemsStock()
 
   await utilStore.fetchStoreCarrierAndMethods(currentOrder.value.productStoreId);
@@ -736,7 +736,10 @@ async function findProduct(value: string) {
 
   try {
     const payload: any = {
-      filters: {},
+      filters: {
+        isVirtual: { value: false },
+        isVariant: { value: true }
+      },
       viewSize: 1
     };
 
