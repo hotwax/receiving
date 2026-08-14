@@ -31,7 +31,6 @@ export const useProductStore = defineStore('productStore', {
     } as any,
     userFacilities: [] as any,
     facilityLocationsByFacilityId: {} as any,
-    allProductStores: [] as any[],
     facilityAddresses: {} as any,
   }),
 
@@ -51,7 +50,6 @@ export const useProductStore = defineStore('productStore', {
       return state.settings[stateKey] === "Y"
     },
     getFacilityLocationsByFacilityId: (state) => (facilityId: string) => state.facilityLocationsByFacilityId[facilityId] ? state.facilityLocationsByFacilityId[facilityId] : [],
-    getAllProductStores: (state) => state.allProductStores,
     getProductStoreFacilities: (state) => state.currentProductStore.facilities || []
   },
 
@@ -274,29 +272,6 @@ export const useProductStore = defineStore('productStore', {
     async fetchProductStoreDependencies(productStoreId: string) {
       await useProductStore().fetchProductStoreSettings(productStoreId)
         .catch((error) => logger.error(error))
-    },
-
-    async fetchAllProductStores() {
-      let stores = []
-      try {
-        const resp = await api({
-          url: "admin/productStores",
-          method: "GET",
-          params: {
-            fieldsToSelect: ["productStoreId", "storeName"],
-            pageSize: 250
-          }
-        });
-
-        if (!commonUtil.hasError(resp)) {
-          stores = resp.data
-        } else {
-          throw resp.data
-        }
-      } catch (err) {
-        logger.error("Failed to fetch product stores", err)
-      }
-      this.allProductStores = stores
     },
 
     async fetchProductStoreFacilities(productStoreId: string) {

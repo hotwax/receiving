@@ -233,11 +233,11 @@
                 <p>{{ commonUtil.getProductIdentificationValue(useProductStore().getProductIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
               </ion-label>
             </ion-item>
-            <!-- <div class="tablet"></div> -->
+            <div class="tablet"></div>
+            <div class="tablet"></div>
             <ion-item>
               <ion-input type="number" :label="translate('Qty')" label-placement="floating" min="0" v-model="item.quantity" :clear-input="true" />
             </ion-item>
-            <!-- <div class="tablet"></div> -->
             <ion-button slot="end" fill="clear" color="danger" @click="removeItem(item)">
               <ion-icon :icon="trashOutline" slot="icon-only" />
             </ion-button>
@@ -368,7 +368,6 @@ onIonViewDidEnter(async () => {
   const currentProductStoreId = (productStore.getCurrentProductStore as any)?.productStoreId || "";
   currentOrder.value.productStoreId = currentProductStoreId
   await Promise.allSettled([
-    productStore.fetchAllProductStores(),
     currentProductStoreId ? productStore.fetchProductStoreFacilities(currentProductStoreId) : Promise.resolve(),
     utilStore.fetchStoreCarrierAndMethods(currentProductStoreId),
     utilStore.fetchCarriersDetail()
@@ -553,13 +552,11 @@ async function openAddProductModal() {
 }
 
 async function productStoreUpdated() {
+  currentOrder.value.originFacilityId = "";
+  await productStore.fetchProductStoreFacilities(currentOrder.value.productStoreId)
 
-  const isFacilityUpdated = currentOrder.value.originFacilityId !== facilities.value[0]?.facilityId
-  if(isFacilityUpdated) {
-    currentOrder.value.originFacilityId = "";
-    if(userStore.hasPermission(Actions.APP_RECVG_ADMIN)) currentOrder.value.destinationFacilityId = "";
-    if(currentOrder.value.items.length) refetchAllItemsStock()
-  }
+  if(currentOrder.value.items.length) refetchAllItemsStock()
+
   await utilStore.fetchStoreCarrierAndMethods(currentOrder.value.productStoreId);
   if(Object.keys(shipmentMethodsByCarrier.value)?.length) {
     currentOrder.value.carrierPartyId = Object.keys(shipmentMethodsByCarrier.value)[0]
@@ -739,7 +736,10 @@ async function findProduct(value: string) {
 
   try {
     const payload: any = {
-      filters: {},
+      filters: {
+        isVirtual: { value: false },
+        isVariant: { value: true }
+      },
       viewSize: 1
     };
 
