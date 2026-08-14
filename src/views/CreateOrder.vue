@@ -368,7 +368,6 @@ onIonViewDidEnter(async () => {
   const currentProductStoreId = (productStore.getCurrentProductStore as any)?.productStoreId || "";
   currentOrder.value.productStoreId = currentProductStoreId
   await Promise.allSettled([
-    productStore.fetchAllProductStores(),
     currentProductStoreId ? productStore.fetchProductStoreFacilities(currentProductStoreId) : Promise.resolve(),
     utilStore.fetchStoreCarrierAndMethods(currentProductStoreId),
     utilStore.fetchCarriersDetail()
