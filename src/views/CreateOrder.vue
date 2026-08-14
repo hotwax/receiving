@@ -233,11 +233,11 @@
                 <p>{{ commonUtil.getProductIdentificationValue(useProductStore().getProductIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
               </ion-label>
             </ion-item>
-            <!-- <div class="tablet"></div> -->
+            <div class="tablet"></div>
+            <div class="tablet"></div>
             <ion-item>
               <ion-input type="number" :label="translate('Qty')" label-placement="floating" min="0" v-model="item.quantity" :clear-input="true" />
             </ion-item>
-            <!-- <div class="tablet"></div> -->
             <ion-button slot="end" fill="clear" color="danger" @click="removeItem(item)">
               <ion-icon :icon="trashOutline" slot="icon-only" />
             </ion-button>
