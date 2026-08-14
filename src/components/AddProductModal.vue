@@ -103,12 +103,15 @@ async function getProducts( vSize?: any, vIndex?: any) {
   const viewIndex = vIndex ? vIndex : 0;
 
   try {
-    const payload = { filters: {} } as any
-    payload.filters["isVirtual"] = { value: "false" };
-    payload.filters["isVariant"] = { value: "true" };
-    payload.keyword = queryString.value.trim();
-    payload.viewSize = viewSize;
-    payload.viewIndex = viewIndex;
+    const payload = {
+      filters: {
+        isVirtual: { value: "false" },
+        isVariant: { value: "true" }
+      },
+      keyword: queryString.value.trim(),
+      viewSize,
+      viewIndex
+    } as any
 
     const resp = await useSolrSearch().searchProducts(payload)
 
