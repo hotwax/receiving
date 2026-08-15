@@ -59,7 +59,7 @@
           </ion-item>
         </ion-card>
 
-        <ion-card v-if="notificationPrefs.length">
+        <!-- <ion-card v-if="notificationPrefs.length">
           <ion-card-header>
             <ion-card-title>
               {{ translate("Notification Preference") }}
@@ -73,7 +73,7 @@
               <ion-toggle label-placement="start" @click.prevent="confirmNotificationPrefUpdate(pref.enumId, $event)" :checked="pref.isEnabled">{{ pref.description }}</ion-toggle>
             </ion-item>
           </ion-list>
-        </ion-card>
+        </ion-card> -->
 
         <ion-card>
           <ion-card-header>
