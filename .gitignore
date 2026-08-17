@@ -37,3 +37,8 @@ npm-debug.log*
 
 .firebase
 .history
+
+# Playwright Test Artifacts
+/playwright-report
+/test-results
+/playwright/.auth

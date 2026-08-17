@@ -1,0 +1,246 @@
+"Test ID","Module","Title","Script Steps & Actions","Expected Results / Status"
+"RTC-01","Transfer Orders","Verify Transfer Order visibility and tab filtering","1. Navigate to Transfer Orders page
+2. Observe default 'Open' segment tab showing pending Transfer Orders
+3. Switch to 'Completed' segment tab and verify closed TO records
+4. Enter a valid TO number in search bar and verify list filtering
+5. Test behavior when list is empty (verify empty state illustration)","Open tab lists pending TOs; Completed displays closed TOs. Search filters accurately and empty state displays clean message (PASSED)"
+"RTC-02","Transfer Orders","Validate Transfer Order segment filters in detail view","1. Open a specific Transfer Order detail page
+2. Observe segment tabs: 'All', 'Open', and 'Received and Completed'
+3. Click 'Open' tab: verify only items needing quantities are listed
+4. Click 'Received and Completed' tab: verify only fully received items are listed
+5. Click 'All' tab: verify all line items in the order are displayed","Segment buttons filter line items accurately by receiving status (PASSED)"
+"RTC-03","Transfer Orders","Verify barcode scanning in TO (HID Scanner Mode)","1. Open a Transfer Order detail page
+2. Focus the 'Scan items' barcode input field
+3. Simulate HID scanner input by injecting barcode string + Enter keystroke (or use physical USB/Bluetooth handheld scanner)
+4. Scan the same barcode multiple times sequentially
+5. Verify UI highlights matching card, increments accepted quantity by 1, and scrolls card into view","Automated test simulates HID keyboard wedge input; Physical laser scanning requires hardware device (PASSED / SIMULATED)"
+"RTC-04","Transfer Orders","Verify Force Scan enforcement in Transfer Order","1. Go to Settings and enable 'Force scan' toggle
+2. Open a Transfer Order detail page
+3. Attempt to manually edit the quantity input field on an item card
+4. Inspect the state and visibility of the 'Receive All' button
+5. Return to Settings and reset Force Scan toggle to OFF","Manual quantity input is disabled/read-only; 'Receive All' button is hidden/disabled; quantities can only be incremented via scanning (PASSED)"
+"RTC-05","Transfer Orders","Validate manual search / increment product by SKU in TO","1. Open a Transfer Order detail page
+2. Dynamically extract the active product SKU / Internal Name from an existing item card (e.g. 198353052750 / 1530700)
+3. Manually type extracted SKU into 'Scan items' field and press Enter (simulating associate manual SKU lookup)
+4. Verify matching product card is highlighted, auto-scrolled into view, and its accepted quantity increments by 1 (Note: Adding new/unexpected items is done via (+) Add Product icon)","Manual SKU entry finds existing product card, scrolls to it, and increments accepted quantity by 1 (PASSED)"
+"RTC-06","Transfer Orders","Confirm Receive All workflow for Transfer Orders (End-to-End)","1. Open Transfer Order detail page
+2. Locate item card with active 'Receive All' button and click it
+3. Verify item quantity input auto-populates with remaining expected quantity
+4. Verify bottom action bar updates with total received units
+5. Click Save Progress button and confirm 'Proceed' on alert dialog
+6. Verify backend confirmation toast notification
+7. Switch to 'All' segment tab in the same Transfer Order
+8. Assert item card shows updated received status in the UI","Receive All populates quantity, completes submission, and verifies updated status in All tab (PASSED)"
+"RTC-07","Transfer Orders","Verify partial receiving via Save Progress in TO (End-to-End)","1. Open Transfer Order detail page
+2. Enter partial quantity (e.g. 1) in item quantity field
+3. Verify bottom 'Save Progress' button is enabled and displays unit count
+4. Click 'Save Progress' button
+5. Confirm 'Proceed' on Ionic alert dialog ('Save progress and receive more later')
+6. Verify backend confirmation toast notification ('Transfer order received successfully')
+7. Switch to 'All' segment tab in the same Transfer Order
+8. Assert item card shows updated received status (e.g. '1 Received') in the UI","Full receiving lifecycle completes with confirmation toast and verified status in All tab (PASSED)"
+"RTC-08","Transfer Orders","Verify over-receipt and under-receipt handling in TO","1. Open a Transfer Order detail page
+2. Enter a quantity accepted higher than expected (over-receipt) on item A
+3. Enter a quantity accepted lower than expected (under-receipt) on item B
+4. Click 'Save progress' or 'Receive and complete'
+5. Verify discrepancy dialog appears detailing affected quantities and prompts user confirmation","Discrepancy modal summarizes affected line items requiring explicit associate confirmation before proceeding (PASSED / HANDLED)"
+"RTC-09","Transfer Orders","Validate unexpected item receiving in TO (Add Product Modal)","1. Open a Transfer Order detail page
+2. Click the (+) 'Add Product' button in the top right header toolbar
+3. Search for an unexpected product by SKU or product name in modal
+4. Select the product, click 'Add to Transfer Order', and specify received quantity
+5. Verify unexpected item card is appended to the order item list","Unexpected product is successfully added to the active TO via (+) Add Product modal (PASSED)"
+"RTC-10","Transfer Orders","Confirm blank quantities validation in TO","1. Open a Transfer Order detail page
+2. Leave all item quantity fields completely blank (empty)
+3. Click 'Receive and complete' action button
+4. Verify validation pop-up alert appears: 'Specify quantity for at least one of the items to receive'
+5. Assert order completion is blocked until valid quantity is supplied","Alert prevents completion and enforces at least one item has a valid quantity (PASSED)"
+"RTC-11","Transfer Orders","Confirm Receive and complete workflow for TO","1. Open a Transfer Order detail page
+2. Enter received quantities for all line items (entering 0 for items not received)
+3. Click 'Receive and complete' button
+4. Confirm the final completion modal
+5. Verify order is fully finalized, backend inventory adjustments trigger, and TO moves to Completed tab","TO is closed, inventory synchronization triggers, and TO moves to the Completed tab (PASSED)"
+"RTC-12","Transfer Orders","Verify QOH (Quantity on Hand) display on item cards in TO","1. Open a Transfer Order detail page
+2. Inspect product cards for Quantity on Hand (QOH) indicator / badge
+3. If fetch cube icon is present, click to fetch live facility inventory
+4. Verify QOH information (e.g. '19 on hand') displays directly on card without extra navigation","QOH badge displays accurate store inventory for the product (PASSED)"
+"RTC-13","Transfer Orders","Verify Large Order UI Performance in TO (200+ line items)","1. Open a large Transfer Order containing 200+ line items
+2. Scroll rapidly through the virtualized item list
+3. Use 'Scan items' field to search for a SKU at the bottom of the list
+4. Toggle between 'Open', 'Completed', and 'All' segment tabs","UI renders smoothly without lag or frame drops; virtual scrolling and filters execute without browser crash (PASSED)"
+"RTC-14","Transfer Orders","Validate Unsaved Changes Warning on Navigation in TO","1. Open a Transfer Order detail page and enter quantities for items
+2. Click the browser's back button or a navigation link without clicking Save
+3. Check for unsaved changes confirmation prompt or graceful state handling","App protects against accidental data loss with prompt or graceful state discard (PASSED)"
+"RTC-15","Transfer Orders","UI validation: Action buttons disabled during save in TO","1. Open a Transfer Order and enter received quantities
+2. Click 'Save progress' or 'Receive and complete'
+3. Immediately observe UI buttons and loading indicator during network in-flight request
+4. Verify action buttons are disabled to prevent duplicate concurrent submissions","Loading spinner appears and buttons disable during in-flight network requests (PASSED)"
+"RTC-16","Transfer Orders","Verify Progress bar UI indicators in TO","1. Open a Transfer Order detail page
+2. Enter partial quantity: verify progress bar fills partially (primary blue)
+3. Enter exact expected quantity: verify progress bar fills 100% (green success)
+4. Enter higher quantity: verify progress bar changes to danger red","Progress bar dynamically reflects fraction received with correct semantic colors (PASSED)"
+"RTC-17","Purchase Orders","Validate Purchase Orders list (Open vs Completed tabs)","1. Navigate to Purchase Orders page
+2. Verify 'Open' and 'Completed' segment tabs are visible
+3. Click 'Completed' tab and verify completed PO cards or empty state
+4. Click 'Open' tab and verify open PO cards or empty state","PO list segments switch smoothly and render correct order cards (PASSED)"
+"RTC-18","Purchase Orders","Verify camera scanning in Purchase Order","1. Open a Purchase Order detail page
+2. Click the Scan button (camera icon) next to search bar
+3. Grant camera permissions in browser
+4. Align a valid barcode in the camera viewfinder frame
+5. Verify detected barcode increments quantity by 1 and confirms scan","Barcode scanner detects product, increments quantity by 1, and enables continuous scanning (AUTOMATED / VERIFIED)"
+"RTC-19","Purchase Orders","Verify Pending and Completed item sections and receiving transition in PO","1. Open Purchase Order detail page with multiple items
+2. Inspect initial item counts in 'Pending: X items' and 'Completed: Y items' sections
+3. Click 'Receive All' (or enter quantity) on a pending item card
+4. Click 'Receive' button in footer and confirm 'Proceed' on confirmation alert dialog
+5. Verify confirmation toast notification ('Purchase order received successfully')
+6. Assert received item transitions from 'Pending' into 'Completed' section and counters update","Receiving pending item transitions it to Completed section in PO detail (PASSED)"
+"RTC-20","Purchase Orders","Confirm partial receipt and Receive workflow in PO","1. Open an active Purchase Order detail page
+2. Enter a partial quantity for one or more line items
+3. Click the 'Receive' button in the footer
+4. Confirm 'Proceed' on the 'Receive inventory' confirmation modal
+5. Verify shipment is received for entered units while PO remains open for remaining items","Incoming shipment is recorded in OMS for partial units and PO remains open for remaining receipts (PASSED)"
+"RTC-21","Purchase Orders","Confirm Receive And Close workflow for POs","1. Open a Purchase Order detail page
+2. Enter accepted quantities for items
+3. Click the 'Receive And Close' button in the footer
+4. Confirm final closure in modal
+5. Verify PO is finalized, remaining unreceived items are closed, and PO moves to Completed tab","PO is fully received and closed, moving to Completed tab (PASSED)"
+"RTC-22","Purchase Orders","Verify Purchase Orders sorting by Order Date [GH-714]","1. Navigate to Purchase Orders page
+2. Fetch visible Purchase Order cards
+3. Inspect order dates across consecutive cards
+4. Verify orders are displayed in chronological order","PO cards show valid order dates sorted in order (PASSED)"
+"RTC-23","Purchase Orders","Verify Arrival Date is visible in Purchase Orders [GH-715]","1. Navigate to Purchase Orders page
+2. Inspect PO summary cards for Arrival Date / Estimated Delivery Date metadata
+3. Click first PO to view detail page header metadata
+4. Assert Arrival Date is visible on card or detail header (Strict assertion for bug GH-715)","Catches defect: Arrival Date is missing from PO cards and headers (DEFECT DETECTED / EXPECTED FAILURE)"
+"RTC-24","Returns","Test Returns visibility and multi-field search","1. Navigate to the Returns tab
+2. Enter search queries across: return shipment ID, tracking code, external ID, HotWax order ID, or Shopify order name
+3. Press Enter to submit search
+4. Verify Returns list dynamically filters matching return shipments case-insensitively","Returns list filters accurately across all supported identifier search terms (PASSED)"
+"RTC-25","Returns","Test Returns receiving flow via floating action button","1. Open an active Return detail page
+2. Verify floating complete checkmark button is initially disabled (qty = 0)
+3. Enter received quantity >= 1 for an item
+4. Verify floating complete button becomes enabled
+5. Click floating checkmark button, confirm modal, and verify return finalization","Floating action button activates upon entering quantity and successfully finalizes return (PASSED)"
+"RTC-26","Returns","Test completed Return detail view (Read-only mode)","1. Navigate to Returns page and switch to 'Completed' tab
+2. Open a completed Return detail page
+3. Verify item cards are displayed in read-only mode (quantities locked)
+4. Enter a barcode in the 'Scan items' field and press Enter
+5. Verify scanner searches and highlights matching item instead of updating quantity","Completed return displays read-only mode; scanner highlights items without updating quantities (PASSED)"
+"RTC-27","Returns","Validate Returns segment filtering (Open vs Completed)","1. Navigate to Returns page
+2. Observe default 'Open' segment listing pending return shipments
+3. Switch to 'Completed' segment and verify finalized returns
+4. Switch back to 'Open' segment and verify active returns","Segment tabs toggle active list views smoothly between open and received returns (PASSED)"
+"RTC-28","Returns","Confirm Receive All workflow in Returns","1. Open an active Return detail page
+2. Locate item card with active 'Receive All' button
+3. Click 'Receive All' button
+4. Verify quantity field auto-populates with full return quantity
+5. Verify item progress bar fills to 100% green","Receive All populates quantity field and fills progress bar to 100% (PASSED)"
+"RTC-29","Returns","Verify Force Scan enforcement in Return Detail","1. Navigate to Settings and enable 'Force scan' toggle
+2. Open an active Return detail page
+3. Attempt to manually edit the item quantity input field
+4. Inspect the 'Receive All' button state
+5. Return to Settings and reset Force Scan toggle to OFF","Manual quantity input is disabled; 'Receive All' button is disabled; scanning barcode is enforced (PASSED)"
+"RTC-30","Returns","Verify Barcode Scanning in Return Detail (HID / Input)","1. Open an active Return detail page
+2. Locate 'Scan items' input field
+3. Enter a valid product barcode/SKU existing in the return and press Enter
+4. Verify matching product card highlights, auto-scrolls into view, and increments accepted quantity by 1
+5. Scan the same barcode again and verify count increments","Barcode scan recognizes item, highlights card, increments quantity, and displays confirmation toast (PASSED)"
+"RTC-31","Returns","Validate Unrecognized Barcode Scanning in Return","1. Open an active Return detail page
+2. In 'Scan items' field, enter an invalid/non-existent barcode (e.g. 'INVALID-BARCODE-999')
+3. Press Enter to submit
+4. Verify error toast appears: 'Scanned item is not present within the shipment: INVALID-BARCODE-999'
+5. Assert no item quantities are modified","Error toast displays for unrecognized barcode and prevents invalid inventory updates (PASSED)"
+"RTC-32","Returns","Verify Return Completion Confirmation and Cancellation","1. Open an active Return and enter quantity for an item
+2. Click floating checkmark button to trigger 'Receive Shipment' alert dialog
+3. Click 'Cancel' button and verify dialog closes without saving
+4. Click checkmark button again and click 'Proceed'
+5. Verify toast 'Return received successfully' and redirect to /returns list","Cancel dismisses without saving; Proceed finalizes return shipment with confirmation toast (PASSED)"
+"RTC-33","Returns","Verify Quantity on Hand (QOH) Display in Return Detail","1. Open a Return detail page
+2. Inspect product cards for Location / QOH chip
+3. If fetch cube icon is visible, click to fetch live facility stock
+4. Scroll down through item cards
+5. Verify intersection observer triggers automatic QOH lookup on scroll","QOH chip displays on-hand units for the active facility and fetches on scroll (PASSED)"
+"RTC-34","Returns","Verify Product Image Preview Modal in Return Detail","1. Open a Return detail page with product images
+2. Click on the product image thumbnail on an item card
+3. Verify ImageModal opens displaying full-size product image and title
+4. Click close / backdrop to dismiss modal and return to detail page","Image preview modal opens full-size product asset and closes cleanly (PASSED)"
+"RTC-35","Returns","Validate Pull-to-Refresh on Returns Page","1. Navigate to the Returns tab
+2. Perform pull-down gesture on the list (or trigger ion-refresher)
+3. Observe refresh spinner indicator
+4. Verify list triggers background API sync and re-renders latest returns","Pull-to-refresh initiates fresh background fetch and updates list (PASSED)"
+"RTC-36","Returns","Validate Returns Pagination (Load More Returns)","1. Navigate to Returns page with large record count
+2. Scroll to the bottom of the returns list
+3. Verify 'Load more returns' button appears
+4. Click 'Load more returns' and verify next batch of records is appended without duplicate entries","Pagination loads next batch of return records cleanly (PASSED)"
+"RTC-37","Returns","Verify Status Badge Color Mapping in Returns List","1. Navigate to Returns page (Open & Completed tabs)
+2. Inspect status badge colors across return cards:
+  - 'Received': Success green
+  - 'Approved': Tertiary purple
+  - 'Cancelled': Danger red
+  - 'Shipped' / 'Created': Medium gray","Status badges accurately map to semantic colors across all return statuses (PASSED)"
+"RTC-38","Returns","Verify Return Completion Permission (RECEIVING_ADMIN)","1. Log in with a standard user lacking RECEIVING_ADMIN permission
+2. Open an active Return detail page and enter received quantity > 0
+3. Inspect floating complete checkmark button state
+4. Assert floating action button is disabled for unauthorized user","Unauthorized user is prevented from finalizing return shipments (PASSED)"
+"RTC-39","Settings","Verify Settings Configuration (Profile, Facility, Toggles, Timezone)","1. Navigate to Settings page
+2. Verify user profile card and active username
+3. Check OMS instance header and Facility Switcher selector
+4. Verify 'Force scan' and 'Receive by fulfillment' toggles
+5. Verify Time Zone selector and Product Identifiers (Primary/Secondary)","All configuration controls, profile details, and facility switcher are accessible and functional (PASSED)"
+"RTC-40","Settings","Verify App Version & Build info display in Settings","1. Navigate to Settings page
+2. Scroll to the bottom footer area of the settings page
+3. Verify app version number and build metadata are prominently displayed","App version and build info display accurately in settings footer (PASSED)"
+"RTC-41","Settings","Verify Time Zone Timestamp Formatting","1. Go to Settings page and select a specific time zone (e.g., Asia/Kolkata)
+2. Open an order detail page and view receiving history / timestamps
+3. Verify timestamps format according to selected time zone instead of raw UTC","Timestamps throughout the app reflect the selected time zone (PASSED)"
+"RTC-42","Settings","Verify PWA Standalone Access (Go to Launchpad)","1. Log in with a user having APP_PWA_STANDALONE_ACCESS permission
+2. Navigate to Settings page
+3. Locate and click 'Go to Launchpad' button in toolbar / menu
+4. Verify browser redirects to HotWax Launchpad portal","Launchpad button redirects user back to centralized Launchpad portal (PASSED)"
+"RTC-43","Settings","Test alternate product identifiers in Settings","1. Go to Settings and configure Product Identifiers (e.g. Primary = UPC)
+2. Navigate to an order detail page
+3. Enter/scan a valid UPC barcode in 'Scan items' field
+4. Verify app matches product via alternate identifier and increments count","App resolves product cards using configured primary/secondary identifiers (PASSED)"
+"RTC-44","Settings","Verify Facility Access Control in Settings (Admin vs Non-Admin)","1. Log in with a non-admin store associate account
+2. Open Facility Switcher in Settings: verify only assigned facilities appear
+3. Log in with an Admin user account
+4. Open Facility Switcher: verify full list of enterprise facilities is available","Facility selector restricts choices based on user role and permissions (PASSED)"
+"RTC-45","Settings","Verify Force Scan setting state toggle and receiving enforcement [GH-713]","1. Navigate to Settings page
+2. Read initial Force Scan toggle state
+3. Enable Force Scan toggle and verify state is true
+4. Navigate to Transfer Order detail to verify receiving enforcement (manual qty input is disabled/read-only, 'Receive All' button is hidden/disabled, and 'Scan items' barcode input is active)
+5. Return to Settings and reset Force Scan toggle to OFF","Enforces scanning requirement: prevents receiving items manually without scanning (PASSED)"
+"RTC-46","General & Navigation","Verify app navigation between tabs and view permissions","1. Open root URL (redirects to /transfer-orders)
+2. Verify all bottom navigation tabs are visible (Transfer Orders, Purchase Orders, Returns, Settings)
+3. Click Purchase Orders tab and verify /purchase-orders URL and header title
+4. Click Returns tab and verify /returns URL and header title
+5. Click Settings tab and verify /settings URL and header title
+6. Click Transfer Orders tab and verify /transfer-orders URL and header title
+7. Verify tab visibility respects FULFILLMENT_APP_VIEW permission","All tabs navigate smoothly and render expected page headers and permissions (PASSED)"
+"RTC-47","General & Navigation","Verify APP_SHIPMENT_UPDATE permission effects","1. Log in with a user lacking RECEIVING_ADMIN / APP_SHIPMENT_UPDATE permission
+2. Open an order detail page (TO, PO, or Return)
+3. Inspect action buttons: Receive, Receive and Close, Save progress, and Complete
+4. Verify action buttons are disabled for unauthorized user","Receiving action buttons are locked/disabled when permission is lacking (PASSED)"
+"RTC-48","General & Navigation","Validate Behavior on Session Expiry","1. Open an active order detail page and enter quantities
+2. Invalidate user session (or expire auth token in background)
+3. Click 'Save progress' or submit receiving
+4. Verify app intercepts 401 Unauthorized, displays error notification, and redirects to login","Session expiration is gracefully handled with redirection to login page (PASSED)"
+"RTC-49","General & Navigation","Verify Search Empty State (No Results Found) across modules","1. Navigate to Transfer Orders, Purchase Orders, and Returns tabs
+2. Enter non-existent search query 'XYZ-999-DOES-NOT-EXIST' in each search bar
+3. Press Enter to submit search
+4. Verify clean empty state message / illustration appears with zero records","Empty state container displays consistently across all module lists (PASSED)"
+"RTC-50","General & Navigation","Verify Load More functionality across list views","1. Navigate to list views with records exceeding default page size (TOs, POs, Returns)
+2. Scroll to the bottom of the page
+3. Verify 'Load more' control triggers and appends subsequent records without duplication","List pagination appends next batch of records smoothly (PASSED)"
+"RTC-51","General & Navigation","Test scanning unrecognized barcodes (Global Error Handling)","1. In any order detail page (TO, PO, Return), enter an arbitrary unrecognized barcode
+2. Submit scan in 'Scan items' field
+3. Verify app displays error toast / prompt indicating item is not part of shipment","Unrecognized barcode triggers clear error notification without altering state (PASSED)"
+"RTC-52","General & Navigation","Confirm status sync post-receiving in HotWax OMS","1. Fully receive an order (TO / PO / Return) and complete it in the Receiving App
+2. Check backend HotWax OMS instance for the corresponding shipment ID
+3. Verify shipment status updates to 'Received' or 'Completed'","Receiving App state synchronizes downstream to HotWax OMS successfully (PASSED)"
+"RTC-53","General & Navigation","Verify Unauthorized Navigation Redirects (Route Guards)","1. Log in with a user account lacking specific view permissions (e.g. APP_PURCHASEORDERS_VIEW)
+2. Manually enter unauthorized route URL (e.g. '/purchase-orders') in browser address bar
+3. Verify Vue Router navigation guard intercepts route and redirects to authorized default tab","Client-side route guards prevent access to unauthorized pages (PASSED)"
+"RTC-54","General & Navigation","Verify Network Timeout and Offline API Error Handling","1. Open an order detail page and enter receiving quantities
+2. Simulate network disconnect / offline state
+3. Click 'Save progress'
+4. Verify error toast banner appears without losing entered quantities or crashing app","App gracefully handles network errors, preserves user input, and displays clear alert (PASSED)"
