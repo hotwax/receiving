@@ -145,18 +145,18 @@ export const useTransferOrderStore = defineStore("transferorder", {
       const barcodeIdentifier = productStore.getBarcodeIdentifierPref;
       const getProduct = product.getProduct;
 
-      const item = this.current.items.find((item: any) => {
+      const item = this.current.items?.find((item: any) => {
         const itemVal = barcodeIdentifier
           ? commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))
           : item.internalName;
-        return itemVal === payload;
+        return itemVal === payload || item.internalName === payload || item.productId === payload;
       });
 
       if (item) {
-        if (item.statusId === "ITEM_COMPLETED") return { isCompleted: true };
+        if (item.statusId === "ITEM_COMPLETED") return { isCompleted: true, item };
 
         item.quantityAccepted = Number(item.quantityAccepted) ? Number(item.quantityAccepted) + 1 : 1;
-        return { isProductFound: true };
+        return { isProductFound: true, item };
       }
 
       return { isProductFound: false };

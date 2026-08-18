@@ -523,9 +523,6 @@ const updateProductCount = async (payload: any) => {
     return;
   }
 
-  if (openItemsTemp.value.length) {
-    const item = openItems.value.find((item: any) => commonUtil.getProductIdentificationValue(barcodeIdentifier.value, getProduct.value(item.productId)) === payload);
-
     if (!item) {
       queryString.value = "";
       scanErrorText.value = "Scanned item not found in filtered view, switch to all open items and scan again";
@@ -541,8 +538,8 @@ const updateProductCount = async (payload: any) => {
     commonUtil.showToast(translate("Scanned successfully.", { itemName: payload }));
     lastScannedId.value = payload;
 
-    const item = filteredItems.value.find((item: any) => commonUtil.getProductIdentificationValue(barcodeIdentifier.value, getProduct.value(item.productId)) === payload);
-    if (item.statusId === "ITEM_COMPLETED") {
+    const item = result.item || filteredItems.value.find((item: any) => commonUtil.getProductIdentificationValue(barcodeIdentifier.value, getProduct.value(item.productId)) === payload || item.internalName === payload || item.productId === payload);
+    if (item && item.statusId === "ITEM_COMPLETED") {
       segmentChanged("received");
     } else {
       segmentChanged("open");
