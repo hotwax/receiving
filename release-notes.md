@@ -1,3 +1,53 @@
+# Playwright E2E Test Automation Implementation
+
+## What's Changed
+* **Architectural Overhaul**: Ported the dynamic multi-client Playwright architecture from the Fulfillment app to the Receiving App. Consolidated all test artifacts under a unified `playwright/` root directory.
+* **Authentication**: Automated the Launchpad-to-Receiving redirect login flow with intelligent session caching to `playwright/.auth/[clientId].user.json` via `auth.setup.ts`.
+* **Dynamic Client Configuration**: Added environment-driven testing capabilities (e.g., `CLIENT=<client-id>`) allowing seamless execution against various OMS instances without hardcoding credentials.
+
+## Transfer Order Testing Logic (16 Test Cases)
+Fully implemented and rigorously stabilized 16 automated end-to-end tests for the Transfer Orders module (`transfer-orders.spec.ts`):
+* **TC-01 - TC-04 (Navigation & Initialization)**: Validates initial app loading, facility selection (falling back to discovery if necessary), segment navigation (Open/Completed/All), and opening of individual Transfer Orders.
+* **TC-05 (Scanning)**: Ensures robust dynamic SKU search and scanning functionality.
+* **TC-06, TC-11 (Receiving Workflows)**: Validates full "Receive All" and explicit item-by-item "Receive and Complete" workflows. Includes strict validation against the backend OMS API status to catch environment-specific `400 Bad Request` state errors (e.g., attempting to receive items stuck in `ITEM_PENDING_FULFILL`).
+* **TC-07 (Partial Receive)**: Validates partial receiving scenarios using the "Save Progress" logic.
+* **TC-08 (Over-receipt)**: Confirms the discrepancy modal logic for over-receipt handling.
+* **TC-10 (Blank Quantity Validation)**: Tightened validation alert testing for blank/empty quantity scenarios. *Note: The test dynamically simulates human keyboard backspaces and clicks away to blur the input. This safely bypasses Ionic's virtual keyboard state, allowing the hidden footer and `Receive and Complete` button to accurately trigger the empty quantity alert.*
+* **TC-12 - TC-16 (UI/UX Validation)**: UI/UX validations including Quantity on Hand (QOH) display, rapid scrolling for large orders, "Unsaved Changes" navigation handling, button state toggling during saves, and Progress bar UI indicators.
+
+## How to Run the Tests
+
+**1. Install Dependencies (First Time Setup)**
+Ensure you have the required Playwright dependencies installed in the repository:
+```bash
+npm install -D @playwright/test
+npx playwright install chromium
+```
+
+**2. Standard Execution**
+To run the full suite headless against a specific client (e.g., `<client-id>`):
+```bash
+CLIENT=<client-id> npm run test:playwright
+```
+
+**3. Run a Specific Test Case**
+Use the `-g` flag to grep for a specific test description (e.g., TC-10):
+```bash
+CLIENT=<client-id> npm run test:playwright -- -g "TC-10"
+```
+
+**4. UI Mode for Debugging**
+Run Playwright in interactive UI mode to visually debug and step through tests. Highly recommended for troubleshooting failed assertions.
+```bash
+CLIENT=<client-id> npm run test:playwright -- --ui
+```
+
+**5. Implementation Notes for Future Expansion**
+* **Timeouts & Wait States:** The suite uses `domcontentloaded` instead of `networkidle` due to persistent background polling in the UAT environment. 
+* **Zero-Quantity Helper:** The custom `toDetail.fillAllEmptyQuantitiesWithZero()` helper is used heavily to prevent the app from rejecting unreceived items. The app explicitly requires `0` inputs for accountability.
+
+---
+
 # Release 2.13.0
 
 ## What's Changed

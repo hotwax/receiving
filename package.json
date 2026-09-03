@@ -8,6 +8,7 @@
     "build": "vite build",
     "test:unit": "vitest",
     "test:e2e": "vue-cli-service test:e2e",
+    "test:playwright": "playwright test -c playwright/playwright.config.ts",
     "lint": "vue-cli-service lint",
     "serve": "vite preview"
   },
@@ -42,6 +43,8 @@
     "typescript": "catalog:",
     "vite": "catalog:",
     "vite-plugin-pwa": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "@playwright/test": "^1.61.1",
+    "@types/node": "^26.4.1"
   }
 }
