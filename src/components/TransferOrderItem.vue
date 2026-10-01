@@ -1,14 +1,9 @@
 <template>
   <ion-item :data-testid="`transfer-order-list-item-row-${transferOrder.orderId}`" :detail="true" button @click="getOrderDetail(transferOrder.orderId)">
     <ion-label>
-      <div class="transfer-summary">
-        <div>
-          {{ transferOrder.orderName }}
-          <p>{{ transferOrder.orderExternalId }}</p>
-          <p>{{ transferOrder.orderId }}</p>
-        </div>
-        <p v-if="transferOrder.orderDate">{{ getTime(transferOrder.orderDate) }}</p>
-      </div>
+      {{ transferOrder.orderName }}
+      <p>{{ transferOrder.orderExternalId }}</p>
+      <p>{{ transferOrder.orderId }}</p>
       <div v-if="transferOrder.trackingCodes?.length" class="tracking-badges">
         <ion-badge v-for="tracking in transferOrder.trackingCodes" :key="tracking.code"
           :color="tracking.shipped ? 'primary' : 'medium'" :data-testid="`tracking-badge-${tracking.code}`">
@@ -16,12 +11,13 @@
         </ion-badge>
       </div>
     </ion-label>
+    <ion-note v-if="transferOrder.orderDate" slot="end">{{ getTime(transferOrder.orderDate) }}</ion-note>
   </ion-item>
 </template>
 
 <script setup lang="ts">
 import router from '@/router';
-import { IonBadge, IonItem, IonLabel } from '@ionic/vue';
+import { IonBadge, IonItem, IonLabel, IonNote } from '@ionic/vue';
 import { translate } from '@common';
 import { DateTime } from 'luxon';
 
@@ -38,13 +34,6 @@ const getTime = (time: any) => {
 </script>
 
 <style scoped>
-.transfer-summary {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--spacer-xs);
-}
 .tracking-badges {
   display: flex;
   flex-wrap: wrap;
