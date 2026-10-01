@@ -67,10 +67,8 @@ export const useProductStore = defineStore("product", {
       return resp;
     },
     async getInventoryAvailableByFacility(productId: string) {
-      // Default to 0 so a failed or empty lookup is cached by the callers'
-      // productQoh checks; returning "" made every visibility event refire
-      // the request for products with no ProductFacility record.
-      let productQoh = 0;
+      // Inventory remains a live view value. A failed request must never appear as zero stock.
+      let productQoh: number | undefined;
       const payload = {
         productId,
         facilityId: useFacilityStore().getCurrentFacility.facilityId,
@@ -84,12 +82,13 @@ export const useProductStore = defineStore("product", {
         });
 
         if (!commonUtil.hasError(resp)) {
-          productQoh = resp?.data.qoh ?? 0;
+          const value = resp?.data.qoh == null ? undefined : Number(resp.data.qoh);
+          productQoh = Number.isFinite(value) ? value : undefined;
         } else {
           throw resp.data;
         }
-      } catch (err) {
-        console.error(err);
+      } catch {
+        console.warn('Live inventory could not be loaded.');
       }
 
       return productQoh;
@@ -123,5 +122,5 @@ export const useProductStore = defineStore("product", {
       this.list = { items: [], total: 0 };
     },
   },
-  persist: true,
+
 });

@@ -26,10 +26,11 @@
 
 <script setup lang="ts">
 import { IonApp, IonContent, IonHeader, IonIcon, IonItem, IonLabel, IonList, IonMenu, IonMenuToggle, IonRouterOutlet, IonSplitPane, IonTitle, IonToolbar, loadingController } from '@ionic/vue';
-import { ref, computed, onBeforeMount, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onBeforeMount, onMounted, onUnmounted, watch } from 'vue';
 import router from '@/router'
 import { Settings } from 'luxon';
-import { translate, emitter, useNotificationStore, logger, useAuth } from "@common";
+import { translate, emitter, useNotificationStore, logger, useAuth, commonUtil } from "@common";
+import { configureReceiving, receivingScope, refreshReceiving } from '@/db/receivingClient';
 import { firebaseUtil } from '@/utils/firebaseUtil';
 import { useUserStore } from '@/store/user';
 import { useProductStore } from '@/store/productStore';
@@ -40,6 +41,30 @@ const productStore = useProductStore();
 const { isAuthenticated } = useAuth();
 
 const currentFacility = computed(() => productStore.getCurrentFacility);
+
+const configureLocalTransfers = () => {
+  const facilityId = currentFacility.value?.facilityId;
+  const userId = userStore.current?.userId;
+  const maargUrl = commonUtil.getMaargURL();
+  if (!isAuthenticated.value || !commonUtil.getToken() || !facilityId || !userId || !maargUrl) {
+    void configureReceiving();
+    return;
+  }
+  void configureReceiving({
+    scope: receivingScope(maargUrl, commonUtil.getOmsURL(), userId),
+    maargUrl, token: commonUtil.getToken(), facilityId, moqui: commonUtil.isMoqui(),
+  });
+};
+watch([isAuthenticated, () => currentFacility.value?.facilityId, () => userStore.current?.userId, () => userStore.oms], configureLocalTransfers, { immediate: true });
+// Auth cookies can be renewed by another tab. Keep tokens in worker memory current.
+const receivingSessionTimer = setInterval(configureLocalTransfers, 15000);
+const resumeReceiving = () => {
+  if (document.visibilityState !== 'visible' || !navigator.onLine) return;
+  configureLocalTransfers();
+  void refreshReceiving().catch(() => undefined); // Existing cache status reports refresh failures.
+};
+window.addEventListener('online', resumeReceiving);
+document.addEventListener('visibilitychange', resumeReceiving);
 
 const menuItems = computed(() => {
   return router.getRoutes()
@@ -122,6 +147,10 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
+  clearInterval(receivingSessionTimer);
+  window.removeEventListener('online', resumeReceiving);
+  document.removeEventListener('visibilitychange', resumeReceiving);
+  void configureReceiving();
   emitter.off('presentLoader', (options: any) => {
     presentLoader(options);
   });

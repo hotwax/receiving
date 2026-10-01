@@ -10,6 +10,7 @@ import { useReturnStore } from "@/store/return";
 import { useTransferOrderStore } from "@/store/transferorder";
 import { useUtilStore } from "@/store/util";
 import { firebaseUtil } from "@/utils/firebaseUtil";
+import { clearReceivingSession, enableReceivingSession } from '@/db/receivingClient';
 
 interface UserState {
   permissions: any[]
@@ -190,6 +191,7 @@ export const useUserStore = defineStore("user", {
       }
     },
     async postLogin() {
+      enableReceivingSession();
       try {
         const productStore = useProductStore();
         await this.fetchUserProfile()
@@ -221,6 +223,7 @@ export const useUserStore = defineStore("user", {
       }
     },
     async preLogout() {
+      await clearReceivingSession();
       try {
         const notificationStore = useNotificationStore();
         if (notificationStore.getFirebaseDeviceId) await notificationStore.removeClientRegistrationToken(notificationStore.getFirebaseDeviceId, import.meta.env.VITE_NOTIF_APP_ID as any);
@@ -236,6 +239,7 @@ export const useUserStore = defineStore("user", {
       }
     },
     async postLogout() {
+      useTransferOrderStore().closeLocalDetail();
       useNotificationStore().clearNotificationState();
       useOrderStore().$reset();
       usePartyStore().$reset();
