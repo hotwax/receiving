@@ -2,7 +2,7 @@
 
 ## Scope and runtime
 
-Receiving-only follow-up on draft PR #739, tested at `http://localhost:8101` against Demo Maarg, Brooklyn, with AccxUI `2e4a524`. No shared AccxUI or server changes.
+Receiving-only follow-up on PR #739, tested at `http://localhost:8101` against Demo Maarg, Brooklyn, with AccxUI `2e4a524`. No shared AccxUI or server changes.
 
 The order-level **Mark all as received** action fills the visible open lines with `totalIssuedQuantity - totalReceivedQuantity`. It does not submit a receipt. The existing **Receive and complete** and **Save progress** controls submit the selected tracking scope. Individual **Receive all** buttons remain available in both All and Open, including when a tracking code is selected.
 
@@ -43,10 +43,16 @@ An earlier dedicated transfer, M103574, was also completed during development. F
 
 ![Filtered marking with order-level and item-level actions](mark-all-filtered.jpg)
 
+## Final button labels and alignment
+
+After functional QA, the header shortcut was renamed **Auto scan all** and moved to the left. The per-item shortcut was renamed **Scan all** in both All and Open. A live browser check on M103572 verified both labels. These edits change presentation only: shortcuts fill quantities, while the existing footer submits receipts. The earlier functional screenshot above preserves the labels used during the receipt test.
+
+![Final scan shortcuts and separate receipt submission](auto-scan-actions.jpg)
+
 ## Checks and limits
 
 - All 35 unit tests passed (9 files), including remaining-issued calculations, hidden draft preservation, failed-submission draft retention, and duplicate-submit locking.
 - Production build passed on the demo wrapper (10.71 seconds).
 - AccxUI UI diff checker and whitespace checks passed.
 - Initial browser control on the existing tab timed out. A fresh in-app tab restored control; live QA was completed there.
-- The existing draft PR's latest-AccxUI database integration limitation remains; this demo validation does not establish compatibility with the newer shared database contracts.
+- The PR's latest-AccxUI database integration limitation remains; this demo validation does not establish compatibility with the newer shared database contracts.
