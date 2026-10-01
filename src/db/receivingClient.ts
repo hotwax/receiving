@@ -2,7 +2,7 @@ import { proxy, type Remote } from 'comlink';
 import { shallowRef } from 'vue';
 import { WorkerFactory } from '@common/core/workerFactory';
 import receivingWorkerUrl from './receiving.worker.ts?worker&url';
-import { ReceivingDB, tuple, type Row } from './receivingDatabase';
+import { ReceivingDB, openReceivingDb, clearReceivingData, tuple, type Row } from './receivingDatabase';
 import type { ReceivingConnection } from './receivingApi';
 import type { ReceivingWorker } from './receiving.worker';
 import { findExactTracking } from './receivingQueries';
@@ -57,7 +57,7 @@ export function configureReceiving(connection?: ReceivingConnection) {
   const worker = handle.api;
   remote = worker;
   ready = (async () => {
-    await db.open();
+    await openReceivingDb(db);
     if (currentGeneration !== generation) return;
     await worker.start(connection);
     if (currentGeneration !== generation) return;
@@ -127,11 +127,8 @@ export async function clearReceivingSession() {
   configureReceiving();
   if (!old) return;
   const clear = async () => {
-    await old.open();
     try {
-      await old.transaction('rw', old.getTableNames(), async () => {
-        for (const table of old.getTableNames()) await old.table(table).clear();
-      });
+      await clearReceivingData(old);
     } finally { old.close(); }
   };
   if (navigator.locks) await navigator.locks.request(old.name, clear);

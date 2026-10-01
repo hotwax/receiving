@@ -1,6 +1,6 @@
 # Local transfer receiving data
 
-Status: implemented and tested against the original AccxUI baseline; integration with current AccxUI main is blocked by shared database interface changes. See the [2026-10-01 validation notes](../../qa/2026-10-01-local-receiving.md) for observed results and remaining acceptance gaps.
+Status: implemented and validated against current AccxUI `c91b85d`. See the [current compatibility and receipt QA](../../qa/2026-10-01-current-accxui.md) and [earlier validation notes](../../qa/2026-10-01-local-receiving.md) for observed results and limits.
 
 The [API contracts and entity map](2026-09-30-receiving-api-entity-map.md) specifies the exact calls, envelopes, field mappings, keys, Dexie indexes, query paths, and write boundaries. Its revised entity model is authoritative for implementation.
 

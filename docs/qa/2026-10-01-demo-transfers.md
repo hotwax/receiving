@@ -35,7 +35,7 @@ Paste a tracking code into the list search and press Enter to open that transfer
 - M103572: the third tracking code opens its final shipment, selects its box, and displays the expected 14 rows. All three package chips are present after synchronization.
 - M103573: all three box chips are present. Selecting the second box displays 17 rows; selecting All shipments displays 48 rows. Split-box quantities appear in the Ionic progress display.
 - Native list markup: internal ID is a direct `p` child of `ion-label`; date uses `ion-note slot="end"`. The custom summary layout was removed. Desktop and 390×844 viewport checks passed; the mobile page has no horizontal overflow.
-- Receiving production build and AccxUI UI/diff checks passed on the existing demo wrapper baseline. These follow-ups do not change the separate latest-AccxUI database compatibility limitation recorded in the PR.
+- Receiving production build and AccxUI UI/diff checks passed on the existing demo wrapper baseline. Compatibility with current AccxUI was subsequently fixed and revalidated; see the [current AccxUI follow-up](2026-10-01-current-accxui.md).
 - No receipts were submitted for these new orders during verification. No server code or API deployment was performed.
 
 ![New demo transfers and tracking badges](demo-transfers-list.jpg)

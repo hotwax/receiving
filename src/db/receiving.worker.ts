@@ -1,9 +1,9 @@
 import { expose } from 'comlink';
 import { liveQuery } from 'dexie';
-import { createPollingWorkerHarness } from '@common/db/sync/pollingWorkerHarness';
+import { createSyncHarness } from '@common/db/sync/pollingWorkerHarness';
 import { registerSyncDomain } from '@common/db/sync/syncRegistry';
 import { ReceivingApi, ReceivingRequestError, type ReceivingConnection } from './receivingApi';
-import { ReceivingDB, mergePendingPage, reconcilePending, reconcileOrderPending, replaceDetail, replaceFacilityPackages, replaceOrderRows, replaceOrderShipments, replaceProducts, tuple, uniqueIds, type Row } from './receivingDatabase';
+import { ReceivingDB, openReceivingDb, mergePendingPage, reconcilePending, reconcileOrderPending, replaceDetail, replaceFacilityPackages, replaceOrderRows, replaceOrderShipments, replaceProducts, tuple, uniqueIds, type Row } from './receivingDatabase';
 import { filterList, readListCorpus, trackingBadges } from './receivingQueries';
 import { advancePendingPage } from './receivingPaging';
 import { createReceivingQueue } from './receivingQueue';
@@ -16,7 +16,7 @@ let listCallback: ((value: any) => void) | undefined;
 let search = '', limit = 20;
 const fence = () => { if (stopped) throw new Error('Receiving session changed'); };
 const enqueue = createReceivingQueue(() => db.name, fence);
-const harness = createPollingWorkerHarness(() => db);
+const harness = createSyncHarness(() => db);
 const sessionChannel = new BroadcastChannel('receiving-session');
 sessionChannel.onmessage = event => {
   if (event.data?.type === 'logout' && event.data?.scope === api?.connection.scope) {
@@ -222,7 +222,7 @@ async function pruneReceiverNames() {
   });
 }
 
-registerSyncDomain({ name: 'receiving', cadenceMs: 30000, sync: () => refreshLoop.sync() });
+registerSyncDomain({ name: 'receiving', label: 'Transfers pending receipt', syncClass: 'A', intervalMs: 30000, sync: () => refreshLoop.sync() });
 
 function publishList() { listCallback?.(filterList(corpus, search, limit)); }
 
@@ -231,13 +231,14 @@ const worker = {
     stopped = false;
     db = new ReceivingDB(connection.scope);
     // Open explicitly first: storage errors preserve the last-good database; no destructive rebuild.
-    await db.open();
+    await openReceivingDb(db);
     api = new ReceivingApi(connection, fence);
     listSubscription = liveQuery(() => readListCorpus(db, connection.facilityId)).subscribe({
       next(value) { corpus = value; publishList(); },
       error() { listCallback?.({ list: [], total: 0, sync: { error: 'Local transfer storage is unavailable.' } }); },
     });
-    void harness.start({ token: connection.token, maargUrl: connection.maargUrl, omsInstance: connection.scope, domains: ['receiving'], baseTickMs: 30000 });
+    void harness.start({ token: connection.token, maargUrl: connection.maargUrl, omsInstance: connection.scope, domains: [{ name: 'receiving' }], baseTickMs: 30000 })
+      .catch(() => listCallback?.({ list: [], total: 0, sync: { error: 'Transfer refresh could not start. Refresh to retry.' } }));
   },
   watchList(callback: (value: any) => void) { listCallback = callback; publishList(); },
   search(query: string, pageLimit: number) { search = query; limit = pageLimit; publishList(); },
@@ -267,7 +268,9 @@ const worker = {
     }, false, orderId)));
   },
   async refresh() { await refreshLoop.sync(true); },
-  updateToken(token: string) { api.connection.token = token; harness.updateToken(token); },
+  // Keep request credentials scoped to this session. The shared harness owns its
+  // own token-channel subscription; it no longer exposes updateToken().
+  updateToken(token: string) { api.connection.token = token; },
   async receive(orderId: string, payload: Row, baseline: Row[]) {
     return enqueue(async () => {
       // Refresh before submitting, while holding the cross-tab writer lock.

@@ -6,14 +6,7 @@ Real UI and API checks used Demo Maarg at Brooklyn. The tested checkout combined
 
 Later the same day, the shared auth edit was removed and Receiving adopted an app-owned login lifecycle. Fresh login, logout/re-login, saved-session reload, and tracking navigation passed with unchanged AccxUI auth. Receiving no longer depends on AccxUI PR #194. See the [Receiving-only login follow-up](2026-10-01-app-local-login.md).
 
-The publication branch starts from Receiving `f3ddded`. An integration build against AccxUI main `c91b85d` **fails** because the shared database framework changed after the tested baseline. Merging remains blocked until this migration and repeat validation are complete:
-
-- `common/db/baseDb` and `common/db/projection` moved under `common/db/storage`.
-- `EntityProjection` was removed in favor of the current `Entity` contract.
-- `createPollingWorkerHarness` was replaced by `createSyncHarness`; domain registration, intervals, and token updates have different contracts.
-- Current `ensureDbReady` uses declared schema versions and may rebuild the cache. The existing Receiving v1-to-v2 migration and preservation behavior must be reconciled with that lifecycle.
-
-The attempted integration command was `VITE_APP_VERSION_CONFIG='{"buildVersion":""}' pnpm --filter receiving build`. It failed resolving `common/db/baseDb` from `receivingDatabase.ts`. The successful tests below apply to the tested baseline unless explicitly stated otherwise. They do not establish compatibility with current AccxUI main.
+The publication branch starts from Receiving `f3ddded`. Its initial build against AccxUI `c91b85d` failed because the shared storage, entity, and sync-harness contracts had changed. This blocker was subsequently fixed entirely in Receiving. Production builds, 35 unit tests, 62 browser assertions, and real partial/complete/variance receipt QA now pass against current AccxUI. See the [current AccxUI follow-up](2026-10-01-current-accxui.md) for migration behavior and fresh evidence. The historical results below retain their original baseline.
 
 ## Receiving and inventory verification
 
@@ -57,7 +50,7 @@ The API records receipts at order-line level. Package separators represent shipm
 
 | Finding | Fix and evidence |
 | --- | --- |
-| Re-login stalled at “Loading saved transfers…” | The separate AccxUI auth fix makes user-ID changes reactive after token-first login. Normal logout/login loaded Brooklyn transfers without reload. |
+| Re-login stalled at “Loading saved transfers…” | Receiving now owns the login lifecycle; the earlier shared auth experiment was removed. Fresh logout/login passed without reload; see the app-local login and current AccxUI follow-ups. |
 | Failed list refresh blocked detail/history | Independent scheduling and retry state preserve detail/history/package refresh during membership failure. Fault-injection unit tests cover these failures; no live outage was manufactured. |
 | Completed cache lacked automatic revalidation | Active completed detail/history joins background polling and checks the existing two-minute TTL. M100867 timestamps advanced automatically while the same page remained open, with no navigation or manual refresh. |
 | Empty search wording | A nonempty no-match search displays “No results found”; clearing it restores the list. |
@@ -70,7 +63,7 @@ The API records receipts at order-line level. Package separators represent shipm
 - Tested baseline: Receiving production build and the AccxUI Ionic UI-diff checker passed. The existing bundle-size warning remains.
 - Type checking still reports existing errors in `SelectFacilityModal.vue`, `ReturnDetails.vue`, and `transferOrderDetailReceiveWorkflow.spec.ts`; no new cache/tracking/detail errors were reported on the tested baseline.
 - Publication check on AccxUI `c91b85d` plus the auth fix: `pnpm exec vitest run --root common/tests useAuth.spec.ts sessionScope.spec.ts --cache=false` passed all 4 tests.
-- Publication integration build: failed as described above. Full latest-main Receiving validation is outstanding.
+- The original publication integration build failed; the [current AccxUI follow-up](2026-10-01-current-accxui.md) records its resolution and successful repeat validation.
 
 ## UI evidence
 

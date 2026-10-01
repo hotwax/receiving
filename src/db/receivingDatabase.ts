@@ -1,6 +1,6 @@
-import { BaseDB } from '@common/db/baseDb';
-import { projectRow, toMillis } from '@common/db/projection';
-import type { EntityProjection } from '@common/db/types';
+import { BaseDB } from '@common/db/storage/baseDb';
+import { projectRow, toMillis } from '@common/db/storage/projection';
+import { defineEntity } from '@common/db/schema/defineEntity';
 
 export type Row = Record<string, any>;
 export const tuple = (...parts: unknown[]) => JSON.stringify(parts);
@@ -22,26 +22,51 @@ export const RECEIVING_SCHEMA = {
   transferPackageItems: 'contentKey, [facilityId+orderId], packageKey, [orderId+orderItemSeqId]',
 };
 
+export const RECEIVING_DB_VERSION = 3;
+const versionMarker = () => ({ key: 'schemaVersion', version: RECEIVING_DB_VERSION, timestamp: Date.now() });
+
 export class ReceivingDB extends BaseDB {
   constructor(scope: string) {
-    super(`receiving-v1:${scope}`, RECEIVING_V1_SCHEMA);
+    super(`receiving-v1:${scope}`, RECEIVING_SCHEMA, RECEIVING_DB_VERSION);
+    this.version(1).stores({ ...RECEIVING_V1_SCHEMA, syncMeta: 'key' });
     this.version(2).stores({ ...RECEIVING_SCHEMA, syncMeta: 'key' }).upgrade(transaction =>
       transaction.table('transferPackages').toCollection().modify(row => {
         // Version one only downloaded SHIPMENT_SHIPPED packages.
         row.shipmentStatusId = 'SHIPMENT_SHIPPED';
       }));
-    this._tableNames = [...Object.keys(RECEIVING_SCHEMA), 'syncMeta'];
+    // Preserve receiptReadback markers: an uncertain receipt cannot be reconstructed
+    // safely by dropping the cache. Migrate before the shared harness checks its version.
+    this.version(RECEIVING_DB_VERSION).upgrade(transaction =>
+      transaction.table('syncMeta').put(versionMarker()).then(() => undefined));
+    this.on('populate', transaction => transaction.table('syncMeta').put(versionMarker()).then(() => undefined));
   }
 }
 
-const headerProjection: EntityProjection = {
-  keyField: 'orderId',
+export async function openReceivingDb(db: ReceivingDB) {
+  // Open errors and unexpected markers must fail closed, before the shared helper's
+  // rebuild fallback can discard pending receipt reconciliation state.
+  await db.open();
+  if ((await db.syncMeta.get('schemaVersion'))?.version !== db.declaredVersion) {
+    throw new Error('Receiving storage version could not be verified.');
+  }
+}
+
+export async function clearReceivingData(db: ReceivingDB) {
+  await openReceivingDb(db);
+  await db.transaction('rw', db.getTableNames(), async () => {
+    for (const table of db.getTableNames()) await db.table(table).clear();
+    await db.syncMeta.put(versionMarker());
+  });
+}
+
+const headerProjection = defineEntity({
+  primaryKey: 'orderId',
   fields: {
     orderId: 'text', orderName: 'text', externalId: 'text', statusId: 'text', status: 'text',
     orderDate: 'date', productStoreId: 'text', statusFlowId: 'text', currencyUom: 'text',
   },
   rename: { externalId: 'orderExternalId', statusId: 'orderStatusId', status: 'orderStatusDesc' },
-};
+});
 
 function requireId(row: Row, field: string): string {
   if (typeof row[field] !== 'string' || !row[field]) throw new Error(`Missing ${field} in receiving response`);
@@ -51,7 +76,7 @@ function requireId(row: Row, field: string): string {
 export function headerRow(raw: Row, now: number): Row {
   requireId(raw, 'orderId');
   const { items: _items, ...header } = raw;
-  const row = projectRow(header, headerProjection, now)!;
+  const row: Row = { ...projectRow(header, headerProjection, now)!, raw: header };
   for (const field of Object.keys(headerProjection.fields)) {
     const source = field in header ? field : headerProjection.rename?.[field];
     if (source && header[source] === null) row[field] = null;

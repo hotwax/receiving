@@ -55,4 +55,4 @@ After functional QA, the header shortcut was renamed **Auto scan all** and moved
 - Production build passed on the demo wrapper (10.71 seconds).
 - AccxUI UI diff checker and whitespace checks passed.
 - Initial browser control on the existing tab timed out. A fresh in-app tab restored control; live QA was completed there.
-- The PR's latest-AccxUI database integration limitation remains; this demo validation does not establish compatibility with the newer shared database contracts.
+- Current AccxUI compatibility was subsequently fixed and revalidated, including both scan shortcuts and real receipts. See the [current AccxUI follow-up](2026-10-01-current-accxui.md).

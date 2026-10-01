@@ -1,9 +1,19 @@
 import { expose } from 'comlink';
-import { ReceivingDB, replaceProducts } from '../src/db/receivingDatabase';
+import { ensureDbReady } from '@common/db/storage/baseDb';
+import { ReceivingDB, openReceivingDb, replaceProducts, tuple } from '../src/db/receivingDatabase';
 import { createReceivingQueue } from '../src/db/receivingQueue';
 
 // Only used by the disposable IndexedDB browser check; this worker performs no network calls.
 expose({
+  async verifyMigratedDb(scope: string) {
+    const db = new ReceivingDB(scope);
+    try {
+      await openReceivingDb(db);
+      await ensureDbReady(db);
+      return !!await db.table('transferOrders').get('T1') &&
+        (await db.syncMeta.get(tuple('receiptReadback', 'T1')))?.pending === true;
+    } finally { db.close(); }
+  },
   async checkQueue(scope: string) {
     const enqueue = createReceivingQueue(() => scope, () => {});
     let active = 0, maximum = 0, receiptCommitted = false;

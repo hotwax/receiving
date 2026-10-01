@@ -4,7 +4,7 @@ This is the API/data-model companion to the [Receiving local-data design](2026-0
 
 ## Evidence boundary
 
-The shapes below originally came from Receiving call sites, local REST mappings, service actions, entity views, and Moqui's REST/pagination implementation. On 2026-10-01, authenticated Demo checks confirmed the list/detail/product envelopes, nonempty package records, receipt history, receiver-name enrichment, and live inventory. Signed-in Receiving QA verified partial, complete, over- and under-receiving with authoritative readbacks. Local SKU and tracking-code searches also passed. A live comparison verified client-only enumeration using the existing grouped-transfer count: ten pages returned the same 96 eligible Brooklyn rows as a full read, within 98 candidates. No backend changes are permitted or required by this revised approach. See the [validation notes](../../qa/2026-10-01-local-receiving.md) for evidence and limitations, including the current AccxUI integration blocker.
+The shapes below originally came from Receiving call sites, local REST mappings, service actions, entity views, and Moqui's REST/pagination implementation. On 2026-10-01, authenticated Demo checks confirmed the list/detail/product envelopes, nonempty package records, receipt history, receiver-name enrichment, and live inventory. Signed-in Receiving QA verified partial, complete, over- and under-receiving with authoritative readbacks. Local SKU and tracking-code searches also passed. A live comparison verified client-only enumeration using the existing grouped-transfer count: ten pages returned the same 96 eligible Brooklyn rows as a full read, within 98 candidates. No backend changes are permitted or required by this revised approach. See the [validation notes](../../qa/2026-10-01-local-receiving.md) for evidence and limitations, and the [resolved current AccxUI integration](../../qa/2026-10-01-current-accxui.md).
 
 | Source | Inspected revision and primary files |
 | --- | --- |
@@ -16,7 +16,7 @@ The shapes below originally came from Receiving call sites, local REST mappings,
 | Maarg util | [7cb7ffa: Solr request service](https://github.com/hotwax/hotwax-maarg-util/blob/7cb7ffac57721437469b66835885bc3a4daf54b4/service/co/hotwax/solr/SolrServices.xml), [response wrapper](https://github.com/hotwax/hotwax-maarg-util/blob/7cb7ffac57721437469b66835885bc3a4daf54b4/src/main/groovy/co/hotwax/solr/SolrServices.groovy) |
 | Framework | [4fb412e: entity REST responses](https://github.com/hotwax/moqui-framework/blob/4fb412e24079545ed0d71fe9669f01333fded0c0/framework/src/main/groovy/org/moqui/impl/service/RestApi.groovy), [search-form pagination](https://github.com/hotwax/moqui-framework/blob/4fb412e24079545ed0d71fe9669f01333fded0c0/framework/src/main/groovy/org/moqui/impl/entity/EntityFindBase.groovy) |
 
-These commits identify what was inspected; they do not imply deployment. Shared database contracts in this document refer to AccxUI 2e4a524. The publication branch includes newer Receiving main changes, but its cache implementation still requires migration to the database interfaces on current AccxUI main.
+These commits identify what was inspected; they do not imply deployment. Shared database contracts in this document refer to AccxUI 2e4a524. The publication branch now uses the storage, entity, and sync-harness contracts from AccxUI `c91b85d`, with an in-place Receiving cache migration that preserves receipt guards. See the current compatibility follow-up above.
 
 ## 1. API-to-entity map
 
