@@ -4,6 +4,8 @@
 
 Real UI and API checks used Demo Maarg at Brooklyn. The tested checkout combined Receiving `7fd8a25` and AccxUI `2e4a524` with the local Receiving implementation and shared reactive user-ID auth fix. The deployed comparison was Receiving 4.2.1. No backend services, API contracts, or deployment were changed.
 
+Later the same day, the shared auth edit was removed and Receiving adopted an app-owned login lifecycle. Fresh login, logout/re-login, saved-session reload, and tracking navigation passed with unchanged AccxUI auth. Receiving no longer depends on AccxUI PR #194. See the [Receiving-only login follow-up](2026-10-01-app-local-login.md).
+
 The publication branch starts from Receiving `f3ddded`. An integration build against AccxUI main `c91b85d` **fails** because the shared database framework changed after the tested baseline. Receiving must remain a draft until this migration and repeat validation are complete:
 
 - `common/db/baseDb` and `common/db/projection` moved under `common/db/storage`.

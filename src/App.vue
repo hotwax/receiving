@@ -29,8 +29,9 @@ import { IonApp, IonContent, IonHeader, IonIcon, IonItem, IonLabel, IonList, Ion
 import { ref, computed, onBeforeMount, onMounted, onUnmounted, watch } from 'vue';
 import router from '@/router'
 import { Settings } from 'luxon';
-import { translate, emitter, useNotificationStore, logger, useAuth, commonUtil } from "@common";
-import { configureReceiving, receivingScope, refreshReceiving } from '@/db/receivingClient';
+import { translate, emitter, useNotificationStore, logger, useAuth } from "@common";
+import { configureReceiving, refreshReceiving } from '@/db/receivingClient';
+import { receivingLoginReady, syncReceivingSession } from '@/db/receivingSession';
 import { firebaseUtil } from '@/utils/firebaseUtil';
 import { useUserStore } from '@/store/user';
 import { useProductStore } from '@/store/productStore';
@@ -43,19 +44,9 @@ const { isAuthenticated } = useAuth();
 const currentFacility = computed(() => productStore.getCurrentFacility);
 
 const configureLocalTransfers = () => {
-  const facilityId = currentFacility.value?.facilityId;
-  const userId = userStore.current?.userId;
-  const maargUrl = commonUtil.getMaargURL();
-  if (!isAuthenticated.value || !commonUtil.getToken() || !facilityId || !userId || !maargUrl) {
-    void configureReceiving();
-    return;
-  }
-  void configureReceiving({
-    scope: receivingScope(maargUrl, commonUtil.getOmsURL(), userId),
-    maargUrl, token: commonUtil.getToken(), facilityId, moqui: commonUtil.isMoqui(),
-  });
+  void syncReceivingSession(currentFacility.value?.facilityId, userStore.current?.userId);
 };
-watch([isAuthenticated, () => currentFacility.value?.facilityId, () => userStore.current?.userId, () => userStore.oms], configureLocalTransfers, { immediate: true });
+watch([receivingLoginReady, isAuthenticated, () => currentFacility.value?.facilityId, () => userStore.current?.userId, () => userStore.oms], configureLocalTransfers, { immediate: true });
 // Auth cookies can be renewed by another tab. Keep tokens in worker memory current.
 const receivingSessionTimer = setInterval(configureLocalTransfers, 15000);
 const resumeReceiving = () => {

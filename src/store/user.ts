@@ -10,7 +10,8 @@ import { useReturnStore } from "@/store/return";
 import { useTransferOrderStore } from "@/store/transferorder";
 import { useUtilStore } from "@/store/util";
 import { firebaseUtil } from "@/utils/firebaseUtil";
-import { clearReceivingSession, enableReceivingSession } from '@/db/receivingClient';
+import { clearReceivingSession } from '@/db/receivingClient';
+import { beginReceivingLogin, finishReceivingLogin } from '@/db/receivingSession';
 
 interface UserState {
   permissions: any[]
@@ -191,7 +192,7 @@ export const useUserStore = defineStore("user", {
       }
     },
     async postLogin() {
-      enableReceivingSession();
+      beginReceivingLogin();
       try {
         const productStore = useProductStore();
         await this.fetchUserProfile()
@@ -218,6 +219,7 @@ export const useUserStore = defineStore("user", {
             commonUtil.showToast(translate("Redirecting to home page due to incorrect information being passed."))
           }
         }
+        finishReceivingLogin();
       } catch (error: any) {
         return Promise.reject(error);
       }
