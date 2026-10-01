@@ -89,6 +89,15 @@
           </ion-segment-button>
         </ion-segment>
 
+        <ion-toolbar v-if="!isTOReceived() && selectedSegment !== 'received' && !isForceScanEnabled">
+          <ion-buttons slot="end">
+            <ion-button data-testid="transfer-order-detail-page-receive-all-btn" fill="outline"
+              :disabled="!canBulkReceive" @click="markAllAsReceived">
+              {{ translate('Mark all as received') }}
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+
         <!-- TODO: create a common component for the item card -->
         <div v-if="!isTOReceived()">
           <template v-if="selectedSegment === 'all'">
@@ -149,7 +158,7 @@
 
               <template v-if="!['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId)">
                 <div class="action border-top" v-if="item.orderItemSeqId">
-                  <div class="receive-all-qty" v-if="!selectedPackageKey">
+                  <div class="receive-all-qty">
                     <ion-button :data-testid="`transfer-order-detail-page-receive-all-btn-${item.orderItemSeqId || item.productId}`" @click="receiveAll(item)" :disabled="isForceScanEnabled || isItemReceivedInFull(item)" slot="start" size="small" fill="outline">
                       {{ translate("Receive All") }}
                     </ion-button>
@@ -221,7 +230,7 @@
               </div>
 
               <div class="action border-top" v-if="item.orderItemSeqId">
-                <div class="receive-all-qty" v-if="!selectedPackageKey">
+                <div class="receive-all-qty">
                   <ion-button :data-testid="`transfer-order-detail-page-open-receive-all-btn-${item.orderItemSeqId || item.productId}`" @click="receiveAll(item)" :disabled="isForceScanEnabled || isItemReceivedInFull(item)" size="small" fill="outline">
                     {{ translate("Receive All") }}
                   </ion-button>
@@ -402,6 +411,7 @@ import ReceiveTransferOrder from '@/components/ReceiveTransferOrder.vue';
 import router from '@/router';
 import { useReceiveFlowState } from '@/composables/useReceiveFlowState';
 import { runTransferOrderDetailReceiveWorkflow } from '@/views/transferOrderDetailReceiveWorkflow';
+import { markItemsAsReceived, remainingIssuedQuantity } from '@/views/transferOrderBulkReceive';
 import Actions from "@/authorization/actions";
 
 const transferOrderStore = useTransferOrderStore();
@@ -466,6 +476,7 @@ const focusScanner = async () => {
   if (detailActive.value) input?.focus({ preventScroll: true });
 };
 const selectPackage = (packageKey: string) => {
+  showAllOpenItems();
   selectedPackageKey.value = packageKey;
   selectedSegment.value = 'open';
   scanErrorText.value = '';
@@ -484,7 +495,7 @@ watch([() => order.value.shipmentsReady, shipmentBoxes], () => {
 
 const areAllItemsHaveQty = computed(() => {
   if (openItemsTemp.value.length) {
-    const isAllItemsReceived = openItems.value.every((item: any) => (item.quantityAccepted && Number(item.quantityAccepted) >= 0))
+    const isAllItemsReceived = visibleOpenItems.value.every((item: any) => (item.quantityAccepted && Number(item.quantityAccepted) >= 0))
     if (isAllItemsReceived) {
       displayToast();
     } else {
@@ -512,6 +523,13 @@ const getTOItems = (orderType: string) => {
 const getAllItems = computed(() => (openItemsTemp.value.length ? openItems.value : filteredItems.value).filter((item: any) =>
   inSelectedPackage(item) && (!selectedPackageKey.value || !['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId))));
 
+const receiptItems = computed(() => [...openItems.value, ...openItemsTemp.value].filter(inSelectedPackage));
+const bulkReceiptItems = computed(() => selectedSegment.value === 'all' ? getAllItems.value : visibleOpenItems.value);
+const canBulkReceive = computed(() => bulkReceiptItems.value.some((item: any) => remainingIssuedQuantity(item) > 0) &&
+  userStore.hasPermission(Actions.APP_SHIPMENT_UPDATE) && !isForceScanEnabled.value &&
+  !isReceiveFlowBusy.value && !order.value.cacheConflict && !order.value.needsReadback && order.value.ready &&
+  (!selectedPackageKey.value || order.value.shipmentsReady && !order.value.shipmentError));
+
 const displayToast = () => {
   isToastOpen.value = true;
 };
@@ -525,7 +543,7 @@ const getItemQty = (item: any) => {
 };
 
 const getReceivedUnits = () => {
-  const items = [...openItems.value, ...openItemsTemp.value];
+  const items = receiptItems.value;
   const totalReceived = items.reduce((qty: any, item: any) => qty + (Number(item.quantityAccepted) || 0), 0);
   const totalUnits = items.reduce((qty: any, item: any) => qty + ((isReceivingByFulfillment.value ? item.totalIssuedQuantity : item.quantity) - item.totalReceivedQuantity || 0), 0);
   return `${totalReceived} / ${totalUnits >= 0 ? totalUnits : 0} units`;
@@ -706,7 +724,7 @@ const receivingAlert = async () => {
 const confirmComplete = async () => {
   const alert = await alertController.create({
     header: translate("Close transfer order items"),
-    message: translate("All the TO items will be marked as completed"),
+    message: selectedPackageKey.value ? translate("Only the visible items will be received and completed. Hidden items will stay open.") : translate("All the TO items will be marked as completed"),
     buttons: [{
       text: translate("Cancel"),
       role: "cancel"
@@ -722,7 +740,7 @@ const confirmComplete = async () => {
 };
 
 const isAnyItemOverReceived = () => {
-  return [...openItems.value, ...openItemsTemp.value].some((item: any) => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) > getItemQty(item));
+  return receiptItems.value.some((item: any) => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) > getItemQty(item));
 };
 
 const confirmSaveProgress = async () => {
@@ -753,7 +771,7 @@ const confirmSaveProgress = async () => {
   const modal = await modalController.create({
     component: ReceiveTransferOrder,
     componentProps: {
-      items: filteredItems.value,
+      items: receiptItems.value,
       receivedUnitsFraction: getReceivedUnits()
     }
   });
@@ -776,23 +794,20 @@ const confirmReceiveAndClose = async () => {
     return false;
   }
 
-  const itemsReceived = [] as any;
   const itemsNotReceived = [] as any;
-  openItems.value.map((item: any) => {
+  receiptItems.value.forEach((item: any) => {
     if (!(item.quantityAccepted && item.quantityAccepted >= 0)) {
       itemsNotReceived.push(item);
-    } else {
-      itemsReceived.push(item);
     }
   });
   if (itemsNotReceived.length) {
-    openItemsTemp.value = itemsReceived;
+    openItemsTemp.value = [...openItems.value, ...openItemsTemp.value].filter((item: any) => !itemsNotReceived.includes(item));
     openItems.value = itemsNotReceived;
     document.querySelector("ion-segment")?.scrollIntoView();
     return false;
   }
 
-  const items = [...openItems.value, ...openItemsTemp.value];
+  const items = receiptItems.value;
   const isAnyItemUnderReceived = items.some((item: any) => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) != getItemQty(item));
   if (!isAnyItemOverReceived() && !isAnyItemUnderReceived) {
     return confirmComplete();
@@ -802,7 +817,7 @@ const confirmReceiveAndClose = async () => {
     component: ReceiveTransferOrder,
     componentProps: {
       closeTO: true,
-      items: filteredItems.value,
+      items: receiptItems.value,
       receivedUnitsFraction: getReceivedUnits()
     }
   });
@@ -834,13 +849,17 @@ const runReceiveWorkflow = (isClosingTO: boolean, confirm: () => Promise<boolean
 
 const receiveTO = () => runReceiveWorkflow(false, confirmSaveProgress);
 const receiveAndCloseTO = () => {
-  selectedPackageKey.value = '';
   return runReceiveWorkflow(true, confirmReceiveAndClose);
+};
+
+const markAllAsReceived = () => {
+  if (!canBulkReceive.value) return;
+  markItemsAsReceived(bulkReceiptItems.value);
 };
 
 const receiveTransferOrder = async (isClosingTO = false) => {
   let eligibleItems: any = [];
-  const itemsToReceive = JSON.parse(JSON.stringify([...openItems.value, ...openItemsTemp.value]));
+  const itemsToReceive = JSON.parse(JSON.stringify(receiptItems.value));
   if (!isClosingTO) {
     itemsToReceive.forEach((item: any) => {
       const isItemFullyReceived = item.quantityAccepted >= 0 && ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) >= getItemQty(item);
@@ -870,13 +889,19 @@ const receiveTransferOrder = async (isClosingTO = false) => {
     }))
   };
 
+  return submitTransferReceipt(order.value.orderId, payload, selectedPackageKey.value ? {
+    baseline: transferOrderStore.baseline.filter(inSelectedPackage), preserveOtherDrafts: true,
+  } : undefined);
+};
+
+const submitTransferReceipt = async (orderId: string, payload: any, options?: { baseline: any[]; preserveOtherDrafts: boolean }) => {
   try {
-    const resp = await transferOrderStore.receiveTransferOrder(order.value.orderId, payload);
+    const resp = await transferOrderStore.receiveTransferOrder(orderId, payload, options);
     if (!commonUtil.hasError(resp)) {
       productQoh.value = {};
       attemptedQoh.clear(); pendingQoh.clear();
       qohGeneration++;
-      commonUtil.showToast(translate("Transfer order received successfully", { orderId: order.value.orderId }));
+      commonUtil.showToast(translate("Transfer order received successfully", { orderId }));
       if (!resp.refreshed) commonUtil.showToast(translate('Receipt saved. Refresh to load the latest quantities.'));
       return true;
     }
@@ -887,7 +912,7 @@ const receiveTransferOrder = async (isClosingTO = false) => {
 };
 
 const isEligibleForCreatingShipment = (isClosingTO = false) => {
-  return [...openItems.value, ...openItemsTemp.value]?.some((item: any) => !isClosingTO ? (item.quantityAccepted && Number(item.quantityAccepted) > 0) : (item.quantityAccepted && Number(item.quantityAccepted) >= 0));
+  return receiptItems.value.some((item: any) => !isClosingTO ? (item.quantityAccepted && Number(item.quantityAccepted) > 0) : (item.quantityAccepted && Number(item.quantityAccepted) >= 0));
 };
 
 const receiveAll = (item: any) => {

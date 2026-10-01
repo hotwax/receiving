@@ -273,12 +273,21 @@ export const useTransferOrderStore = defineStore("transferorder", {
       });
     },
 
-    async receiveTransferOrder(orderId: string, payload: any) {
+    async receiveTransferOrder(orderId: string, payload: any, options?: { baseline: any[]; preserveOtherDrafts: boolean }) {
       if (this.current.cacheConflict) throw new Error('Review the refreshed transfer quantities before receiving.');
       if (this.current.needsReadback) throw new Error('The previous receipt still needs reconciliation. Check receiving history before receiving again.');
-      const result = await submitReceipt(orderId, payload, this.baseline);
-      delete this.draftsByScope[this.draftScope];
-      for (const item of this.current.items || []) delete item.quantityAccepted;
+      const scope = this.draftScope;
+      const result = await submitReceipt(orderId, payload, options?.baseline || this.baseline);
+      const submitted = (item: any) => !options?.preserveOtherDrafts || payload.items.some((row: any) =>
+        row.orderItemSeqId === item.orderItemSeqId && row.productId === item.productId);
+      if (options?.preserveOtherDrafts) this.draftsByScope[scope] = (this.draftsByScope[scope] || []).filter(item => !submitted(item));
+      else delete this.draftsByScope[scope];
+      if (scope === this.draftScope) for (const item of this.current.items || []) {
+        if (!submitted(item)) continue;
+        delete item.quantityAccepted;
+        delete item.isChecked;
+        delete item._draftBaseline;
+      }
       return result;
     },
 
