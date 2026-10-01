@@ -13,7 +13,7 @@ The shared `common/composables/useAuth.ts` file was restored to the original Acc
 - Cache configuration uses a fresh evaluation of the existing shared authentication check, as the route guard already does. It retains expiry, OMS, and profile checks without relying on a computed evaluated before the user-ID cookie arrived.
 - Reloaded authenticated sessions resume from cache. Facility changes and token renewal retain the existing configuration and synchronization flow.
 
-This is a Receiving-only workaround for the demo's existing AccxUI version. The separate migration to current AccxUI main's database interfaces remains outstanding; this change does not resolve that draft-PR blocker.
+This Receiving-only login fix also passed repeat validation on current AccxUI. The separate database migration is now complete; see the [current AccxUI compatibility and receipt QA](2026-10-01-current-accxui.md).
 
 ## Verification
 
