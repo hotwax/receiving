@@ -90,7 +90,7 @@
         </ion-segment>
 
         <ion-toolbar v-if="!isTOReceived() && selectedSegment !== 'received' && !isForceScanEnabled">
-          <ion-buttons slot="end">
+          <ion-buttons slot="start">
             <ion-button data-testid="transfer-order-detail-page-receive-all-btn" fill="outline"
               :disabled="!canBulkReceive" @click="markAllAsReceived">
               {{ translate('Mark all as received') }}
