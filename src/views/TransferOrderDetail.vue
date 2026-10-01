@@ -93,7 +93,7 @@
           <ion-buttons slot="start">
             <ion-button data-testid="transfer-order-detail-page-receive-all-btn" fill="outline"
               :disabled="!canBulkReceive" @click="markAllAsReceived">
-              {{ translate('Mark all as received') }}
+              {{ translate('Auto scan all') }}
             </ion-button>
           </ion-buttons>
         </ion-toolbar>
@@ -160,7 +160,7 @@
                 <div class="action border-top" v-if="item.orderItemSeqId">
                   <div class="receive-all-qty">
                     <ion-button :data-testid="`transfer-order-detail-page-receive-all-btn-${item.orderItemSeqId || item.productId}`" @click="receiveAll(item)" :disabled="isForceScanEnabled || isItemReceivedInFull(item)" slot="start" size="small" fill="outline">
-                      {{ translate("Receive All") }}
+                      {{ translate("Scan all") }}
                     </ion-button>
                   </div>
 
@@ -232,7 +232,7 @@
               <div class="action border-top" v-if="item.orderItemSeqId">
                 <div class="receive-all-qty">
                   <ion-button :data-testid="`transfer-order-detail-page-open-receive-all-btn-${item.orderItemSeqId || item.productId}`" @click="receiveAll(item)" :disabled="isForceScanEnabled || isItemReceivedInFull(item)" size="small" fill="outline">
-                    {{ translate("Receive All") }}
+                    {{ translate("Scan all") }}
                   </ion-button>
                 </div>
 
