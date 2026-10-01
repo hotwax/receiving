@@ -1,0 +1,180 @@
+import { receiptRows, tuple, type Row } from './receivingDatabase';
+import { shipmentRows } from './receivingShipments';
+
+export interface ReceivingConnection {
+  scope: string;
+  maargUrl: string;
+  token: string;
+  facilityId: string;
+  moqui: boolean;
+}
+
+export class ReceivingRequestError extends Error {
+  constructor(message: string, public status: number) { super(message); }
+}
+
+export class ReceivingApi {
+  constructor(public connection: ReceivingConnection, private fence: () => void) {}
+
+  async request(path: string, params: Row = {}, data?: Row) {
+    this.fence();
+    const url = new URL(path, this.connection.maargUrl.replace(/\/?$/, '/'));
+    for (const [key, value] of Object.entries(params)) {
+      if (value == null) continue;
+      for (const item of Array.isArray(value) ? value : [value]) url.searchParams.append(key, String(item));
+    }
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+    try {
+      const response = await fetch(url, {
+        method: data ? 'POST' : 'GET', signal: controller.signal,
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${this.connection.token}` },
+        ...(data ? { body: JSON.stringify(data) } : {}),
+      });
+      this.fence();
+      if (!response.ok) throw new ReceivingRequestError(`Receiving request failed (${response.status})`, response.status);
+      const body = await response.json();
+      this.fence();
+      if (body?._ERROR_MESSAGE_ || body?._ERROR_MESSAGE_LIST_?.length || body?.errors?.length) throw new ReceivingRequestError('Receiving server rejected the request', 400);
+      return { body, headers: response.headers };
+    } finally { clearTimeout(timeout); }
+  }
+
+  async pendingPage(pageIndex: number, orderId?: string) {
+    const { body } = await this.request('oms/transferOrders', {
+      destinationFacilityId: this.connection.facilityId, orderStatusId: 'ORDER_APPROVED',
+      excludeOriginFacilityIds: ['REJECTED_ITM_PARKING'], statusFlowId: ['TO_Fulfill_And_Receive', 'TO_Receive_Only'],
+      limit: 100, pageIndex, orderId, orderBy: 'orderId,facilityId',
+      fieldsToSelect: 'orderId,orderName,orderExternalId,orderStatusId,orderStatusDesc,orderDate,productStoreId,statusFlowId,facilityId,orderFacilityId',
+    });
+    if (!Array.isArray(body.orders)) throw new Error('Invalid transfer list response');
+    if (body.orders.some((row: Row) => !row.orderId || row.orderStatusId !== 'ORDER_APPROVED' ||
+        !['TO_Fulfill_And_Receive', 'TO_Receive_Only'].includes(row.statusFlowId))) throw new Error('Invalid pending transfer eligibility');
+    if (body.orders.some((row: Row) => row.orderFacilityId !== this.connection.facilityId)) throw new Error('Transfer destination does not match receiving facility');
+    if (orderId && body.orders.some((row: Row) => row.orderId !== orderId)) throw new Error('Transfer response does not match requested order');
+    return body;
+  }
+
+  async pendingCandidateCount() {
+    // This existing endpoint counts distinct order/origin/destination rows BEFORE the
+    // receiving list's eligibility filter. Including rejected origins makes it an upper bound.
+    const { body } = await this.request('oms/transferOrders/grouped', {
+      orderFacilityId: this.connection.facilityId, orderStatusId: 'ORDER_APPROVED',
+      statusFlowId: ['TO_Fulfill_And_Receive', 'TO_Receive_Only'],
+      fieldsToSelect: 'orderId,facilityId,orderFacilityId',
+      pageSize: 1, pageIndex: 0, orderByField: 'orderId,facilityId',
+    });
+    if (!Array.isArray(body.orders) || !Number.isSafeInteger(body.ordersCount) || body.ordersCount < body.orders.length ||
+        body.ordersCount < 0 || body.orders.some((row: Row) => !row.orderId || row.orderFacilityId !== this.connection.facilityId)) {
+      throw new Error('Invalid transfer candidate count');
+    }
+    return body.ordersCount as number;
+  }
+
+  async detail(orderId: string) {
+    const { body } = await this.request(`oms/transferOrders/${encodeURIComponent(orderId)}`);
+    if (body.order?.orderId !== orderId || !Array.isArray(body.order.items)) throw new Error('Invalid transfer detail response');
+    return body.order as Row;
+  }
+
+  async packages(orderId?: string) {
+    let limit = 100;
+    // The existing service sorts only by date. Read the whole bounded snapshot on page zero
+    // so equal dates cannot cause skipped/duplicated packages across offset pages.
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const { body } = await this.request('poorti/transferShipments/packages', {
+        orderId, destinationFacilityId: this.connection.facilityId, shipmentStatusId: 'SHIPMENT_SHIPPED', limit, pageIndex: 0,
+      });
+      if (!Array.isArray(body.shipmentPackages) || !Number.isSafeInteger(body.shipmentPackagesCount) || body.shipmentPackagesCount < 0) throw new Error('Invalid package response');
+      const total = body.shipmentPackagesCount;
+      if (body.shipmentPackages.length !== Math.min(limit, total)) throw new Error('Incomplete package response');
+      if (total > limit) { limit = total; continue; }
+      const rows: Row[] = [], seen = new Set<string>();
+      for (const raw of body.shipmentPackages) {
+        if (!raw.orderId || (orderId && raw.orderId !== orderId) || !raw.shipmentId || !raw.shipmentPackageSeqId) throw new Error('Invalid package identity');
+        const packageKey = tuple(raw.shipmentId, raw.shipmentPackageSeqId);
+        if (seen.has(packageKey)) throw new Error('Package snapshot repeated a row');
+        seen.add(packageKey);
+        rows.push({ ...raw, packageKey, shipmentStatusId: 'SHIPMENT_SHIPPED', facilityId: this.connection.facilityId, snapshotScope: 'facility', raw, syncedAt: Date.now() });
+      }
+      return rows;
+    }
+    throw new Error('Packages changed during sync; refresh required');
+  }
+
+  async shipments(orderId: string) {
+    const { body } = await this.request('poorti/transferShipments', { orderId });
+    if (!Array.isArray(body.shipments)) throw new Error('Invalid transfer shipments response');
+    return shipmentRows(body.shipments, orderId, this.connection.facilityId);
+  }
+
+  async receipts(orderId: string, grouped: boolean) {
+    const rows: Row[] = [], seen = new Set<string>();
+    let pageIndex = 0, expectedTotal: number | undefined;
+    for (;;) {
+      const { body, headers } = await this.request(`poorti/transferOrders/${encodeURIComponent(orderId)}/${grouped ? 'receipts' : 'misShippedItems'}`, {
+        pageSize: 200, pageIndex,
+        orderByField: grouped ? 'datetimeReceived,orderItemSeqId,productId,receivedByUserLoginId,quantityRejected,productStoreId,quantity' : 'datetimeReceived,receiptId',
+      });
+      if (!Array.isArray(body)) throw new Error('Invalid receipt response');
+      const totalHeader = headers.get('X-Total-Count');
+      if (totalHeader !== null) {
+        const total = Number(totalHeader);
+        if (!Number.isInteger(total) || total < 0 || (expectedTotal !== undefined && total !== expectedTotal)) throw new Error('Receipt count changed during sync');
+        expectedTotal = total;
+      }
+      for (const row of receiptRows(body, orderId, grouped, Date.now())) {
+        const key = grouped ? row.receiptGroupKey : row.receiptId;
+        if (seen.has(key)) throw new Error('Receipt pagination repeated a row');
+        seen.add(key); rows.push(row);
+      }
+      if (expectedTotal !== undefined && rows.length >= expectedTotal) {
+        if (rows.length !== expectedTotal) throw new Error('Receipt count mismatch');
+        return rows;
+      }
+      if (body.length < 200) {
+        if (expectedTotal !== undefined && rows.length !== expectedTotal) throw new Error('Incomplete receipt response');
+        return rows;
+      }
+      pageIndex++;
+    }
+  }
+
+  async products(productIds: string[]) {
+    const documents: Row[] = [];
+    for (let offset = 0; offset < productIds.length; offset += 100) {
+      const ids = productIds.slice(offset, offset + 100), allowed = new Set(ids);
+      let start = 0, total: number | undefined;
+      const seen = new Set<string>();
+      do {
+        const query = {
+          query: '*:*', filter: ['docType:PRODUCT', `productId:(${ids.map(id => `"${id.replace(/([\\"])/g, '\\$1')}"`).join(' OR ')})`],
+          params: { start, rows: 100, sort: 'productId asc,docType-identifier asc',
+            fl: 'productId,productName,parentProductName,internalName,sku,upc,goodIdentifications,productFeatures,mainImageUrl,isVariant,isVirtual,updatedDatetime,docType-identifier' },
+        };
+        const { body } = await this.request(this.connection.moqui ? 'admin/search/query' : 'admin/runSolrQuery', {}, this.connection.moqui ? query : { json: query });
+        const result = this.connection.moqui ? body.response?.response : body.response;
+        if (!Array.isArray(result?.docs) || !Number.isInteger(result.numFound) || result.numFound < 0 || Number(result.start) !== start) throw new Error('Invalid product response');
+        if (total !== undefined && result.numFound !== total) throw new Error('Product results changed during sync');
+        total = result.numFound;
+        for (const doc of result.docs) {
+          if (!allowed.has(doc.productId)) throw new Error('Product response outside requested scope');
+          const key = doc['docType-identifier'];
+          if (!key || seen.has(key)) throw new Error('Product pagination repeated a document');
+          seen.add(key); documents.push(doc);
+        }
+        if (!result.docs.length && start < total!) throw new Error('Incomplete product response');
+        start += result.docs.length;
+      } while (start < total!);
+    }
+    return documents;
+  }
+
+  async users(userLoginIds: string[]) {
+    if (!userLoginIds.length) return [];
+    const allowed = new Set(userLoginIds);
+    const { body } = await this.request('oms/users', { userLoginId: userLoginIds, userLoginId_op: 'in', pageSize: userLoginIds.length });
+    if (!Array.isArray(body) || body.some(row => !allowed.has(row.userLoginId))) throw new Error('Invalid receiver response');
+    return body as Row[];
+  }
+}
