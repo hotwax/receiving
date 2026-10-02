@@ -1,6 +1,7 @@
 import { BaseDB } from '@common/db/storage/baseDb';
-import { projectRow, toMillis } from '@common/db/storage/projection';
+import { diffStaleKeys, projectRow, toMillis } from '@common/db/storage/projection';
 import { defineEntity } from '@common/db/schema/defineEntity';
+import type { Table } from 'dexie';
 
 export type Row = Record<string, any>;
 export const tuple = (...parts: unknown[]) => JSON.stringify(parts);
@@ -174,21 +175,42 @@ export function receiptRows(records: Row[], orderId: string, grouped: boolean, n
 
 export type Fence = () => void;
 
+// Freshness lives in syncMeta. A no-change refresh should not invalidate data queries.
+function sourceChanged(previous: Row | undefined, next: Row) {
+  const { syncedAt: _previousSync, ...before } = previous || {};
+  const { syncedAt: _nextSync, ...after } = next;
+  return JSON.stringify(before) !== JSON.stringify(after);
+}
+
+async function replaceSnapshot(table: Table, previous: Row[], rows: Row[]) {
+  const key = table.schema.primKey.keyPath as string;
+  const old = new Map(previous.map(row => [row[key], row]));
+  const removed = diffStaleKeys(previous.map(row => row[key]), rows.map(row => row[key]));
+  const changed = rows.filter(row => sourceChanged(old.get(row[key]), row));
+  if (removed.length) await table.bulkDelete(removed);
+  if (changed.length) await table.bulkPut(changed);
+}
+
 // These writes run only in the app's serialized sync worker. Check scope again inside every transaction.
 export async function mergePendingPage(db: ReceivingDB, records: Row[], facilityId: string, fence: Fence) {
   const now = Date.now();
   const rows = records.map(raw => ({ raw, row: headerRow(raw, now) }));
   await db.transaction('rw', db.table('transferOrders'), async () => {
     fence();
+    const stored = await db.table('transferOrders').bulkGet(uniqueIds(rows.map(({ row }) => row.orderId)));
+    const old = new Map(stored.filter(Boolean).map(row => [row!.orderId, row!]));
+    const updates = new Map<string, Row>();
     for (const { raw, row } of rows) {
-      const old = await db.table('transferOrders').get(row.orderId);
-      await db.table('transferOrders').put({
-        ...old, ...row, raw: { ...old?.raw, ...row.raw },
-        originFacilityIds: uniqueIds([...(old?.originFacilityIds || []), raw.facilityId]),
-        destinationFacilityIds: uniqueIds([...(old?.destinationFacilityIds || []), raw.orderFacilityId, facilityId]),
-        pendingReceiptFacilityIds: uniqueIds([...(old?.pendingReceiptFacilityIds || []), facilityId]),
+      const previous = updates.get(row.orderId) || old.get(row.orderId);
+      updates.set(row.orderId, {
+        ...previous, ...row, raw: { ...previous?.raw, ...row.raw },
+        originFacilityIds: uniqueIds([...(previous?.originFacilityIds || []), raw.facilityId]),
+        destinationFacilityIds: uniqueIds([...(previous?.destinationFacilityIds || []), raw.orderFacilityId, facilityId]),
+        pendingReceiptFacilityIds: uniqueIds([...(previous?.pendingReceiptFacilityIds || []), facilityId]),
       });
     }
+    const changed = [...updates.values()].filter(row => sourceChanged(old.get(row.orderId), row));
+    if (changed.length) await db.table('transferOrders').bulkPut(changed);
     fence();
   });
 }
@@ -219,34 +241,14 @@ export async function reconcileOrderPending(db: ReceivingDB, orderId: string, fa
   });
 }
 
-export async function replaceFacilityPackages(db: ReceivingDB, facilityId: string, packages: Row[], fence: Fence) {
-  await db.transaction('rw', ['transferOrders', 'transferPackages', 'syncMeta'], async () => {
-    fence();
-    const pending = await db.table('transferOrders').where('pendingReceiptFacilityIds').equals(facilityId).primaryKeys();
-    const retained = new Set(pending);
-    // Keep explicit archived-order lookups: the completed archive is outside the pending sync.
-    await db.table('transferPackages').where('facilityId').equals(facilityId)
-      .filter(row => row.snapshotScope !== 'order').delete();
-    // Full order snapshots include packed boxes too. The shipped-only discovery read
-    // must not erase those or overwrite a newer snapshot with an older response.
-    for (const pkg of packages.filter(row => retained.has(row.orderId))) {
-      const old = await db.table('transferPackages').get(pkg.packageKey);
-      if (old?.snapshotScope !== 'order') await db.table('transferPackages').put(pkg);
-    }
-    await db.syncMeta.put({ key: tuple('packages', facilityId), ready: true, checkedAt: Date.now() });
-    fence();
-  });
-}
-
 export async function replaceOrderShipments(db: ReceivingDB, orderId: string, facilityId: string,
   snapshot: { packages: Row[]; items: Row[] }, fence: Fence) {
   await db.transaction('rw', ['transferPackages', 'transferPackageItems', 'syncMeta'], async () => {
     fence();
     for (const table of ['transferPackages', 'transferPackageItems']) {
-      await db.table(table).where('[facilityId+orderId]').equals([facilityId, orderId]).delete();
+      const previous = await db.table(table).where('[facilityId+orderId]').equals([facilityId, orderId]).toArray();
+      await replaceSnapshot(db.table(table), previous, table === 'transferPackages' ? snapshot.packages : snapshot.items);
     }
-    await db.table('transferPackages').bulkPut(snapshot.packages);
-    await db.table('transferPackageItems').bulkPut(snapshot.items);
     await db.syncMeta.put({ key: tuple('shipments', facilityId, orderId), ready: true, checkedAt: Date.now() });
     fence();
   });
@@ -258,14 +260,15 @@ export async function replaceDetail(db: ReceivingDB, order: Row, fence: Fence) {
   await db.transaction('rw', ['transferOrders', 'transferItems', 'syncMeta'], async () => {
     fence();
     const previous = await db.table('transferOrders').get(order.orderId);
-    await db.table('transferOrders').put({
+    const updated = {
       ...previous, ...header, raw: { ...previous?.raw, ...header.raw },
       originFacilityIds: uniqueIds(associations.map(row => row.facilityId)),
       destinationFacilityIds: uniqueIds(associations.map(row => row.orderFacilityId)),
       pendingReceiptFacilityIds: previous?.pendingReceiptFacilityIds || [],
-    });
-    await db.table('transferItems').where('orderId').equals(order.orderId).delete();
-    await db.table('transferItems').bulkPut(items);
+    };
+    if (sourceChanged(previous, updated)) await db.table('transferOrders').put(updated);
+    const previousItems = await db.table('transferItems').where('orderId').equals(order.orderId).toArray();
+    await replaceSnapshot(db.table('transferItems'), previousItems, items);
     await db.syncMeta.put({ key: tuple('detail', order.orderId), ready: true, checkedAt: now });
     fence();
   });
@@ -286,8 +289,7 @@ export async function replaceOrderRows(db: ReceivingDB, table: string, orderId: 
   await db.transaction('rw', [table, 'syncMeta'], async () => {
     fence();
     const old = facilityId ? db.table(table).where('[facilityId+orderId]').equals([facilityId, orderId]) : db.table(table).where('orderId').equals(orderId);
-    await old.delete();
-    await db.table(table).bulkPut(rows);
+    await replaceSnapshot(db.table(table), await old.toArray(), rows);
     await db.syncMeta.put({ key: tuple(table, orderId, facilityId || ''), ready: true, checkedAt: Date.now() });
     fence();
   });

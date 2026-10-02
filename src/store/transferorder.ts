@@ -7,7 +7,7 @@ import { usePartyStore } from "@/store/party";
 import { useUserStore } from "@/store/user";
 import { liveQuery } from 'dexie';
 import { setActiveReceivingOrder, ensureReceivingOrder, ensureReceivingHistory, getReceivingDb, loadReceivingTracking, submitReceipt } from '@/db/receivingClient';
-import { findIdentifierItems, readDetail, readHistory } from '@/db/receivingQueries';
+import { findIdentifierProducts, readDetail, readHistory } from '@/db/receivingQueries';
 import { tuple } from '@/db/receivingDatabase';
 
 let detailSubscription: { unsubscribe(): void } | undefined;
@@ -185,13 +185,13 @@ export const useTransferOrderStore = defineStore("transferorder", {
       const productStore = useProductStore();
       const barcodeIdentifier = productStore.getBarcodeIdentifierPref || 'internalName';
       const orderId = this.current.orderId;
+      const scope = this.draftScope;
       const db = await getReceivingDb();
-      const indexed = await findIdentifierItems(db, productStore.getCurrentFacility.facilityId, barcodeIdentifier, payload);
-      if (this.current.orderId !== orderId) return [];
-      const keys = new Set(indexed.filter(row => row.orderId === orderId).map(row => row.itemKey));
+      const productIds = new Set(await findIdentifierProducts(db, barcodeIdentifier, payload));
+      if (this.current.orderId !== orderId || this.draftScope !== scope) return [];
       return this.current.items.filter((item: any) => {
-        if (item.orderItemSeqId) return keys.has(item.itemKey);
-        // Newly added products and mis-shipped receipts do not have a transfer-item index entry.
+        if (item.orderItemSeqId) return productIds.has(item.productId);
+        // Newly added products may not yet have persisted identifiers.
         const data = product.getProduct(item.productId);
         return data[barcodeIdentifier] === payload || data.goodIdentifications?.some((ident: any) =>
           typeof ident === 'string' ? ident === `${barcodeIdentifier}/${payload}` : ident.type === barcodeIdentifier && ident.value === payload);

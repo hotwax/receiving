@@ -1,4 +1,4 @@
-import { receiptRows, tuple, type Row } from './receivingDatabase';
+import { receiptRows, type Row } from './receivingDatabase';
 import { shipmentRows } from './receivingShipments';
 
 export interface ReceivingConnection {
@@ -75,31 +75,6 @@ export class ReceivingApi {
     const { body } = await this.request(`oms/transferOrders/${encodeURIComponent(orderId)}`);
     if (body.order?.orderId !== orderId || !Array.isArray(body.order.items)) throw new Error('Invalid transfer detail response');
     return body.order as Row;
-  }
-
-  async packages(orderId?: string) {
-    let limit = 100;
-    // The existing service sorts only by date. Read the whole bounded snapshot on page zero
-    // so equal dates cannot cause skipped/duplicated packages across offset pages.
-    for (let attempt = 0; attempt < 3; attempt++) {
-      const { body } = await this.request('poorti/transferShipments/packages', {
-        orderId, destinationFacilityId: this.connection.facilityId, shipmentStatusId: 'SHIPMENT_SHIPPED', limit, pageIndex: 0,
-      });
-      if (!Array.isArray(body.shipmentPackages) || !Number.isSafeInteger(body.shipmentPackagesCount) || body.shipmentPackagesCount < 0) throw new Error('Invalid package response');
-      const total = body.shipmentPackagesCount;
-      if (body.shipmentPackages.length !== Math.min(limit, total)) throw new Error('Incomplete package response');
-      if (total > limit) { limit = total; continue; }
-      const rows: Row[] = [], seen = new Set<string>();
-      for (const raw of body.shipmentPackages) {
-        if (!raw.orderId || (orderId && raw.orderId !== orderId) || !raw.shipmentId || !raw.shipmentPackageSeqId) throw new Error('Invalid package identity');
-        const packageKey = tuple(raw.shipmentId, raw.shipmentPackageSeqId);
-        if (seen.has(packageKey)) throw new Error('Package snapshot repeated a row');
-        seen.add(packageKey);
-        rows.push({ ...raw, packageKey, shipmentStatusId: 'SHIPMENT_SHIPPED', facilityId: this.connection.facilityId, snapshotScope: 'facility', raw, syncedAt: Date.now() });
-      }
-      return rows;
-    }
-    throw new Error('Packages changed during sync; refresh required');
   }
 
   async shipments(orderId: string) {

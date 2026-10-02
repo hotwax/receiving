@@ -3,15 +3,19 @@ import { liveQuery } from 'dexie';
 import { createSyncHarness } from '@common/db/sync/pollingWorkerHarness';
 import { registerSyncDomain } from '@common/db/sync/syncRegistry';
 import { ReceivingApi, ReceivingRequestError, type ReceivingConnection } from './receivingApi';
-import { ReceivingDB, openReceivingDb, mergePendingPage, reconcilePending, reconcileOrderPending, replaceDetail, replaceFacilityPackages, replaceOrderRows, replaceOrderShipments, replaceProducts, tuple, uniqueIds, type Row } from './receivingDatabase';
-import { filterList, readListCorpus, trackingBadges } from './receivingQueries';
+import { ReceivingDB, openReceivingDb, mergePendingPage, reconcilePending, reconcileOrderPending, replaceDetail, replaceOrderRows, replaceOrderShipments, replaceProducts, tuple, uniqueIds, type Row } from './receivingDatabase';
+import { filterList, readListCorpus, readListSync, trackingBadges } from './receivingQueries';
 import { advancePendingPage } from './receivingPaging';
 import { createReceivingQueue } from './receivingQueue';
 import { createReceivingSync } from './receivingSync';
 
 let db: ReceivingDB, api: ReceivingApi, stopped = false;
 let listSubscription: { unsubscribe(): void } | undefined;
-let corpus: Awaited<ReturnType<typeof readListCorpus>> = { rows: [], sync: undefined };
+let syncSubscription: { unsubscribe(): void } | undefined;
+let corpus: Awaited<ReturnType<typeof readListCorpus>> = { rows: [] };
+let listSync: Row | undefined;
+let listError: string | undefined;
+let filteredList: ReturnType<typeof filterList> = { list: [], total: 0 };
 let listCallback: ((value: any) => void) | undefined;
 let search = '', limit = 20;
 const fence = () => { if (stopped) throw new Error('Receiving session changed'); };
@@ -20,7 +24,7 @@ const harness = createSyncHarness(() => db);
 const sessionChannel = new BroadcastChannel('receiving-session');
 sessionChannel.onmessage = event => {
   if (event.data?.type === 'logout' && event.data?.scope === api?.connection.scope) {
-    stopped = true; harness.stop(); listSubscription?.unsubscribe();
+    stopped = true; harness.stop(); listSubscription?.unsubscribe(); syncSubscription?.unsubscribe();
   }
 };
 
@@ -183,18 +187,15 @@ async function syncPending() {
 }
 
 const refreshLoop = createReceivingSync({
-  membership: () => enqueue(syncPending, true),
+  membership: () => enqueue(async () => {
+    await syncPending();
+    try { await pruneReceiverNames(); }
+    catch { if (!stopped) await status(tuple('receiverRetention'), { error: 'Receiver cleanup deferred', checkedAt: Date.now() }); }
+  }, true),
   pendingIds: async () => (await db.table('transferOrders').where('pendingReceiptFacilityIds').equals(api.connection.facilityId).primaryKeys()).map(String),
   detail: orderId => enqueue(() => hydrateOrder(orderId), false, orderId),
   history: orderId => enqueue(() => hydrateHistory(orderId), false, orderId),
   stopped: () => stopped,
-  packages: () => enqueue(async () => {
-    await replaceFacilityPackages(db, api.connection.facilityId, await api.packages(), fence);
-    try { await pruneReceiverNames(); }
-    catch { await status(tuple('receiverRetention'), { error: 'Receiver cleanup deferred', checkedAt: Date.now() }); }
-  }).catch(async () => {
-    if (!stopped) await status(tuple('packages', api.connection.facilityId), { error: 'Unable to refresh package tracking.', checkedAt: Date.now() });
-  }),
 });
 
 async function refreshOrderMembership(orderId: string) {
@@ -224,7 +225,10 @@ async function pruneReceiverNames() {
 
 registerSyncDomain({ name: 'receiving', label: 'Transfers pending receipt', syncClass: 'A', intervalMs: 30000, sync: () => refreshLoop.sync() });
 
-function publishList() { listCallback?.(filterList(corpus, search, limit)); }
+function publishList(updateRows = false) {
+  if (updateRows) filteredList = filterList(corpus, search, limit);
+  listCallback?.({ ...filteredList, sync: listError ? { ...listSync, error: listError } : listSync });
+}
 
 const worker = {
   async start(connection: ReceivingConnection) {
@@ -234,14 +238,18 @@ const worker = {
     await openReceivingDb(db);
     api = new ReceivingApi(connection, fence);
     listSubscription = liveQuery(() => readListCorpus(db, connection.facilityId)).subscribe({
-      next(value) { corpus = value; publishList(); },
-      error() { listCallback?.({ list: [], total: 0, sync: { error: 'Local transfer storage is unavailable.' } }); },
+      next(value) { corpus = value; listError = undefined; publishList(true); },
+      error() { corpus = { rows: [] }; listError = 'Local transfer storage is unavailable.'; publishList(true); },
+    });
+    syncSubscription = liveQuery(() => readListSync(db, connection.facilityId)).subscribe({
+      next(value) { listSync = value; publishList(); },
+      error() { listSync = { error: 'Local transfer status is unavailable.' }; publishList(); },
     });
     void harness.start({ token: connection.token, maargUrl: connection.maargUrl, omsInstance: connection.scope, domains: [{ name: 'receiving' }], baseTickMs: 30000 })
       .catch(() => listCallback?.({ list: [], total: 0, sync: { error: 'Transfer refresh could not start. Refresh to retry.' } }));
   },
   watchList(callback: (value: any) => void) { listCallback = callback; publishList(); },
-  search(query: string, pageLimit: number) { search = query; limit = pageLimit; publishList(); },
+  search(query: string, pageLimit: number) { search = query; limit = pageLimit; publishList(true); },
   setActiveOrder(orderId?: string) { refreshLoop.setActiveOrder(orderId); },
   async ensureOrder(orderId: string, force = false) {
     try {
@@ -313,7 +321,7 @@ const worker = {
       return { status: 200, data: body, refreshed };
     }, true);
   },
-  async stop() { stopped = true; harness.stop(); listSubscription?.unsubscribe(); listCallback = undefined; db?.close(); },
+  async stop() { stopped = true; harness.stop(); listSubscription?.unsubscribe(); syncSubscription?.unsubscribe(); listCallback = undefined; db?.close(); },
 };
 export type ReceivingWorker = typeof worker;
 expose(worker);

@@ -60,21 +60,17 @@ function text(value: unknown): string {
 
 // Only referenced records are joined. This corpus lives in the worker and is never persisted.
 export async function readListCorpus(db: ReceivingDB, facilityId: string) {
-  return db.transaction('r', ['transferOrders', 'transferItems', 'transferPackages', 'transferMisShippedReceipts', 'products', 'syncMeta'], () => readListSnapshot(db, facilityId));
+  return db.transaction('r', ['transferOrders', 'transferItems', 'transferPackages', 'transferMisShippedReceipts', 'products'], () => readListSnapshot(db, facilityId));
 }
 
 async function readListSnapshot(db: ReceivingDB, facilityId: string) {
   const headers = await db.table('transferOrders').where('pendingReceiptFacilityIds').equals(facilityId).toArray();
   const pending = headers.filter(row => row.statusId === 'ORDER_APPROVED');
   const orderIds = pending.map(row => row.orderId);
-  const [items, packages, misShipped, membership, hydration, packageState, shipmentStates] = await Promise.all([
+  const [items, packages, misShipped] = await Promise.all([
     db.table('transferItems').where('[orderId+orderFacilityId]').anyOf(orderIds.map(orderId => [orderId, facilityId])).toArray(),
-    db.table('transferPackages').where('facilityId').equals(facilityId).toArray(),
+    db.table('transferPackages').where('[facilityId+orderId]').anyOf(orderIds.map(orderId => [facilityId, orderId])).toArray(),
     db.table('transferMisShippedReceipts').where('orderId').anyOf(orderIds).toArray(),
-    db.syncMeta.get(tuple('facility', facilityId)),
-    db.syncMeta.bulkGet(orderIds.map(orderId => tuple('hydrate', facilityId, orderId))),
-    db.syncMeta.get(tuple('packages', facilityId)),
-    db.syncMeta.bulkGet(orderIds.map(orderId => tuple('shipments', facilityId, orderId))),
   ]);
   const scopedItems = [...items.filter(row => row.orderFacilityId === facilityId), ...misShipped.filter(row => row.facilityId === facilityId)];
   const products = await db.table('products').bulkGet(uniqueIds(scopedItems.map(row => row.productId)));
@@ -99,24 +95,37 @@ async function readListSnapshot(db: ReceivingDB, facilityId: string) {
       trackingCodes: trackingBadges(packagesByOrder.get(header.orderId) || []) },
     search: text([header.orderId, header.orderName, header.externalId, byOrder.get(header.orderId)]),
   })).sort((a, b) => (a.order.orderDate || 0) - (b.order.orderDate || 0) || a.order.orderId.localeCompare(b.order.orderId));
-  const readyOrders = hydration.filter((state, i) => state?.ready && shipmentStates[i]?.ready).length;
-  const missingProductIds = uniqueIds(hydration.flatMap(state => state?.missingProductIds || []));
-  const conflictingProductIds = uniqueIds(hydration.flatMap(state => state?.conflictingProductIds || []));
-  const sync = membership && {
-    ...membership, readyOrders, totalOrders: pending.length, missingProductIds, conflictingProductIds,
-    downloading: readyOrders < pending.length || !packageState?.ready,
-    downloadComplete: membership.complete && readyOrders === pending.length && !!packageState?.ready,
-    error: membership.error || hydration.find(state => state?.error)?.error || packageState?.error || shipmentStates.find(state => state?.error)?.error ||
-      (missingProductIds.length ? 'Some product identifiers could not be downloaded. Refresh to retry.' : undefined) ||
-      (conflictingProductIds.length ? 'Product records contain conflicting identifiers. Refresh to retry.' : undefined),
-  };
-  return { rows, sync };
+  return { rows };
+}
+
+// Progress timestamps must not invalidate the joins and search text above.
+export async function readListSync(db: ReceivingDB, facilityId: string) {
+  return db.transaction('r', ['transferOrders', 'syncMeta'], async () => {
+    const pending = await db.table('transferOrders').where('pendingReceiptFacilityIds').equals(facilityId)
+      .filter(row => row.statusId === 'ORDER_APPROVED').primaryKeys();
+    const [membership, hydration, shipmentStates] = await Promise.all([
+      db.syncMeta.get(tuple('facility', facilityId)),
+      db.syncMeta.bulkGet(pending.map(orderId => tuple('hydrate', facilityId, orderId))),
+      db.syncMeta.bulkGet(pending.map(orderId => tuple('shipments', facilityId, orderId))),
+    ]);
+    const readyOrders = hydration.filter((state, i) => state?.ready && shipmentStates[i]?.ready).length;
+    const missingProductIds = uniqueIds(hydration.flatMap(state => state?.missingProductIds || []));
+    const conflictingProductIds = uniqueIds(hydration.flatMap(state => state?.conflictingProductIds || []));
+    return membership && {
+      ...membership, readyOrders, totalOrders: pending.length, missingProductIds, conflictingProductIds,
+      downloading: readyOrders < pending.length,
+      downloadComplete: membership.complete && readyOrders === pending.length,
+      error: membership.error || hydration.find(state => state?.error)?.error || shipmentStates.find(state => state?.error)?.error ||
+        (missingProductIds.length ? 'Some product identifiers could not be downloaded. Refresh to retry.' : undefined) ||
+        (conflictingProductIds.length ? 'Product records contain conflicting identifiers. Refresh to retry.' : undefined),
+    };
+  });
 }
 
 export function filterList(corpus: Awaited<ReturnType<typeof readListCorpus>>, query: string, limit: number) {
   const terms = text(query).trim().split(/\s+/).filter(Boolean);
   const rows = corpus.rows.filter(row => terms.every(term => row.search.includes(term)));
-  return { list: rows.slice(0, limit).map(row => row.order), total: rows.length, sync: corpus.sync };
+  return { list: rows.slice(0, limit).map(row => row.order), total: rows.length };
 }
 
 export async function findExactTracking(db: ReceivingDB, facilityId: string, code: string) {
@@ -141,10 +150,7 @@ export function trackingBadges(packages: Row[]) {
   return [...byCode.values()].sort((a, b) => a.code.localeCompare(b.code));
 }
 
-export async function findIdentifierItems(db: ReceivingDB, facilityId: string, identKey: string, value: string) {
-  return db.transaction('r', ['productIdentification', 'transferItems'], async () => {
-    const matches = await db.table('productIdentification').where('[identKey+value]').anyOf([[identKey, value], [`field:${identKey}`, value]]).toArray();
-    const items = await db.table('transferItems').where('productId').anyOf(uniqueIds(matches.map(row => row.productId))).toArray();
-    return items.filter(row => row.orderFacilityId === facilityId);
-  });
+export async function findIdentifierProducts(db: ReceivingDB, identKey: string, value: string) {
+  const matches = await db.table('productIdentification').where('[identKey+value]').anyOf([[identKey, value], [`field:${identKey}`, value]]).toArray();
+  return uniqueIds(matches.map(row => row.productId));
 }

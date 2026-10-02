@@ -2,8 +2,8 @@
 // Uses an isolated disposable database; it never calls an OMS API or reads the signed-in user's DB.
 import { liveQuery } from 'dexie';
 import { wrap } from 'comlink';
-import { ReceivingDB, mergePendingPage, reconcilePending, reconcileOrderPending, replaceDetail, replaceFacilityPackages, replaceOrderRows, replaceProducts, tuple } from '../src/db/receivingDatabase';
-import { findExactTracking, findIdentifierItems, readDetail, readHistory, readListCorpus } from '../src/db/receivingQueries';
+import { ReceivingDB, mergePendingPage, reconcilePending, reconcileOrderPending, replaceDetail, replaceOrderShipments, replaceOrderRows, replaceProducts, tuple } from '../src/db/receivingDatabase';
+import { findExactTracking, findIdentifierProducts, readDetail, readHistory, readListCorpus, readListSync } from '../src/db/receivingQueries';
 
 export async function checkReceivingDatabase() {
   const scope = `browser-check-${crypto.randomUUID()}`;
@@ -52,8 +52,8 @@ export async function checkReceivingDatabase() {
     check(latest.rows[0].search.includes('worker refreshed shirt'), 'Worker Dexie writes invalidate main-thread liveQuery');
     const queue = await remote.checkQueue(scope);
     check(queue.maximum === 3 && queue.events[3] === 'receipt-commit' && queue.events[4] === 'later-poll', 'Three reads run concurrently and receipt commits fence earlier and later polls');
-    check((await findIdentifierItems(db, 'A', 'UPCA', '002')).length === 1, 'Barcode index matches a second identifier of the same type');
-    check((await findIdentifierItems(db, 'B', 'UPCA', '002')).length === 0, 'Barcode matches stay within the selected destination');
+    check(JSON.stringify(await findIdentifierProducts(db, 'UPCA', '002')) === '["P1"]', 'Barcode index matches a second identifier of the same type');
+    check((await findIdentifierProducts(db, 'UPCA', 'MISSING')).length === 0, 'Unknown barcode has no product matches');
     await replaceProducts(db, [{ productId: 'P1', productName: 'Blue shirt', goodIdentifications: ['SKU/NEW'] }], fence);
     check(await db.table('productIdentification').where('[identKey+value]').equals(['UPCA', '001']).count() === 0, 'Product refresh removes obsolete identifiers');
     await replaceOrderRows(db, 'transferPackages', 'T1', [
@@ -62,8 +62,8 @@ export async function checkReceivingDatabase() {
     ], fence, 'A');
     check((await findExactTracking(db, 'A', '000TRACK')).length === 1, 'Tracking lookup deduplicates packages without dropping matches');
     await replaceOrderRows(db, 'transferPackages', 'ARCHIVE', [{ packageKey: 'archive', orderId: 'ARCHIVE', facilityId: 'A', snapshotScope: 'order', raw: {} }], fence, 'A');
-    await replaceFacilityPackages(db, 'A', [{ packageKey: 'active', orderId: 'T1', facilityId: 'A', trackingCode: 'TRACK2', raw: {} }], fence);
-    check(!!(await db.table('transferPackages').get('archive')) && !!(await db.table('transferPackages').get('active')), 'Facility package snapshots preserve explicit archive lookups');
+    await replaceOrderShipments(db, 'T1', 'A', { packages: [{ packageKey: 'active', orderId: 'T1', facilityId: 'A', trackingCode: 'TRACK2', raw: {} }], items: [] }, fence);
+    check(!!(await db.table('transferPackages').get('archive')) && !!(await db.table('transferPackages').get('active')), 'Order package refresh preserves explicit archive lookups');
     await reconcileOrderPending(db, 'T1', 'A', false, fence);
     check(JSON.stringify((await db.table('transferOrders').get('T1')).pendingReceiptFacilityIds) === '["B"]', 'Targeted receipt reconciliation preserves other facility memberships');
     await reconcileOrderPending(db, 'T1', 'A', true, fence);
@@ -78,11 +78,12 @@ export async function checkReceivingDatabase() {
     const ambiguous = await readDetail(db, 'T1', 'A');
     check(ambiguous?.needsReadback && !ambiguous.receiptConfirmed && ambiguous.cacheError?.includes('unknown'), 'An unacknowledged receipt is blocked without claiming success');
     await db.syncMeta.put({ key: tuple('facility', 'A'), complete: true });
-    check(!(await readListCorpus(db, 'A')).sync?.downloadComplete, 'Membership completeness alone does not claim detail coverage');
+    check(!(await readListSync(db, 'A'))?.downloadComplete, 'Membership completeness alone does not claim detail coverage');
+    await db.syncMeta.delete(tuple('shipments', 'A', 'T1'));
     await db.syncMeta.put({ key: tuple('hydrate', 'A', 'T1'), ready: true });
-    check(!(await readListCorpus(db, 'A')).sync?.downloadComplete, 'Package metadata alone does not claim box contents are downloaded');
+    check(!(await readListSync(db, 'A'))?.downloadComplete, 'Detail hydration alone does not claim box contents are downloaded');
     await db.syncMeta.put({ key: tuple('shipments', 'A', 'T1'), ready: true });
-    check((await readListCorpus(db, 'A')).sync?.downloadComplete, 'Coverage requires membership, detail hydration, package metadata and contents');
+    check((await readListSync(db, 'A'))?.downloadComplete, 'Coverage requires membership, detail hydration and shipment contents');
     try { await mergePendingPage(db, [{ ...listRecord, orderId: 'T2' }], 'A', () => { throw new Error('scope changed'); }); } catch { /* Expected. */ }
     check(!(await db.table('transferOrders').get('T2')), 'A fenced write commits no records');
     await reconcilePending(db, [], 'B', fence);

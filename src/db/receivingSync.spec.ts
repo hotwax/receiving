@@ -7,7 +7,6 @@ function setup() {
     pendingIds: vi.fn().mockResolvedValue(['pending']),
     detail: vi.fn().mockResolvedValue(undefined),
     history: vi.fn().mockResolvedValue(undefined),
-    packages: vi.fn().mockResolvedValue(undefined),
     stopped: vi.fn().mockReturnValue(false),
   };
   return { tasks, loop: createReceivingSync(tasks) };
@@ -16,7 +15,7 @@ const settle = async () => { for (let i = 0; i < 10; i++) await Promise.resolve(
 afterEach(() => { vi.useRealTimers(); });
 
 describe('Independent receiving refresh domains', () => {
-  it('refreshes saved detail, history and packages after membership fails and during its backoff', async () => {
+  it('refreshes saved detail and history after membership fails and during its backoff', async () => {
     vi.useFakeTimers();
     const { tasks, loop } = setup();
     tasks.membership.mockRejectedValue(new Error('membership unavailable'));
@@ -28,7 +27,6 @@ describe('Independent receiving refresh domains', () => {
     expect(tasks.membership).toHaveBeenCalledTimes(1);
     expect(tasks.detail).toHaveBeenCalledTimes(2);
     expect(tasks.history).toHaveBeenCalledTimes(2);
-    expect(tasks.packages).toHaveBeenCalledTimes(2);
     tasks.membership.mockResolvedValue(undefined);
     await loop.sync(true);
     expect(tasks.membership).toHaveBeenCalledTimes(2);

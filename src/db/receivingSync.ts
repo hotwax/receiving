@@ -3,7 +3,6 @@ interface RefreshTasks {
   pendingIds(): Promise<string[]>;
   detail(orderId: string): Promise<unknown>;
   history(orderId: string): Promise<unknown>;
-  packages(): Promise<unknown>;
   stopped(): boolean;
 }
 
@@ -12,7 +11,7 @@ interface RefreshTasks {
 export function createReceivingSync(tasks: RefreshTasks) {
   let activeOrder: string | undefined;
   let failures = 0, retryAfter = 0;
-  let inFlight: Promise<void> | undefined, packages: Promise<unknown> | undefined;
+  let inFlight: Promise<void> | undefined;
   const orders = new Map<string, Promise<unknown>>();
 
   async function run(force: boolean) {
@@ -34,9 +33,6 @@ export function createReceivingSync(tasks: RefreshTasks) {
         .then(() => tasks.stopped() ? undefined : tasks.history(id))
         .catch(() => undefined).finally(() => orders.delete(id));
       orders.set(id, job);
-    }
-    if (!tasks.stopped() && !packages) {
-      packages = tasks.packages().catch(() => undefined).finally(() => { packages = undefined; });
     }
     if (membershipError) throw membershipError;
   }
