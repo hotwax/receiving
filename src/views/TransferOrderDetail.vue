@@ -71,7 +71,7 @@
           </div>
         </div>
 
-        <div class="scanner">
+        <div v-if="!isTOReceived()" class="scanner">
           <ion-item :lines="scanErrorText ? 'none' : 'full'">
             <ion-input ref="scanInput" data-testid="transfer-order-detail-page-scan-input" :class="{ 'ion-invalid ion-touched': scanErrorText }" :error-text="scanErrorText" :label="translate('Scan items')" label-placement="fixed" autofocus v-model="queryString" @keyup.enter="updateProductCount(null)" @ionInput="scanErrorText = ''"/>
           </ion-item>

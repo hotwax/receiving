@@ -18,7 +18,7 @@
         </ion-buttons> -->
       </ion-toolbar>
       <div>
-        <ion-searchbar data-testid="transfer-orders-page-search-input" :placeholder="translate('Search orders, products or tracking codes')" v-model="queryString" @keyup.enter="submitSearch" />
+        <ion-searchbar data-testid="transfer-orders-page-search-input" :placeholder="selectedSegment === 'completed' ? translate('Search completed orders') : translate('Search orders, products or tracking codes')" v-model="queryString" @keyup.enter="submitSearch" />
 
         <ion-segment data-testid="transfer-orders-page-segment" v-model="selectedSegment" @ionChange="segmentChanged()">
           <ion-segment-button data-testid="transfer-orders-page-open-tab" value="open">
