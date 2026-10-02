@@ -6,7 +6,8 @@ describe('Receiving source normalization', () => {
   it('keeps list aliases, nulls and dates while excluding nested items from header storage', () => {
     const row = headerRow({ orderId: 'T1', orderExternalId: '001', orderStatusId: 'ORDER_APPROVED', orderDate: '1000', currencyUom: null, items: [{ productId: 'P1' }] }, 1);
     expect(row).toMatchObject({ orderId: 'T1', externalId: '001', statusId: 'ORDER_APPROVED', orderDate: 1000, currencyUom: null });
-    expect(row.raw).not.toHaveProperty('items');
+    expect(row).not.toHaveProperty('items');
+    expect(row).not.toHaveProperty('raw');
   });
 
   it('keeps line identity stable when a ship group changes and rejects duplicate lines', () => {
@@ -14,7 +15,7 @@ describe('Receiving source normalization', () => {
     const [before] = itemRows({ orderId: 'T1', items: [{ ...item, shipGroupSeqId: '01' }] }, 1);
     const [after] = itemRows({ orderId: 'T1', items: [{ ...item, shipGroupSeqId: '02' }] }, 2);
     expect(before.itemKey).toBe(after.itemKey);
-    expect(before).toMatchObject({ quantity: 1.5, totalIssuedQuantity: 0, totalReceivedQuantity: null });
+    expect(before).toMatchObject({ quantity: 1.5, totalIssuedQuantity: 0 });
     expect(() => itemRows({ orderId: 'T1', items: [item, item] }, 1)).toThrow('Duplicate');
     expect(tuple('a|b', 'c')).not.toBe(tuple('a', 'b|c'));
   });

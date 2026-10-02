@@ -1,6 +1,8 @@
+import { ReceivingDB } from './receivingTestDb';
+import { ensureDbReady } from '@common/db/storage/baseDb';
 // Real IndexedDB measurements against disposable fixtures. No OMS requests or user-cache writes.
 import { liveQuery } from 'dexie';
-import { ReceivingDB, mergePendingPage, reconcilePending, replaceDetail, replaceOrderRows, replaceOrderShipments, replaceProducts, tuple } from '../src/db/receivingDatabase';
+import { mergePendingPage, reconcilePending, replaceDetail, replaceOrderRows, replaceOrderShipments, replaceProducts, tuple } from '../src/db/receivingDatabase';
 import { findIdentifierProducts, readListCorpus, readListSync } from '../src/db/receivingQueries';
 
 export async function checkReceivingPerformance() {
@@ -11,7 +13,7 @@ export async function checkReceivingPerformance() {
   const reads = { items: 0, packages: 0 }, writes: Record<string, number> = {};
   let evaluations = 0, latest: Awaited<ReturnType<typeof readListCorpus>> | undefined;
   try {
-    await db.open();
+    await ensureDbReady(db);
     const listRow = { orderId: 'T1', orderName: 'Pending transfer', orderStatusId: 'ORDER_APPROVED', orderDate: 1000, facilityId: 'O', orderFacilityId: 'A' };
     const order = { orderId: 'T1', statusId: 'ORDER_APPROVED', items: Array.from({ length: 20 }, (_, i) => ({
       orderItemSeqId: String(i), productId: `P${i}`, facilityId: 'O', orderFacilityId: 'A',

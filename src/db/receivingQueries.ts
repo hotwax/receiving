@@ -1,34 +1,35 @@
-import { type ReceivingDB, type Row, uniqueIds, tuple } from './receivingDatabase';
+import type { ReceiptOperations } from './receiptOperations';
+import { type ReceivingDB, type Row, uniqueIds, cacheKeys } from './receivingDatabase';
 
-export async function readDetail(db: ReceivingDB, orderId: string, facilityId: string) {
-  return db.transaction('r', ['transferOrders', 'transferItems', 'transferMisShippedReceipts', 'transferPackages', 'transferPackageItems', 'products', 'syncMeta'], () => readDetailSnapshot(db, orderId, facilityId));
+export async function readDetail(db: ReceivingDB, orderId: string, facilityId: string, operations?: ReceiptOperations) {
+  const detail = await db.transaction('r', ['transferOrders', 'transferItems', 'transferMisShippedReceipts', 'transferPackages', 'transferPackageItems', 'products', 'syncMeta'], () => readDetailSnapshot(db, orderId, facilityId));
+  const receiptOperation = await operations?.receipts.get(orderId);
+  return detail && { ...detail, receiptOperation, needsReadback: !!receiptOperation,
+    cacheError: detail.cacheError || (receiptOperation?.state === 'unknown' ? 'Receipt outcome is unknown. Review receiving history before resolving it.' : undefined) };
 }
 
 async function readDetailSnapshot(db: ReceivingDB, orderId: string, facilityId: string) {
   const header = await db.table('transferOrders').get(orderId);
   if (!header) return undefined;
-  const [items, allMisShipped, packages, detailState, mutationState, hydrationState, packageItems, shipmentState] = await Promise.all([
+  const [items, allMisShipped, packages, detailState, hydrationState, packageItems, shipmentState] = await Promise.all([
     db.table('transferItems').where('[orderId+orderFacilityId]').equals([orderId, facilityId]).toArray(),
     db.table('transferMisShippedReceipts').where('orderId').equals(orderId).toArray(),
     db.table('transferPackages').where('[facilityId+orderId]').equals([facilityId, orderId]).toArray(),
-    db.syncMeta.get(tuple('detail', orderId)), db.syncMeta.get(tuple('receiptReadback', orderId)),
-    db.syncMeta.get(tuple('hydrate', facilityId, orderId)),
+    db.syncMeta.get(cacheKeys.detail(orderId)),
+    db.syncMeta.get(cacheKeys.hydrate(facilityId, orderId)),
     db.table('transferPackageItems').where('[facilityId+orderId]').equals([facilityId, orderId]).toArray(),
-    db.syncMeta.get(tuple('shipments', facilityId, orderId)),
+    db.syncMeta.get(cacheKeys.shipments(facilityId, orderId)),
   ]);
   // The receipt's own receiving facility, when supplied, wins over the selected context.
   const misShipped = allMisShipped.filter(row => row.facilityId === facilityId);
-  const products = await db.table('products').bulkGet(uniqueIds([...items, ...misShipped].map(row => row.productId)));
+  const products = await db.table('products').bulkGet(uniqueIds([...items, ...allMisShipped.filter(row => !row.facilityId || row.facilityId === facilityId)].map(row => row.productId)));
   return {
-    ...header.raw, ...header, items: [...items, ...misShipped.map(row => ({ ...row, statusId: 'ITEM_COMPLETED' }))],
+    ...header, items: [...items, ...misShipped.map(row => ({ ...row, statusId: 'ITEM_COMPLETED' }))],
     shipmentPackages: packages, shipmentPackageItems: packageItems, shipmentsReady: !!shipmentState?.ready,
     shipmentError: shipmentState?.error, products: products.filter(Boolean),
     ready: !!detailState?.ready, checkedAt: detailState?.checkedAt,
     identifiersReady: !!detailState?.ready && products.every(row => row && (!row.identifierConflict || row.canonicalDocument)) && !hydrationState?.missingProductIds?.length,
-    needsReadback: !!mutationState?.pending,
-    receiptConfirmed: !!mutationState?.confirmedAt,
-    cacheError: hydrationState?.error || (hydrationState?.conflictingProductIds?.length ? 'Product records contain conflicting identifiers. Refresh to retry.' : undefined) || (mutationState?.pending && !mutationState.confirmedAt
-      ? 'Receipt outcome is unknown. Check receiving history before taking further action.' : undefined),
+    cacheError: hydrationState?.error || (hydrationState?.conflictingProductIds?.length ? 'Product records contain conflicting identifiers. Refresh to retry.' : undefined),
   };
 }
 
@@ -41,15 +42,15 @@ async function readHistorySnapshot(db: ReceivingDB, orderId: string, facilityId:
     db.table('transferItems').where('[orderId+orderFacilityId]').equals([orderId, facilityId]).toArray(),
     db.table('transferReceiptGroups').where('orderId').equals(orderId).toArray(),
     db.table('transferMisShippedReceipts').where('orderId').equals(orderId).toArray(),
-    db.syncMeta.get(tuple('transferReceiptGroups', orderId, '')),
+    db.syncMeta.get(cacheKeys.receipts('transferReceiptGroups', orderId)),
   ]);
   const itemIds = new Set(items.map(row => row.orderItemSeqId));
-  const receipts = [...groups.filter(row => itemIds.has(row.orderItemSeqId)), ...misShipped.filter(row => row.facilityId === facilityId)]
+  const receipts = [...groups.filter(row => itemIds.has(row.orderItemSeqId)), ...misShipped.filter(row => !row.facilityId || row.facilityId === facilityId)]
     .sort((a, b) => b.receivedAtSort - a.receivedAtSort || String(a.receiptGroupKey || a.receiptId).localeCompare(String(b.receiptGroupKey || b.receiptId)));
   const loginIds = uniqueIds(receipts.map(row => row.receivedByUserLoginId));
   const users = await db.table('receivingUsers').bulkGet(loginIds);
   const names = new Map(users.filter(Boolean).map(user => [user!.userLoginId, user!.fullName]));
-  return { ready: !!state?.ready, error: state?.error, items: receipts.map(row => ({ ...row.raw, receiversFullName: names.get(row.receivedByUserLoginId) || row.receivedByUserLoginId })) };
+  return { ready: !!state?.ready, error: state?.error, items: receipts.map(row => ({ ...row, receiversFullName: names.get(row.receivedByUserLoginId) || row.receivedByUserLoginId })) };
 }
 
 function text(value: unknown): string {
@@ -58,7 +59,7 @@ function text(value: unknown): string {
   return String(value).normalize('NFKC').toLocaleLowerCase();
 }
 
-// Only referenced records are joined. This corpus lives in the worker and is never persisted.
+// Only referenced records are joined. The computed search corpus is never persisted.
 export async function readListCorpus(db: ReceivingDB, facilityId: string) {
   return db.transaction('r', ['transferOrders', 'transferItems', 'transferPackages', 'transferMisShippedReceipts', 'products'], () => readListSnapshot(db, facilityId));
 }
@@ -93,7 +94,7 @@ async function readListSnapshot(db: ReceivingDB, facilityId: string) {
     values.push(pkg.trackingCode || ''); byOrder.set(pkg.orderId, values);
   }
   const rows = pending.map(header => ({
-    order: { ...header.raw, ...header, orderExternalId: header.externalId, orderStatusId: header.statusId, orderStatusDesc: header.status,
+    order: { ...header, orderExternalId: header.externalId, orderStatusId: header.statusId, orderStatusDesc: header.status,
       itemCount: itemCounts.get(header.orderId),
       trackingCodes: trackingBadges(packagesByOrder.get(header.orderId) || []) },
     search: text([header.orderId, header.orderName, header.externalId, byOrder.get(header.orderId)]),
@@ -107,15 +108,15 @@ export async function readListSync(db: ReceivingDB, facilityId: string) {
     const pending = await db.table('transferOrders').where('pendingReceiptFacilityIds').equals(facilityId)
       .filter(row => row.statusId === 'ORDER_APPROVED').primaryKeys();
     const [membership, hydration, shipmentStates] = await Promise.all([
-      db.syncMeta.get(tuple('facility', facilityId)),
-      db.syncMeta.bulkGet(pending.map(orderId => tuple('hydrate', facilityId, orderId))),
-      db.syncMeta.bulkGet(pending.map(orderId => tuple('shipments', facilityId, orderId))),
+      db.syncMeta.get(cacheKeys.facility(facilityId)),
+      db.syncMeta.bulkGet(pending.map(orderId => cacheKeys.hydrate(facilityId, String(orderId)))),
+      db.syncMeta.bulkGet(pending.map(orderId => cacheKeys.shipments(facilityId, String(orderId)))),
     ]);
     const readyOrders = hydration.filter((state, i) => state?.ready && shipmentStates[i]?.ready).length;
     const missingProductIds = uniqueIds(hydration.flatMap(state => state?.missingProductIds || []));
     const conflictingProductIds = uniqueIds(hydration.flatMap(state => state?.conflictingProductIds || []));
     return membership && {
-      ...membership, readyOrders, totalOrders: pending.length, missingProductIds, conflictingProductIds,
+      ...membership, complete: !!membership.complete, readyOrders, totalOrders: pending.length, missingProductIds, conflictingProductIds,
       downloading: readyOrders < pending.length,
       downloadComplete: membership.complete && readyOrders === pending.length,
       error: membership.error || hydration.find(state => state?.error)?.error || shipmentStates.find(state => state?.error)?.error ||
@@ -136,7 +137,7 @@ export async function findExactTracking(db: ReceivingDB, facilityId: string, cod
   return db.transaction('r', ['transferPackages', 'transferOrders'], async () => {
     const packages = await db.table('transferPackages').where('[facilityId+trackingCode]').equals([facilityId, code.trim()]).toArray();
     const orders = await db.table('transferOrders').bulkGet(uniqueIds(packages.map(row => row.orderId)));
-    return orders.filter(row => row?.statusId === 'ORDER_APPROVED' && row?.pendingReceiptFacilityIds.includes(facilityId));
+    return orders.filter(row => row?.statusId === 'ORDER_APPROVED' && row?.pendingReceiptFacilityIds?.includes(facilityId));
   });
 }
 

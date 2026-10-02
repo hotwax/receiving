@@ -1,0 +1,127 @@
+// Transport/lifecycle fault injection. Live OMS receipt behavior is verified separately in browser QA.
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+const state = vi.hoisted(() => ({
+  api: vi.fn(), start: vi.fn(), refetch: vi.fn(), stop: vi.fn(), open: vi.fn(), syncDomain: vi.fn(),
+  journals: new Map<string, Map<string, any>>(), dbs: new Map<string, any>(),
+  serviceState: { running: false, errors: {} as Record<string, string> },
+}));
+vi.mock('@common/core/remoteApi', () => ({ default: state.api }));
+vi.mock('@common/utils/commonUtil', () => ({ commonUtil: { hasError: (response: any) => !!response?.data?.errors } }));
+vi.mock('@common/db/sync/syncService', () => ({
+  serviceState: state.serviceState,
+  createSyncService: () => ({ start: state.start, stop: state.stop, refetchOne: state.refetch, syncDomainNow: state.syncDomain, setDomains: async () => {} }),
+  clearDomainErrors: (domain: string) => { delete state.serviceState.errors[domain]; }, clearScopeError() {},
+  recordSyncError: (domain: string, message: string) => { state.serviceState.errors[domain] = message; },
+}));
+vi.mock('dexie', async original => ({ ...await original<any>(), liveQuery: () => ({ subscribe: () => ({ unsubscribe() {} }) }) }));
+vi.mock('./receivingDatabase', () => ({
+  tuple: (...parts: unknown[]) => JSON.stringify(parts), cacheKeys: { hydrate: () => 'hydrate' }, readCacheState: async () => undefined,
+  openReceivingDb: state.open, clearReceivingData: async () => {},
+  receivingCache: {
+    setOmsInstanceResolver() {},
+    get(scope: string) { if (!state.dbs.has(scope)) state.dbs.set(scope, { name: scope, close() {} }); return state.dbs.get(scope); },
+    raw: () => ({}),
+  },
+}));
+vi.mock('./receiptOperations', async original => {
+  const actual = await original<any>();
+  return { ...actual, importLegacyReceipts: async () => {}, ReceiptOperations: class {
+    rows: Map<string, any>;
+    constructor(scope: string) {
+      if (!state.journals.has(scope)) state.journals.set(scope, new Map());
+      this.rows = state.journals.get(scope)!;
+    }
+    receipts = {
+      get: async (key: string) => this.rows.get(key),
+      put: async (row: any) => { this.rows.set(row.orderId, structuredClone(row)); },
+      update: async (key: string, patch: any) => { Object.assign(this.rows.get(key), patch); },
+      delete: async (key: string) => { this.rows.delete(key); },
+    };
+    transaction(_mode: string, _table: unknown, run: () => unknown) { return run(); }
+    close() {}
+  } };
+});
+
+const connection = { scope: 'tenant/user', facilityId: 'A', token: 'test', maargUrl: 'https://example.invalid/rest/s1/', moqui: true };
+const line = { orderItemSeqId: '01', productId: 'P1', orderFacilityId: 'A', statusId: 'ITEM_APPROVED', quantity: 5, totalIssuedQuantity: 5, totalReceivedQuantity: 0 };
+const payload = { facilityId: 'A', receivedDateTime: '123', items: [{ orderItemSeqId: '01', productId: 'P1', quantityAccepted: 2 }] };
+let client: typeof import('./receivingClient');
+beforeEach(async () => {
+  vi.resetModules(); vi.clearAllMocks(); state.journals.clear(); state.dbs.clear(); state.serviceState.errors = {};
+  state.open.mockResolvedValue(undefined); state.start.mockResolvedValue(undefined); state.refetch.mockResolvedValue(1);
+  state.api.mockImplementation(async (request: any) => request.method === 'get' ? { data: { order: { items: [line] } } } : { status: 200, data: {} });
+  vi.stubGlobal('navigator', { locks: { request: async (_name: string, run: () => unknown) => run() } });
+  vi.stubGlobal('BroadcastChannel', class { onmessage: unknown; postMessage() {} close() {} });
+  client = await import('./receivingClient');
+  await client.configureReceiving(connection);
+});
+const postCount = () => state.api.mock.calls.filter(([request]) => request.method === 'post').length;
+
+describe('Receipt writes and shared AccxUI reconciliation', () => {
+  it('awaits shared readback before removing a confirmed receipt operation', async () => {
+    state.refetch.mockImplementation(async (domain, pk) => {
+      expect(domain).toBe('receivingReceipt'); expect(pk).toEqual({ orderId: 'T1', facilityId: 'A' });
+      expect(state.journals.get(connection.scope)?.get('T1')?.state).toBe('confirmed');
+      return 1;
+    });
+    expect(await client.submitReceipt('T1', payload, [line])).toMatchObject({ refreshed: true });
+    expect(postCount()).toBe(1); expect(state.journals.get(connection.scope)?.has('T1')).toBe(false);
+  });
+  it('retries only GET/readback after a successful POST whose cache refresh failed', async () => {
+    state.refetch.mockRejectedValueOnce(new Error('readback unavailable'));
+    expect(await client.submitReceipt('T1', payload, [line])).toMatchObject({ refreshed: false });
+    expect(state.journals.get(connection.scope)?.get('T1')?.state).toBe('confirmed');
+    await expect(client.submitReceipt('T1', payload, [line])).rejects.toThrow('previous receipt');
+    await client.ensureReceivingOrder('T1', true);
+    expect(postCount()).toBe(1); expect(state.journals.get(connection.scope)?.has('T1')).toBe(false);
+  });
+  it('keeps an unknown POST blocked through refresh and logout/re-login until explicit review', async () => {
+    state.api.mockImplementation(async (request: any) => {
+      if (request.method === 'post') throw new TypeError('network connection lost');
+      return { data: { order: { items: [line] } } };
+    });
+    await expect(client.submitReceipt('T1', payload, [line])).rejects.toThrow('could not be confirmed');
+    const pending = state.journals.get(connection.scope)!.get('T1');
+    expect(pending.payload).toEqual(payload); expect(pending.baseline).toEqual([line]);
+    await client.clearReceivingSession(); client.enableReceivingSession(); await client.configureReceiving(connection);
+    await client.ensureReceivingOrder('T1', true);
+    await expect(client.submitReceipt('T1', payload, [line])).rejects.toThrow('previous receipt');
+    await client.resolveReceipt('T1', pending.operationId);
+    expect(postCount()).toBe(1); expect(state.journals.get(connection.scope)?.has('T1')).toBe(false);
+  });
+  it('does not write inventory when the authoritative baseline changed', async () => {
+    state.api.mockResolvedValue({ data: { order: { items: [{ ...line, totalReceivedQuantity: 1 }] } } });
+    await expect(client.submitReceipt('T1', payload, [line])).rejects.toThrow('transfer changed');
+    expect(postCount()).toBe(0);
+  });
+  it('refreshes every domain and waits for history even when membership fails', async () => {
+    let finishHistory!: () => void;
+    state.syncDomain.mockImplementation((domain: string) => {
+      if (domain === 'receivingMembership') return Promise.reject(new Error('membership failed'));
+      if (domain === 'receivingHistory') return new Promise<void>(resolve => { finishHistory = resolve; });
+      return Promise.resolve(1);
+    });
+    let settled = false;
+    const refresh = client.refreshReceiving().then(() => { settled = true; }, error => { settled = true; return error; });
+    await vi.waitFor(() => expect(state.syncDomain).toHaveBeenCalledTimes(3));
+    expect(settled).toBe(false);
+    finishHistory();
+    expect(await refresh).toMatchObject({ message: 'membership failed' });
+  });
+  it('allows startup to recover on the next request after transient storage failure', async () => {
+    await client.configureReceiving();
+    state.open.mockRejectedValueOnce(new Error('storage temporarily unavailable'));
+    await client.configureReceiving(connection);
+    expect(client.receivingError.value).toContain('could not start');
+    await expect(client.getReceivingDb()).resolves.toMatchObject({ name: connection.scope });
+    expect(client.receivingError.value).toBe('');
+  });
+  it('never submits the old facility draft after switching facilities during preflight', async () => {
+    state.api.mockImplementation(async () => {
+      await client.configureReceiving({ ...connection, facilityId: 'B' });
+      return { data: { order: { items: [line] } } };
+    });
+    await expect(client.submitReceipt('T1', payload, [line])).rejects.toThrow('session changed');
+    expect(postCount()).toBe(0);
+  });
+});

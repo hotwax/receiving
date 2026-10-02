@@ -19,6 +19,7 @@
       <main>
         <ion-item v-if="order.cacheError || order.needsReadback" lines="none">
           <ion-label>{{ order.cacheError || translate('Receipt saved. Refresh to load the latest quantities.') }}</ion-label>
+          <ion-button v-if="order.receiptOperation?.state === 'unknown' && userStore.hasPermission(Actions.APP_SHIPMENT_UPDATE)" slot="end" fill="clear" @click="reviewReceipt">{{ translate('Review receipt') }}</ion-button>
           <ion-button slot="end" fill="clear" @click="refreshLocalOrder">{{ translate('Refresh') }}</ion-button>
         </ion-item>
         <ion-item v-if="order.cacheConflict" lines="none">
@@ -388,8 +389,8 @@
 
 <script setup lang="ts">
 import { IonBackButton, IonButton, IonButtons, IonCard, IonChip, IonContent, IonHeader, IonFooter, IonIcon, IonItem, IonInput, IonLabel, IonPage, IonNote, IonSegment, IonSegmentButton, IonText, IonThumbnail, IonTitle, IonToast, IonToolbar, alertController, modalController, onIonViewWillEnter, onIonViewDidLeave } from '@ionic/vue';
-import { nextTick, ref, computed, watch } from 'vue';
-import { ensureReceivingOrder, receivingDb } from '@/db/receivingClient';
+import { nextTick, ref, shallowRef, computed, watch } from 'vue';
+import { ensureReceivingOrder, receivingDb, resolveReceipt } from '@/db/receivingClient';
 import { addOutline, cameraOutline, checkmarkDone, cubeOutline, informationCircleOutline, openOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import { DxpShopifyImg, translate, commonUtil, emitter, useEmbeddedAppStore, useShopify } from '@common';
@@ -408,6 +409,7 @@ import AddProductToTOModal from '@/components/AddProductToTOModal.vue';
 import { DateTime } from 'luxon';
 import ReceivingInstructions from '@/components/ReceivingInstructions.vue';
 import ReceiveTransferOrder from '@/components/ReceiveTransferOrder.vue';
+import ReceiptReviewModal from '@/components/ReceiptReviewModal.vue';
 import router from '@/router';
 import { useReceiveFlowState } from '@/composables/useReceiveFlowState';
 import { runTransferOrderDetailReceiveWorkflow } from '@/views/transferOrderDetailReceiveWorkflow';
@@ -523,7 +525,8 @@ const getTOItems = (orderType: string) => {
 const getAllItems = computed(() => (openItemsTemp.value.length ? openItems.value : filteredItems.value).filter((item: any) =>
   inSelectedPackage(item) && (!selectedPackageKey.value || !['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId))));
 
-const receiptItems = computed(() => [...openItems.value, ...openItemsTemp.value].filter(inSelectedPackage));
+const confirmationItems = shallowRef<any[]>();
+const receiptItems = computed(() => confirmationItems.value || [...openItems.value, ...openItemsTemp.value].filter(inSelectedPackage));
 const bulkReceiptItems = computed(() => selectedSegment.value === 'all' ? getAllItems.value : visibleOpenItems.value);
 const canBulkReceive = computed(() => bulkReceiptItems.value.some((item: any) => remainingIssuedQuantity(item) > 0) &&
   userStore.hasPermission(Actions.APP_SHIPMENT_UPDATE) && !isForceScanEnabled.value &&
@@ -545,7 +548,7 @@ const getItemQty = (item: any) => {
 const getReceivedUnits = () => {
   const items = receiptItems.value;
   const totalReceived = items.reduce((qty: any, item: any) => qty + (Number(item.quantityAccepted) || 0), 0);
-  const totalUnits = items.reduce((qty: any, item: any) => qty + ((isReceivingByFulfillment.value ? item.totalIssuedQuantity : item.quantity) - item.totalReceivedQuantity || 0), 0);
+  const totalUnits = items.reduce((qty: any, item: any) => qty + Math.max(getItemQty(item) - (Number(item.totalReceivedQuantity) || 0), 0), 0);
   return `${totalReceived} / ${totalUnits >= 0 ? totalUnits : 0} units`;
 };
 
@@ -801,8 +804,10 @@ const confirmReceiveAndClose = async () => {
     }
   });
   if (itemsNotReceived.length) {
-    openItemsTemp.value = [...openItems.value, ...openItemsTemp.value].filter((item: any) => !itemsNotReceived.includes(item));
-    openItems.value = itemsNotReceived;
+    const missingIds = new Set(itemsNotReceived.map((item: any) => item.orderItemSeqId || item.productId));
+    const allOpen = [...openItems.value, ...openItemsTemp.value];
+    openItemsTemp.value = allOpen.filter((item: any) => !missingIds.has(item.orderItemSeqId || item.productId));
+    openItems.value = allOpen.filter((item: any) => missingIds.has(item.orderItemSeqId || item.productId));
     document.querySelector("ion-segment")?.scrollIntoView();
     return false;
   }
@@ -828,13 +833,25 @@ const confirmReceiveAndClose = async () => {
   return Boolean(value?.data?.updateItems);
 };
 
-const runReceiveWorkflow = (isClosingTO: boolean, confirm: () => Promise<boolean>) => {
-  return runTransferOrderDetailReceiveWorkflow({
+const runReceiveWorkflow = async (isClosingTO: boolean, confirm: () => Promise<boolean>) => {
+  if (isReceiveFlowBusy.value) return false;
+  const scope = transferOrderStore.draftScope;
+  const receipt = {
+    orderId: order.value.orderId,
+    facilityId: productStore.getCurrentFacility.facilityId,
+    baseline: JSON.parse(JSON.stringify(transferOrderStore.baseline.filter(inSelectedPackage))),
+    preserveOtherDrafts: !!selectedPackageKey.value,
+  };
+  confirmationItems.value = JSON.parse(JSON.stringify(receiptItems.value));
+  try { return await runTransferOrderDetailReceiveWorkflow({
     startConfirmation: startReceiveConfirmation,
     startSubmission: startReceiveSubmission,
     reset: resetReceiveFlow,
     confirm,
-    submit: () => receiveTransferOrder(isClosingTO),
+    submit: () => {
+      if (scope !== transferOrderStore.draftScope) throw new Error('Receiving session changed. Reopen the transfer before continuing.');
+      return receiveTransferOrder(isClosingTO, receipt);
+    },
     navigate: async () => {
       await router.push('/transfer-orders');
     },
@@ -844,7 +861,7 @@ const runReceiveWorkflow = (isClosingTO: boolean, confirm: () => Promise<boolean
     onSubmissionEnd: () => {
       emitter.emit("dismissLoader");
     }
-  });
+  }); } finally { confirmationItems.value = undefined; }
 };
 
 const receiveTO = () => runReceiveWorkflow(false, confirmSaveProgress);
@@ -857,7 +874,7 @@ const markAllAsReceived = () => {
   markItemsAsReceived(bulkReceiptItems.value);
 };
 
-const receiveTransferOrder = async (isClosingTO = false) => {
+const receiveTransferOrder = async (isClosingTO: boolean, receipt: { orderId: string; facilityId: string; baseline: any[]; preserveOtherDrafts: boolean }) => {
   let eligibleItems: any = [];
   const itemsToReceive = JSON.parse(JSON.stringify(receiptItems.value));
   if (!isClosingTO) {
@@ -879,19 +896,17 @@ const receiveTransferOrder = async (isClosingTO = false) => {
   }
 
   const payload = {
-    facilityId: (productStore.getCurrentFacility as any)?.facilityId,
+    facilityId: receipt.facilityId,
     receivedDateTime: String(DateTime.now().toMillis()),
     items: eligibleItems.map((item: any) => ({
       orderItemSeqId: item.orderItemSeqId,
       productId: item.productId,
-      quantityAccepted: item.quantityAccepted,
+      quantityAccepted: Number(item.quantityAccepted),
       statusId: item.statusId
     }))
   };
 
-  return submitTransferReceipt(order.value.orderId, payload, selectedPackageKey.value ? {
-    baseline: transferOrderStore.baseline.filter(inSelectedPackage), preserveOtherDrafts: true,
-  } : undefined);
+  return submitTransferReceipt(receipt.orderId, payload, { baseline: receipt.baseline, preserveOtherDrafts: receipt.preserveOtherDrafts });
 };
 
 const submitTransferReceipt = async (orderId: string, payload: any, options?: { baseline: any[]; preserveOtherDrafts: boolean }) => {
@@ -919,7 +934,6 @@ const receiveAll = (item: any) => {
   const qtyAlreadyAccepted = Number(item.totalReceivedQuantity) || 0;
   const qty = isReceivingByFulfillment.value ? item.totalIssuedQuantity : item.quantity;
   item.quantityAccepted = Math.max(qty - qtyAlreadyAccepted, 0);
-  item.progress = item.quantityAccepted / qty;
 };
 
 const isTOReceived = () => order.value.statusId === "ORDER_COMPLETED";
@@ -964,8 +978,26 @@ const fetchQuantityOnHand = async (productId: any) => {
   } finally { if (generation === qohGeneration) pendingQoh.delete(productId); }
 };
 
+const reviewReceipt = async () => {
+  const operation = order.value.receiptOperation, scope = transferOrderStore.draftScope;
+  if (!operation || !userStore.hasPermission(Actions.APP_SHIPMENT_UPDATE)) return;
+  const modal = await modalController.create({ component: ReceiptReviewModal, componentProps: { operation } });
+  await modal.present();
+  const { data } = await modal.onDidDismiss();
+  if (!data?.reviewed) return;
+  try {
+    if (scope !== transferOrderStore.draftScope) throw new Error('Receiving session changed');
+    await resolveReceipt(operation.orderId, operation.operationId);
+    if (scope !== transferOrderStore.draftScope) return;
+    // Rescan from authoritative quantities after either reviewed outcome.
+    delete transferOrderStore.draftsByScope[transferOrderStore.draftScope];
+    for (const item of order.value.items || []) { delete item.quantityAccepted; delete item._draftBaseline; }
+    transferOrderStore.acknowledgeLocalChanges();
+  } catch { commonUtil.showToast(translate('Unable to resolve receipt. Refresh and review it again.')); }
+};
+
 const refreshLocalOrder = async () => {
-  try { await ensureReceivingOrder(order.value.orderId, true); }
+  try { await ensureReceivingOrder(String(router.currentRoute.value.params.slug), true); }
   catch { commonUtil.showToast(translate('Unable to refresh transfer data.')); }
 };
 

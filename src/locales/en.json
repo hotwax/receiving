@@ -283,5 +283,13 @@
   "You do not have permission to access this page": "You do not have permission to access this page",
   "Your receiving progress will be saved and will be added to your inventory. Come back to this transfer order and finish receiving later. Fully received items auto close.": "Your receiving progress will be saved and {units} will be added to your inventory.{space}Come back to this transfer order and finish receiving later.{space}Fully received items auto close.",
   "Your scanner isn’t focused yet.": "Your scanner isn’t focused yet.",
-  "ZeroQuantity": "ZeroQuantity"
+  "ZeroQuantity": "ZeroQuantity",
+  "Receiving facility unavailable": "Receiving facility unavailable",
+  "Review receipt": "Review receipt",
+  "The receipt response was lost. Compare this submission with receiving history before clearing the receiving block.": "The receipt response was lost. Compare this submission with receiving history before clearing the receiving block.",
+  "This older receipt has no saved submission details. Verify its outcome in OMS before continuing.": "This older receipt has no saved submission details. Verify its outcome in OMS before continuing.",
+  "I verified this receipt in receiving history or OMS.": "I verified this receipt in receiving history or OMS.",
+  "Resolving this block does not submit inventory. Draft quantities will be cleared so you can scan from the refreshed totals.": "Resolving this block does not submit inventory. Draft quantities will be cleared so you can scan from the refreshed totals.",
+  "Resolve reviewed receipt": "Resolve reviewed receipt",
+  "Unable to resolve receipt. Refresh and review it again.": "Unable to resolve receipt. Refresh and review it again."
 }

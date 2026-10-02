@@ -1,20 +1,16 @@
+import { ReceivingDB } from './receivingTestDb';
+import { ensureDbReady } from '@common/db/storage/baseDb';
 // Isolated real IndexedDB checks; no OMS requests or signed-in database writes.
 import Dexie from 'dexie';
-import { ReceivingDB, RECEIVING_SCHEMA, tuple, mergePendingPage, replaceDetail, replaceOrderShipments } from '../src/db/receivingDatabase';
+import { tuple, mergePendingPage, replaceDetail, replaceOrderShipments } from '../src/db/receivingDatabase';
 import { findExactTracking, readDetail, readListCorpus, filterList } from '../src/db/receivingQueries';
 
 export async function checkReceivingShipments() {
   const scope = `shipment-check-${crypto.randomUUID()}`, name = `receiving-v1:${scope}`;
   const passed: string[] = [], check = (ok: unknown, label: string) => { if (!ok) throw new Error(label); passed.push(label); };
-  const old = new Dexie(name), { transferPackageItems: _, ...v1 } = RECEIVING_SCHEMA;
-  old.version(1).stores({ ...v1, syncMeta: 'key' });
-  await old.open();
-  await old.table('transferPackages').put({ packageKey: 'legacy', facilityId: 'A', orderId: 'T1', trackingCode: 'OLD' });
-  old.close();
   const db = new ReceivingDB(scope), fence = () => {};
   try {
-    await db.open();
-    check((await db.table('transferPackages').get('legacy')).shipmentStatusId === 'SHIPMENT_SHIPPED', 'Version one cache migrates without losing tracking');
+    await ensureDbReady(db);
     check(db.getTableNames().includes('transferPackageItems'), 'Logout includes the new contents table');
     const order = (orderId: string) => ({ orderId, orderStatusId: 'ORDER_APPROVED', orderFacilityId: 'A', facilityId: 'O' });
     await mergePendingPage(db, [order('T1'), order('T2')], 'A', fence);

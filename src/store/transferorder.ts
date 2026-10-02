@@ -1,12 +1,10 @@
 import { defineStore } from "pinia";
 import { api, commonUtil, translate } from "@common";
-import { useUtilStore } from "@/store/util";
 import { useProductStore as useProduct } from "@/store/product";
 import { useProductStore } from "@/store/productStore";
-import { usePartyStore } from "@/store/party";
 import { useUserStore } from "@/store/user";
 import { liveQuery } from 'dexie';
-import { setActiveReceivingOrder, ensureReceivingOrder, ensureReceivingHistory, getReceivingDb, loadReceivingTracking, submitReceipt } from '@/db/receivingClient';
+import { setActiveReceivingOrder, ensureReceivingOrder, ensureReceivingHistory, getReceivingDb, receivingOperations, loadReceivingTracking, submitReceipt } from '@/db/receivingClient';
 import { findIdentifierProducts, readDetail, readHistory } from '@/db/receivingQueries';
 import { tuple } from '@/db/receivingDatabase';
 
@@ -35,9 +33,6 @@ export const useTransferOrderStore = defineStore("transferorder", {
       toHistory: {
         items: [] as any,
       },
-      shipmentHistory: {
-        items: [] as any,
-      },
     } as any,
     misShippedItems: [] as any,
     draftScope: '',
@@ -49,7 +44,6 @@ export const useTransferOrderStore = defineStore("transferorder", {
     getCurrent: (state) => state.current,
     getTOHistory: (state) => state.current.toHistory,
     isProductAvailableInOrder: (state) => (productId: string) => state.current.items.some((item: any) => item.productId === productId),
-    getShipmentHistory: (state) => state.current.shipmentHistory,
     getMisShippedItems: (state) => state.misShippedItems,
   },
   actions: {
@@ -87,7 +81,7 @@ export const useTransferOrderStore = defineStore("transferorder", {
       for (const product of detail.products) products.cached[product.productId] = product;
       const { products: _products, ...header } = detail;
       this.baseline = detail.items.filter((row: any) => row.orderItemSeqId).map((row: any) => ({ ...row }));
-      this.current = { ...header, items, missingDrafts, cacheConflict: conflict, toHistory: this.current.toHistory || { items: [] }, shipmentHistory: this.current.shipmentHistory || { items: [] } };
+      this.current = { ...header, items, missingDrafts, cacheConflict: conflict, toHistory: this.current.toHistory || { items: [] } };
       this.draftScope = scope;
     },
     acknowledgeLocalChanges() {
@@ -98,16 +92,17 @@ export const useTransferOrderStore = defineStore("transferorder", {
     },
     async openLocalDetail(orderId: string, facilityId: string) {
       this.closeLocalDetail();
-      this.current = { items: [], toHistory: { items: [] }, shipmentHistory: { items: [] } };
+      this.current = { items: [], toHistory: { items: [] } };
       this.draftScope = '';
       const generation = ++detailGeneration;
       const db = await getReceivingDb();
       const scope = tuple(db.name, facilityId, orderId);
-      const snapshot = await readDetail(db, orderId, facilityId);
+      const operations = receivingOperations.value;
+      const snapshot = await readDetail(db, orderId, facilityId, operations);
       if (generation !== detailGeneration) return;
       void setActiveReceivingOrder(orderId).catch(() => undefined);
       this.applyLocalDetail(snapshot, scope);
-      detailSubscription = liveQuery(() => readDetail(db, orderId, facilityId)).subscribe({
+      detailSubscription = liveQuery(() => readDetail(db, orderId, facilityId, operations)).subscribe({
         next: detail => { if (generation === detailGeneration) this.applyLocalDetail(detail, scope); },
         error: () => { if (generation === detailGeneration) this.current.cacheError = 'Unable to read saved transfer data.'; },
       });
@@ -119,7 +114,7 @@ export const useTransferOrderStore = defineStore("transferorder", {
       if (!snapshot?.ready || !snapshot?.shipmentsReady) await refresh;
       else void refresh.catch(() => undefined);
       // Warm navigation is a local read. The background worker owns freshness and polling.
-      if (generation === detailGeneration && (!snapshot?.ready || !snapshot?.shipmentsReady)) this.applyLocalDetail(await readDetail(db, orderId, facilityId), scope);
+      if (generation === detailGeneration && (!snapshot?.ready || !snapshot?.shipmentsReady)) this.applyLocalDetail(await readDetail(db, orderId, facilityId, operations), scope);
     },
     closeLocalDetail() {
       void setActiveReceivingOrder().catch(() => undefined);
@@ -230,41 +225,6 @@ export const useTransferOrderStore = defineStore("transferorder", {
       return this.current.toHistory?.items || [];
     },
 
-    async fetchOutboundShipmentsHistory(params: any) {
-      let resp;
-      const payload = { ...params, shipmentStatusId: "SHIPMENT_SHIPPED" };
-      try {
-        resp = await api({
-          url: "poorti/transferShipments",
-          method: "get",
-          params: payload,
-        });
-        if (!commonUtil.hasError(resp)) {
-          const shipmentData = resp.data.shipments || [];
-
-          const shipmentDetails = shipmentData.flatMap((shipment: any) => {
-            return shipment.packages.flatMap((pkg: any) => {
-              return pkg.items.map((item: any) => ({
-                statusDate: shipment.statusDate,
-                shipmentId: shipment.shipmentId,
-                orderId: shipment.orderId,
-                shipmentStatus: shipment.shipmentStatusId,
-                packageSeqId: pkg.shipmentPackageSeqId,
-                trackingCode: pkg.trackingCode,
-                ...item,
-              }));
-            });
-          });
-          this.current.shipmentHistory = { items: shipmentDetails };
-        } else {
-          throw resp.data;
-        }
-      } catch (err) {
-        console.error("No transfer Shipment found", err);
-        this.current.shipmentHistory = { items: [] };
-      }
-      return resp;
-    },
     async createOrder(payload: any): Promise<any> {
       return api({
         url: "oms/transferOrders",
@@ -298,7 +258,6 @@ export const useTransferOrderStore = defineStore("transferorder", {
       this.current = {
         items: [],
         toHistory: { items: [] },
-        shipmentHistory: { items: [] },
       };
     },
   },

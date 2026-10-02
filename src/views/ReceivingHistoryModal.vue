@@ -27,6 +27,7 @@
           <ion-note>{{ item.quantityAccepted }} {{ translate("received") }} | {{ item.quantityRejected }} {{ translate("rejected") }}</ion-note>
           <ion-note>{{ item.datetimeReceived ? getTime(item.datetimeReceived) : "-" }}</ion-note>
           <ion-note>{{item.receiversFullName }}</ion-note>
+          <ion-note v-if="orderType === 'transferOrder' && item.receiptId && !item.facilityId">{{ translate('Receiving facility unavailable') }}</ion-note>
         </ion-label>
       </ion-item>
     </ion-list>
