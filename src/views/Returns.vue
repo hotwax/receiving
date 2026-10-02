@@ -54,7 +54,7 @@ import { IonButton, IonContent, IonHeader, IonIcon, IonLabel, IonMenuButton, Ion
 import { cloudDownloadOutline, reload } from 'ionicons/icons'
 import { computed, onMounted, ref } from 'vue'
 import ReturnListItem from '@/components/ReturnListItem.vue'
-import { translate } from "@common"
+import { translate } from '@common/core/i18n';
 import { useProductStore } from '@/store/productStore';
 import { useReturnStore } from '@/store/return';
 import router from '@/router';

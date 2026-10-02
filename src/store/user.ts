@@ -1,7 +1,14 @@
-import { api, commonUtil, cookieHelper, logger, translate, useNotificationStore, useEmbeddedAppStore, useAuth } from "@common";
-import { defineStore } from "pinia"
-import { DateTime, Settings } from "luxon"
-import router from '@/router';
+import { getMaargURL as utilGetMaargURL, getOmsURL as utilGetOmsURL, hasError as utilHasError, isAppEmbedded as utilIsAppEmbedded, showToast as utilShowToast } from '@common/utils/core';
+import { default as api } from '@common/core/remoteApi';
+import { cookieHelper } from '@common/helpers/cookieHelper';
+import { default as logger } from '@common/core/logger';
+import { translate } from '@common/core/i18n';
+import { useNotificationStore } from '@common/store/notification';
+import { useEmbeddedAppStore } from '@common/store/embeddedApp';
+import { useAuth } from '@common/composables/useAuth';
+import { defineStore } from "pinia";
+import { DateTime, Settings } from "luxon";
+import { accxuiConfig } from '@common/core/configRegistry';
 import { useProductStore } from "@/store/productStore";
 import { useOrderStore } from "@/store/order";
 import { usePartyStore } from "@/store/party";
@@ -77,10 +84,10 @@ export const useUserStore = defineStore("user", {
       return permissions.includes(permissionId);
     },
     getOmsRedirectionInfo: (state) => ({
-      url: commonUtil.getOmsURL(),
+      url: utilGetOmsURL(),
       token: cookieHelper().get("token")
     }),
-    getMaargBaseUrl: (state) => commonUtil.getMaargURL(),
+    getMaargBaseUrl: (state) => utilGetMaargURL(),
   },
   actions: {
     updateUserInfo(payload: any) {
@@ -112,7 +119,7 @@ export const useUserStore = defineStore("user", {
         // TODO: This should be set from the Login Component
         this.oms = cookieHelper().get("oms");
       } catch (error: any) {
-        commonUtil.showToast(translate("Failed to fetch user profile information"));
+        utilShowToast(translate("Failed to fetch user profile information"));
         console.error("error", error);
         useAuth().clearAuth();
         return Promise.reject(new Error(error));
@@ -133,7 +140,7 @@ export const useUserStore = defineStore("user", {
             params: { viewIndex, viewSize }
           }) as any
 
-          if (resp.status === 200 && resp.data.docs?.length && !commonUtil.hasError(resp)) {
+          if (resp.status === 200 && resp.data.docs?.length && !utilHasError(resp)) {
             serverPermissions.push(...resp.data.docs.map((permission: any) => permission.permissionId))
             viewIndex++
           } else {
@@ -145,7 +152,7 @@ export const useUserStore = defineStore("user", {
           const hasPermission = serverPermissions.includes(permissionId)
           if(!hasPermission) {
             const permissionError = "You do not have permission to access the app."
-            await commonUtil.showToast(translate(permissionError))
+            await utilShowToast(translate(permissionError))
             logger.error("error", permissionError)
             return Promise.reject(new Error(permissionError))
           }
@@ -168,7 +175,7 @@ export const useUserStore = defineStore("user", {
         this.current.timeZone = tzId
       } catch (error: any) {
         console.error("Failed to set user time zone", error);
-        commonUtil.showToast(translate("Failed to set user time zone"));
+        utilShowToast(translate("Failed to set user time zone"));
       }
     },
 
@@ -184,7 +191,7 @@ export const useUserStore = defineStore("user", {
           method: "get",
           cache: true
         }) as any;
-        if (resp.status === 200 && !commonUtil.hasError(resp)) {
+        if (resp.status === 200 && !utilHasError(resp)) {
           this.timeZones = resp.data.timeZones.filter((timeZone: any) => DateTime.local().setZone(timeZone.id).isValid);
         }
       } catch (err) {
@@ -195,28 +202,39 @@ export const useUserStore = defineStore("user", {
       beginReceivingLogin();
       try {
         const productStore = useProductStore();
-        await this.fetchUserProfile()
-        await this.fetchPermissions()
-        await productStore.fetchUserFacilities()
-        await productStore.fetchFacilityPreference();
-        await productStore.fetchProductStores()
-        await productStore.fetchProductStoreDependencies(productStore.getCurrentProductStore.productStoreId)
-
+        // Both depend on the authenticated session; facility access needs both results.
+        const account = await Promise.allSettled([this.fetchUserProfile(), this.fetchPermissions()]);
+        for (const result of account) if (result.status === 'rejected') throw result.reason;
         const notificationStore = useNotificationStore();
-        await notificationStore.fetchAllNotificationPrefs(import.meta.env.VITE_NOTIF_APP_ID as any, this.current.userId)
-        await firebaseUtil.initialiseFirebaseMessaging();
+        // Notification setup needs the account, but not facility or store settings.
+        const setup = await Promise.allSettled([
+          (async () => {
+            await productStore.fetchUserFacilities();
+            // Embedded facility discovery already resolves and restricts the POS location.
+            if (!utilIsAppEmbedded() || !useEmbeddedAppStore().getPosLocationId) {
+              await productStore.fetchFacilityPreference();
+            }
+            await productStore.fetchProductStores();
+          })(),
+          (async () => {
+            await notificationStore.fetchAllNotificationPrefs(import.meta.env.VITE_NOTIF_APP_ID as any, this.current.userId);
+            await firebaseUtil.initialiseFirebaseMessaging();
+          })(),
+        ]);
+        for (const result of setup) if (result.status === 'rejected') throw result.reason;
 
-        const facilityId = router.currentRoute.value.query.facilityId
+        const launchQuery = accxuiConfig.value.router.currentRoute.query;
+        const facilityId = launchQuery.facilityId
         if (facilityId) {
           const facility = productStore.getFacilities.find((facility: any) => facility.facilityId === facilityId);
           if (facility) {
             productStore.currentFacility = facility
-            const orderId = router.currentRoute.value.query.orderId
+            const orderId = launchQuery.orderId
             if (orderId) {
               localStorage.setItem("requestedPagePath", `/transfer-order-detail/${orderId}`)
             }
           } else {
-            commonUtil.showToast(translate("Redirecting to home page due to incorrect information being passed."))
+            utilShowToast(translate("Redirecting to home page due to incorrect information being passed."))
           }
         }
         finishReceivingLogin();
@@ -233,7 +251,7 @@ export const useUserStore = defineStore("user", {
         logger.error(error);
       }
 
-      if (commonUtil.isAppEmbedded()) {
+      if (utilIsAppEmbedded()) {
         setTimeout(() => {
           window.location.href = window.location.origin + `/shopify-login?shop=${useEmbeddedAppStore().getShop}&host=${useEmbeddedAppStore().getHost}&embedded=1`;
         }, 100);

@@ -58,21 +58,29 @@ async function enrichReceivers(receipts: Row[]) {
 async function hydrateOrder(orderId: string, force = false) {
   const hydrateKey = cacheKeys.hydrate(api.connection.facilityId, orderId);
   const state = await readCacheState(db, hydrateKey);
-  await hydrateShipments(orderId, force);
-  if (!force && state?.ready && Date.now() - (state.checkedAt || 0) < 120000) return;
+  if (!force && state?.ready && Date.now() - (state.checkedAt || 0) < 120000) {
+    await hydrateShipments(orderId, force);
+    return;
+  }
   try {
-    const detailState = await readCacheState(db, cacheKeys.detail(orderId));
-    let items: Row[];
-    if (force || !detailState?.ready || Date.now() - (detailState.checkedAt || 0) >= 120000) {
-      const order = await api.detail(orderId);
-      await replaceDetail(db, order, fence);
-      items = order.items;
-    } else items = await db.table('transferItems').where('orderId').equals(orderId).toArray();
-    const misState = await readCacheState(db, cacheKeys.receipts('transferMisShippedReceipts', orderId));
-    const misShipped = force || !misState?.ready || Date.now() - (misState.checkedAt || 0) >= 120000
-      ? await api.receipts(orderId, false) : undefined;
-    if (misShipped) await replaceOrderRows(db, 'transferMisShippedReceipts', orderId, misShipped, fence);
-    const receipts = misShipped || await db.table('transferMisShippedReceipts').where('orderId').equals(orderId).toArray();
+    const [detailState, misState] = await Promise.all([
+      readCacheState(db, cacheKeys.detail(orderId)),
+      readCacheState(db, cacheKeys.receipts('transferMisShippedReceipts', orderId)),
+    ]);
+    // Independent reads share the existing three-order limit. Settle every read
+    // before releasing the order lock, including when one request fails.
+    const [shipments, detail, discrepancies] = await Promise.allSettled([
+      hydrateShipments(orderId, force),
+      force || !detailState?.ready || Date.now() - (detailState.checkedAt || 0) >= 120000 ? api.detail(orderId) : undefined,
+      force || !misState?.ready || Date.now() - (misState.checkedAt || 0) >= 120000 ? api.receipts(orderId, false) : undefined,
+    ]);
+    if (shipments.status === 'rejected') throw shipments.reason;
+    if (detail.status === 'rejected') throw detail.reason;
+    if (discrepancies.status === 'rejected') throw discrepancies.reason;
+    if (detail.value) await replaceDetail(db, detail.value, fence);
+    if (discrepancies.value) await replaceOrderRows(db, 'transferMisShippedReceipts', orderId, discrepancies.value, fence);
+    const items = detail.value?.items || await db.table('transferItems').where('orderId').equals(orderId).toArray();
+    const receipts = discrepancies.value || await db.table('transferMisShippedReceipts').where('orderId').equals(orderId).toArray();
     const coverage = await hydrateProducts([
       ...items.filter(row => row.orderFacilityId === api.connection.facilityId),
       ...receipts.filter(row => !row.facilityId || row.facilityId === api.connection.facilityId),
@@ -214,7 +222,8 @@ expose({
     db = receivingCache.get(connection.scope);
     api = new ReceivingApi({ ...connection, token: payload.token, maargUrl: payload.maargUrl }, fence);
     // Open saved data before the first full-store sync; warm navigation never waits for it.
-    await harness.start({ ...payload, domains: [] });
+    // Keep the declared sync intervals; discover newly due work within one second.
+    await harness.start({ ...payload, domains: [], baseTickMs: 1000 });
     harness.setDomains(payload.domains!);
     void harness.syncDomainNow('receivingMembership').catch(() => undefined); // The harness reports domain errors.
   },

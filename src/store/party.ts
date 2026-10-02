@@ -1,5 +1,6 @@
+import { hasError as utilHasError } from '@common/utils/core';
 import { defineStore } from "pinia";
-import { api, commonUtil } from "@common";
+import { default as api } from '@common/core/remoteApi';
 
 export const usePartyStore = defineStore("party", {
   state: () => ({
@@ -24,7 +25,7 @@ export const usePartyStore = defineStore("party", {
           method: "GET",
           params: params,
         });
-        if (resp.status == 200 && !commonUtil.hasError(resp) && resp.data.length > 0) {
+        if (resp.status == 200 && !utilHasError(resp) && resp.data.length > 0) {
           const receiversDetails = resp.data;
 
           receiversDetails.forEach((receiverDetails: any) => {

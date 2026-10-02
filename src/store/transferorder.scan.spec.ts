@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createPinia, setActivePinia } from 'pinia';
-
-vi.mock('@common', () => ({ api: vi.fn(), commonUtil: {}, translate: (value: string) => value }));
+vi.mock('@common/core/remoteApi', () => ({ default: vi.fn() }));
+vi.mock('@common/core/i18n', () => ({ translate: (value: string) => value }));
 vi.mock('@/store/util', () => ({ useUtilStore: vi.fn() }));
 vi.mock('@/store/party', () => ({ usePartyStore: vi.fn() }));
 vi.mock('@/store/user', () => ({ useUserStore: vi.fn() }));

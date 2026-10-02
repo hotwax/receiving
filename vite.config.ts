@@ -41,7 +41,8 @@ export default defineConfig(({ mode }) => {
     alias: {
       '@': path.resolve(__dirname, 'src'),
       '@common': path.resolve(__dirname, '../../common'),
-      'vue': 'vue/dist/vue.esm-bundler.js'
+      'vue': mode === 'test' ? 'vue/dist/vue.esm-bundler.js' : 'vue/dist/vue.runtime.esm-bundler.js',
+      luxon: path.resolve(__dirname, 'node_modules/luxon/build/es6/luxon.mjs')
     },
   },
   server: {

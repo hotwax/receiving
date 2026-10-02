@@ -1,16 +1,10 @@
+import { isAppEmbedded as utilIsAppEmbedded, showToast as utilShowToast } from '@common/utils/core';
 import { createRouter, createWebHistory } from '@ionic/vue-router';
 import { RouteRecordRaw } from 'vue-router';
-import Settings from "@/views/Settings.vue"
-import PurchaseOrders from "@/views/PurchaseOrders.vue"
-import PurchaseOrderDetail from "@/views/PurchaseOrderDetail.vue"
-import Returns from '@/views/Returns.vue'
-import ReturnDetails from '@/views/ReturnDetails.vue'
-import TransferOrders from '@/views/TransferOrders.vue';
-import TransferOrderDetail from '@/views/TransferOrderDetail.vue';
-import CreateOrder from '@/views/CreateOrder.vue';
 import { useUserStore } from '@/store/user';
 import Actions from '@/authorization/actions';
-import { translate, commonUtil, useAuth, ShopifyLogin, ShopifyAppInstall, Login } from '@common'
+import { translate } from '@common/core/i18n';
+import { useAuth } from '@common/composables/useAuth';
 
 import { businessOutline, calendarOutline, gitPullRequestOutline, settingsOutline } from "ionicons/icons";
 
@@ -28,7 +22,7 @@ declare module 'vue-router' {
 const authGuard = async (to: any, from: any, next: any) => {
   const { isAuthenticated } = useAuth()
   if (!isAuthenticated.value) {
-    if (commonUtil.isAppEmbedded()) {
+    if (utilIsAppEmbedded()) {
       next('/shopify-login')
     } else {
       next('/login');
@@ -46,17 +40,17 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/login',
     name: 'Login',
-    component: Login
+    component: () => import('@common/components/Login.vue')
   },
   {
     path: '/shopify-login',
     name: 'ShopifyLogin',
-    component: ShopifyLogin
+    component: () => import('@common/components/ShopifyLogin.vue')
   },
   {
     path: "/settings",
     name: "Settings",
-    component: Settings,
+    component: () => import('@/views/Settings.vue'),
     beforeEnter: authGuard,
     meta: {
       title: "Settings",
@@ -67,7 +61,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/purchase-orders',
     name: 'PurchaseOrders',
-    component: PurchaseOrders,
+    component: () => import('@/views/PurchaseOrders.vue'),
     beforeEnter: authGuard,
     meta: {
       permissionId: Actions.APP_PURCHASEORDERS_VIEW,
@@ -80,7 +74,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/purchase-order-detail/:slug",
     name: "PurchaseOrderDetail",
-    component: PurchaseOrderDetail,
+    component: () => import('@/views/PurchaseOrderDetail.vue'),
     beforeEnter: authGuard,
     meta: {
       permissionId: Actions.APP_PURCHASEORDER_DETAIL_VIEW
@@ -89,12 +83,12 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/shopify-app-install',
     name: 'ShopifyAppInstall',
-    component: ShopifyAppInstall
+    component: () => import('@common/components/ShopifyAppInstall.vue')
   },
   {
     path: '/returns',
     name: 'Returns',
-    component: Returns,
+    component: () => import('@/views/Returns.vue'),
     beforeEnter: authGuard,
     meta: {
       permissionId: Actions.APP_RETURNS_VIEW,
@@ -107,7 +101,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/return/:id',
     name: 'ReturnDetails',
-    component: ReturnDetails,
+    component: () => import('@/views/ReturnDetails.vue'),
     beforeEnter: authGuard,
     meta: {
       permissionId: Actions.APP_RETURN_DETAIL_VIEW
@@ -116,7 +110,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/transfer-orders',
     name: 'TransferOrders',
-    component: TransferOrders,
+    component: () => import('@/views/TransferOrders.vue'),
     beforeEnter: authGuard,
     meta: {
       permissionId: Actions.APP_TRANSFERORDERS_VIEW,
@@ -129,7 +123,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/create-order',
     name: 'CreateOrder',
-    component: CreateOrder,
+    component: () => import('@/views/CreateOrder.vue'),
     beforeEnter: authGuard,
     meta: {
       permissionId: Actions.APP_TRANSFERORDER_CREATE
@@ -138,7 +132,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/transfer-order-detail/:slug",
     name: "TransferOrderDetail",
-    component: TransferOrderDetail,
+    component: () => import('@/views/TransferOrderDetail.vue'),
     beforeEnter: authGuard,
     meta: {
       permissionId: Actions.APP_TRANSFERORDER_DETAIL_VIEW
@@ -169,7 +163,7 @@ router.beforeEach((to, from) => {
     // If the user has navigated from Login page or if it is page load, redirect user to settings page without showing any toast
     if (redirectToPath == "/login" || redirectToPath == "/") redirectToPath = "/settings";
     else {
-      commonUtil.showToast(translate('You do not have permission to access this page'));
+      utilShowToast(translate('You do not have permission to access this page'));
     }
     return {
       path: redirectToPath,

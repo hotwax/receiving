@@ -19,8 +19,8 @@
               <ion-card-title>{{ userProfile?.userFullName }}</ion-card-title>
             </ion-card-header>
           </ion-item>
-          <ion-button v-if="!commonUtil.isAppEmbedded()" color="danger" @click="logout()">{{ translate("Logout") }}</ion-button>
-          <ion-button v-if="!commonUtil.isAppEmbedded()" fill="outline" @click="goToLaunchpad()">
+          <ion-button v-if="!utilIsAppEmbedded()" color="danger" @click="logout()">{{ translate("Logout") }}</ion-button>
+          <ion-button v-if="!utilIsAppEmbedded()" fill="outline" @click="goToLaunchpad()">
             {{ translate("Go to Launchpad") }}
             <ion-icon slot="end" :icon="openOutline" />
           </ion-button>
@@ -32,7 +32,7 @@
       </div>
 
       <section>
-        <DxpOmsInstanceNavigator :is-embedded="commonUtil.isAppEmbedded()" />
+        <DxpOmsInstanceNavigator :is-embedded="utilIsAppEmbedded()" />
         <DxpFacilitySwitcher @updateFacility="fetchFacilityDependencies($event)" />
       </section>
       <hr />
@@ -94,10 +94,16 @@
 </template>
 
 <script setup lang="ts">
+import { getOMSInstanceName as utilGetOMSInstanceName, isAppEmbedded as utilIsAppEmbedded, showToast as utilShowToast } from '@common/utils/core';
 import { IonAvatar, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonContent, IonHeader, IonIcon, IonItem, IonMenuButton, IonPage, IonSelect, IonSelectOption, IonTitle, IonToggle, IonToolbar, alertController, onIonViewWillEnter } from "@ionic/vue";
 import { computed } from "vue";
 import { openOutline } from "ionicons/icons";
-import { commonUtil, emitter, firebaseMessaging, logger, translate, useNotificationStore, useAuth } from "@common";
+import { default as emitter } from '@common/core/emitter';
+import { firebaseMessaging } from '@common/core/firebaseMessaging';
+import { default as logger } from '@common/core/logger';
+import { translate } from '@common/core/i18n';
+import { useNotificationStore } from '@common/store/notification';
+import { useAuth } from '@common/composables/useAuth';
 import { useProductStore } from "@/store/productStore";
 import { useUserStore } from "@/store/user";
 import Image from "@/components/Image.vue";
@@ -106,7 +112,7 @@ import DxpFacilitySwitcher from "@/components/DxpFacilitySwitcher.vue";
 import DxpAppVersionInfo from "@/components/DxpAppVersionInfo.vue";
 import DxpProductIdentifier from "@/components/DxpProductIdentifier.vue";
 import DxpTimeZoneSwitcher from "@/components/DxpTimeZoneSwitcher.vue";
-import { firebaseUtil } from "@/utils/firebaseUtil"
+import { firebaseUtil } from "@/utils/firebaseUtil";
 import Actions from "@/authorization/actions"
 
 const userStore = useUserStore();
@@ -138,7 +144,7 @@ const goToLaunchpad = () => {
 const fetchFacilityDependencies = async (facility: any) => {
   await productStore.fetchProductStores(facility?.facilityId)
   await productStore.fetchProductStoreDependencies(productStore.getCurrentProductStore.productStoreId)
-  await notificationStore.fetchNotificationPreferences(import.meta.env.VITE_NOTIF_ENUM_TYPE_ID, import.meta.env.VITE_NOTIF_APP_ID, userStore.getUserProfile.userLoginId, (enumId: string) => firebaseMessaging.generateTopicName(commonUtil.getOMSInstanceName(), productStore.getCurrentFacility.facilityId, enumId));
+  await notificationStore.fetchNotificationPreferences(import.meta.env.VITE_NOTIF_ENUM_TYPE_ID, import.meta.env.VITE_NOTIF_APP_ID, userStore.getUserProfile.userLoginId, (enumId: string) => firebaseMessaging.generateTopicName(utilGetOMSInstanceName(), productStore.getCurrentFacility.facilityId, enumId));
 };
 
 const updateForceScanStatus = async (event: any) => {
@@ -183,7 +189,7 @@ const updateNotificationPref = async (enumId: string) => {
   let isToggledOn = false;
   try {
     const notificationPref = notificationStore.getNotificationPrefs.find((pref: any) => pref.enumId === enumId);
-    const topicName = firebaseMessaging.generateTopicName(commonUtil.getOMSInstanceName(), currentFacility.value.facilityId, enumId);
+    const topicName = firebaseMessaging.generateTopicName(utilGetOMSInstanceName(), currentFacility.value.facilityId, enumId);
     notificationPref.isEnabled
       ? await notificationStore.unsubscribeTopic(topicName, import.meta.env.VITE_NOTIF_APP_ID as any)
       : await notificationStore.subscribeTopic(topicName, import.meta.env.VITE_NOTIF_APP_ID as any);
@@ -191,9 +197,9 @@ const updateNotificationPref = async (enumId: string) => {
     notificationPref.isEnabled = !notificationPref.isEnabled;
     notificationStore.setNotificationPrefs(notificationPrefs.value);
     isToggledOn = notificationPref.isEnabled;
-    commonUtil.showToast(translate("Notification preferences updated."));
+    utilShowToast(translate("Notification preferences updated."));
   } catch (error) {
-    commonUtil.showToast(translate("Notification preferences not updated. Please try again."));
+    utilShowToast(translate("Notification preferences not updated. Please try again."));
   } finally {
     emitter.emit("dismissLoader");
   }
@@ -242,7 +248,7 @@ const setBarcodeIdentificationPref = async (value: string) => {
 
 onIonViewWillEnter(async () => {
   await productStore.fetchProductStoreSettings(preferredStore.value.productStoreId);
-  await notificationStore.fetchNotificationPreferences(import.meta.env.VITE_NOTIF_ENUM_TYPE_ID, import.meta.env.VITE_NOTIF_APP_ID, userStore.getUserProfile.userLoginId, (enumId: string) => firebaseMessaging.generateTopicName(commonUtil.getOMSInstanceName(), productStore.getCurrentFacility.facilityId, enumId));
+  await notificationStore.fetchNotificationPreferences(import.meta.env.VITE_NOTIF_ENUM_TYPE_ID, import.meta.env.VITE_NOTIF_APP_ID, userStore.getUserProfile.userLoginId, (enumId: string) => firebaseMessaging.generateTopicName(utilGetOMSInstanceName(), productStore.getCurrentFacility.facilityId, enumId));
 });
 </script>
 
