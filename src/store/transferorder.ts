@@ -11,6 +11,7 @@ import { tuple } from '@/db/receivingDatabase';
 let detailSubscription: { unsubscribe(): void } | undefined;
 let historySubscription: { unsubscribe(): void } | undefined;
 let detailGeneration = 0;
+let listGeneration = 0;
 const baselineFields = ['statusId', 'quantity', 'totalIssuedQuantity', 'totalReceivedQuantity', 'orderFacilityId'];
 const baselineChanged = (a: any, b: any) => baselineFields.some(field => String(a?.[field] ?? 0) !== String(b?.[field] ?? 0));
 const itemIdentity = (item: any) => item.itemKey || item.receiptId || tuple('added', item.productId);
@@ -111,10 +112,11 @@ export const useTransferOrderStore = defineStore("transferorder", {
         error: () => { if (generation === detailGeneration) this.current.toHistory = { items: [], error: 'Unable to load receiving history.' }; },
       });
       const refresh = ensureReceivingOrder(orderId);
-      if (!snapshot?.ready || !snapshot?.shipmentsReady) await refresh;
+      const warm = snapshot?.ready && snapshot?.shipmentsReady && snapshot?.hydrated;
+      if (!warm) await refresh;
       else void refresh.catch(() => undefined);
       // Warm navigation is a local read. The background worker owns freshness and polling.
-      if (generation === detailGeneration && (!snapshot?.ready || !snapshot?.shipmentsReady)) this.applyLocalDetail(await readDetail(db, orderId, facilityId, operations), scope);
+      if (generation === detailGeneration && !warm) this.applyLocalDetail(await readDetail(db, orderId, facilityId, operations), scope);
     },
     closeLocalDetail() {
       void setActiveReceivingOrder().catch(() => undefined);
@@ -123,7 +125,9 @@ export const useTransferOrderStore = defineStore("transferorder", {
       detailSubscription?.unsubscribe(); historySubscription?.unsubscribe();
       detailSubscription = undefined; historySubscription = undefined;
     },
-    async fetchTransferOrders(params: any = {}) {
+    async fetchTransferOrders(params: any = {}, onProgress?: (completed: number, total: number) => void) {
+      const generation = ++listGeneration, previous = this.transferOrder;
+      const isCurrent = () => generation === listGeneration && this.transferOrder === previous;
       let resp;
       const transferOrderQuery = JSON.parse(JSON.stringify(this.transferOrder.query));
       let orders = [];
@@ -145,22 +149,26 @@ export const useTransferOrderStore = defineStore("transferorder", {
         } else {
           resp = await api({ url: 'oms/transferOrders/', method: 'get', params });
         }
-        if (!commonUtil.hasError(resp) && resp.data.orders.length > 0) {
+        if (commonUtil.hasError(resp)) throw new Error('Unable to load transfer orders');
+        if (resp.data.orders.length > 0) {
           total = resp.data.ordersCount;
-          if (params.pageIndex && params.pageIndex > 0) {
-            orders = this.transferOrder.list.concat(resp.data.orders);
-          } else {
-            orders = resp.data.orders;
-          }
+          if (!isCurrent()) return resp;
+          // Publish the page once, with badges attached. Replacing rows before
+          // enrichment makes every existing badge disappear and then grow back.
+          const ids = [...new Set<string>(resp.data.orders.map((row: any) => row.orderId))];
+          onProgress?.(1, ids.length + 1);
+          const trackingRows = await loadReceivingTracking(ids, completed => {
+            if (isCurrent()) onProgress?.(completed + 1, ids.length + 1);
+          }).catch(() => []);
+          if (!isCurrent()) return resp;
+          const byOrder = new Map(previous.list.map((row: any) => [row.orderId, row.trackingCodes] as const));
+          for (const row of trackingRows) byOrder.set(row.orderId, row.trackingCodes);
+          const page = resp.data.orders.map((order: any) => byOrder.has(order.orderId)
+            ? { ...order, trackingCodes: byOrder.get(order.orderId) } : order);
+          orders = params.pageIndex > 0 ? previous.list.concat(page) : page;
           this.transferOrder = { list: orders, total, query: transferOrderQuery };
-          // The archive remains paged on the server; only visible orders hydrate tracking.
-          const list = this.transferOrder.list;
-          void loadReceivingTracking(orders.map((row: any) => row.orderId)).then(trackingRows => {
-            if (this.transferOrder.list !== list) return;
-            const byOrder = new Map(trackingRows.map(row => [row.orderId, row.trackingCodes]));
-            for (const order of list) order.trackingCodes = byOrder.get(order.orderId) || [];
-          }).catch(() => undefined);
         } else {
+          if (!isCurrent()) return resp;
           if (params.pageIndex && params.pageIndex > 0) {
             commonUtil.showToast(translate("Transfer orders not found"));
           } else {
@@ -168,9 +176,9 @@ export const useTransferOrderStore = defineStore("transferorder", {
           }
         }
       } catch (err) {
+        if (!isCurrent()) return resp;
         console.error("No transfer orders found", err);
         commonUtil.showToast(translate("Something went wrong"));
-        this.transferOrder = { list: [], total: 0, query: transferOrderQuery };
       }
       return resp;
     },

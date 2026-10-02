@@ -27,7 +27,7 @@ async function readDetailSnapshot(db: ReceivingDB, orderId: string, facilityId: 
     ...header, items: [...items, ...misShipped.map(row => ({ ...row, statusId: 'ITEM_COMPLETED' }))],
     shipmentPackages: packages, shipmentPackageItems: packageItems, shipmentsReady: !!shipmentState?.ready,
     shipmentError: shipmentState?.error, products: products.filter(Boolean),
-    ready: !!detailState?.ready, checkedAt: detailState?.checkedAt,
+    ready: !!detailState?.ready, checkedAt: detailState?.checkedAt, hydrated: !!hydrationState?.checkedAt,
     identifiersReady: !!detailState?.ready && products.every(row => row && (!row.identifierConflict || row.canonicalDocument)) && !hydrationState?.missingProductIds?.length,
     cacheError: hydrationState?.error || (hydrationState?.conflictingProductIds?.length ? 'Product records contain conflicting identifiers. Refresh to retry.' : undefined),
   };

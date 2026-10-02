@@ -37,7 +37,7 @@
         </ion-item>
         <TransferOrderItem v-for="order in visibleOrders" :key="order.orderId" :transferOrder="order" />
         <div data-testid="transfer-orders-page-load-more-section" v-if="orders.list.length < orders.total" class="load-more-action ion-text-center">
-          <ion-button data-testid="transfer-orders-page-load-more-btn" fill="outline" color="dark" @click="loadMoreOrders()">
+          <ion-button data-testid="transfer-orders-page-load-more-btn" fill="outline" color="dark" :disabled="fetchingOrders" @click="loadMoreOrders()">
             <ion-icon :icon="cloudDownloadOutline" slot="start" />
             {{ translate("Load more transfer order") }}
           </ion-button>
@@ -87,6 +87,8 @@ const userStore = useUserStore();
 
 const queryString = ref('');
 const fetchingOrders = ref(false);
+const completedProgress = ref(0);
+let completedRequest = 0;
 const showErrorMessage = ref(false);
 const selectedSegment = ref("open");
 
@@ -101,7 +103,7 @@ const loadingOrders = computed(() => {
   const sync = receivingList.value.sync;
   return !localSyncError.value && (!sync.complete || sync.downloading || sync.syncing);
 });
-const loadingProgress = computed(() => selectedSegment.value === 'open' ? receivingList.value.sync.progress : 0);
+const loadingProgress = computed(() => selectedSegment.value === 'open' ? receivingList.value.sync.progress : completedProgress.value);
 const currentFacility: any = computed(() => productStore.getCurrentFacility);
 let openingTracking = false;
 const submitSearch = async () => {
@@ -133,18 +135,13 @@ const getTransferOrders = async (vSize?: any, vIndex?: any) => {
   }
   queryString.value ? showErrorMessage.value = true : showErrorMessage.value = false;
   fetchingOrders.value = true;
+  completedProgress.value = 0;
+  const request = ++completedRequest;
   const limit = vSize ? vSize : import.meta.env.VITE_VIEW_SIZE;
   const pageIndex = vIndex ? vIndex : 0;
 
-  let orderStatusId;
-  if (selectedSegment.value === 'open') {
-    orderStatusId = 'ORDER_APPROVED';
-  } else {
-    orderStatusId = 'ORDER_COMPLETED';
-  }
-
   const payload = {
-    orderStatusId,
+    orderStatusId: 'ORDER_COMPLETED',
     destinationFacilityId: currentFacility.value?.facilityId,
     excludeOriginFacilityIds: "REJECTED_ITM_PARKING",
     statusFlowId: ["TO_Fulfill_And_Receive", "TO_Receive_Only"],
@@ -155,9 +152,11 @@ const getTransferOrders = async (vSize?: any, vIndex?: any) => {
   };
 
   try {
-    await transferOrderStore.fetchTransferOrders(payload);
+    await transferOrderStore.fetchTransferOrders(payload, (completed, total) => {
+      if (request === completedRequest) completedProgress.value = completed / total;
+    });
   } finally {
-    fetchingOrders.value = false;
+    if (request === completedRequest) fetchingOrders.value = false;
   }
 };
 

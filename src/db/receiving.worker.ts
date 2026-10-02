@@ -196,7 +196,10 @@ registerSyncDomain({ name: 'receivingReceipt', label: 'Receipt readback', syncCl
     api.connection.token = ctx.token;
     const orderId = pk.orderId;
     return lock(async () => {
-      const results = await Promise.allSettled([hydrateOrder(orderId, true), hydrateHistory(orderId, true), refreshOrderMembership(orderId)]);
+      const detail = hydrateOrder(orderId, true);
+      // A cold archive detail has no header yet. Membership reconciliation
+      // updates that header, so it must wait for the detail write to finish.
+      const results = await Promise.allSettled([detail, hydrateHistory(orderId, true), detail.then(() => refreshOrderMembership(orderId))]);
       for (const result of results) if (result.status === 'rejected') throw result.reason;
       return 1;
     }, orderId);

@@ -165,12 +165,15 @@ export async function ensureReceivingHistory(orderId: string) {
   const current = await session();
   await current.bootstrap.syncService()!.refetchOne('receivingHistory', { orderId, facilityId: current.connection.facilityId });
 }
-export async function loadReceivingTracking(orderIds: string[]) {
+export async function loadReceivingTracking(orderIds: string[], onProgress?: (completed: number) => void) {
   const current = await session();
+  let completed = 0;
   return Promise.all(orderIds.map(async orderId => {
     await current.bootstrap.syncService()!.refetchOne('receivingOrders', { orderId, facilityId: current.connection.facilityId, shipmentsOnly: true });
     current.check();
-    return { orderId, trackingCodes: trackingBadges(await current.db.table('transferPackages').where('[facilityId+orderId]').equals([current.connection.facilityId, orderId]).toArray()) };
+    const trackingCodes = trackingBadges(await current.db.table('transferPackages').where('[facilityId+orderId]').equals([current.connection.facilityId, orderId]).toArray());
+    onProgress?.(++completed);
+    return { orderId, trackingCodes };
   }));
 }
 export async function submitReceipt(orderId: string, payload: ReceiptPayload, baseline: Row[]) {

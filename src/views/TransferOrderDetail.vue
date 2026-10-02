@@ -5,13 +5,15 @@
         <ion-back-button data-testid="transfer-order-detail-page-back-btn" default-href="/transfer-orders" slot="start" />
         <ion-title> {{ translate("Transfer Order Details") }} </ion-title>
         <ion-buttons slot="end">
-          <ion-button data-testid="transfer-order-detail-page-history-btn" @click="receivingHistory()">
+          <ion-button data-testid="transfer-order-detail-page-history-btn" :disabled="openingDetail || !order.ready" @click="receivingHistory()">
             <ion-icon slot="icon-only" :icon="timeOutline"/>
           </ion-button>
-          <ion-button data-testid="transfer-order-detail-page-add-product-btn" :disabled="!userStore.hasPermission(Actions.APP_SHIPMENT_UPDATE) || isTOReceived()" @click="addProduct">
+          <ion-button data-testid="transfer-order-detail-page-add-product-btn" :disabled="openingDetail || !order.ready || !userStore.hasPermission(Actions.APP_SHIPMENT_UPDATE) || isTOReceived()" @click="addProduct">
             <ion-icon slot="icon-only" :icon="addOutline"/>
           </ion-button>
         </ion-buttons>
+        <ion-progress-bar v-if="openingDetail || refreshingDetail" data-testid="transfer-order-detail-page-progress"
+          type="determinate" :value="detailProgress" :aria-label="translate('Loading')" />
       </ion-toolbar>
     </ion-header>
 
@@ -29,6 +31,7 @@
           </ion-label>
           <ion-button slot="end" fill="clear" @click="transferOrderStore.acknowledgeLocalChanges()">{{ translate("I've reviewed") }}</ion-button>
         </ion-item>
+        <template v-if="!openingDetail && order.ready">
         <div class="doc-id">
           <div class="ion-padding">
             <ion-label>
@@ -365,6 +368,7 @@
             </div>
           </ion-card>
         </template>
+        </template>
       </main>
 
       <ion-toast
@@ -376,7 +380,7 @@
       ></ion-toast>
     </ion-content>
 
-    <ion-footer data-testid="transfer-order-detail-page-footer" id="footer" ref="footer" v-if="!isTOReceived() && selectedSegment !== 'received'">
+    <ion-footer data-testid="transfer-order-detail-page-footer" id="footer" ref="footer" v-if="!openingDetail && order.ready && !isTOReceived() && selectedSegment !== 'received'">
       <ion-toolbar>
         <ion-buttons slot="end">
           <ion-button data-testid="transfer-order-detail-page-save-progress-btn" :disabled="!areAllItemsHaveQty || isReceiveFlowBusy || order.cacheConflict || order.needsReadback || !order.ready" class="ion-margin-end" fill="outline" size="small" color="primary" @click="receiveTO">{{ translate("Save Progress") }}{{ ":" }} {{ getReceivedUnits() }}</ion-button>
@@ -388,7 +392,7 @@
 </template>
 
 <script setup lang="ts">
-import { IonBackButton, IonButton, IonButtons, IonCard, IonChip, IonContent, IonHeader, IonFooter, IonIcon, IonItem, IonInput, IonLabel, IonPage, IonNote, IonSegment, IonSegmentButton, IonText, IonThumbnail, IonTitle, IonToast, IonToolbar, alertController, modalController, onIonViewWillEnter, onIonViewDidLeave } from '@ionic/vue';
+import { IonBackButton, IonButton, IonButtons, IonCard, IonChip, IonContent, IonHeader, IonFooter, IonIcon, IonItem, IonInput, IonLabel, IonPage, IonNote, IonProgressBar, IonSegment, IonSegmentButton, IonText, IonThumbnail, IonTitle, IonToast, IonToolbar, alertController, modalController, onIonViewWillEnter, onIonViewDidLeave } from '@ionic/vue';
 import { nextTick, ref, shallowRef, computed, watch } from 'vue';
 import { ensureReceivingOrder, receivingDb, resolveReceipt } from '@/db/receivingClient';
 import { addOutline, cameraOutline, checkmarkDone, cubeOutline, informationCircleOutline, openOutline, timeOutline } from 'ionicons/icons';
@@ -439,6 +443,8 @@ const pendingQoh = new Set<string>();
 const attemptedQoh = new Set<string>();
 let qohGeneration = 0;
 const detailActive = ref(false);
+const openingDetail = ref(true);
+const refreshingDetail = ref(false);
 let detailLoadGeneration = 0;
 const observer = ref(null as IntersectionObserver | null);
 const selectedSegment = ref("open");
@@ -451,6 +457,8 @@ const isToastOpen = ref(false);
 const scanErrorText = ref("");
 
 const order = computed(() => transferOrderStore.getCurrent);
+const detailProgress = computed(() => openingDetail.value
+  ? [order.value.shipmentsReady, order.value.ready, order.value.hydrated].filter(Boolean).length / 3 : 0);
 const getProduct = computed(() => product.getProduct);
 const isForceScanEnabled = computed(() => productStore.isProductStoreSettingEnabled('RECEIVE_FORCE_SCAN'));
 const isReceivingByFulfillment = computed(() => productStore.isProductStoreSettingEnabled('RECEIVE_BY_FULFILL'));
@@ -470,8 +478,11 @@ const shipmentBoxes = computed(() => (order.value.shipmentPackages || []).filter
   pkg.shipmentStatusId === 'SHIPMENT_SHIPPED' && (order.value.shipmentPackageItems || []).some((row: any) => row.packageKey === pkg.packageKey)));
 const inSelectedPackage = (item: any) => !selectedPackageKey.value || getBoxAllocations(item).some(box => box.packageKey === selectedPackageKey.value);
 const visibleOpenItems = computed(() => openItems.value.filter(inSelectedPackage));
-const unshippedTrackingMatch = computed(() => (order.value.shipmentPackages || []).some((pkg: any) =>
-  pkg.trackingCode === router.currentRoute.value.query.tracking && pkg.shipmentStatusId !== 'SHIPMENT_SHIPPED'));
+const unshippedTrackingMatch = computed(() => {
+  const tracking = router.currentRoute.value.query.tracking;
+  return !!tracking && (order.value.shipmentPackages || []).some((pkg: any) =>
+    pkg.trackingCode === tracking && pkg.shipmentStatusId !== 'SHIPMENT_SHIPPED');
+});
 const focusScanner = async () => {
   await nextTick();
   const input = await scanInput.value?.$el?.getInputElement();
@@ -997,8 +1008,13 @@ const reviewReceipt = async () => {
 };
 
 const refreshLocalOrder = async () => {
+  if (refreshingDetail.value) return;
+  // A failed initial load must reopen its subscriptions as well as retry the API.
+  if (!order.value.ready) return loadLocalDetail();
+  refreshingDetail.value = true;
   try { await ensureReceivingOrder(String(router.currentRoute.value.params.slug), true); }
   catch { commonUtil.showToast(translate('Unable to refresh transfer data.')); }
+  finally { refreshingDetail.value = false; }
 };
 
 const openTOReceivingInstructions = async () => {
@@ -1027,6 +1043,7 @@ watch(() => order.value.items, updateVisibleItems);
 
 const loadLocalDetail = async () => {
   const generation = ++detailLoadGeneration;
+  openingDetail.value = true;
   productQoh.value = {};
   pendingQoh.clear(); attemptedQoh.clear(); qohGeneration++;
   openItemsTemp.value = [];
@@ -1038,6 +1055,12 @@ const loadLocalDetail = async () => {
     if (generation === detailLoadGeneration) updateVisibleItems();
   } catch {
     if (generation === detailLoadGeneration) transferOrderStore.current.cacheError = 'Unable to load transfer details. Refresh to retry.';
+  } finally {
+    if (generation === detailLoadGeneration) {
+      openingDetail.value = false;
+      await nextTick();
+      if (detailActive.value) { observeProductVisibility(); void focusScanner(); }
+    }
   }
 };
 watch(receivingDb, db => {
