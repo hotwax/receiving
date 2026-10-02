@@ -4,6 +4,7 @@
       {{ transferOrder.orderName }}
       <p>{{ transferOrder.orderExternalId }}</p>
       <p>{{ transferOrder.orderId }}</p>
+      <p v-if="transferOrder.itemCount !== undefined">{{ translate('Item count') }}: {{ transferOrder.itemCount }}</p>
       <div v-if="transferOrder.trackingCodes?.length" class="tracking-badges">
         <ion-badge v-for="tracking in transferOrder.trackingCodes" :key="tracking.code"
           :color="tracking.shipped ? 'primary' : 'medium'" :data-testid="`tracking-badge-${tracking.code}`">

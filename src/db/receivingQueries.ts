@@ -73,6 +73,8 @@ async function readListSnapshot(db: ReceivingDB, facilityId: string) {
     db.table('transferMisShippedReceipts').where('orderId').anyOf(orderIds).toArray(),
   ]);
   const scopedItems = [...items.filter(row => row.orderFacilityId === facilityId), ...misShipped.filter(row => row.facilityId === facilityId)];
+  const itemCounts = new Map<string, number>();
+  for (const item of items) itemCounts.set(item.orderId, (itemCounts.get(item.orderId) || 0) + 1);
   const products = await db.table('products').bulkGet(uniqueIds(scopedItems.map(row => row.productId)));
   const productText = new Map(products.filter(Boolean).map(product => [product!.productId, text([
     product!.productId, product!.productName, product!.parentProductName, product!.internalName,
@@ -92,6 +94,7 @@ async function readListSnapshot(db: ReceivingDB, facilityId: string) {
   }
   const rows = pending.map(header => ({
     order: { ...header.raw, ...header, orderExternalId: header.externalId, orderStatusId: header.statusId, orderStatusDesc: header.status,
+      itemCount: itemCounts.get(header.orderId),
       trackingCodes: trackingBadges(packagesByOrder.get(header.orderId) || []) },
     search: text([header.orderId, header.orderName, header.externalId, byOrder.get(header.orderId)]),
   })).sort((a, b) => (a.order.orderDate || 0) - (b.order.orderDate || 0) || a.order.orderId.localeCompare(b.order.orderId));
