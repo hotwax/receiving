@@ -21,12 +21,13 @@ describe('Receiving source normalization', () => {
   });
 
   it('prefers the canonical product, retains all identifiers and preserves leading zeros/slashes', () => {
+    const displayFields = { groupId: '0001', groupName: 'Blue shirt', title: 'Product blue shirt.', primaryProductCategoryName: 'Tops' };
     const { products, identifications } = productRows([
       { productId: 'P1', 'docType-identifier': 'PRODUCT_OLD-P1', productName: 'Old' },
-      { productId: 'P1', 'docType-identifier': 'PRODUCT-P1', productName: 'Current', parentProductName: 'Parent', goodIdentifications: ['UPCA/00123', 'UPCA/00456', 'SKU/A/B'] },
+      { productId: 'P1', 'docType-identifier': 'PRODUCT-P1', productName: 'Current', parentProductName: 'Parent', ...displayFields, goodIdentifications: ['UPCA/00123', 'UPCA/00456', 'SKU/A/B'] },
     ], 42);
     expect(products).toHaveLength(1);
-    expect(products[0]).toMatchObject({ productName: 'Current', parentProductName: 'Parent', updatedAt: 42 });
+    expect(products[0]).toMatchObject({ productName: 'Current', parentProductName: 'Parent', ...displayFields, updatedAt: 42 });
     expect(identifications.filter(row => row.identKey === 'UPCA').map(row => row.value)).toEqual(['00123', '00456']);
     expect(identifications.find(row => row.identKey === 'SKU')?.value).toBe('A/B');
   });

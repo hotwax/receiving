@@ -61,7 +61,7 @@ Fault-injection unit checks cover confirmed POST/readback failure, uncertain POS
 
 ## Size change and limits
 
-Compared with `ab1980e`, excluding this QA record and screenshots:
+Refactor commit `d8eff31` compared with `ab1980e`, excluding this QA record and screenshots:
 
 | Scope | Deleted lines | Added lines | Net fewer lines |
 | --- | ---: | ---: | ---: |
@@ -72,3 +72,11 @@ Compared with `ab1980e`, excluding this QA record and screenshots:
 Deleted `receivingQueue.ts`, `receivingSync.ts`, and their obsolete scheduling coverage (`receiving.worker.spec.ts`, `receivingSync.spec.ts`). Seven old unit cases were removed and seven receipt/lifecycle regression cases were added: total cases remain 42, with one fewer test file. Explicit entity declarations and durable receipt recovery account for much of the replacement code.
 
 This is broad browser regression coverage, not a claim that every app path is verified. Purchase-order/return submissions lack Demo fixtures; physical Shopify POS, camera scanning, distributed receiving from different devices, and production-scale memory/latency remain untested. The backend has no new idempotency contract; ambiguous writes deliberately require review. The retained legacy cache is left untouched after journal import. Nothing has been merged or deployed by this refactor task.
+
+## Secondary identifier follow-up
+
+The product fetch and cache projection omitted four supported display fields: `groupId`, `groupName`, `title`, and `primaryProductCategoryName`. Demo's configured secondary identifier was `groupName`, so transfer details rendered an empty secondary line despite the field being present in OMS. The fetch and projection now retain all four fields. Cache version 2 uses the existing AccxUI rebuild contract to replace older incomplete products; the separate receipt journal is retained.
+
+Validation: all 42 unit tests passed, with the existing product projection regression extended to cover the four fields. The production build passed in 11.14 seconds. All 28 migration browser assertions passed, including four new checks for cache rebuilding, the version marker, identifier persistence after reopening, and unresolved-receipt retention. Live Demo M100107 displayed the configured Group Name for all three products after the upgrade and a subsequent reload. Readback confirmed all four fields in IndexedDB version 2. No inventory submission was made for this follow-up.
+
+![Secondary product identifiers restored](secondary-product-identifiers.png)

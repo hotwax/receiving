@@ -95,7 +95,7 @@ export class ReceivingApi {
         const query = {
           query: '*:*', filter: ['docType:PRODUCT', `productId:(${ids.map(id => `"${id.replace(/([\\"])/g, '\\$1')}"`).join(' OR ')})`],
           params: { start, rows: 100, sort: 'productId asc,docType-identifier asc',
-            fl: 'productId,productName,parentProductName,internalName,sku,upc,goodIdentifications,productFeatures,mainImageUrl,isVariant,isVirtual,updatedDatetime,docType-identifier' },
+            fl: 'productId,productName,parentProductName,internalName,groupId,groupName,title,primaryProductCategoryName,sku,upc,goodIdentifications,productFeatures,mainImageUrl,isVariant,isVirtual,updatedDatetime,docType-identifier' },
         };
         const { body } = await this.request(this.connection.moqui ? 'admin/search/query' : 'admin/runSolrQuery', {}, this.connection.moqui ? query : { json: query });
         const result = this.connection.moqui ? body.response?.response : body.response;

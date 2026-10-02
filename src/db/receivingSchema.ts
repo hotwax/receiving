@@ -33,6 +33,7 @@ export const receivingSchema = defineSchema({
     primaryKey: 'productId',
     fields: {
       productId: 'text', productName: 'text', parentProductName: 'text', internalName: 'text',
+      groupId: 'text', groupName: 'text', title: 'text', primaryProductCategoryName: 'text',
       sku: 'text', upc: 'text', smallImageUrl: 'text', mediumImageUrl: 'text', largeImageUrl: 'text',
       mainImageUrl: 'text', productFeatures: 'structured', goodIdentifications: 'structured',
       identifierConflict: 'structured', canonicalDocument: 'structured', updatedAt: 'date',

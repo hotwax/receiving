@@ -8,7 +8,7 @@ import type { Table } from 'dexie';
 export type Row = Record<string, any>;
 export const tuple = (...parts: unknown[]) => JSON.stringify(parts);
 export const uniqueIds = (values: unknown[]): string[] => [...new Set(values.filter(value => typeof value === 'string' && value.length > 0) as string[])];
-export const receivingCache = defineAppDb({ suffix: 'ReceivingCache', version: 1, schema: receivingSchema });
+export const receivingCache = defineAppDb({ suffix: 'ReceivingCache', version: 2, schema: receivingSchema });
 export type ReceivingDB = BaseDB;
 export const openReceivingDb = ensureDbReady;
 export const clearReceivingData = clearDatabaseTables;

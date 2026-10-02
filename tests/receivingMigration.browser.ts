@@ -3,6 +3,7 @@ import Dexie from 'dexie';
 import { ensureDbReady, clearDatabaseTables } from '@common/db/storage/baseDb';
 import { ReceiptOperations, importLegacyReceipts, clearReceiptOperation, receiptLock } from '../src/db/receiptOperations';
 import { ReceivingDB } from './receivingTestDb';
+import { receivingCache, replaceProducts } from '../src/db/receivingDatabase';
 
 export async function checkReceivingMigration() {
   const passed: string[] = [];
@@ -36,5 +37,22 @@ export async function checkReceivingMigration() {
       check(!await operations.receipts.get('T1'), `v${version}: resolved legacy guards are not resurrected`);
     } finally { await legacy.delete(); await db.delete(); await operations.delete(); }
   }
+  const scope = `product-fields-upgrade-${crypto.randomUUID()}`;
+  const old = new Dexie(receivingCache.name(scope)), db = new ReceivingDB(scope), operations = new ReceiptOperations(scope);
+  old.version(1).stores({ ...receivingCache.schema, syncMeta: 'key' });
+  try {
+    await old.table('products').put({ productId: 'P1', internalName: 'SKU1', updatedAt: Date.now() });
+    await old.table('syncMeta').put({ key: 'schemaVersion', version: 1 });
+    await operations.receipts.put({ orderId: 'T1', operationId: 'pending', state: 'unknown', startedAt: 123 });
+    old.close();
+    await ensureDbReady(db);
+    check(!await db.table('products').get('P1'), 'Cache upgrade discards fresh products missing display identifier fields');
+    check((await db.syncMeta.get('schemaVersion'))?.version === receivingCache.version, 'Cache upgrade records the current schema version');
+    await replaceProducts(db, [{ productId: 'P1', groupId: '0001', groupName: 'Blue shirt', title: 'Product blue shirt.', primaryProductCategoryName: 'Tops' }], () => {});
+    db.close(); await ensureDbReady(db);
+    const product = await db.table('products').get('P1');
+    check(product.groupId === '0001' && product.groupName === 'Blue shirt' && product.title === 'Product blue shirt.' && product.primaryProductCategoryName === 'Tops', 'Refreshed display identifiers survive reopening the cache');
+    check((await operations.receipts.get('T1'))?.operationId === 'pending', 'Product cache upgrade preserves unresolved receipts');
+  } finally { old.close(); await db.delete(); await operations.delete(); }
   return { passed };
 }
