@@ -241,6 +241,9 @@ export const useUserStore = defineStore("user", {
       }
     },
     async postLogout() {
+      // AccxUI skips preLogout for expired/invalid sessions. Always clear the
+      // receiving cache before resetting stores; manual logout is idempotent.
+      await clearReceivingSession().catch(error => logger.error(error));
       useTransferOrderStore().closeLocalDetail();
       useNotificationStore().clearNotificationState();
       useOrderStore().$reset();

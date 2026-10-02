@@ -230,7 +230,9 @@ export async function clearReceivingSession() {
   if (scope) channel.postMessage({ type: 'logout', scope });
   void configureReceiving();
   if (old && scope) await navigator.locks.request(receiptLock(scope), async () => {
-    try { await clearReceivingData(old); } finally { old.close(); }
+    // Session teardown closes this handle. Dexie does not auto-open an explicitly
+    // closed database, so reopen it before AccxUI's shared transactional clear.
+    try { await old.open(); await clearReceivingData(old); } finally { old.close(); }
   });
 }
 export function enableReceivingSession() { sessionEnabled = true; }

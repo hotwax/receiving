@@ -1,7 +1,7 @@
 // Transport/lifecycle fault injection. Live OMS receipt behavior is verified separately in browser QA.
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 const state = vi.hoisted(() => ({
-  api: vi.fn(), start: vi.fn(), refetch: vi.fn(), stop: vi.fn(), open: vi.fn(), syncDomain: vi.fn(),
+  api: vi.fn(), start: vi.fn(), refetch: vi.fn(), stop: vi.fn(), open: vi.fn(), clear: vi.fn(), syncDomain: vi.fn(),
   journals: new Map<string, Map<string, any>>(), dbs: new Map<string, any>(),
   serviceState: { running: false, written: {} as Record<string, number>, errors: {} as Record<string, string> },
   onStatus: undefined as ((status: Record<string, any>) => void) | undefined,
@@ -20,10 +20,17 @@ vi.mock('@common/db/sync/syncService', () => ({
 vi.mock('dexie', async original => ({ ...await original<any>(), liveQuery: () => ({ subscribe: () => ({ unsubscribe() {} }) }) }));
 vi.mock('./receivingDatabase', () => ({
   tuple: (...parts: unknown[]) => JSON.stringify(parts), cacheKeys: { hydrate: () => 'hydrate' }, readCacheState: async () => undefined,
-  openReceivingDb: state.open, clearReceivingData: async () => {},
+  openReceivingDb: state.open, clearReceivingData: state.clear,
   receivingCache: {
     setOmsInstanceResolver() {},
-    get(scope: string) { if (!state.dbs.has(scope)) state.dbs.set(scope, { name: scope, close() {} }); return state.dbs.get(scope); },
+    get(scope: string) {
+      if (!state.dbs.has(scope)) state.dbs.set(scope, {
+        name: scope, closed: false,
+        async open() { this.closed = false; },
+        close() { this.closed = true; },
+      });
+      return state.dbs.get(scope);
+    },
     raw: () => ({}),
   },
 }));
@@ -53,6 +60,7 @@ let client: typeof import('./receivingClient');
 beforeEach(async () => {
   vi.resetModules(); vi.clearAllMocks(); state.journals.clear(); state.dbs.clear(); state.serviceState.errors = {};
   state.open.mockResolvedValue(undefined); state.start.mockResolvedValue(undefined); state.refetch.mockResolvedValue(1);
+  state.clear.mockImplementation(async db => { if (db.closed) throw new Error('DatabaseClosedError'); });
   state.api.mockImplementation(async (request: any) => request.method === 'get' ? { data: { order: { items: [line] } } } : { status: 200, data: {} });
   vi.stubGlobal('navigator', { locks: { request: async (_name: string, run: () => unknown) => run() } });
   vi.stubGlobal('BroadcastChannel', class { onmessage: unknown; postMessage() {} close() {} });
@@ -60,6 +68,17 @@ beforeEach(async () => {
   await client.configureReceiving(connection);
 });
 const postCount = () => state.api.mock.calls.filter(([request]) => request.method === 'post').length;
+
+it('reopens the captured cache for shared logout cleanup and closes it afterward', async () => {
+  const db = await client.getReceivingDb();
+  await client.clearReceivingSession();
+  expect(state.clear).toHaveBeenCalledOnce();
+  expect(state.clear).toHaveBeenCalledWith(db);
+  expect(state.dbs.get(connection.scope).closed).toBe(true);
+  expect(client.receivingDb.value).toBeUndefined();
+  await client.clearReceivingSession();
+  expect(state.clear).toHaveBeenCalledOnce();
+});
 
 describe('Live receiving progress', () => {
   it('advances from actual work and retains finished work while another domain is running', () => {
