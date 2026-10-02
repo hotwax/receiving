@@ -163,7 +163,7 @@
               <template v-if="!['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId)">
                 <div class="action border-top" v-if="item.orderItemSeqId">
                   <div class="receive-all-qty">
-                    <ion-button :data-testid="`transfer-order-detail-page-receive-all-btn-${item.orderItemSeqId || item.productId}`" @click="receiveAll(item)" :disabled="isForceScanEnabled || isItemReceivedInFull(item)" slot="start" size="small" fill="outline">
+                    <ion-button :data-testid="`transfer-order-detail-page-receive-all-btn-${item.orderItemSeqId || item.productId}`" @click="receiveAll(item)" :disabled="isForceScanEnabled || getScanAllQuantity(item, isReceivingByFulfillment) <= 0" slot="start" size="small" fill="outline">
                       {{ translate("Scan all") }}
                     </ion-button>
                   </div>
@@ -235,7 +235,7 @@
 
               <div class="action border-top" v-if="item.orderItemSeqId">
                 <div class="receive-all-qty">
-                  <ion-button :data-testid="`transfer-order-detail-page-open-receive-all-btn-${item.orderItemSeqId || item.productId}`" @click="receiveAll(item)" :disabled="isForceScanEnabled || isItemReceivedInFull(item)" size="small" fill="outline">
+                  <ion-button :data-testid="`transfer-order-detail-page-open-receive-all-btn-${item.orderItemSeqId || item.productId}`" @click="receiveAll(item)" :disabled="isForceScanEnabled || getScanAllQuantity(item, isReceivingByFulfillment) <= 0" size="small" fill="outline">
                     {{ translate("Scan all") }}
                   </ion-button>
                 </div>
@@ -422,7 +422,7 @@ import ReceiptReviewModal from '@/components/ReceiptReviewModal.vue';
 import { useRouter } from 'vue-router';
 import { useReceiveFlowState } from '@/composables/useReceiveFlowState';
 import { runTransferOrderDetailReceiveWorkflow } from '@/views/transferOrderDetailReceiveWorkflow';
-import { markItemsAsReceived, remainingIssuedQuantity } from '@/views/transferOrderBulkReceive';
+import { markItemsAsReceived, scanAllQuantity } from '@/views/transferOrderBulkReceive';
 import Actions from "@/authorization/actions";
 
 const router = useRouter();
@@ -491,6 +491,13 @@ const toastButtons = [
 
 const boxAllocations = computed(() => buildBoxAllocations(order.value.shipmentPackages || [], order.value.shipmentPackageItems || []));
 const getBoxAllocations = (item: any) => boxAllocations.value.get(tuple(item.orderItemSeqId, item.productId)) || [];
+const getScanAllQuantity = (item: any, issuedOnly = true) => {
+  if (selectedPackageKey.value && (!order.value.shipmentsReady || order.value.shipmentError)) return 0;
+  const packageQuantity = selectedPackageKey.value
+    ? getBoxAllocations(item).find(box => box.packageKey === selectedPackageKey.value)?.quantity ?? 0
+    : undefined;
+  return scanAllQuantity(item, { issuedOnly, packageQuantity });
+};
 const shipmentBoxes = computed(() => (order.value.shipmentPackages || []).filter((pkg: any) =>
   pkg.shipmentStatusId === 'SHIPMENT_SHIPPED' && (order.value.shipmentPackageItems || []).some((row: any) => row.packageKey === pkg.packageKey)));
 const inSelectedPackage = (item: any) => !selectedPackageKey.value || getBoxAllocations(item).some(box => box.packageKey === selectedPackageKey.value);
@@ -562,7 +569,7 @@ const getAllItems = computed(() => (openItemsTemp.value.length ? openItems.value
 const confirmationItems = shallowRef<any[]>();
 const receiptItems = computed(() => confirmationItems.value || [...openItems.value, ...openItemsTemp.value].filter(inSelectedPackage));
 const bulkReceiptItems = computed(() => selectedSegment.value === 'all' ? getAllItems.value : visibleOpenItems.value);
-const canBulkReceive = computed(() => bulkReceiptItems.value.some((item: any) => remainingIssuedQuantity(item) > 0) &&
+const canBulkReceive = computed(() => bulkReceiptItems.value.some((item: any) => getScanAllQuantity(item) > 0) &&
   userStore.hasPermission(Actions.APP_SHIPMENT_UPDATE) && !isForceScanEnabled.value &&
   !isReceiveFlowBusy.value && !order.value.cacheConflict && !order.value.needsReadback && order.value.ready &&
   (!selectedPackageKey.value || order.value.shipmentsReady && !order.value.shipmentError));
@@ -588,10 +595,6 @@ const getReceivedUnits = () => {
 
 const segmentChanged = (value: string) => {
   selectedSegment.value = value;
-};
-
-const isItemReceivedInFull = (item: any) => {
-  return (Number(item.totalReceivedQuantity) || 0) >= getItemQty(item);
 };
 
 const getRcvdToOrderedFraction = (item: any) => {
@@ -906,7 +909,7 @@ const receiveAndCloseTO = () => {
 
 const markAllAsReceived = () => {
   if (!canBulkReceive.value) return;
-  markItemsAsReceived(bulkReceiptItems.value);
+  markItemsAsReceived(bulkReceiptItems.value, getScanAllQuantity);
 };
 
 const receiveTransferOrder = async (isClosingTO: boolean, receipt: { orderId: string; facilityId: string; baseline: any[]; preserveOtherDrafts: boolean }) => {
@@ -966,9 +969,7 @@ const isEligibleForCreatingShipment = (isClosingTO = false) => {
 };
 
 const receiveAll = (item: any) => {
-  const qtyAlreadyAccepted = Number(item.totalReceivedQuantity) || 0;
-  const qty = isReceivingByFulfillment.value ? item.totalIssuedQuantity : item.quantity;
-  item.quantityAccepted = Math.max(qty - qtyAlreadyAccepted, 0);
+  item.quantityAccepted = getScanAllQuantity(item, isReceivingByFulfillment.value);
 };
 
 const isTOReceived = () => order.value.statusId === "ORDER_COMPLETED";

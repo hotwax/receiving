@@ -1,12 +1,12 @@
 # Receiving performance and regression audit — 2 October 2026
 
-The performance refactor has a verified 39.8% reduction in the modern entry bundle, with no new failures in the comparable shared test suite. Browser receiving reviews and compiled physical-iPad navigation passed. This is conditional confidence in the performance changes, not a blanket release approval: CI has dependency/install gates, a pre-existing box-receiving risk remains, and a 1–2 second startup has not been demonstrated.
+The performance refactor has a verified 39.8% reduction in the modern entry bundle, with no new failures in the comparable shared test suite. Browser receiving reviews and compiled physical-iPad navigation passed. The subsequent Scan all correction passed browser checks and an actual two-unit receipt from the physical iPad, with OMS inventory readback. CI still has dependency/install gates, and a 1–2 second startup has not been demonstrated.
 
 ## Audited scope
 
 - [Receiving #745](https://github.com/hotwax/receiving/pull/745), application source `696d639`, against main `b575ce1`.
 - [AccxUI #197](https://github.com/hotwax/accxui/pull/197), shared source `61edf6a`, against main `c91b85d`.
-- Main checkouts were used. No new Git worktree, API change, merge, deployment or inventory receipt was made during this audit.
+- Main checkouts were used. No new Git worktree, API change, merge or deployment was made. The initial performance audit was read-only; the explicitly authorized follow-up receipt is recorded below.
 - Real backend: Demo Maarg. Desktop browser: Brooklyn. Compiled embedded Shopify POS: hotwax-demo, Broadway, physical iPad Pro 11-inch (3rd generation), iPadOS 27.0, Shopify POS 11.15.0.
 - Desktop QA used the verified Receiving listener on localhost:8103. Compiled POS QA used the existing authorized local preview; the actual child iframe origin was asserted. The ordinary fresh build used separate output to preserve that running preview.
 
@@ -48,6 +48,19 @@ Times come from in-page DOM milestones relative to iframe navigation, not WDA sc
 
 The fresh compiled trace spent approximately 1.72 seconds from app-bridge login starting to final store-settings response. The warm trace still spent about 1.33 seconds on that account/facility/store chain. Shared profile and permission reads overlap, but location, facility, stores and their settings retain sequential dependencies. Auth starts after the entry and Shopify bootstrap have loaded. That explains why warm data alone does not yet produce sub-two-second startup.
 
+The saved production traces break the observed startup into these non-overlapping intervals:
+
+| Interval | Fresh origin | Warm |
+| --- | ---: | ---: |
+| Iframe navigation to first OMS app-bridge login request | 2,908 ms | 1,383 ms |
+| Login request start to final store-settings response | 1,724 ms | 1,331 ms |
+| Store-settings response to first transfer row | 720 ms | 304 ms |
+| Total | **5,352 ms** | **3,018 ms** |
+
+The first interval includes frontend delivery, evaluation and Shopify bootstrap; it is not an isolated JavaScript parse measurement. Native tile-tap time before iframe navigation is excluded. These are existing compiled-build observations, not timings from the development-mode receipt follow-up.
+
+There is no demonstrated three-second minimum. The largest next experiment is to reuse a validated same-user/shop/location context to show scoped cached transfers earlier, refresh noncritical configuration in the background, and retain authentication and receiving-permission gates before mutations. Further supported Ionic import reduction and translation precompilation may shorten the first interval. Measure repeated cold and warm runs on the deployed CDN as well: the local tunnel and backend round trips influence these samples. No additional latency saving or sub-two-second result is claimed before those experiments.
+
 Earlier instrumented worker observations reduced the gap from worker start to hydration start from 5,209 to 1,004 ms, consistent with the 5-second-to-1-second scheduling change. Those are historical diagnostic observations. Full-store readiness and current-worker throughput were not rebenchmarked in the uninstrumented shipping-candidate run. No heap, long-task or native barcode-throughput benchmark was performed.
 
 Largest remaining candidates are Ionic component registration/import overhead, the i18n message compiler, and the startup account/configuration chain. Module `renderedBytes` values are unminified contributions and must not be treated as final transfer-size savings. Investigate each with a measured experiment and compatible runtime validation before changing the shipping PR.
@@ -56,7 +69,7 @@ Largest remaining candidates are Ionic component registration/import overhead, t
 
 | Check | Audit result | What it establishes |
 | --- | --- | --- |
-| Receiving suite | **65/65 passed**, 14 files | Receipt/draft validation, duplicate-submit locks, shipment parsing, cache/readback fencing, logout/session isolation, completed publication, paging and startup ordering |
+| Receiving suite, including Scan all follow-up | **70/70 passed**, 14 files | Receipt/draft validation, selected-box limits, duplicate-submit locks, shipment parsing, cache/readback fencing, logout/session isolation, completed publication, paging and startup ordering |
 | Broad shared suite | **309 passed / 6 failed**, 315 cases | SDK lifecycle fault paths, notifications, utilities, DB/sync and shared component coverage |
 | Same shared suite on archived AccxUI main source | **297 passed / same 6 failed**, 303 cases | No added shared-suite failure; all 12 added cases pass |
 | Utility extraction AST comparison | **63/63 declarations identical**, all **57 legacy object keys retained** | Moving functions preserved implementations and compatibility names |
@@ -90,19 +103,34 @@ Desktop console inspection also found three Ionic errors: the detail tab buttons
 
 Compiled physical POS run **`run-1790977174956-285e0e93` passed**: unlocked Home, local iframe origin, tracking search, Enter to selected-box detail, hidden keyboard on automatic focus, manual text entry, Open/Completed tabs, Settings, Purchase Orders, Returns and back to Transfers. Runtime-error telemetry recorded **zero uncaught errors/rejections**.
 
-The iPad retained a compact keyboard state. A strict full-keyboard assertion initially failed. Native inspection showed the `Keyboard → Show Keyboard` menu; selecting it displayed the full keyboard, and `audit-entry` was typed, asserted and cleared. WDA's clear action dismissed the full keyboard, so cleanup now tolerates that observed state. The final run explicitly allowed expanding the compact keyboard: it proves manual input works, not that every tap forces the full keyboard open regardless of iPad state. No system/security setting was changed. Native scanner opening/capture and final inventory receipt/readback remain outside this audit's live coverage.
+The iPad retained a compact keyboard state. A strict full-keyboard assertion initially failed. Native inspection showed the `Keyboard → Show Keyboard` menu; selecting it displayed the full keyboard, and `audit-entry` was typed, asserted and cleared. WDA's clear action dismissed the full keyboard, so cleanup now tolerates that observed state. The final run explicitly allowed expanding the compact keyboard: it proves manual input works, not that every tap forces the full keyboard open regardless of iPad state. No system/security setting was changed. Native scanner opening/capture remains outside this audit's live coverage. Actual receipt/readback was subsequently verified below.
 
-## Existing box-receiving risk found by live QA
+## Scan all correction and physical-iPad receipt follow-up
 
-**High-priority operator risk, present on main:** on M100107, MH01-XS-Black has 12 issued, 2 previously received, and allocations of 10 and 2 units in two boxes. Selecting the 2-unit box and pressing Auto scan all sets the draft to **10**, the entire line's remaining issued balance. Hidden lines remain untouched, but the selected box does not cap a shared line's quantity. Item-level Scan all uses the same line-total semantics.
+**Corrected:** on M100107, MH01-XS-Black has 12 issued, 2 previously received, and allocations of 10 and 2 units in two boxes. Both Auto scan all and item-level Scan all previously staged **10** with the two-unit box selected. Both now suggest the selected box's quantity, capped by the remaining issued balance. Repeated clicks replace the draft rather than add to it. Unfiltered header behavior still uses the remaining issued balance, and unfiltered item behavior preserves the store's ordered-versus-fulfilled setting.
 
-The current UI explicitly says entered quantities are totals across boxes, and `transferOrderBulkReceive.ts` on main already implements this behavior. It is not an optimization regression. Nevertheless, it conflicts with the intuitive “scan this box” operation and can over-receive inventory relative to the box actually opened. Tests cover line visibility and remaining-issued totals, not a selected-box quantity cap. Resolve the intended box-versus-line quantity contract before claiming box receiving is fully validated. No speculative allocation of historical receipts to boxes or server change was made here.
+Real Demo browser checks verified both buttons stage **2**, including repeated clicks and replacing a draft of 10. All shipments fills **[10, 14, 40]**; selecting the small box then fills only its visible line, leaving **[2, 14, 40]** after returning to All shipments. All browser drafts were cleared afterward. Five regression cases cover box limits, the remaining balance, hidden drafts, invalid allocations and ordered-quantity mode. The 70-test suite, a fresh ordinary production build and the Ionic diff checker passed.
+
+Receipt quantities remain order-line totals. Historical receipts are not reliably allocated to specific boxes by the available API, so the app does not pretend it knows which box was previously received. Selecting another box replaces the suggestion for a shared line; it does not accumulate box quantities automatically.
+
+An explicitly authorized real receipt then passed on the physical iPad in Shopify POS, using the same main-checkout source through the existing local preview in **development mode**. This verifies the corrected source in the embedded app; it is separate from the compiled-build performance measurements above.
+
+| Evidence | Before | After |
+| --- | --- | --- |
+| Demo Maarg / Broadway order M100053 (TRO00000135) | ORDER_APPROVED | ORDER_COMPLETED |
+| Item 01 / product 10481, issued 2 | Received 0; ITEM_PENDING_RECEIPT | Received **2**; ITEM_COMPLETED |
+| Broadway quantity on hand | **109** | **111** |
+| Receipt history | Empty | One receipt for **2** accepted units |
+
+Native run `receipt-M100053-1790980627941` passed in 39.9 seconds. It searched tracking code `78552488`, pressed Enter, used Auto scan all twice and item Scan all, asserted a draft of two, opened the receipt confirmation and pressed Proceed once. A fresh API check immediately before submission verified the original receipt/inventory baseline. Post-submit readback verified the order, item, history and inventory changes. The test then opened Completed and reopened the detail page: it displayed **2 Received | 2 Fulfilled | 2 Ordered**, **111 on hand**, and no receiving footer. Screenshots and video were retained locally.
+
+This proves real native submission and the updated list/detail after readback. Direct inspection of the iPad's IndexedDB stores was not available through the cross-origin native web context; reopened UI evidence and the existing automated cache-write tests are separate evidence, not a claimed direct database dump. An initial attempt stopped at the POS PIN overlay before submission; the successful run used the toolkit's saved-PIN mapping, with no security-setting changes or duplicate receipt attempt.
 
 ## Release gates
 
 1. Merge AccxUI #197 before Receiving #745 can build against the focused modules. Receiving's current CI loads AccxUI main and fails with missing `common/utils/core`.
 2. Resolve or explicitly disposition AccxUI's frozen-lockfile failures for Order Manager and Inventory Count. Both stop before compiling the changed source. Other eight app builds passed. [AccxUI run](https://github.com/hotwax/accxui/actions/runs/37062641908), [Receiving run](https://github.com/hotwax/receiving/actions/runs/37063180261).
 3. Obtain the required Receiving review and green CI after its prerequisite is available. No merge/deployment has been performed.
-4. Treat native scanner operation, actual receipt/inventory/cache readback, populated PO/Return details, broad facility switching, and controlled repeated cold starts as remaining acceptance checks. Prior session receipts are not substituted for a fresh audit proof.
+4. Treat native scanner operation, populated PO/Return details, broad facility switching, direct native IndexedDB inspection and controlled repeated cold starts as remaining acceptance checks. Actual native receipt, inventory readback and reopened order UI are now verified above.
 
-The demonstrated conclusion is narrower and useful: the import/lazy-loading refactor materially reduces shipped JavaScript, preserves utility contracts, adds no shared-suite failures, and survives the audited browser and compiled iPad paths. It does not yet meet the requested 1–2 second cold-start target or eliminate the existing box-receiving risk.
+The import/lazy-loading refactor materially reduces shipped JavaScript, preserves utility contracts, adds no shared-suite failures, and survives the audited browser and compiled iPad paths. The subsequent Scan all correction also passed an actual native receipt with inventory readback. The requested 1–2 second cold-start target remains unproven.
