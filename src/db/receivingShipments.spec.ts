@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { boxBoundaries, itemBoxAllocations, shipmentRows } from './receivingShipments';
+import { boxBoundaries, buildBoxAllocations, shipmentRows } from './receivingShipments';
 import { trackingBadges } from './receivingQueries';
 
 const shipment = (id: string, quantity: number, status = 'SHIPMENT_SHIPPED', facility = 'B') => ({
@@ -14,10 +14,10 @@ describe('Receiving shipment cache', () => {
     const snapshot = shipmentRows([first, first, shipment('S2', 2)], 'T1', 'B', 1);
     expect(snapshot.packages).toHaveLength(2);
     expect(snapshot.items).toHaveLength(2);
-    const allocations = itemBoxAllocations(snapshot.packages, snapshot.items, { orderItemSeqId: '01', productId: 'P1' });
+    const allocations = buildBoxAllocations(snapshot.packages, snapshot.items).get('["01","P1"]')!;
     expect(allocations.map(box => box.quantity)).toEqual([10, 2]);
     expect(boxBoundaries(allocations, 15).map(tick => tick.position)).toEqual([10 / 15, 12 / 15]);
-    expect(itemBoxAllocations(snapshot.packages, snapshot.items, { orderItemSeqId: '02', productId: 'P1' })).toEqual([]);
+    expect(buildBoxAllocations(snapshot.packages, snapshot.items).get('["02","P1"]') || []).toEqual([]);
   });
 
   it('rejects conflicting duplicate quantities and responses for another order', () => {

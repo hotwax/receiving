@@ -1,72 +1,38 @@
-import { BaseDB } from '@common/db/storage/baseDb';
-import { projectRow, toMillis } from '@common/db/storage/projection';
-import { defineEntity } from '@common/db/schema/defineEntity';
+import { BaseDB, ensureDbReady, clearDatabaseTables } from '@common/db/storage/baseDb';
+import { defineAppDb } from '@common/db/schema/defineAppDb';
+import { dbClient } from '@common/db/storage/dbClient';
+import { diffStaleKeys, projectRow, toMillis } from '@common/db/storage/projection';
+import { receivingSchema } from './receivingSchema';
+import type { Table } from 'dexie';
 
 export type Row = Record<string, any>;
 export const tuple = (...parts: unknown[]) => JSON.stringify(parts);
 export const uniqueIds = (values: unknown[]): string[] => [...new Set(values.filter(value => typeof value === 'string' && value.length > 0) as string[])];
+export const receivingCache = defineAppDb({ suffix: 'ReceivingCache', version: 2, schema: receivingSchema });
+export type ReceivingDB = BaseDB;
+export const openReceivingDb = ensureDbReady;
+export const clearReceivingData = clearDatabaseTables;
 
-const RECEIVING_V1_SCHEMA = {
-  transferOrders: 'orderId, *originFacilityIds, *destinationFacilityIds, *pendingReceiptFacilityIds',
-  transferItems: 'itemKey, [orderId+orderFacilityId+statusId], productId',
-  products: 'productId, updatedAt',
-  productIdentification: 'identificationKey, productId, [identKey+value], value',
-  transferPackages: 'packageKey, [facilityId+orderId], [facilityId+trackingCode]',
-  transferMisShippedReceipts: 'receiptId, productId, [orderId+receivedAtSort+receiptId], [orderId+productId+receivedAtSort+receiptId]',
-  transferReceiptGroups: 'receiptGroupKey, [orderId+receivedAtSort+receiptGroupKey], [orderId+orderItemSeqId+receivedAtSort+receiptGroupKey]',
-  receivingUsers: 'userLoginId',
+// Disposable freshness/coverage only. Receipt operations live outside this cache.
+export interface CacheState {
+  key: string;
+  ready?: boolean;
+  complete?: boolean;
+  checkedAt?: number;
+  error?: string;
+  missingProductIds?: string[];
+  conflictingProductIds?: string[];
+  unresolvedProductIds?: string[];
+}
+export const cacheKeys = {
+  facility: (facilityId: string) => tuple('facility', facilityId),
+  detail: (orderId: string) => tuple('detail', orderId),
+  hydrate: (facilityId: string, orderId: string) => tuple('hydrate', facilityId, orderId),
+  shipments: (facilityId: string, orderId: string) => tuple('shipments', facilityId, orderId),
+  receipts: (table: string, orderId: string) => tuple(table, orderId, ''),
 };
-
-export const RECEIVING_SCHEMA = {
-  ...RECEIVING_V1_SCHEMA,
-  transferPackageItems: 'contentKey, [facilityId+orderId], packageKey, [orderId+orderItemSeqId]',
-};
-
-export const RECEIVING_DB_VERSION = 3;
-const versionMarker = () => ({ key: 'schemaVersion', version: RECEIVING_DB_VERSION, timestamp: Date.now() });
-
-export class ReceivingDB extends BaseDB {
-  constructor(scope: string) {
-    super(`receiving-v1:${scope}`, RECEIVING_SCHEMA, RECEIVING_DB_VERSION);
-    this.version(1).stores({ ...RECEIVING_V1_SCHEMA, syncMeta: 'key' });
-    this.version(2).stores({ ...RECEIVING_SCHEMA, syncMeta: 'key' }).upgrade(transaction =>
-      transaction.table('transferPackages').toCollection().modify(row => {
-        // Version one only downloaded SHIPMENT_SHIPPED packages.
-        row.shipmentStatusId = 'SHIPMENT_SHIPPED';
-      }));
-    // Preserve receiptReadback markers: an uncertain receipt cannot be reconstructed
-    // safely by dropping the cache. Migrate before the shared harness checks its version.
-    this.version(RECEIVING_DB_VERSION).upgrade(transaction =>
-      transaction.table('syncMeta').put(versionMarker()).then(() => undefined));
-    this.on('populate', transaction => transaction.table('syncMeta').put(versionMarker()).then(() => undefined));
-  }
-}
-
-export async function openReceivingDb(db: ReceivingDB) {
-  // Open errors and unexpected markers must fail closed, before the shared helper's
-  // rebuild fallback can discard pending receipt reconciliation state.
-  await db.open();
-  if ((await db.syncMeta.get('schemaVersion'))?.version !== db.declaredVersion) {
-    throw new Error('Receiving storage version could not be verified.');
-  }
-}
-
-export async function clearReceivingData(db: ReceivingDB) {
-  await openReceivingDb(db);
-  await db.transaction('rw', db.getTableNames(), async () => {
-    for (const table of db.getTableNames()) await db.table(table).clear();
-    await db.syncMeta.put(versionMarker());
-  });
-}
-
-const headerProjection = defineEntity({
-  primaryKey: 'orderId',
-  fields: {
-    orderId: 'text', orderName: 'text', externalId: 'text', statusId: 'text', status: 'text',
-    orderDate: 'date', productStoreId: 'text', statusFlowId: 'text', currencyUom: 'text',
-  },
-  rename: { externalId: 'orderExternalId', statusId: 'orderStatusId', status: 'orderStatusDesc' },
-});
+export const readCacheState = (db: ReceivingDB, key: string) => db.table<CacheState>('syncMeta').get(key);
+const headerProjection = receivingSchema.entities.transferOrders;
 
 function requireId(row: Row, field: string): string {
   if (typeof row[field] !== 'string' || !row[field]) throw new Error(`Missing ${field} in receiving response`);
@@ -76,7 +42,7 @@ function requireId(row: Row, field: string): string {
 export function headerRow(raw: Row, now: number): Row {
   requireId(raw, 'orderId');
   const { items: _items, ...header } = raw;
-  const row: Row = { ...projectRow(header, headerProjection, now)!, raw: header };
+  const row: Row = { ...projectRow(header, headerProjection, now)! };
   for (const field of Object.keys(headerProjection.fields)) {
     const source = field in header ? field : headerProjection.rename?.[field];
     if (source && header[source] === null) row[field] = null;
@@ -107,7 +73,7 @@ export function itemRows(order: Row, now: number): Row[] {
     const itemKey = tuple(orderId, orderItemSeqId);
     if (seen.has(itemKey)) throw new Error('Duplicate transfer item');
     seen.add(itemKey);
-    const row: Row = { ...raw, orderId, itemKey, raw, syncedAt: now };
+    const row: Row = { ...projectRow({ ...raw, orderId, itemKey }, receivingSchema.entities.transferItems, now)! };
     for (const field of ['productId', 'orderFacilityId', 'statusId']) requireId(row, field);
     for (const field of ['quantity', 'totalIssuedQuantity', 'totalReceivedQuantity', 'cancelQuantity']) {
       if (raw[field] == null) continue;
@@ -152,7 +118,7 @@ export function productRows(documents: Row[], now: number) {
         if (typeof raw[field] === 'string' && raw[field]) identifications.push({ identificationKey: tuple(productId, `field:${field}`, raw[field]), productId, identKey: `field:${field}`, value: raw[field] });
       }
     }
-    products.push({ ...raw, productId, goodIdentifications: values, identifierConflict, canonicalDocument, updatedAt: now, raw, syncedAt: now });
+    products.push(projectRow({ ...raw, productId, goodIdentifications: values, identifierConflict, canonicalDocument, updatedAt: now }, receivingSchema.entities.products, now)!);
   }
   return { products, identifications };
 }
@@ -161,34 +127,57 @@ export function productRows(documents: Row[], now: number) {
 export function receiptRows(records: Row[], orderId: string, grouped: boolean, now: number): Row[] {
   return records.map(raw => {
     if (raw.orderId && raw.orderId !== orderId) throw new Error('Receipt belongs to another transfer');
-    const row: Row = { ...raw, orderId, receivedAtSort: toMillis(raw.datetimeReceived) ?? 0, raw, syncedAt: now };
+    const row: Row = { ...raw, orderId, receivedAtSort: toMillis(raw.datetimeReceived) ?? 0, syncedAt: now };
     requireId(raw, 'productId');
     if (grouped) {
       requireId(raw, 'orderItemSeqId');
       row.receiptGroupKey = tuple(orderId, raw.orderItemSeqId, toMillis(raw.datetimeReceived) ?? null, decimalKey(raw.quantityRejected),
         raw.receivedByUserLoginId ?? null, raw.productStoreId ?? null, raw.productId, decimalKey(raw.quantity));
     } else requireId(raw, 'receiptId');
-    return row;
+    return projectRow(row, receivingSchema.entities[grouped ? 'transferReceiptGroups' : 'transferMisShippedReceipts'], now)!;
   });
 }
 
 export type Fence = () => void;
 
-// These writes run only in the app's serialized sync worker. Check scope again inside every transaction.
+// Freshness lives in syncMeta. A no-change refresh should not invalidate data queries.
+function sourceChanged(previous: Row | undefined, next: Row) {
+  const { syncedAt: _previousSync, ...before } = previous || {};
+  const { syncedAt: _nextSync, ...after } = next;
+  return JSON.stringify(before) !== JSON.stringify(after);
+}
+
+async function replaceSnapshot(table: Table, previous: Row[], rows: Row[]) {
+  const key = table.schema.primKey.keyPath as string;
+  rows = rows.map(row => projectRow(row, receivingSchema.entities[table.name], row.syncedAt ?? Date.now())!);
+  const old = new Map(previous.map(row => [row[key], row]));
+  const removed = diffStaleKeys(previous.map(row => row[key]), rows.map(row => row[key]));
+  const changed = rows.filter(row => sourceChanged(old.get(row[key]), row));
+  const entity = dbClient(table.db as ReceivingDB, receivingSchema.entities).entity(table.name);
+  if (removed.length) await entity.bulkRemove(removed);
+  if (changed.length) await entity.bulkPut(changed);
+}
+
+// The worker holds scope/order locks; each transaction checks its connection again.
 export async function mergePendingPage(db: ReceivingDB, records: Row[], facilityId: string, fence: Fence) {
   const now = Date.now();
   const rows = records.map(raw => ({ raw, row: headerRow(raw, now) }));
   await db.transaction('rw', db.table('transferOrders'), async () => {
     fence();
+    const stored = await db.table('transferOrders').bulkGet(uniqueIds(rows.map(({ row }) => row.orderId)));
+    const old = new Map(stored.filter(Boolean).map(row => [row!.orderId, row!]));
+    const updates = new Map<string, Row>();
     for (const { raw, row } of rows) {
-      const old = await db.table('transferOrders').get(row.orderId);
-      await db.table('transferOrders').put({
-        ...old, ...row, raw: { ...old?.raw, ...row.raw },
-        originFacilityIds: uniqueIds([...(old?.originFacilityIds || []), raw.facilityId]),
-        destinationFacilityIds: uniqueIds([...(old?.destinationFacilityIds || []), raw.orderFacilityId, facilityId]),
-        pendingReceiptFacilityIds: uniqueIds([...(old?.pendingReceiptFacilityIds || []), facilityId]),
+      const previous = updates.get(row.orderId) || old.get(row.orderId);
+      updates.set(row.orderId, {
+        ...previous, ...row,
+        originFacilityIds: uniqueIds([...(previous?.originFacilityIds || []), raw.facilityId]),
+        destinationFacilityIds: uniqueIds([...(previous?.destinationFacilityIds || []), raw.orderFacilityId, facilityId]),
+        pendingReceiptFacilityIds: uniqueIds([...(previous?.pendingReceiptFacilityIds || []), facilityId]),
       });
     }
+    const changed = [...updates.values()].filter(row => sourceChanged(old.get(row.orderId), row));
+    if (changed.length) await db.table('transferOrders').bulkPut(changed);
     fence();
   });
 }
@@ -199,9 +188,9 @@ export async function reconcilePending(db: ReceivingDB, orderIds: string[], faci
     fence();
     const previous = await db.table('transferOrders').where('pendingReceiptFacilityIds').equals(facilityId).toArray();
     await db.table('transferOrders').bulkPut(previous.filter(row => !found.has(row.orderId)).map(row => ({
-      ...row, pendingReceiptFacilityIds: row.pendingReceiptFacilityIds.filter((id: string) => id !== facilityId),
+      ...row, pendingReceiptFacilityIds: (row.pendingReceiptFacilityIds || []).filter((id: string) => id !== facilityId),
     })));
-    await db.syncMeta.put({ key: tuple('facility', facilityId), complete: true, checkedAt: Date.now(), syncing: false });
+    await db.syncMeta.put({ key: cacheKeys.facility(facilityId), complete: true, checkedAt: Date.now() } satisfies CacheState);
     fence();
   });
 }
@@ -212,28 +201,9 @@ export async function reconcileOrderPending(db: ReceivingDB, orderId: string, fa
     const row = await db.table('transferOrders').get(orderId);
     if (!row) throw new Error('Transfer detail is missing during receipt readback');
     await db.table('transferOrders').update(orderId, {
-      pendingReceiptFacilityIds: pending ? uniqueIds([...row.pendingReceiptFacilityIds, facilityId])
-        : row.pendingReceiptFacilityIds.filter((id: string) => id !== facilityId),
+      pendingReceiptFacilityIds: pending ? uniqueIds([...(row.pendingReceiptFacilityIds || []), facilityId])
+        : (row.pendingReceiptFacilityIds || []).filter((id: string) => id !== facilityId),
     });
-    fence();
-  });
-}
-
-export async function replaceFacilityPackages(db: ReceivingDB, facilityId: string, packages: Row[], fence: Fence) {
-  await db.transaction('rw', ['transferOrders', 'transferPackages', 'syncMeta'], async () => {
-    fence();
-    const pending = await db.table('transferOrders').where('pendingReceiptFacilityIds').equals(facilityId).primaryKeys();
-    const retained = new Set(pending);
-    // Keep explicit archived-order lookups: the completed archive is outside the pending sync.
-    await db.table('transferPackages').where('facilityId').equals(facilityId)
-      .filter(row => row.snapshotScope !== 'order').delete();
-    // Full order snapshots include packed boxes too. The shipped-only discovery read
-    // must not erase those or overwrite a newer snapshot with an older response.
-    for (const pkg of packages.filter(row => retained.has(row.orderId))) {
-      const old = await db.table('transferPackages').get(pkg.packageKey);
-      if (old?.snapshotScope !== 'order') await db.table('transferPackages').put(pkg);
-    }
-    await db.syncMeta.put({ key: tuple('packages', facilityId), ready: true, checkedAt: Date.now() });
     fence();
   });
 }
@@ -243,11 +213,10 @@ export async function replaceOrderShipments(db: ReceivingDB, orderId: string, fa
   await db.transaction('rw', ['transferPackages', 'transferPackageItems', 'syncMeta'], async () => {
     fence();
     for (const table of ['transferPackages', 'transferPackageItems']) {
-      await db.table(table).where('[facilityId+orderId]').equals([facilityId, orderId]).delete();
+      const previous = await db.table(table).where('[facilityId+orderId]').equals([facilityId, orderId]).toArray();
+      await replaceSnapshot(db.table(table), previous, table === 'transferPackages' ? snapshot.packages : snapshot.items);
     }
-    await db.table('transferPackages').bulkPut(snapshot.packages);
-    await db.table('transferPackageItems').bulkPut(snapshot.items);
-    await db.syncMeta.put({ key: tuple('shipments', facilityId, orderId), ready: true, checkedAt: Date.now() });
+    await db.syncMeta.put({ key: cacheKeys.shipments(facilityId, orderId), ready: true, checkedAt: Date.now() } satisfies CacheState);
     fence();
   });
 }
@@ -258,15 +227,16 @@ export async function replaceDetail(db: ReceivingDB, order: Row, fence: Fence) {
   await db.transaction('rw', ['transferOrders', 'transferItems', 'syncMeta'], async () => {
     fence();
     const previous = await db.table('transferOrders').get(order.orderId);
-    await db.table('transferOrders').put({
-      ...previous, ...header, raw: { ...previous?.raw, ...header.raw },
+    const updated = {
+      ...previous, ...header,
       originFacilityIds: uniqueIds(associations.map(row => row.facilityId)),
       destinationFacilityIds: uniqueIds(associations.map(row => row.orderFacilityId)),
       pendingReceiptFacilityIds: previous?.pendingReceiptFacilityIds || [],
-    });
-    await db.table('transferItems').where('orderId').equals(order.orderId).delete();
-    await db.table('transferItems').bulkPut(items);
-    await db.syncMeta.put({ key: tuple('detail', order.orderId), ready: true, checkedAt: now });
+    };
+    if (sourceChanged(previous, updated)) await db.table('transferOrders').put(updated);
+    const previousItems = await db.table('transferItems').where('orderId').equals(order.orderId).toArray();
+    await replaceSnapshot(db.table('transferItems'), previousItems, items);
+    await db.syncMeta.put({ key: cacheKeys.detail(order.orderId), ready: true, checkedAt: now } satisfies CacheState);
     fence();
   });
 }
@@ -282,13 +252,12 @@ export async function replaceProducts(db: ReceivingDB, documents: Row[], fence: 
   });
 }
 
-export async function replaceOrderRows(db: ReceivingDB, table: string, orderId: string, rows: Row[], fence: Fence, facilityId?: string) {
+export async function replaceOrderRows(db: ReceivingDB, table: string, orderId: string, rows: Row[], fence: Fence) {
   await db.transaction('rw', [table, 'syncMeta'], async () => {
     fence();
-    const old = facilityId ? db.table(table).where('[facilityId+orderId]').equals([facilityId, orderId]) : db.table(table).where('orderId').equals(orderId);
-    await old.delete();
-    await db.table(table).bulkPut(rows);
-    await db.syncMeta.put({ key: tuple(table, orderId, facilityId || ''), ready: true, checkedAt: Date.now() });
+    const old = db.table(table).where('orderId').equals(orderId);
+    await replaceSnapshot(db.table(table), await old.toArray(), rows);
+    await db.syncMeta.put({ key: cacheKeys.receipts(table, orderId), ready: true, checkedAt: Date.now() } satisfies CacheState);
     fence();
   });
 }

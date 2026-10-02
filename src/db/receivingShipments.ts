@@ -61,10 +61,6 @@ export function buildBoxAllocations(packages: Row[], contents: Row[]) {
   return new Map([...byItem].map(([key, boxes]) => [key, [...boxes.values()].sort((a, b) => a.packageKey.localeCompare(b.packageKey))]));
 }
 
-export function itemBoxAllocations(packages: Row[], contents: Row[], item: Row) {
-  return buildBoxAllocations(packages, contents).get(tuple(item.orderItemSeqId, item.productId)) || [];
-}
-
 export function boxBoundaries(allocations: { quantity: number; label: string }[], total: number) {
   if (allocations.length < 2 || total <= 0) return [];
   let quantity = 0;

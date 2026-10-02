@@ -5,13 +5,15 @@
         <ion-back-button data-testid="transfer-order-detail-page-back-btn" default-href="/transfer-orders" slot="start" />
         <ion-title> {{ translate("Transfer Order Details") }} </ion-title>
         <ion-buttons slot="end">
-          <ion-button data-testid="transfer-order-detail-page-history-btn" @click="receivingHistory()">
+          <ion-button data-testid="transfer-order-detail-page-history-btn" :disabled="openingDetail || !order.ready" @click="receivingHistory()">
             <ion-icon slot="icon-only" :icon="timeOutline"/>
           </ion-button>
-          <ion-button data-testid="transfer-order-detail-page-add-product-btn" :disabled="!userStore.hasPermission(Actions.APP_SHIPMENT_UPDATE) || isTOReceived()" @click="addProduct">
+          <ion-button data-testid="transfer-order-detail-page-add-product-btn" :disabled="openingDetail || !order.ready || !userStore.hasPermission(Actions.APP_SHIPMENT_UPDATE) || isTOReceived()" @click="addProduct">
             <ion-icon slot="icon-only" :icon="addOutline"/>
           </ion-button>
         </ion-buttons>
+        <ion-progress-bar v-if="openingDetail || refreshingDetail" data-testid="transfer-order-detail-page-progress"
+          type="determinate" :value="detailProgress" :aria-label="translate('Loading')" />
       </ion-toolbar>
     </ion-header>
 
@@ -19,6 +21,7 @@
       <main>
         <ion-item v-if="order.cacheError || order.needsReadback" lines="none">
           <ion-label>{{ order.cacheError || translate('Receipt saved. Refresh to load the latest quantities.') }}</ion-label>
+          <ion-button v-if="order.receiptOperation?.state === 'unknown' && userStore.hasPermission(Actions.APP_SHIPMENT_UPDATE)" slot="end" fill="clear" @click="reviewReceipt">{{ translate('Review receipt') }}</ion-button>
           <ion-button slot="end" fill="clear" @click="refreshLocalOrder">{{ translate('Refresh') }}</ion-button>
         </ion-item>
         <ion-item v-if="order.cacheConflict" lines="none">
@@ -28,6 +31,7 @@
           </ion-label>
           <ion-button slot="end" fill="clear" @click="transferOrderStore.acknowledgeLocalChanges()">{{ translate("I've reviewed") }}</ion-button>
         </ion-item>
+        <template v-if="!openingDetail && order.ready">
         <div class="doc-id">
           <div class="ion-padding">
             <ion-label>
@@ -67,7 +71,7 @@
           </div>
         </div>
 
-        <div class="scanner">
+        <div v-if="!isTOReceived()" class="scanner">
           <ion-item :lines="scanErrorText ? 'none' : 'full'">
             <ion-input ref="scanInput" data-testid="transfer-order-detail-page-scan-input" :class="{ 'ion-invalid ion-touched': scanErrorText }" :error-text="scanErrorText" :label="translate('Scan items')" label-placement="fixed" autofocus v-model="queryString" @keyup.enter="updateProductCount(null)" @ionInput="scanErrorText = ''"/>
           </ion-item>
@@ -364,6 +368,7 @@
             </div>
           </ion-card>
         </template>
+        </template>
       </main>
 
       <ion-toast
@@ -375,7 +380,7 @@
       ></ion-toast>
     </ion-content>
 
-    <ion-footer data-testid="transfer-order-detail-page-footer" id="footer" ref="footer" v-if="!isTOReceived() && selectedSegment !== 'received'">
+    <ion-footer data-testid="transfer-order-detail-page-footer" id="footer" ref="footer" v-if="!openingDetail && order.ready && !isTOReceived() && selectedSegment !== 'received'">
       <ion-toolbar>
         <ion-buttons slot="end">
           <ion-button data-testid="transfer-order-detail-page-save-progress-btn" :disabled="!areAllItemsHaveQty || isReceiveFlowBusy || order.cacheConflict || order.needsReadback || !order.ready" class="ion-margin-end" fill="outline" size="small" color="primary" @click="receiveTO">{{ translate("Save Progress") }}{{ ":" }} {{ getReceivedUnits() }}</ion-button>
@@ -387,9 +392,9 @@
 </template>
 
 <script setup lang="ts">
-import { IonBackButton, IonButton, IonButtons, IonCard, IonChip, IonContent, IonHeader, IonFooter, IonIcon, IonItem, IonInput, IonLabel, IonPage, IonNote, IonSegment, IonSegmentButton, IonText, IonThumbnail, IonTitle, IonToast, IonToolbar, alertController, modalController, onIonViewWillEnter, onIonViewDidLeave } from '@ionic/vue';
-import { nextTick, ref, computed, watch } from 'vue';
-import { ensureReceivingOrder, receivingDb } from '@/db/receivingClient';
+import { IonBackButton, IonButton, IonButtons, IonCard, IonChip, IonContent, IonHeader, IonFooter, IonIcon, IonItem, IonInput, IonLabel, IonPage, IonNote, IonProgressBar, IonSegment, IonSegmentButton, IonText, IonThumbnail, IonTitle, IonToast, IonToolbar, alertController, modalController, onIonViewWillEnter, onIonViewDidLeave } from '@ionic/vue';
+import { nextTick, ref, shallowRef, computed, watch } from 'vue';
+import { ensureReceivingOrder, receivingDb, resolveReceipt } from '@/db/receivingClient';
 import { addOutline, cameraOutline, checkmarkDone, cubeOutline, informationCircleOutline, openOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import { DxpShopifyImg, translate, commonUtil, emitter, useEmbeddedAppStore, useShopify } from '@common';
@@ -408,6 +413,7 @@ import AddProductToTOModal from '@/components/AddProductToTOModal.vue';
 import { DateTime } from 'luxon';
 import ReceivingInstructions from '@/components/ReceivingInstructions.vue';
 import ReceiveTransferOrder from '@/components/ReceiveTransferOrder.vue';
+import ReceiptReviewModal from '@/components/ReceiptReviewModal.vue';
 import router from '@/router';
 import { useReceiveFlowState } from '@/composables/useReceiveFlowState';
 import { runTransferOrderDetailReceiveWorkflow } from '@/views/transferOrderDetailReceiveWorkflow';
@@ -437,6 +443,8 @@ const pendingQoh = new Set<string>();
 const attemptedQoh = new Set<string>();
 let qohGeneration = 0;
 const detailActive = ref(false);
+const openingDetail = ref(true);
+const refreshingDetail = ref(false);
 let detailLoadGeneration = 0;
 const observer = ref(null as IntersectionObserver | null);
 const selectedSegment = ref("open");
@@ -449,6 +457,8 @@ const isToastOpen = ref(false);
 const scanErrorText = ref("");
 
 const order = computed(() => transferOrderStore.getCurrent);
+const detailProgress = computed(() => openingDetail.value
+  ? [order.value.shipmentsReady, order.value.ready, order.value.hydrated].filter(Boolean).length / 3 : 0);
 const getProduct = computed(() => product.getProduct);
 const isForceScanEnabled = computed(() => productStore.isProductStoreSettingEnabled('RECEIVE_FORCE_SCAN'));
 const isReceivingByFulfillment = computed(() => productStore.isProductStoreSettingEnabled('RECEIVE_BY_FULFILL'));
@@ -468,8 +478,11 @@ const shipmentBoxes = computed(() => (order.value.shipmentPackages || []).filter
   pkg.shipmentStatusId === 'SHIPMENT_SHIPPED' && (order.value.shipmentPackageItems || []).some((row: any) => row.packageKey === pkg.packageKey)));
 const inSelectedPackage = (item: any) => !selectedPackageKey.value || getBoxAllocations(item).some(box => box.packageKey === selectedPackageKey.value);
 const visibleOpenItems = computed(() => openItems.value.filter(inSelectedPackage));
-const unshippedTrackingMatch = computed(() => (order.value.shipmentPackages || []).some((pkg: any) =>
-  pkg.trackingCode === router.currentRoute.value.query.tracking && pkg.shipmentStatusId !== 'SHIPMENT_SHIPPED'));
+const unshippedTrackingMatch = computed(() => {
+  const tracking = router.currentRoute.value.query.tracking;
+  return !!tracking && (order.value.shipmentPackages || []).some((pkg: any) =>
+    pkg.trackingCode === tracking && pkg.shipmentStatusId !== 'SHIPMENT_SHIPPED');
+});
 const focusScanner = async () => {
   await nextTick();
   const input = await scanInput.value?.$el?.getInputElement();
@@ -523,7 +536,8 @@ const getTOItems = (orderType: string) => {
 const getAllItems = computed(() => (openItemsTemp.value.length ? openItems.value : filteredItems.value).filter((item: any) =>
   inSelectedPackage(item) && (!selectedPackageKey.value || !['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId))));
 
-const receiptItems = computed(() => [...openItems.value, ...openItemsTemp.value].filter(inSelectedPackage));
+const confirmationItems = shallowRef<any[]>();
+const receiptItems = computed(() => confirmationItems.value || [...openItems.value, ...openItemsTemp.value].filter(inSelectedPackage));
 const bulkReceiptItems = computed(() => selectedSegment.value === 'all' ? getAllItems.value : visibleOpenItems.value);
 const canBulkReceive = computed(() => bulkReceiptItems.value.some((item: any) => remainingIssuedQuantity(item) > 0) &&
   userStore.hasPermission(Actions.APP_SHIPMENT_UPDATE) && !isForceScanEnabled.value &&
@@ -545,7 +559,7 @@ const getItemQty = (item: any) => {
 const getReceivedUnits = () => {
   const items = receiptItems.value;
   const totalReceived = items.reduce((qty: any, item: any) => qty + (Number(item.quantityAccepted) || 0), 0);
-  const totalUnits = items.reduce((qty: any, item: any) => qty + ((isReceivingByFulfillment.value ? item.totalIssuedQuantity : item.quantity) - item.totalReceivedQuantity || 0), 0);
+  const totalUnits = items.reduce((qty: any, item: any) => qty + Math.max(getItemQty(item) - (Number(item.totalReceivedQuantity) || 0), 0), 0);
   return `${totalReceived} / ${totalUnits >= 0 ? totalUnits : 0} units`;
 };
 
@@ -801,8 +815,10 @@ const confirmReceiveAndClose = async () => {
     }
   });
   if (itemsNotReceived.length) {
-    openItemsTemp.value = [...openItems.value, ...openItemsTemp.value].filter((item: any) => !itemsNotReceived.includes(item));
-    openItems.value = itemsNotReceived;
+    const missingIds = new Set(itemsNotReceived.map((item: any) => item.orderItemSeqId || item.productId));
+    const allOpen = [...openItems.value, ...openItemsTemp.value];
+    openItemsTemp.value = allOpen.filter((item: any) => !missingIds.has(item.orderItemSeqId || item.productId));
+    openItems.value = allOpen.filter((item: any) => missingIds.has(item.orderItemSeqId || item.productId));
     document.querySelector("ion-segment")?.scrollIntoView();
     return false;
   }
@@ -828,13 +844,25 @@ const confirmReceiveAndClose = async () => {
   return Boolean(value?.data?.updateItems);
 };
 
-const runReceiveWorkflow = (isClosingTO: boolean, confirm: () => Promise<boolean>) => {
-  return runTransferOrderDetailReceiveWorkflow({
+const runReceiveWorkflow = async (isClosingTO: boolean, confirm: () => Promise<boolean>) => {
+  if (isReceiveFlowBusy.value) return false;
+  const scope = transferOrderStore.draftScope;
+  const receipt = {
+    orderId: order.value.orderId,
+    facilityId: productStore.getCurrentFacility.facilityId,
+    baseline: JSON.parse(JSON.stringify(transferOrderStore.baseline.filter(inSelectedPackage))),
+    preserveOtherDrafts: !!selectedPackageKey.value,
+  };
+  confirmationItems.value = JSON.parse(JSON.stringify(receiptItems.value));
+  try { return await runTransferOrderDetailReceiveWorkflow({
     startConfirmation: startReceiveConfirmation,
     startSubmission: startReceiveSubmission,
     reset: resetReceiveFlow,
     confirm,
-    submit: () => receiveTransferOrder(isClosingTO),
+    submit: () => {
+      if (scope !== transferOrderStore.draftScope) throw new Error('Receiving session changed. Reopen the transfer before continuing.');
+      return receiveTransferOrder(isClosingTO, receipt);
+    },
     navigate: async () => {
       await router.push('/transfer-orders');
     },
@@ -844,7 +872,7 @@ const runReceiveWorkflow = (isClosingTO: boolean, confirm: () => Promise<boolean
     onSubmissionEnd: () => {
       emitter.emit("dismissLoader");
     }
-  });
+  }); } finally { confirmationItems.value = undefined; }
 };
 
 const receiveTO = () => runReceiveWorkflow(false, confirmSaveProgress);
@@ -857,7 +885,7 @@ const markAllAsReceived = () => {
   markItemsAsReceived(bulkReceiptItems.value);
 };
 
-const receiveTransferOrder = async (isClosingTO = false) => {
+const receiveTransferOrder = async (isClosingTO: boolean, receipt: { orderId: string; facilityId: string; baseline: any[]; preserveOtherDrafts: boolean }) => {
   let eligibleItems: any = [];
   const itemsToReceive = JSON.parse(JSON.stringify(receiptItems.value));
   if (!isClosingTO) {
@@ -879,19 +907,17 @@ const receiveTransferOrder = async (isClosingTO = false) => {
   }
 
   const payload = {
-    facilityId: (productStore.getCurrentFacility as any)?.facilityId,
+    facilityId: receipt.facilityId,
     receivedDateTime: String(DateTime.now().toMillis()),
     items: eligibleItems.map((item: any) => ({
       orderItemSeqId: item.orderItemSeqId,
       productId: item.productId,
-      quantityAccepted: item.quantityAccepted,
+      quantityAccepted: Number(item.quantityAccepted),
       statusId: item.statusId
     }))
   };
 
-  return submitTransferReceipt(order.value.orderId, payload, selectedPackageKey.value ? {
-    baseline: transferOrderStore.baseline.filter(inSelectedPackage), preserveOtherDrafts: true,
-  } : undefined);
+  return submitTransferReceipt(receipt.orderId, payload, { baseline: receipt.baseline, preserveOtherDrafts: receipt.preserveOtherDrafts });
 };
 
 const submitTransferReceipt = async (orderId: string, payload: any, options?: { baseline: any[]; preserveOtherDrafts: boolean }) => {
@@ -919,7 +945,6 @@ const receiveAll = (item: any) => {
   const qtyAlreadyAccepted = Number(item.totalReceivedQuantity) || 0;
   const qty = isReceivingByFulfillment.value ? item.totalIssuedQuantity : item.quantity;
   item.quantityAccepted = Math.max(qty - qtyAlreadyAccepted, 0);
-  item.progress = item.quantityAccepted / qty;
 };
 
 const isTOReceived = () => order.value.statusId === "ORDER_COMPLETED";
@@ -964,9 +989,32 @@ const fetchQuantityOnHand = async (productId: any) => {
   } finally { if (generation === qohGeneration) pendingQoh.delete(productId); }
 };
 
+const reviewReceipt = async () => {
+  const operation = order.value.receiptOperation, scope = transferOrderStore.draftScope;
+  if (!operation || !userStore.hasPermission(Actions.APP_SHIPMENT_UPDATE)) return;
+  const modal = await modalController.create({ component: ReceiptReviewModal, componentProps: { operation } });
+  await modal.present();
+  const { data } = await modal.onDidDismiss();
+  if (!data?.reviewed) return;
+  try {
+    if (scope !== transferOrderStore.draftScope) throw new Error('Receiving session changed');
+    await resolveReceipt(operation.orderId, operation.operationId);
+    if (scope !== transferOrderStore.draftScope) return;
+    // Rescan from authoritative quantities after either reviewed outcome.
+    delete transferOrderStore.draftsByScope[transferOrderStore.draftScope];
+    for (const item of order.value.items || []) { delete item.quantityAccepted; delete item._draftBaseline; }
+    transferOrderStore.acknowledgeLocalChanges();
+  } catch { commonUtil.showToast(translate('Unable to resolve receipt. Refresh and review it again.')); }
+};
+
 const refreshLocalOrder = async () => {
-  try { await ensureReceivingOrder(order.value.orderId, true); }
+  if (refreshingDetail.value) return;
+  // A failed initial load must reopen its subscriptions as well as retry the API.
+  if (!order.value.ready) return loadLocalDetail();
+  refreshingDetail.value = true;
+  try { await ensureReceivingOrder(String(router.currentRoute.value.params.slug), true); }
   catch { commonUtil.showToast(translate('Unable to refresh transfer data.')); }
+  finally { refreshingDetail.value = false; }
 };
 
 const openTOReceivingInstructions = async () => {
@@ -995,6 +1043,7 @@ watch(() => order.value.items, updateVisibleItems);
 
 const loadLocalDetail = async () => {
   const generation = ++detailLoadGeneration;
+  openingDetail.value = true;
   productQoh.value = {};
   pendingQoh.clear(); attemptedQoh.clear(); qohGeneration++;
   openItemsTemp.value = [];
@@ -1006,6 +1055,12 @@ const loadLocalDetail = async () => {
     if (generation === detailLoadGeneration) updateVisibleItems();
   } catch {
     if (generation === detailLoadGeneration) transferOrderStore.current.cacheError = 'Unable to load transfer details. Refresh to retry.';
+  } finally {
+    if (generation === detailLoadGeneration) {
+      openingDetail.value = false;
+      await nextTick();
+      if (detailActive.value) { observeProductVisibility(); void focusScanner(); }
+    }
   }
 };
 watch(receivingDb, db => {

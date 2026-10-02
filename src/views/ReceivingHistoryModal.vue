@@ -7,11 +7,13 @@
         </ion-button>
       </ion-buttons>
       <ion-title>{{ translate("History") }}</ion-title>
+      <ion-progress-bar v-if="orderType === 'transferOrder' && !toHistory?.ready && !toHistory?.error"
+        type="determinate" :value="0" :aria-label="translate('Loading')" />
     </ion-toolbar>
   </ion-header>
   <ion-content data-testid="receiving-history-modal-content">
-    <ion-item v-if="orderType === 'transferOrder' && (!toHistory?.ready || toHistory?.error)" lines="none">
-      <ion-label>{{ toHistory?.error || translate('Loading receiving history…') }}</ion-label>
+    <ion-item v-if="orderType === 'transferOrder' && toHistory?.error" lines="none">
+      <ion-label>{{ toHistory.error }}</ion-label>
     </ion-item>
     <ion-list v-for="(item, index) in items" :key="index" :data-testid="`receiving-history-modal-list-${item.orderItemSeqId || item.productId || item.shipmentId || item.datetimeReceived || 'entry'}`">
       <ion-item :data-testid="`receiving-history-modal-row-${item.orderItemSeqId || item.productId || item.shipmentId || item.datetimeReceived || 'entry'}`">
@@ -27,6 +29,7 @@
           <ion-note>{{ item.quantityAccepted }} {{ translate("received") }} | {{ item.quantityRejected }} {{ translate("rejected") }}</ion-note>
           <ion-note>{{ item.datetimeReceived ? getTime(item.datetimeReceived) : "-" }}</ion-note>
           <ion-note>{{item.receiversFullName }}</ion-note>
+          <ion-note v-if="orderType === 'transferOrder' && item.receiptId && !item.facilityId">{{ translate('Receiving facility unavailable') }}</ion-note>
         </ion-label>
       </ion-item>
     </ion-list>
@@ -40,7 +43,7 @@
 </template>
 
 <script setup lang="ts">
-import { IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonItem, IonLabel, IonList, IonNote, IonThumbnail, IonTitle, IonToolbar, modalController } from '@ionic/vue';
+import { IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonItem, IonLabel, IonList, IonNote, IonProgressBar, IonThumbnail, IonTitle, IonToolbar, modalController } from '@ionic/vue';
 import { computed, onMounted } from 'vue';
 import { closeOutline } from 'ionicons/icons';
 import { DxpShopifyImg, translate, commonUtil } from '@common';

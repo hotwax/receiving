@@ -1,20 +1,16 @@
+import { ReceivingDB } from './receivingTestDb';
+import { ensureDbReady } from '@common/db/storage/baseDb';
 // Isolated real IndexedDB checks; no OMS requests or signed-in database writes.
 import Dexie from 'dexie';
-import { ReceivingDB, RECEIVING_SCHEMA, tuple, mergePendingPage, replaceDetail, replaceFacilityPackages, replaceOrderShipments } from '../src/db/receivingDatabase';
+import { tuple, mergePendingPage, replaceDetail, replaceOrderShipments } from '../src/db/receivingDatabase';
 import { findExactTracking, readDetail, readListCorpus, filterList } from '../src/db/receivingQueries';
 
 export async function checkReceivingShipments() {
   const scope = `shipment-check-${crypto.randomUUID()}`, name = `receiving-v1:${scope}`;
   const passed: string[] = [], check = (ok: unknown, label: string) => { if (!ok) throw new Error(label); passed.push(label); };
-  const old = new Dexie(name), { transferPackageItems: _, ...v1 } = RECEIVING_SCHEMA;
-  old.version(1).stores({ ...v1, syncMeta: 'key' });
-  await old.open();
-  await old.table('transferPackages').put({ packageKey: 'legacy', facilityId: 'A', orderId: 'T1', trackingCode: 'OLD' });
-  old.close();
   const db = new ReceivingDB(scope), fence = () => {};
   try {
-    await db.open();
-    check((await db.table('transferPackages').get('legacy')).shipmentStatusId === 'SHIPMENT_SHIPPED', 'Version one cache migrates without losing tracking');
+    await ensureDbReady(db);
     check(db.getTableNames().includes('transferPackageItems'), 'Logout includes the new contents table');
     const order = (orderId: string) => ({ orderId, orderStatusId: 'ORDER_APPROVED', orderFacilityId: 'A', facilityId: 'O' });
     await mergePendingPage(db, [order('T1'), order('T2')], 'A', fence);
@@ -34,8 +30,7 @@ export async function checkReceivingShipments() {
     check((await findExactTracking(db, 'A', '00123')).length === 1, 'Completed transfers are excluded from receive navigation');
     const corpus = await readListCorpus(db, 'A');
     check(filterList(corpus, '00123', 10).total === 1 && corpus.rows[0].order.trackingCodes.length === 1, 'List searches tracking and deduplicates badges');
-    await replaceFacilityPackages(db, 'A', [{ ...packages[0], trackingCode: 'STALE', snapshotScope: 'facility' }], fence);
-    check((await db.table('transferPackages').get('one')).trackingCode === '00123' && !!await db.table('transferPackages').get('two'), 'Shipped discovery cannot overwrite a full order snapshot or erase packed boxes');
+    check(!!await db.table('transferPackages').get('two'), 'Order hydration retains packed boxes');
     const detail = await readDetail(db, 'T1', 'A');
     check(detail?.shipmentsReady && detail.shipmentPackageItems.length === 1, 'Detail reads package metadata and contents atomically');
     await replaceOrderShipments(db, 'T1', 'A', { packages: [], items: [] }, fence);

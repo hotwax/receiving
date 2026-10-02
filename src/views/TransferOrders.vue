@@ -4,6 +4,13 @@
       <ion-toolbar>
         <ion-menu-button data-testid="transfer-orders-page-menu-btn" slot="start" />
         <ion-title>{{ translate("Transfer Orders") }}</ion-title>
+        <ion-progress-bar
+          v-if="loadingOrders"
+          data-testid="transfer-orders-page-progress"
+          type="determinate"
+          :value="loadingProgress"
+          :aria-label="translate('Loading')"
+        />
         <!-- <ion-buttons slot="end">
           <ion-button data-testid="notifications-button" @click="viewNotifications()">
             <ion-icon slot="icon-only" :icon="notificationsOutline" :color="(unreadNotificationsStatus && notifications.length) ? 'primary' : ''" />
@@ -11,7 +18,7 @@
         </ion-buttons> -->
       </ion-toolbar>
       <div>
-        <ion-searchbar data-testid="transfer-orders-page-search-input" :placeholder="translate('Search orders, products or tracking codes')" v-model="queryString" @keyup.enter="submitSearch" />
+        <ion-searchbar data-testid="transfer-orders-page-search-input" :placeholder="selectedSegment === 'completed' ? translate('Search completed orders') : translate('Search orders, products or tracking codes')" v-model="queryString" @keyup.enter="submitSearch" />
 
         <ion-segment data-testid="transfer-orders-page-segment" v-model="selectedSegment" @ionChange="segmentChanged()">
           <ion-segment-button data-testid="transfer-orders-page-open-tab" value="open">
@@ -25,12 +32,12 @@
     </ion-header>
     <ion-content data-testid="transfer-orders-page-content">
       <main>
-        <ion-item v-if="selectedSegment === 'open' && localSyncMessage" lines="none">
-          <ion-label>{{ localSyncMessage }}</ion-label>
+        <ion-item v-if="selectedSegment === 'open' && localSyncError" lines="none">
+          <ion-label>{{ localSyncError }}</ion-label>
         </ion-item>
         <TransferOrderItem v-for="order in visibleOrders" :key="order.orderId" :transferOrder="order" />
         <div data-testid="transfer-orders-page-load-more-section" v-if="orders.list.length < orders.total" class="load-more-action ion-text-center">
-          <ion-button data-testid="transfer-orders-page-load-more-btn" fill="outline" color="dark" @click="loadMoreOrders()">
+          <ion-button data-testid="transfer-orders-page-load-more-btn" fill="outline" color="dark" :disabled="fetchingOrders" @click="loadMoreOrders()">
             <ion-icon :icon="cloudDownloadOutline" slot="start" />
             {{ translate("Load more transfer order") }}
           </ion-button>
@@ -62,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { IonButton, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonItem, IonLabel, IonMenuButton, IonPage, IonRefresher, IonRefresherContent, IonSearchbar, IonSegment, IonSegmentButton, IonTitle, IonToolbar, onIonViewWillEnter } from '@ionic/vue';
+import { IonButton, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonItem, IonLabel, IonMenuButton, IonPage, IonProgressBar, IonRefresher, IonRefresherContent, IonSearchbar, IonSegment, IonSegmentButton, IonTitle, IonToolbar, onIonViewWillEnter } from '@ionic/vue';
 import { addOutline, cloudDownloadOutline, reload } from 'ionicons/icons'
 import { ref, computed, watch } from 'vue';
 import { receivingList, receivingError, searchReceiving, refreshReceiving, resolveReceivingTracking } from '@/db/receivingClient';
@@ -70,7 +77,7 @@ import router from '@/router';
 import { useTransferOrderStore } from '@/store/transferorder';
 import { useUserStore } from '@/store/user';
 import TransferOrderItem from '@/components/TransferOrderItem.vue'
-import { translate, commonUtil, emitter } from "@common"
+import { translate, commonUtil } from "@common"
 import { useProductStore } from '@/store/productStore';
 import Actions from "@/authorization/actions"
 
@@ -80,6 +87,8 @@ const userStore = useUserStore();
 
 const queryString = ref('');
 const fetchingOrders = ref(false);
+const completedProgress = ref(0);
+let completedRequest = 0;
 const showErrorMessage = ref(false);
 const selectedSegment = ref("open");
 
@@ -88,11 +97,13 @@ const orders = computed(() => selectedSegment.value === 'open' ? receivingList.v
 // The archive API can repeat an order for different origins. Keep raw rows for
 // pagination, but render one keyed row per order.
 const visibleOrders = computed(() => [...new Map<string, any>(orders.value.list.map((order: any) => [order.orderId, order] as const)).values()]);
-const localSyncMessage = computed(() => {
+const localSyncError = computed(() => receivingError.value || receivingList.value.sync?.error);
+const loadingOrders = computed(() => {
+  if (selectedSegment.value === 'completed') return fetchingOrders.value;
   const sync = receivingList.value.sync;
-  return receivingError.value || sync?.error || (!sync ? 'Loading saved transfers…' : sync.downloading
-    ? `Downloading transfers (${sync.readyOrders} of ${sync.totalOrders})…` : sync.syncing ? 'Refreshing transfers…' : '');
+  return !localSyncError.value && (!sync.complete || sync.downloading || sync.syncing);
 });
+const loadingProgress = computed(() => selectedSegment.value === 'open' ? receivingList.value.sync.progress : completedProgress.value);
 const currentFacility: any = computed(() => productStore.getCurrentFacility);
 let openingTracking = false;
 const submitSearch = async () => {
@@ -124,18 +135,13 @@ const getTransferOrders = async (vSize?: any, vIndex?: any) => {
   }
   queryString.value ? showErrorMessage.value = true : showErrorMessage.value = false;
   fetchingOrders.value = true;
+  completedProgress.value = 0;
+  const request = ++completedRequest;
   const limit = vSize ? vSize : import.meta.env.VITE_VIEW_SIZE;
   const pageIndex = vIndex ? vIndex : 0;
 
-  let orderStatusId;
-  if (selectedSegment.value === 'open') {
-    orderStatusId = 'ORDER_APPROVED';
-  } else {
-    orderStatusId = 'ORDER_COMPLETED';
-  }
-
   const payload = {
-    orderStatusId,
+    orderStatusId: 'ORDER_COMPLETED',
     destinationFacilityId: currentFacility.value?.facilityId,
     excludeOriginFacilityIds: "REJECTED_ITM_PARKING",
     statusFlowId: ["TO_Fulfill_And_Receive", "TO_Receive_Only"],
@@ -145,10 +151,13 @@ const getTransferOrders = async (vSize?: any, vIndex?: any) => {
     fieldsToSelect: "orderId,orderName,orderExternalId,orderStatusId,orderStatusDesc,facilityId,orderFacilityId,orderDate"
   };
 
-  emitter.emit('presentLoader');
-  await transferOrderStore.fetchTransferOrders(payload);
-  emitter.emit('dismissLoader');
-  fetchingOrders.value = false;
+  try {
+    await transferOrderStore.fetchTransferOrders(payload, (completed, total) => {
+      if (request === completedRequest) completedProgress.value = completed / total;
+    });
+  } finally {
+    if (request === completedRequest) fetchingOrders.value = false;
+  }
 };
 
 const loadMoreOrders = async () => {

@@ -6,7 +6,8 @@ describe('Receiving source normalization', () => {
   it('keeps list aliases, nulls and dates while excluding nested items from header storage', () => {
     const row = headerRow({ orderId: 'T1', orderExternalId: '001', orderStatusId: 'ORDER_APPROVED', orderDate: '1000', currencyUom: null, items: [{ productId: 'P1' }] }, 1);
     expect(row).toMatchObject({ orderId: 'T1', externalId: '001', statusId: 'ORDER_APPROVED', orderDate: 1000, currencyUom: null });
-    expect(row.raw).not.toHaveProperty('items');
+    expect(row).not.toHaveProperty('items');
+    expect(row).not.toHaveProperty('raw');
   });
 
   it('keeps line identity stable when a ship group changes and rejects duplicate lines', () => {
@@ -14,18 +15,19 @@ describe('Receiving source normalization', () => {
     const [before] = itemRows({ orderId: 'T1', items: [{ ...item, shipGroupSeqId: '01' }] }, 1);
     const [after] = itemRows({ orderId: 'T1', items: [{ ...item, shipGroupSeqId: '02' }] }, 2);
     expect(before.itemKey).toBe(after.itemKey);
-    expect(before).toMatchObject({ quantity: 1.5, totalIssuedQuantity: 0, totalReceivedQuantity: null });
+    expect(before).toMatchObject({ quantity: 1.5, totalIssuedQuantity: 0 });
     expect(() => itemRows({ orderId: 'T1', items: [item, item] }, 1)).toThrow('Duplicate');
     expect(tuple('a|b', 'c')).not.toBe(tuple('a', 'b|c'));
   });
 
   it('prefers the canonical product, retains all identifiers and preserves leading zeros/slashes', () => {
+    const displayFields = { groupId: '0001', groupName: 'Blue shirt', title: 'Product blue shirt.', primaryProductCategoryName: 'Tops' };
     const { products, identifications } = productRows([
       { productId: 'P1', 'docType-identifier': 'PRODUCT_OLD-P1', productName: 'Old' },
-      { productId: 'P1', 'docType-identifier': 'PRODUCT-P1', productName: 'Current', parentProductName: 'Parent', goodIdentifications: ['UPCA/00123', 'UPCA/00456', 'SKU/A/B'] },
+      { productId: 'P1', 'docType-identifier': 'PRODUCT-P1', productName: 'Current', parentProductName: 'Parent', ...displayFields, goodIdentifications: ['UPCA/00123', 'UPCA/00456', 'SKU/A/B'] },
     ], 42);
     expect(products).toHaveLength(1);
-    expect(products[0]).toMatchObject({ productName: 'Current', parentProductName: 'Parent', updatedAt: 42 });
+    expect(products[0]).toMatchObject({ productName: 'Current', parentProductName: 'Parent', ...displayFields, updatedAt: 42 });
     expect(identifications.filter(row => row.identKey === 'UPCA').map(row => row.value)).toEqual(['00123', '00456']);
     expect(identifications.find(row => row.identKey === 'SKU')?.value).toBe('A/B');
   });

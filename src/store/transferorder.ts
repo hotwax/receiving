@@ -1,18 +1,17 @@
 import { defineStore } from "pinia";
 import { api, commonUtil, translate } from "@common";
-import { useUtilStore } from "@/store/util";
 import { useProductStore as useProduct } from "@/store/product";
 import { useProductStore } from "@/store/productStore";
-import { usePartyStore } from "@/store/party";
 import { useUserStore } from "@/store/user";
 import { liveQuery } from 'dexie';
-import { setActiveReceivingOrder, ensureReceivingOrder, ensureReceivingHistory, getReceivingDb, loadReceivingTracking, submitReceipt } from '@/db/receivingClient';
-import { findIdentifierItems, readDetail, readHistory } from '@/db/receivingQueries';
+import { setActiveReceivingOrder, ensureReceivingOrder, ensureReceivingHistory, getReceivingDb, receivingOperations, loadReceivingTracking, submitReceipt } from '@/db/receivingClient';
+import { findIdentifierProducts, readDetail, readHistory } from '@/db/receivingQueries';
 import { tuple } from '@/db/receivingDatabase';
 
 let detailSubscription: { unsubscribe(): void } | undefined;
 let historySubscription: { unsubscribe(): void } | undefined;
 let detailGeneration = 0;
+let listGeneration = 0;
 const baselineFields = ['statusId', 'quantity', 'totalIssuedQuantity', 'totalReceivedQuantity', 'orderFacilityId'];
 const baselineChanged = (a: any, b: any) => baselineFields.some(field => String(a?.[field] ?? 0) !== String(b?.[field] ?? 0));
 const itemIdentity = (item: any) => item.itemKey || item.receiptId || tuple('added', item.productId);
@@ -35,9 +34,6 @@ export const useTransferOrderStore = defineStore("transferorder", {
       toHistory: {
         items: [] as any,
       },
-      shipmentHistory: {
-        items: [] as any,
-      },
     } as any,
     misShippedItems: [] as any,
     draftScope: '',
@@ -49,7 +45,6 @@ export const useTransferOrderStore = defineStore("transferorder", {
     getCurrent: (state) => state.current,
     getTOHistory: (state) => state.current.toHistory,
     isProductAvailableInOrder: (state) => (productId: string) => state.current.items.some((item: any) => item.productId === productId),
-    getShipmentHistory: (state) => state.current.shipmentHistory,
     getMisShippedItems: (state) => state.misShippedItems,
   },
   actions: {
@@ -87,7 +82,7 @@ export const useTransferOrderStore = defineStore("transferorder", {
       for (const product of detail.products) products.cached[product.productId] = product;
       const { products: _products, ...header } = detail;
       this.baseline = detail.items.filter((row: any) => row.orderItemSeqId).map((row: any) => ({ ...row }));
-      this.current = { ...header, items, missingDrafts, cacheConflict: conflict, toHistory: this.current.toHistory || { items: [] }, shipmentHistory: this.current.shipmentHistory || { items: [] } };
+      this.current = { ...header, items, missingDrafts, cacheConflict: conflict, toHistory: this.current.toHistory || { items: [] } };
       this.draftScope = scope;
     },
     acknowledgeLocalChanges() {
@@ -98,16 +93,17 @@ export const useTransferOrderStore = defineStore("transferorder", {
     },
     async openLocalDetail(orderId: string, facilityId: string) {
       this.closeLocalDetail();
-      this.current = { items: [], toHistory: { items: [] }, shipmentHistory: { items: [] } };
+      this.current = { items: [], toHistory: { items: [] } };
       this.draftScope = '';
       const generation = ++detailGeneration;
       const db = await getReceivingDb();
       const scope = tuple(db.name, facilityId, orderId);
-      const snapshot = await readDetail(db, orderId, facilityId);
+      const operations = receivingOperations.value;
+      const snapshot = await readDetail(db, orderId, facilityId, operations);
       if (generation !== detailGeneration) return;
       void setActiveReceivingOrder(orderId).catch(() => undefined);
       this.applyLocalDetail(snapshot, scope);
-      detailSubscription = liveQuery(() => readDetail(db, orderId, facilityId)).subscribe({
+      detailSubscription = liveQuery(() => readDetail(db, orderId, facilityId, operations)).subscribe({
         next: detail => { if (generation === detailGeneration) this.applyLocalDetail(detail, scope); },
         error: () => { if (generation === detailGeneration) this.current.cacheError = 'Unable to read saved transfer data.'; },
       });
@@ -116,10 +112,11 @@ export const useTransferOrderStore = defineStore("transferorder", {
         error: () => { if (generation === detailGeneration) this.current.toHistory = { items: [], error: 'Unable to load receiving history.' }; },
       });
       const refresh = ensureReceivingOrder(orderId);
-      if (!snapshot?.ready || !snapshot?.shipmentsReady) await refresh;
+      const warm = snapshot?.ready && snapshot?.shipmentsReady && snapshot?.hydrated;
+      if (!warm) await refresh;
       else void refresh.catch(() => undefined);
       // Warm navigation is a local read. The background worker owns freshness and polling.
-      if (generation === detailGeneration && (!snapshot?.ready || !snapshot?.shipmentsReady)) this.applyLocalDetail(await readDetail(db, orderId, facilityId), scope);
+      if (generation === detailGeneration && !warm) this.applyLocalDetail(await readDetail(db, orderId, facilityId, operations), scope);
     },
     closeLocalDetail() {
       void setActiveReceivingOrder().catch(() => undefined);
@@ -128,7 +125,9 @@ export const useTransferOrderStore = defineStore("transferorder", {
       detailSubscription?.unsubscribe(); historySubscription?.unsubscribe();
       detailSubscription = undefined; historySubscription = undefined;
     },
-    async fetchTransferOrders(params: any = {}) {
+    async fetchTransferOrders(params: any = {}, onProgress?: (completed: number, total: number) => void) {
+      const generation = ++listGeneration, previous = this.transferOrder;
+      const isCurrent = () => generation === listGeneration && this.transferOrder === previous;
       let resp;
       const transferOrderQuery = JSON.parse(JSON.stringify(this.transferOrder.query));
       let orders = [];
@@ -150,22 +149,26 @@ export const useTransferOrderStore = defineStore("transferorder", {
         } else {
           resp = await api({ url: 'oms/transferOrders/', method: 'get', params });
         }
-        if (!commonUtil.hasError(resp) && resp.data.orders.length > 0) {
+        if (commonUtil.hasError(resp)) throw new Error('Unable to load transfer orders');
+        if (resp.data.orders.length > 0) {
           total = resp.data.ordersCount;
-          if (params.pageIndex && params.pageIndex > 0) {
-            orders = this.transferOrder.list.concat(resp.data.orders);
-          } else {
-            orders = resp.data.orders;
-          }
+          if (!isCurrent()) return resp;
+          // Publish the page once, with badges attached. Replacing rows before
+          // enrichment makes every existing badge disappear and then grow back.
+          const ids = [...new Set<string>(resp.data.orders.map((row: any) => row.orderId))];
+          onProgress?.(1, ids.length + 1);
+          const trackingRows = await loadReceivingTracking(ids, completed => {
+            if (isCurrent()) onProgress?.(completed + 1, ids.length + 1);
+          }).catch(() => []);
+          if (!isCurrent()) return resp;
+          const byOrder = new Map(previous.list.map((row: any) => [row.orderId, row.trackingCodes] as const));
+          for (const row of trackingRows) byOrder.set(row.orderId, row.trackingCodes);
+          const page = resp.data.orders.map((order: any) => byOrder.has(order.orderId)
+            ? { ...order, trackingCodes: byOrder.get(order.orderId) } : order);
+          orders = params.pageIndex > 0 ? previous.list.concat(page) : page;
           this.transferOrder = { list: orders, total, query: transferOrderQuery };
-          // The archive remains paged on the server; only visible orders hydrate tracking.
-          const list = this.transferOrder.list;
-          void loadReceivingTracking(orders.map((row: any) => row.orderId)).then(trackingRows => {
-            if (this.transferOrder.list !== list) return;
-            const byOrder = new Map(trackingRows.map(row => [row.orderId, row.trackingCodes]));
-            for (const order of list) order.trackingCodes = byOrder.get(order.orderId) || [];
-          }).catch(() => undefined);
         } else {
+          if (!isCurrent()) return resp;
           if (params.pageIndex && params.pageIndex > 0) {
             commonUtil.showToast(translate("Transfer orders not found"));
           } else {
@@ -173,9 +176,9 @@ export const useTransferOrderStore = defineStore("transferorder", {
           }
         }
       } catch (err) {
+        if (!isCurrent()) return resp;
         console.error("No transfer orders found", err);
         commonUtil.showToast(translate("Something went wrong"));
-        this.transferOrder = { list: [], total: 0, query: transferOrderQuery };
       }
       return resp;
     },
@@ -185,13 +188,13 @@ export const useTransferOrderStore = defineStore("transferorder", {
       const productStore = useProductStore();
       const barcodeIdentifier = productStore.getBarcodeIdentifierPref || 'internalName';
       const orderId = this.current.orderId;
+      const scope = this.draftScope;
       const db = await getReceivingDb();
-      const indexed = await findIdentifierItems(db, productStore.getCurrentFacility.facilityId, barcodeIdentifier, payload);
-      if (this.current.orderId !== orderId) return [];
-      const keys = new Set(indexed.filter(row => row.orderId === orderId).map(row => row.itemKey));
+      const productIds = new Set(await findIdentifierProducts(db, barcodeIdentifier, payload));
+      if (this.current.orderId !== orderId || this.draftScope !== scope) return [];
       return this.current.items.filter((item: any) => {
-        if (item.orderItemSeqId) return keys.has(item.itemKey);
-        // Newly added products and mis-shipped receipts do not have a transfer-item index entry.
+        if (item.orderItemSeqId) return productIds.has(item.productId);
+        // Newly added products may not yet have persisted identifiers.
         const data = product.getProduct(item.productId);
         return data[barcodeIdentifier] === payload || data.goodIdentifications?.some((ident: any) =>
           typeof ident === 'string' ? ident === `${barcodeIdentifier}/${payload}` : ident.type === barcodeIdentifier && ident.value === payload);
@@ -230,41 +233,6 @@ export const useTransferOrderStore = defineStore("transferorder", {
       return this.current.toHistory?.items || [];
     },
 
-    async fetchOutboundShipmentsHistory(params: any) {
-      let resp;
-      const payload = { ...params, shipmentStatusId: "SHIPMENT_SHIPPED" };
-      try {
-        resp = await api({
-          url: "poorti/transferShipments",
-          method: "get",
-          params: payload,
-        });
-        if (!commonUtil.hasError(resp)) {
-          const shipmentData = resp.data.shipments || [];
-
-          const shipmentDetails = shipmentData.flatMap((shipment: any) => {
-            return shipment.packages.flatMap((pkg: any) => {
-              return pkg.items.map((item: any) => ({
-                statusDate: shipment.statusDate,
-                shipmentId: shipment.shipmentId,
-                orderId: shipment.orderId,
-                shipmentStatus: shipment.shipmentStatusId,
-                packageSeqId: pkg.shipmentPackageSeqId,
-                trackingCode: pkg.trackingCode,
-                ...item,
-              }));
-            });
-          });
-          this.current.shipmentHistory = { items: shipmentDetails };
-        } else {
-          throw resp.data;
-        }
-      } catch (err) {
-        console.error("No transfer Shipment found", err);
-        this.current.shipmentHistory = { items: [] };
-      }
-      return resp;
-    },
     async createOrder(payload: any): Promise<any> {
       return api({
         url: "oms/transferOrders",
@@ -298,7 +266,6 @@ export const useTransferOrderStore = defineStore("transferorder", {
       this.current = {
         items: [],
         toHistory: { items: [] },
-        shipmentHistory: { items: [] },
       };
     },
   },

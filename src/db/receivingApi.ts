@@ -1,4 +1,6 @@
-import { receiptRows, tuple, type Row } from './receivingDatabase';
+import { workerGet, workerPost } from '@common/core/workerRemoteApi';
+import type { SyncContext } from '@common/db/types';
+import { receiptRows, type Row } from './receivingDatabase';
 import { shipmentRows } from './receivingShipments';
 
 export interface ReceivingConnection {
@@ -9,35 +11,16 @@ export interface ReceivingConnection {
   moqui: boolean;
 }
 
-export class ReceivingRequestError extends Error {
-  constructor(message: string, public status: number) { super(message); }
-}
-
 export class ReceivingApi {
   constructor(public connection: ReceivingConnection, private fence: () => void) {}
 
   async request(path: string, params: Row = {}, data?: Row) {
     this.fence();
-    const url = new URL(path, this.connection.maargUrl.replace(/\/?$/, '/'));
-    for (const [key, value] of Object.entries(params)) {
-      if (value == null) continue;
-      for (const item of Array.isArray(value) ? value : [value]) url.searchParams.append(key, String(item));
-    }
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000);
-    try {
-      const response = await fetch(url, {
-        method: data ? 'POST' : 'GET', signal: controller.signal,
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${this.connection.token}` },
-        ...(data ? { body: JSON.stringify(data) } : {}),
-      });
-      this.fence();
-      if (!response.ok) throw new ReceivingRequestError(`Receiving request failed (${response.status})`, response.status);
-      const body = await response.json();
-      this.fence();
-      if (body?._ERROR_MESSAGE_ || body?._ERROR_MESSAGE_LIST_?.length || body?.errors?.length) throw new ReceivingRequestError('Receiving server rejected the request', 400);
-      return { body, headers: response.headers };
-    } finally { clearTimeout(timeout); }
+    const context: SyncContext = { ...this.connection, omsInstance: this.connection.scope, now: Date.now() };
+    const body = data ? await workerPost(context, path, data) : await workerGet(context, path, params);
+    this.fence();
+    if (body?._ERROR_MESSAGE_ || body?._ERROR_MESSAGE_LIST_?.length || body?.errors?.length) throw new Error('Receiving server rejected the request');
+    return { body };
   }
 
   async pendingPage(pageIndex: number, orderId?: string) {
@@ -77,31 +60,6 @@ export class ReceivingApi {
     return body.order as Row;
   }
 
-  async packages(orderId?: string) {
-    let limit = 100;
-    // The existing service sorts only by date. Read the whole bounded snapshot on page zero
-    // so equal dates cannot cause skipped/duplicated packages across offset pages.
-    for (let attempt = 0; attempt < 3; attempt++) {
-      const { body } = await this.request('poorti/transferShipments/packages', {
-        orderId, destinationFacilityId: this.connection.facilityId, shipmentStatusId: 'SHIPMENT_SHIPPED', limit, pageIndex: 0,
-      });
-      if (!Array.isArray(body.shipmentPackages) || !Number.isSafeInteger(body.shipmentPackagesCount) || body.shipmentPackagesCount < 0) throw new Error('Invalid package response');
-      const total = body.shipmentPackagesCount;
-      if (body.shipmentPackages.length !== Math.min(limit, total)) throw new Error('Incomplete package response');
-      if (total > limit) { limit = total; continue; }
-      const rows: Row[] = [], seen = new Set<string>();
-      for (const raw of body.shipmentPackages) {
-        if (!raw.orderId || (orderId && raw.orderId !== orderId) || !raw.shipmentId || !raw.shipmentPackageSeqId) throw new Error('Invalid package identity');
-        const packageKey = tuple(raw.shipmentId, raw.shipmentPackageSeqId);
-        if (seen.has(packageKey)) throw new Error('Package snapshot repeated a row');
-        seen.add(packageKey);
-        rows.push({ ...raw, packageKey, shipmentStatusId: 'SHIPMENT_SHIPPED', facilityId: this.connection.facilityId, snapshotScope: 'facility', raw, syncedAt: Date.now() });
-      }
-      return rows;
-    }
-    throw new Error('Packages changed during sync; refresh required');
-  }
-
   async shipments(orderId: string) {
     const { body } = await this.request('poorti/transferShipments', { orderId });
     if (!Array.isArray(body.shipments)) throw new Error('Invalid transfer shipments response');
@@ -110,32 +68,19 @@ export class ReceivingApi {
 
   async receipts(orderId: string, grouped: boolean) {
     const rows: Row[] = [], seen = new Set<string>();
-    let pageIndex = 0, expectedTotal: number | undefined;
+    let pageIndex = 0;
     for (;;) {
-      const { body, headers } = await this.request(`poorti/transferOrders/${encodeURIComponent(orderId)}/${grouped ? 'receipts' : 'misShippedItems'}`, {
+      const { body } = await this.request(`poorti/transferOrders/${encodeURIComponent(orderId)}/${grouped ? 'receipts' : 'misShippedItems'}`, {
         pageSize: 200, pageIndex,
         orderByField: grouped ? 'datetimeReceived,orderItemSeqId,productId,receivedByUserLoginId,quantityRejected,productStoreId,quantity' : 'datetimeReceived,receiptId',
       });
       if (!Array.isArray(body)) throw new Error('Invalid receipt response');
-      const totalHeader = headers.get('X-Total-Count');
-      if (totalHeader !== null) {
-        const total = Number(totalHeader);
-        if (!Number.isInteger(total) || total < 0 || (expectedTotal !== undefined && total !== expectedTotal)) throw new Error('Receipt count changed during sync');
-        expectedTotal = total;
-      }
       for (const row of receiptRows(body, orderId, grouped, Date.now())) {
         const key = grouped ? row.receiptGroupKey : row.receiptId;
         if (seen.has(key)) throw new Error('Receipt pagination repeated a row');
         seen.add(key); rows.push(row);
       }
-      if (expectedTotal !== undefined && rows.length >= expectedTotal) {
-        if (rows.length !== expectedTotal) throw new Error('Receipt count mismatch');
-        return rows;
-      }
-      if (body.length < 200) {
-        if (expectedTotal !== undefined && rows.length !== expectedTotal) throw new Error('Incomplete receipt response');
-        return rows;
-      }
+      if (body.length < 200) return rows;
       pageIndex++;
     }
   }
@@ -150,7 +95,7 @@ export class ReceivingApi {
         const query = {
           query: '*:*', filter: ['docType:PRODUCT', `productId:(${ids.map(id => `"${id.replace(/([\\"])/g, '\\$1')}"`).join(' OR ')})`],
           params: { start, rows: 100, sort: 'productId asc,docType-identifier asc',
-            fl: 'productId,productName,parentProductName,internalName,sku,upc,goodIdentifications,productFeatures,mainImageUrl,isVariant,isVirtual,updatedDatetime,docType-identifier' },
+            fl: 'productId,productName,parentProductName,internalName,groupId,groupName,title,primaryProductCategoryName,sku,upc,goodIdentifications,productFeatures,mainImageUrl,isVariant,isVirtual,updatedDatetime,docType-identifier' },
         };
         const { body } = await this.request(this.connection.moqui ? 'admin/search/query' : 'admin/runSolrQuery', {}, this.connection.moqui ? query : { json: query });
         const result = this.connection.moqui ? body.response?.response : body.response;
