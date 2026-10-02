@@ -170,7 +170,7 @@ const confirmReceiveByFulfillment = async (event: any) => {
           await productStore.setProductStoreSetting(
             preferredStore.value.productStoreId,
             "RECEIVE_BY_FULFILL",
-            isChecked ? "Y" : "N"
+            isChecked ? "true" : "false"
           );
         }
       }
