@@ -15,11 +15,17 @@ export const receivingOperations = shallowRef<ReceiptOperations>();
 export const receivingError = shallowRef('');
 const corpus = shallowRef<Awaited<ReturnType<typeof readListCorpus>>>({ rows: [] });
 const coverage = shallowRef<Awaited<ReturnType<typeof readListSync>>>();
-const syncingDomains = reactive(new Set<string>());
+const syncingDomains = reactive(new Map<string, { completed: number; total: number; running: boolean }>());
+const syncProgress = computed(() => {
+  const work = [...syncingDomains.values()];
+  const total = work.reduce((sum, domain) => sum + domain.total, 0);
+  return total ? work.reduce((sum, domain) => sum + domain.completed, 0) / total : 0;
+});
 const searchText = shallowRef(''), pageLimit = shallowRef(20);
 const filtered = computed(() => filterList(corpus.value, searchText.value, pageLimit.value));
 export const receivingList = computed(() => ({ ...filtered.value, sync: {
-  ...coverage.value, syncing: serviceState.running || syncingDomains.size > 0,
+  ...coverage.value, progress: syncProgress.value,
+  syncing: serviceState.running || [...syncingDomains.values()].some(domain => domain.running),
   error: receivingError.value || coverage.value?.error || serviceState.errors.receivingMembership || serviceState.errors.receivingOrders,
 } }));
 let active: ReceivingConnection | undefined;
@@ -68,8 +74,20 @@ export function configureReceiving(connection?: ReceivingConnection) {
     createSyncService: options => createSyncService({ ...options, domains: domains(connection) }),
     onStatus: status => {
       if (currentGeneration !== generation || !status.domain || status.scope) return;
-      if (status.type === 'sync-start') syncingDomains.add(status.domain);
-      else if (['sync-end', 'sync-error', 'auth-error'].includes(status.type)) syncingDomains.delete(status.domain);
+      if (status.type === 'sync-start') {
+        if (![...syncingDomains.values()].some(domain => domain.running)) syncingDomains.clear();
+        syncingDomains.set(status.domain, { completed: 0, total: 1, running: true });
+      } else {
+        const domain = syncingDomains.get(status.domain);
+        if (!domain?.running) return;
+        if (status.type === 'sync-progress') {
+          domain.completed = status.completed;
+          domain.total = status.total;
+        } else if (['sync-end', 'sync-error', 'auth-error'].includes(status.type)) {
+          domain.running = false;
+          if (status.type === 'sync-end') domain.completed = domain.total;
+        }
+      }
     },
   });
   sync = bootstrap;

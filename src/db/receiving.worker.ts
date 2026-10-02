@@ -20,6 +20,10 @@ async function status(key: string, data: Omit<CacheState, 'key'>) {
   await db.syncMeta.put({ ...data, key } satisfies CacheState);
 }
 
+function progress(domain: string, completed: number, total: number) {
+  self.postMessage({ type: 'sync-progress', domain, completed, total });
+}
+
 async function hydrateProducts(ids: string[], force = false) {
   return navigator.locks.request(tuple(db.name, 'product-hydration'), async () => {
     fence();
@@ -118,14 +122,20 @@ async function syncPending() {
   let pageIndex = 0;
   try {
     const candidateCount = await api.pendingCandidateCount();
+    // Count discovery, every candidate page (including filtered-empty pages),
+    // and the final count check. The first response establishes the denominator.
+    const total = Math.max(1, Math.ceil(candidateCount / 100)) + 2;
+    progress('receivingMembership', 1, total);
     for (;;) {
       const page = await api.pendingPage(pageIndex);
       const cursor = advancePendingPage(page, pageIndex, pageSignatures, candidateCount);
       await mergePendingPage(db, page.orders, facilityId, fence);
+      progress('receivingMembership', pageIndex + 2, total);
       for (const order of page.orders) orderIds.add(order.orderId);
       if (cursor.complete) {
         if (await api.pendingCandidateCount() !== candidateCount) throw new Error('Transfer candidates changed during sync');
         await reconcilePending(db, [...orderIds], facilityId, fence);
+        progress('receivingMembership', total, total);
         break;
       }
       pageIndex = cursor.next!;
@@ -150,9 +160,14 @@ async function refreshOrderMembership(orderId: string) {
 async function refreshOrders(ctx: SyncContext, args: unknown, force: boolean, history = false) {
   api.connection.token = ctx.token;
   const ids = uniqueIds([...(await db.table('transferOrders').where('pendingReceiptFacilityIds').equals(api.connection.facilityId).primaryKeys()), (args as { activeOrder?: string } | undefined)?.activeOrder]);
+  const domain = history ? 'receivingHistory' : 'receivingOrders';
+  let completed = 0;
+  progress(domain, completed, ids.length);
   let failure: unknown;
   for (let i = 0; i < ids.length; i += 3) {
-    const results = await Promise.allSettled(ids.slice(i, i + 3).map(id => lock(() => history ? hydrateHistory(id, force) : hydrateOrder(id, force), id)));
+    const results = await Promise.allSettled(ids.slice(i, i + 3).map(id =>
+      lock(() => history ? hydrateHistory(id, force) : hydrateOrder(id, force), id)
+        .finally(() => progress(domain, ++completed, ids.length))));
     for (const result of results) if (result.status === 'rejected') failure = result.reason;
   }
   if (failure) throw failure;

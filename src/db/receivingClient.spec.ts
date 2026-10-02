@@ -3,13 +3,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const state = vi.hoisted(() => ({
   api: vi.fn(), start: vi.fn(), refetch: vi.fn(), stop: vi.fn(), open: vi.fn(), syncDomain: vi.fn(),
   journals: new Map<string, Map<string, any>>(), dbs: new Map<string, any>(),
-  serviceState: { running: false, errors: {} as Record<string, string> },
+  serviceState: { running: false, written: {} as Record<string, number>, errors: {} as Record<string, string> },
+  onStatus: undefined as ((status: Record<string, any>) => void) | undefined,
 }));
 vi.mock('@common/core/remoteApi', () => ({ default: state.api }));
 vi.mock('@common/utils/commonUtil', () => ({ commonUtil: { hasError: (response: any) => !!response?.data?.errors } }));
 vi.mock('@common/db/sync/syncService', () => ({
   serviceState: state.serviceState,
-  createSyncService: () => ({ start: state.start, stop: state.stop, refetchOne: state.refetch, syncDomainNow: state.syncDomain, setDomains: async () => {} }),
+  createSyncService: (options: any) => {
+    state.onStatus = options.onStatus;
+    return { start: state.start, stop: state.stop, refetchOne: state.refetch, syncDomainNow: state.syncDomain, setDomains: async () => {} };
+  },
   clearDomainErrors: (domain: string) => { delete state.serviceState.errors[domain]; }, clearScopeError() {},
   recordSyncError: (domain: string, message: string) => { state.serviceState.errors[domain] = message; },
 }));
@@ -56,6 +60,35 @@ beforeEach(async () => {
   await client.configureReceiving(connection);
 });
 const postCount = () => state.api.mock.calls.filter(([request]) => request.method === 'post').length;
+
+describe('Live receiving progress', () => {
+  it('advances from actual work and retains finished work while another domain is running', () => {
+    const emit = state.onStatus!;
+    emit({ type: 'sync-start', domain: 'receivingMembership' });
+    expect(client.receivingList.value.sync.progress).toBe(0);
+    emit({ type: 'sync-progress', domain: 'receivingMembership', completed: 1, total: 4 });
+    expect(client.receivingList.value.sync.progress).toBe(0.25);
+    emit({ type: 'sync-start', domain: 'receivingOrders' });
+    emit({ type: 'sync-progress', domain: 'receivingOrders', completed: 2, total: 6 });
+    emit({ type: 'sync-end', domain: 'receivingMembership' });
+    expect(client.receivingList.value.sync.progress).toBe(0.6);
+    expect(client.receivingList.value.sync.syncing).toBe(true);
+    emit({ type: 'sync-end', domain: 'receivingOrders' });
+    expect(client.receivingList.value.sync.progress).toBe(1);
+    expect(client.receivingList.value.sync.syncing).toBe(false);
+    emit({ type: 'sync-start', domain: 'receivingOrders' });
+    expect(client.receivingList.value.sync.progress).toBe(0);
+  });
+  it('clears progress on facility changes and ignores the old worker', async () => {
+    const oldStatus = state.onStatus!;
+    oldStatus({ type: 'sync-start', domain: 'receivingOrders' });
+    oldStatus({ type: 'sync-progress', domain: 'receivingOrders', completed: 3, total: 10 });
+    await client.configureReceiving({ ...connection, facilityId: 'B' });
+    oldStatus({ type: 'sync-progress', domain: 'receivingOrders', completed: 9, total: 10 });
+    expect(client.receivingList.value.sync.progress).toBe(0);
+    expect(client.receivingList.value.sync.syncing).toBe(false);
+  });
+});
 
 describe('Receipt writes and shared AccxUI reconciliation', () => {
   it('awaits shared readback before removing a confirmed receipt operation', async () => {

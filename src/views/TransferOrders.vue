@@ -7,7 +7,7 @@
         <ion-progress-bar
           v-if="loadingOrders"
           data-testid="transfer-orders-page-progress"
-          :type="loadingProgress === undefined ? 'indeterminate' : 'determinate'"
+          type="determinate"
           :value="loadingProgress"
           :aria-label="translate('Loading')"
         />
@@ -101,13 +101,7 @@ const loadingOrders = computed(() => {
   const sync = receivingList.value.sync;
   return !localSyncError.value && (!sync.complete || sync.downloading || sync.syncing);
 });
-const loadingProgress = computed(() => {
-  const sync = receivingList.value.sync;
-  // Once discovery finishes, the total is known and readiness advances as each
-  // transfer's items, products and shipments are stored locally.
-  return selectedSegment.value === 'open' && sync.complete && sync.downloading && sync.totalOrders > 0
-    ? sync.readyOrders / sync.totalOrders : undefined;
-});
+const loadingProgress = computed(() => selectedSegment.value === 'open' ? receivingList.value.sync.progress : 0);
 const currentFacility: any = computed(() => productStore.getCurrentFacility);
 let openingTracking = false;
 const submitSearch = async () => {
