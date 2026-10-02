@@ -4,6 +4,13 @@
       <ion-toolbar>
         <ion-menu-button data-testid="transfer-orders-page-menu-btn" slot="start" />
         <ion-title>{{ translate("Transfer Orders") }}</ion-title>
+        <ion-progress-bar
+          v-if="loadingOrders"
+          data-testid="transfer-orders-page-progress"
+          :type="loadingProgress === undefined ? 'indeterminate' : 'determinate'"
+          :value="loadingProgress"
+          :aria-label="translate('Loading')"
+        />
         <!-- <ion-buttons slot="end">
           <ion-button data-testid="notifications-button" @click="viewNotifications()">
             <ion-icon slot="icon-only" :icon="notificationsOutline" :color="(unreadNotificationsStatus && notifications.length) ? 'primary' : ''" />
@@ -25,8 +32,8 @@
     </ion-header>
     <ion-content data-testid="transfer-orders-page-content">
       <main>
-        <ion-item v-if="selectedSegment === 'open' && localSyncMessage" lines="none">
-          <ion-label>{{ localSyncMessage }}</ion-label>
+        <ion-item v-if="selectedSegment === 'open' && localSyncError" lines="none">
+          <ion-label>{{ localSyncError }}</ion-label>
         </ion-item>
         <TransferOrderItem v-for="order in visibleOrders" :key="order.orderId" :transferOrder="order" />
         <div data-testid="transfer-orders-page-load-more-section" v-if="orders.list.length < orders.total" class="load-more-action ion-text-center">
@@ -62,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { IonButton, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonItem, IonLabel, IonMenuButton, IonPage, IonRefresher, IonRefresherContent, IonSearchbar, IonSegment, IonSegmentButton, IonTitle, IonToolbar, onIonViewWillEnter } from '@ionic/vue';
+import { IonButton, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonItem, IonLabel, IonMenuButton, IonPage, IonProgressBar, IonRefresher, IonRefresherContent, IonSearchbar, IonSegment, IonSegmentButton, IonTitle, IonToolbar, onIonViewWillEnter } from '@ionic/vue';
 import { addOutline, cloudDownloadOutline, reload } from 'ionicons/icons'
 import { ref, computed, watch } from 'vue';
 import { receivingList, receivingError, searchReceiving, refreshReceiving, resolveReceivingTracking } from '@/db/receivingClient';
@@ -70,7 +77,7 @@ import router from '@/router';
 import { useTransferOrderStore } from '@/store/transferorder';
 import { useUserStore } from '@/store/user';
 import TransferOrderItem from '@/components/TransferOrderItem.vue'
-import { translate, commonUtil, emitter } from "@common"
+import { translate, commonUtil } from "@common"
 import { useProductStore } from '@/store/productStore';
 import Actions from "@/authorization/actions"
 
@@ -88,10 +95,18 @@ const orders = computed(() => selectedSegment.value === 'open' ? receivingList.v
 // The archive API can repeat an order for different origins. Keep raw rows for
 // pagination, but render one keyed row per order.
 const visibleOrders = computed(() => [...new Map<string, any>(orders.value.list.map((order: any) => [order.orderId, order] as const)).values()]);
-const localSyncMessage = computed(() => {
+const localSyncError = computed(() => receivingError.value || receivingList.value.sync?.error);
+const loadingOrders = computed(() => {
+  if (selectedSegment.value === 'completed') return fetchingOrders.value;
   const sync = receivingList.value.sync;
-  return receivingError.value || sync?.error || (!sync ? 'Loading saved transfers…' : sync.downloading
-    ? `Downloading transfers (${sync.readyOrders} of ${sync.totalOrders})…` : sync.syncing ? 'Refreshing transfers…' : '');
+  return !localSyncError.value && (!sync.complete || sync.downloading || sync.syncing);
+});
+const loadingProgress = computed(() => {
+  const sync = receivingList.value.sync;
+  // Once discovery finishes, the total is known and readiness advances as each
+  // transfer's items, products and shipments are stored locally.
+  return selectedSegment.value === 'open' && sync.complete && sync.downloading && sync.totalOrders > 0
+    ? sync.readyOrders / sync.totalOrders : undefined;
 });
 const currentFacility: any = computed(() => productStore.getCurrentFacility);
 let openingTracking = false;
@@ -145,10 +160,11 @@ const getTransferOrders = async (vSize?: any, vIndex?: any) => {
     fieldsToSelect: "orderId,orderName,orderExternalId,orderStatusId,orderStatusDesc,facilityId,orderFacilityId,orderDate"
   };
 
-  emitter.emit('presentLoader');
-  await transferOrderStore.fetchTransferOrders(payload);
-  emitter.emit('dismissLoader');
-  fetchingOrders.value = false;
+  try {
+    await transferOrderStore.fetchTransferOrders(payload);
+  } finally {
+    fetchingOrders.value = false;
+  }
 };
 
 const loadMoreOrders = async () => {

@@ -1,4 +1,4 @@
-import { computed, shallowRef } from 'vue';
+import { computed, reactive, shallowRef } from 'vue';
 import { liveQuery } from 'dexie';
 import api from '@common/core/remoteApi';
 import { commonUtil } from '@common/utils/commonUtil';
@@ -15,10 +15,11 @@ export const receivingOperations = shallowRef<ReceiptOperations>();
 export const receivingError = shallowRef('');
 const corpus = shallowRef<Awaited<ReturnType<typeof readListCorpus>>>({ rows: [] });
 const coverage = shallowRef<Awaited<ReturnType<typeof readListSync>>>();
+const syncingDomains = reactive(new Set<string>());
 const searchText = shallowRef(''), pageLimit = shallowRef(20);
 const filtered = computed(() => filterList(corpus.value, searchText.value, pageLimit.value));
 export const receivingList = computed(() => ({ ...filtered.value, sync: {
-  ...coverage.value, syncing: serviceState.running,
+  ...coverage.value, syncing: serviceState.running || syncingDomains.size > 0,
   error: receivingError.value || coverage.value?.error || serviceState.errors.receivingMembership || serviceState.errors.receivingOrders,
 } }));
 let active: ReceivingConnection | undefined;
@@ -55,6 +56,7 @@ export function configureReceiving(connection?: ReceivingConnection) {
   receivingDb.value?.close(); receivingOperations.value?.close();
   receivingDb.value = undefined; receivingOperations.value = undefined;
   active = connection; sync = undefined;
+  syncingDomains.clear();
   corpus.value = { rows: [] }; coverage.value = undefined; receivingError.value = '';
   if (!connection) return ready = Promise.resolve();
   receivingCache.setOmsInstanceResolver(() => connection.scope);
@@ -64,6 +66,11 @@ export function configureReceiving(connection?: ReceivingConnection) {
     db: receivingCache,
     getWorkerUrl: () => new URL(receivingWorkerUrl, import.meta.url),
     createSyncService: options => createSyncService({ ...options, domains: domains(connection) }),
+    onStatus: status => {
+      if (currentGeneration !== generation || !status.domain || status.scope) return;
+      if (status.type === 'sync-start') syncingDomains.add(status.domain);
+      else if (['sync-end', 'sync-error', 'auth-error'].includes(status.type)) syncingDomains.delete(status.domain);
+    },
   });
   sync = bootstrap;
   ready = (async () => {
