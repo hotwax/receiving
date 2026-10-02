@@ -16,8 +16,8 @@ Ordinary production analyzer, with public Demo shop mapping and private developm
 
 | Modern entry | Previous baseline | Focused imports/build configuration |
 | --- | ---: | ---: |
-| JavaScript bytes | 2,823,745 | 1,699,924 |
-| Gzip bytes | 706,388 | 425,440 |
+| JavaScript bytes | 2,823,745 | 1,699,400 |
+| Gzip bytes | 706,388 | 425,169 |
 
 The entry has no eager JavaScript chunk imports. Its module graph contains no CSV/encoding/cron dependencies, `commonUtil` compatibility object, auth screens or styles from unused shared components. Ionic datetime/date-button definitions still remain; removing those safely is a follow-up. The analyzer excludes worker/CSS/legacy output from the entry metric; it is not an end-to-end startup benchmark.
 
@@ -28,3 +28,5 @@ CI at publication: Receiving cannot find the focused shared modules until AccxUI
 Physical iPad QA verified startup, the actual local iframe origin, tracking search and Enter navigation to the shipment-filtered detail. The full software-keyboard assertion for manual scan entry remains unresolved: the compact iPad Keyboard control appears without the full keyboard. A click-handler attempt did not fix it and was removed. Navigation-only QA is being run separately; it does not validate the software-keyboard assertion. No inventory receipt is submitted.
 
 The production build checks the full eager JavaScript graph (entry plus static imports), with budgets of 1.8 MB decoded / 450 KB gzip, and rejects CSV/encoding/cron dependencies in that graph. Dynamic feature chunks are outside the startup budget. Review the dependency graph before raising these limits.
+
+Final compiled physical iPad run `run-1790974080104-a5005311` passed: tracking search and Enter to shipment-filtered detail, Open/Completed tabs, Settings, Purchase Orders and Returns, with the actual preview iframe origin verified. No runtime-error events were recorded. This run explicitly excluded the unresolved manual software-keyboard assertion and submitted no inventory receipt. Final analyzer found zero CSV/encoding/cron library modules across all modern chunks; all modern JavaScript totaled 2,563,627 bytes.
