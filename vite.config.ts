@@ -9,6 +9,7 @@ import { commonEnvPlugin } from '../../common/vite/commonEnvPlugin'
 import pkg from './package.json'
 import { VitePWA } from 'vite-plugin-pwa'
 import manifest from './manifest.json'
+import { receivingStartupBudget } from './build/startupBudget'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -21,6 +22,7 @@ export default defineConfig(({ mode }) => {
     outDir: appBuild ? `dist/${appBuild}` : 'dist'
   },
   plugins: [
+    receivingStartupBudget(),
     commonEnvPlugin(),
     vue(),
     legacy(),

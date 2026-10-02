@@ -26,3 +26,5 @@ Validation: 65 Receiving tests passed, 65 selected shared lifecycle tests and th
 CI at publication: Receiving cannot find the focused shared modules until AccxUI #197 merges. AccxUI inventory-count and order-manager jobs stop at frozen-lockfile installation mismatches, before compiling the changed source. Those package/lockfile issues are outside this refactor.
 
 Physical iPad QA verified startup, the actual local iframe origin, tracking search and Enter navigation to the shipment-filtered detail. The full software-keyboard assertion for manual scan entry remains unresolved: the compact iPad Keyboard control appears without the full keyboard. A click-handler attempt did not fix it and was removed. Navigation-only QA is being run separately; it does not validate the software-keyboard assertion. No inventory receipt is submitted.
+
+The production build checks the full eager JavaScript graph (entry plus static imports), with budgets of 1.8 MB decoded / 450 KB gzip, and rejects CSV/encoding/cron dependencies in that graph. Dynamic feature chunks are outside the startup budget. Review the dependency graph before raising these limits.
