@@ -142,6 +142,9 @@ export const useUserStore = defineStore("user", {
 
           if (resp.status === 200 && resp.data.docs?.length && !utilHasError(resp)) {
             serverPermissions.push(...resp.data.docs.map((permission: any) => permission.permissionId))
+            // Maarg returns the authoritative total; it can return more than
+            // viewSize. Do not fetch an extra empty page once all rows arrived.
+            if (Number.isSafeInteger(resp.data.count) && resp.data.count >= 0 && serverPermissions.length >= resp.data.count) break
             viewIndex++
           } else {
             resp = null

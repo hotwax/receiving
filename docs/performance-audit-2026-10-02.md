@@ -1,5 +1,7 @@
 # Receiving performance and regression audit — 2 October 2026
 
+Later follow-up: [first interactive paint measurements](first-interactive-paint-2026-10-02.md) cover the next startup changes, including a 1.877-second warm iframe median and the separate native Shopify host interval. The measurements below describe the preceding bundle/receipt audit.
+
 The performance refactor has a verified 39.8% reduction in the modern entry bundle, with no new failures in the comparable shared test suite. Browser receiving reviews and compiled physical-iPad navigation passed. The subsequent Scan all correction passed browser checks and an actual two-unit receipt from the physical iPad, with OMS inventory readback. CI still has dependency/install gates, and a 1–2 second startup has not been demonstrated.
 
 ## Audited scope

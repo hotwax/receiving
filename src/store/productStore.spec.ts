@@ -1,5 +1,6 @@
 import { beforeEach, expect, it, vi } from 'vitest';
 import { createPinia, setActivePinia } from 'pinia';
+import { watch } from 'vue';
 const api = vi.hoisted(() => vi.fn());
 vi.mock('@common/core/remoteApi', () => ({ default: api }));
 vi.mock('@common/core/logger', () => ({ default: {error: vi.fn()} }));
@@ -22,4 +23,23 @@ it('waits for the selected product store settings before returning its product s
   resolve(); await fetch;
   expect(dependencies).toHaveBeenCalledOnce();
   expect(store.getCurrentProductStore.productStoreId).toBe('STORE');
+});
+
+it('starts receiving settings before store names finish and waits for both', async () => {
+  const store = useProductStore(); store.currentFacility = {facilityId:'BROADWAY',productStores:[]};
+  let namesReady!: (value: any) => void;
+  const names = new Promise(done => { namesReady = done; });
+  api.mockResolvedValueOnce({data:[{productStoreId:'STORE'}]}).mockReturnValueOnce(names);
+  const dependencies = vi.spyOn(store, 'fetchProductStoreDependencies').mockResolvedValue(undefined);
+  let settled = false;
+  const fetch = store.fetchProductStores().then(() => { settled = true; });
+  await vi.waitFor(() => expect(dependencies).toHaveBeenCalledWith('STORE'));
+  expect(settled).toBe(false);
+  const nameChanged = vi.fn();
+  const stop = watch(() => store.getCurrentProductStore.storeName, nameChanged, {flush:'sync'});
+  namesReady({data:[{productStoreId:'STORE',storeName:'Demo'}]});
+  await fetch;
+  expect(store.getCurrentProductStore.storeName).toBe('Demo');
+  expect(nameChanged).toHaveBeenCalledWith('Demo', undefined, expect.any(Function));
+  stop();
 });

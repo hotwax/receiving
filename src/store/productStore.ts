@@ -1,5 +1,6 @@
 import { hasError as utilHasError, isAppEmbedded as utilIsAppEmbedded, showToast as utilShowToast } from '@common/utils/core';
 import { defineStore } from 'pinia';
+import { reactive } from 'vue';
 import { default as api } from '@common/core/remoteApi';
 import { default as logger } from '@common/core/logger';
 import { translate } from '@common/core/i18n';
@@ -244,9 +245,10 @@ export const useProductStore = defineStore('productStore', {
           }
         }) as any;
 
-        const stores = resp.data.filter((store: any) => !store.thruDate)
+        const stores = reactive(resp.data.filter((store: any) => !store.thruDate))
 
-        if (stores.length) {
+        const enrichNames = async () => {
+          if (!stores.length) return;
           // Fetching all stores for the store name
           try {
             const productStoresResp = await api({
@@ -263,7 +265,7 @@ export const useProductStore = defineStore('productStore', {
           } catch (error) {
             console.error(error);
           }
-        }
+        };
 
         const productStores = [...stores]
 
@@ -271,7 +273,12 @@ export const useProductStore = defineStore('productStore', {
           ...this.currentFacility,
           productStores
         }
-        await this.setCurrentProductStore(productStores[0])
+        // Names and receiving settings depend on the store IDs, not each other.
+        // Keep both settled before publishing login/facility-switch completion.
+        const results = await Promise.allSettled([
+          this.setCurrentProductStore(productStores[0]), enrichNames()
+        ]);
+        for (const result of results) if (result.status === 'rejected') throw result.reason;
       } catch (error: any) {
         logger.error("error", error);
         return Promise.reject(new Error(error));

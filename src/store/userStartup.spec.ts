@@ -10,9 +10,10 @@ const fixtures = vi.hoisted(() => ({
   },
   notification: { fetchAllNotificationPrefs: vi.fn() },
   finishLogin: vi.fn(),
+  api: vi.fn(),
 }));
-vi.mock('@common/core/remoteApi', () => ({ default: vi.fn() }));
-vi.mock('@common/utils/core', () => ({ isAppEmbedded: () => fixtures.embedded }));
+vi.mock('@common/core/remoteApi', () => ({ default: fixtures.api }));
+vi.mock('@common/utils/core', () => ({ isAppEmbedded: () => fixtures.embedded, hasError: () => false }));
 vi.mock('@common/helpers/cookieHelper', () => ({ cookieHelper: vi.fn() }));
 vi.mock('@common/core/logger', () => ({ default: { error: vi.fn() } }));
 vi.mock('@common/core/i18n', () => ({ translate: (text: string) => text }));
@@ -41,6 +42,31 @@ const deferred = () => {
 describe('Receiving login bootstrap', () => {
   beforeEach(() => {
     setActivePinia(createPinia()); vi.clearAllMocks(); fixtures.embedded = false; fixtures.location = '';
+    vi.stubEnv('VITE_APP_PERMISSION_ID', '');
+  });
+  it('uses the returned permission total even when Maarg returns more than the requested page size', async () => {
+    const docs = Array.from({ length: 263 }, (_, i) => ({ permissionId: `PERMISSION_${i}` }));
+    fixtures.api.mockResolvedValueOnce({ status: 200, data: { docs, count: 263 } });
+    const user = useUserStore();
+    await user.fetchPermissions();
+    expect(user.permissions).toHaveLength(263);
+    expect(fixtures.api).toHaveBeenCalledOnce();
+  });
+  it('keeps fetching permission pages until the reported total is complete', async () => {
+    fixtures.api.mockResolvedValueOnce({ status: 200, data: { docs: [{ permissionId: 'VIEW' }], count: 2 } })
+      .mockResolvedValueOnce({ status: 200, data: { docs: [{ permissionId: 'RECEIVE' }], count: 2 } });
+    const user = useUserStore();
+    await user.fetchPermissions();
+    expect(user.permissions).toEqual(['VIEW', 'RECEIVE']);
+    expect(fixtures.api).toHaveBeenCalledTimes(2);
+  });
+  it('retains empty-page termination when the permissions API supplies no total', async () => {
+    fixtures.api.mockResolvedValueOnce({ status: 200, data: { docs: [{ permissionId: 'VIEW' }] } })
+      .mockResolvedValueOnce({ status: 200, data: { docs: [] } });
+    const user = useUserStore();
+    await user.fetchPermissions();
+    expect(user.permissions).toEqual(['VIEW']);
+    expect(fixtures.api).toHaveBeenCalledTimes(2);
   });
   it('starts profile and permissions together, but waits for both before facility access', async () => {
     const user = useUserStore(), profile = deferred(), permissions = deferred();

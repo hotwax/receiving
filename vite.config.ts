@@ -10,6 +10,7 @@ import pkg from './package.json'
 import { VitePWA } from 'vite-plugin-pwa'
 import manifest from './manifest.json'
 import { receivingStartupBudget } from './build/startupBudget'
+import { embeddedStartupPreload } from './build/embeddedStartupPreload'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -23,6 +24,7 @@ export default defineConfig(({ mode }) => {
   },
   plugins: [
     receivingStartupBudget(),
+    embeddedStartupPreload(),
     commonEnvPlugin(),
     vue(),
     legacy(),
