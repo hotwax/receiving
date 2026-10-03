@@ -74,11 +74,13 @@ async function hydrateOrder(orderId: string, force = false) {
       force || !detailState?.ready || Date.now() - (detailState.checkedAt || 0) >= 120000 ? api.detail(orderId) : undefined,
       force || !misState?.ready || Date.now() - (misState.checkedAt || 0) >= 120000 ? api.receipts(orderId, false) : undefined,
     ]);
+    // Preserve successful snapshots even if another read failed. Keep the
+    // hydration error visible so the failed part is retried rather than marked ready.
+    if (detail.status === 'fulfilled' && detail.value) await replaceDetail(db, detail.value, fence);
+    if (discrepancies.status === 'fulfilled' && discrepancies.value) await replaceOrderRows(db, 'transferMisShippedReceipts', orderId, discrepancies.value, fence);
     if (shipments.status === 'rejected') throw shipments.reason;
     if (detail.status === 'rejected') throw detail.reason;
     if (discrepancies.status === 'rejected') throw discrepancies.reason;
-    if (detail.value) await replaceDetail(db, detail.value, fence);
-    if (discrepancies.value) await replaceOrderRows(db, 'transferMisShippedReceipts', orderId, discrepancies.value, fence);
     const items = detail.value?.items || await db.table('transferItems').where('orderId').equals(orderId).toArray();
     const receipts = discrepancies.value || await db.table('transferMisShippedReceipts').where('orderId').equals(orderId).toArray();
     const coverage = await hydrateProducts([

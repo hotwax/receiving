@@ -64,7 +64,26 @@ it('keeps the order operation pending until other reads settle after a detail fa
   await vi.waitFor(() => expect(state.receipts).toHaveBeenCalledOnce());
   expect(settled).toBe(false);
   receipts.resolve([]); await rejected;
-  expect(state.writeDetail).not.toHaveBeenCalled(); expect(state.writeReceipts).not.toHaveBeenCalled();
+  expect(state.writeDetail).not.toHaveBeenCalled(); expect(state.writeReceipts).toHaveBeenCalledOnce();
+});
+
+it('preserves fresh detail when discrepancies fail, after every read settles', async () => {
+  const shipment = deferred<any>(); state.shipments.mockReturnValueOnce(shipment.promise);
+  const failure = new Error('Discrepancies unavailable'); state.receipts.mockRejectedValueOnce(failure);
+  const detail = { orderId: 'T1', items: [{ orderItemSeqId: '01', productId: 'P1', totalReceivedQuantity: 2 }] };
+  state.detail.mockResolvedValueOnce(detail);
+  let settled = false;
+  const work = refresh().finally(() => { settled = true; });
+  const rejected = expect(work).rejects.toBe(failure);
+  await vi.waitFor(() => expect(state.receipts).toHaveBeenCalledOnce());
+  expect(settled).toBe(false);
+  expect(state.writeDetail).not.toHaveBeenCalled();
+  shipment.resolve({ packages: [], items: [] }); await rejected;
+  expect(state.writeDetail).toHaveBeenCalledOnce();
+  expect(state.writeDetail).toHaveBeenCalledWith(expect.anything(), detail, expect.any(Function));
+  expect(state.writeReceipts).not.toHaveBeenCalled();
+  expect(state.status).toHaveBeenCalledWith(expect.objectContaining({ key: cacheKeys.hydrate('A', 'T1'), error: 'Unable to refresh transfer data' }));
+  expect(state.status).not.toHaveBeenCalledWith(expect.objectContaining({ key: cacheKeys.hydrate('A', 'T1'), ready: true }));
 });
 
 it('keeps item hydration working when optional shipments fail', async () => {
