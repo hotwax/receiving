@@ -127,9 +127,9 @@
                   <DxpShopifyImg :src="getProduct(searchedProduct.productId)?.mainImageUrl || searchedProduct.mainImageUrl" :key="getProduct(searchedProduct.productId)?.mainImageUrl || searchedProduct.mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label>
-                  {{ commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(searchedProduct.productId)) }}
-                  <p>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(searchedProduct.productId)) ? commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(searchedProduct.productId)) : getProduct(searchedProduct.productId)?.internalName }}</p>
-                  <p v-if="commonUtil.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(searchedProduct.productId)) !== 'null'">{{ commonUtil.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(searchedProduct.productId)) }}</p>
+                  {{ utilGetProductIdentificationValue(barcodeIdentifier, getProduct(searchedProduct.productId)) }}
+                  <p>{{ utilGetProductIdentificationValue(productIdentificationPref.primaryId, getProduct(searchedProduct.productId)) ? utilGetProductIdentificationValue(productIdentificationPref.primaryId, getProduct(searchedProduct.productId)) : getProduct(searchedProduct.productId)?.internalName }}</p>
+                  <p v-if="utilGetProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(searchedProduct.productId)) !== 'null'">{{ utilGetProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(searchedProduct.productId)) }}</p>
                 </ion-label>
                 <ion-icon v-if="!pendingProductIds.has(searchedProduct.productId)" :icon="checkmarkDoneOutline" color="success" slot="end" />
                 <ion-spinner v-else name="crescent" slot="end" />
@@ -187,8 +187,8 @@
                     <DxpShopifyImg :src="searchedProduct.mainImageUrl" :key="searchedProduct.mainImageUrl" />
                   </ion-thumbnail>
                   <ion-label>
-                    {{ commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(searchedProduct.productId)) ? commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(searchedProduct.productId)) : getProduct(searchedProduct.productId)?.internalName }}
-                    <p v-if="commonUtil.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(searchedProduct.productId)) !== 'null'">{{ commonUtil.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(searchedProduct.productId)) }}</p>
+                    {{ utilGetProductIdentificationValue(productIdentificationPref.primaryId, getProduct(searchedProduct.productId)) ? utilGetProductIdentificationValue(productIdentificationPref.primaryId, getProduct(searchedProduct.productId)) : getProduct(searchedProduct.productId)?.internalName }}
+                    <p v-if="utilGetProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(searchedProduct.productId)) !== 'null'">{{ utilGetProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(searchedProduct.productId)) }}</p>
                   </ion-label>
                   <template v-if="!isProductInOrder(searchedProduct.productId)">
                     <ion-button data-testid="add-to-transfer-btn" :disabled="pendingProductIds.has(searchedProduct.productId)" slot="end" fill="outline" @click="addSearchedOrderItem">
@@ -223,14 +223,14 @@
 
           <hr />
 
-          <div class="list-item" v-for="(item, index) in currentOrder.items" :key="index" :id="item.scannedId ? item.scannedId : commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+          <div class="list-item" v-for="(item, index) in currentOrder.items" :key="index" :id="item.scannedId ? item.scannedId : utilGetProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
             <ion-item lines="none">
               <ion-thumbnail slot="start">
                 <Image :src="getProduct(item.productId)?.mainImageUrl" />
               </ion-thumbnail>
               <ion-label>
-                {{ commonUtil.getProductIdentificationValue(useProductStore().getProductIdentificationPref.primaryId, getProduct(item.productId)) || getProduct(item.productId).productName }}
-                <p>{{ commonUtil.getProductIdentificationValue(useProductStore().getProductIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                {{ utilGetProductIdentificationValue(useProductStore().getProductIdentificationPref.primaryId, getProduct(item.productId)) || getProduct(item.productId).productName }}
+                <p>{{ utilGetProductIdentificationValue(useProductStore().getProductIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
               </ion-label>
             </ion-item>
             <div class="tablet"></div>
@@ -258,10 +258,17 @@
 </template>
 
 <script setup lang="ts">
+import { getDateWithOrdinalSuffix as utilGetDateWithOrdinalSuffix } from '@common/utils/date';
+import { getProductIdentificationValue as utilGetProductIdentificationValue } from '@common/utils/product';
+import { hasError as utilHasError, showToast as utilShowToast } from '@common/utils/core';
 import { IonBackButton, IonBadge, IonButton, IonCard, IonCardHeader, IonCardTitle, IonChip, IonContent, IonDatetime, IonFab, IonFabButton, IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonList, IonModal, IonPage, IonSearchbar, IonSegment, IonSegmentButton, IonSelect, IonSelectOption, IonSpinner, IonThumbnail, IonTitle, IonToolbar, onIonViewDidEnter, modalController } from '@ionic/vue';
 import { addCircleOutline, barcodeOutline, checkmarkCircle, checkmarkDoneOutline, cloudOfflineOutline, informationCircleOutline, locateOutline, searchOutline, sendOutline, shirtOutline, storefrontOutline, downloadOutline, trashOutline } from 'ionicons/icons';
 import { computed, nextTick, ref, watch } from "vue";
-import { commonUtil, DxpShopifyImg, emitter, logger, translate, useSolrSearch } from '@common';
+import { default as DxpShopifyImg } from '@common/components/DxpShopifyImg.vue';
+import { default as emitter } from '@common/core/emitter';
+import { default as logger } from '@common/core/logger';
+import { translate } from '@common/core/i18n';
+import { useSolrSearch } from '@common/composables/useSolrSearch';
 import Image from '@/components/Image.vue';
 import AddProductModal from '@/components/AddProductModal.vue';
 import SelectFacilityModal from '@/components/SelectFacilityModal.vue';
@@ -386,7 +393,7 @@ onIonViewDidEnter(async () => {
 async function fetchProductStoreDetails(productStoreId: string) {
   try {
     const resp = await productStore.fetchProductStoreDetails({ productStoreId: productStoreId });
-    if(!commonUtil.hasError(resp)) {
+    if(!utilHasError(resp)) {
       currencyUom.value = resp.data.defaultCurrencyUomId;
     } else {
       throw resp.data;
@@ -400,7 +407,7 @@ async function fetchBarcodeIdentificationDesc() {
   try {
     const resp = await product.fetchBarcodeIdentificationDesc({ parentTypeId: "HC_GOOD_ID_TYPE" });
 
-    if (!commonUtil.hasError(resp) && resp.data?.length) {
+    if (!utilHasError(resp) && resp.data?.length) {
       barcodeIdentificationDesc.value = resp.data.reduce((identifierDesc: any, identifier: any) => {
         identifierDesc[identifier.goodIdentificationTypeId] = identifier.description;
         return identifierDesc;
@@ -486,7 +493,7 @@ function findAndScrollToExisting(identifier?: string, productId?: string) {
   const items = currentOrder.value.items || [];
   const existing = items.find((item: any) => {
     if (productId && item.productId === productId) return true;
-    const idVal = item.scannedId ? item.scannedId : commonUtil.getProductIdentificationValue(barcodeIdentifier.value, getProduct.value(item.productId));
+    const idVal = item.scannedId ? item.scannedId : utilGetProductIdentificationValue(barcodeIdentifier.value, getProduct.value(item.productId));
     return identifier && idVal === identifier;
   });
 
@@ -498,8 +505,8 @@ function findAndScrollToExisting(identifier?: string, productId?: string) {
 }
 
 function scrollToProduct(item: any) {
-  lastScannedId.value = item.scannedId ? item.scannedId : commonUtil.getProductIdentificationValue(barcodeIdentifier.value, getProduct.value(item.productId));
-  const el = document.getElementById(item.scannedId ? item.scannedId : commonUtil.getProductIdentificationValue(barcodeIdentifier.value, getProduct.value(item.productId)));
+  lastScannedId.value = item.scannedId ? item.scannedId : utilGetProductIdentificationValue(barcodeIdentifier.value, getProduct.value(item.productId));
+  const el = document.getElementById(item.scannedId ? item.scannedId : utilGetProductIdentificationValue(barcodeIdentifier.value, getProduct.value(item.productId)));
   if (el) el.scrollIntoView({ behavior: "smooth" });
   setTimeout(() => lastScannedId.value = "", 3000);
 }
@@ -579,34 +586,34 @@ function getFacilityName(facilityId: any) {
 
 async function createOrder() {
   if(!currentOrder.value.items?.length) {
-    commonUtil.showToast(translate("Please add atleast one item in the order."), { position: 'top' });
+    utilShowToast(translate("Please add atleast one item in the order."), { position: 'top' });
     return;
   }
 
   if(!currentOrder.value.name.trim()) {
-    commonUtil.showToast(translate("Please give some valid transfer order name."), { position: 'top' })
+    utilShowToast(translate("Please give some valid transfer order name."), { position: 'top' })
     return;
   }
 
   if(!currentOrder.value.productStoreId || !currentOrder.value.originFacilityId || !currentOrder.value.destinationFacilityId || !currentOrder.value.carrierPartyId || !currentOrder.value.shipmentMethodTypeId) {
-    commonUtil.showToast(translate("Please select all the required properties assigned to the order."), { position: 'top' })
+    utilShowToast(translate("Please select all the required properties assigned to the order."), { position: 'top' })
     return;
   }
 
   if(currentOrder.value.originFacilityId === currentOrder.value.destinationFacilityId) {
-    commonUtil.showToast(translate("Origin and destination facility can't be same."), { position: 'top' })
+    utilShowToast(translate("Origin and destination facility can't be same."), { position: 'top' })
     return;
   }
 
 
   const isItemQuantityInvalid = currentOrder.value.items.some((item: any) => !Number(item.quantity) || Number(item.quantity) < 0)
   if(isItemQuantityInvalid) {
-    commonUtil.showToast(translate("Order items must have a valid ordered quantity."), { position: 'top' })
+    utilShowToast(translate("Order items must have a valid ordered quantity."), { position: 'top' })
     return;
   }
 
   if(!currentOrder.value.statusFlowId) {
-    commonUtil.showToast(translate("Please select transfer order lifecycle."), { position: 'top' });
+    utilShowToast(translate("Please select transfer order lifecycle."), { position: 'top' });
     return;
   }
 
@@ -680,8 +687,8 @@ async function createOrder() {
 
   try {
     const resp = await orderStore.createOrder({ payload: order })
-    if(!commonUtil.hasError(resp)) {
-      commonUtil.showToast(translate("Order has been created and sent for admin approval"))
+    if(!utilHasError(resp)) {
+      utilShowToast(translate("Order has been created and sent for admin approval"))
       router.replace("/transfer-orders")
       emitter.emit("dismissLoader")
     } else {
@@ -690,7 +697,7 @@ async function createOrder() {
   } catch(error: any) {
     logger.error(error)
     emitter.emit("dismissLoader")
-    commonUtil.showToast(translate("Failed to create order."), { position: 'top' })
+    utilShowToast(translate("Failed to create order."), { position: 'top' })
   }
 }
 
@@ -776,7 +783,7 @@ async function fetchStock(productId: string) {
       facilityId: currentOrder.value.originFacilityId
     });
 
-    if(!commonUtil.hasError(resp)) {
+    if(!utilHasError(resp)) {
       return resp.data;
     } else {
       throw resp.data;
@@ -789,7 +796,7 @@ async function fetchStock(productId: string) {
 
 function formatDateTime(date: any) {
   const dateTime = DateTime.fromISO(date);
-  return commonUtil.getDateWithOrdinalSuffix(dateTime.toMillis());
+  return utilGetDateWithOrdinalSuffix(dateTime.toMillis());
 }
 
 function updateDateTimeFilter(value: any) {

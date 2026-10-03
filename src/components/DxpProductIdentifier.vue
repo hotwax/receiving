@@ -31,8 +31,8 @@
           <DxpShopifyImg size="small" :src="currentSampleProduct.mainImageUrl"/>
         </ion-thumbnail>
         <ion-label>
-          {{ commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, currentSampleProduct) ? commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, currentSampleProduct) : currentSampleProduct.productId }}
-          <p>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.secondaryId, currentSampleProduct) }}</p>
+          {{ utilGetProductIdentificationValue(productIdentificationPref.primaryId, currentSampleProduct) ? utilGetProductIdentificationValue(productIdentificationPref.primaryId, currentSampleProduct) : currentSampleProduct.productId }}
+          <p>{{ utilGetProductIdentificationValue(productIdentificationPref.secondaryId, currentSampleProduct) }}</p>
         </ion-label>
         <ion-button size="default" fill="clear" @click="shuffle">  
           <ion-icon slot="icon-only" :icon="shuffleOutline"/>
@@ -43,11 +43,13 @@
 </template>
 
 <script setup lang="ts">
+import { getProductIdentificationValue as utilGetProductIdentificationValue } from '@common/utils/product';
 import { IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonIcon, IonItem, IonLabel, IonSelect, IonSelectOption, IonThumbnail } from '@ionic/vue';
 import { useProductStore } from '@/store/productStore';
-import { useUserStore } from '@/store/user'
+import { useUserStore } from '@/store/user';
 import { computed, onMounted } from 'vue';
-import { commonUtil, DxpShopifyImg, translate } from "@common";
+import { default as DxpShopifyImg } from '@common/components/DxpShopifyImg.vue';
+import { translate } from '@common/core/i18n';
 import { shuffleOutline } from "ionicons/icons";
 import Actions from "@/authorization/actions";
 

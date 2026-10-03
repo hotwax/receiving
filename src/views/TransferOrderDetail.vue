@@ -73,7 +73,7 @@
 
         <div v-if="!isTOReceived()" class="scanner">
           <ion-item :lines="scanErrorText ? 'none' : 'full'">
-            <ion-input ref="scanInput" data-testid="transfer-order-detail-page-scan-input" :class="{ 'ion-invalid ion-touched': scanErrorText }" :error-text="scanErrorText" :label="translate('Scan items')" label-placement="fixed" :autofocus="!commonUtil.isAppEmbedded()" :inputmode="scanInputMode" @pointerdown="enableManualScanning" @touchstart="enableManualScanning" v-model="queryString" @keyup.enter="updateProductCount(null)" @ionInput="scanErrorText = ''"/>
+            <ion-input ref="scanInput" data-testid="transfer-order-detail-page-scan-input" :class="{ 'ion-invalid ion-touched': scanErrorText }" :error-text="scanErrorText" :label="translate('Scan items')" label-placement="fixed" :autofocus="!utilIsAppEmbedded()" :inputmode="scanInputMode" @pointerdown="enableManualScanning" @touchstart="enableManualScanning" v-model="queryString" @keyup.enter="updateProductCount(null)" @ionInput="scanErrorText = ''"/>
           </ion-item>
           <ion-button data-testid="transfer-order-detail-page-scan-btn" expand="block" fill="outline" @click="scan">
             <ion-icon slot="start" :icon="cameraOutline" />
@@ -121,9 +121,9 @@
                       <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
                     </ion-thumbnail>
                     <ion-label class="ion-text-wrap">
-                      <h2>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
-                      <p>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
-                      <p>{{ commonUtil.getFeatures(getProduct(item.productId).productFeatures) }}</p>
+                      <h2>{{ utilGetProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? utilGetProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
+                      <p>{{ utilGetProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                      <p>{{ utilGetFeatures(getProduct(item.productId).productFeatures) }}</p>
                     </ion-label>
                   </ion-item>
                 </div>
@@ -203,7 +203,7 @@
                 {{ translate("Back to open items") }}
               </ion-button>
             </ion-item>
-            <ion-card :data-testid="`transfer-order-detail-page-open-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in visibleOpenItems" :key="index" :class="commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+            <ion-card :data-testid="`transfer-order-detail-page-open-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in visibleOpenItems" :key="index" :class="utilGetProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="utilGetProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
               <div class="product" :data-product-id="item.productId">
                 <div class="product-info">
                   <ion-item lines="none">
@@ -211,9 +211,9 @@
                       <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
                     </ion-thumbnail>
                     <ion-label class="ion-text-wrap">
-                      <h2>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
-                      <p>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
-                      <p>{{ commonUtil.getFeatures(getProduct(item.productId).productFeatures) }}</p>
+                      <h2>{{ utilGetProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? utilGetProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
+                      <p>{{ utilGetProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                      <p>{{ utilGetFeatures(getProduct(item.productId).productFeatures) }}</p>
                     </ion-label>
                   </ion-item>
                 </div>
@@ -274,7 +274,7 @@
             </ion-item>
           </template>
           <template v-if="selectedSegment === 'received'">
-            <ion-card :data-testid="`transfer-order-detail-page-received-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in completedItems" :key="index" :class="commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+            <ion-card :data-testid="`transfer-order-detail-page-received-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in completedItems" :key="index" :class="utilGetProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="utilGetProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
               <div class="product" :data-product-id="item.productId">
                 <div class="product-info">
                   <ion-item lines="none">
@@ -282,9 +282,9 @@
                       <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
                     </ion-thumbnail>
                     <ion-label class="ion-text-wrap">
-                      <h2>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
-                      <p>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
-                      <p>{{ commonUtil.getFeatures(getProduct(item.productId).productFeatures) }}</p>
+                      <h2>{{ utilGetProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? utilGetProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
+                      <p>{{ utilGetProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                      <p>{{ utilGetFeatures(getProduct(item.productId).productFeatures) }}</p>
                     </ion-label>
                   </ion-item>
                 </div>
@@ -327,7 +327,7 @@
 
         <!-- TODO: update UI to have this information using the segment view -->
         <template v-if="isTOReceived()">
-          <ion-card :data-testid="`transfer-order-detail-page-completed-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in completedItems" :key="index" :class="commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+          <ion-card :data-testid="`transfer-order-detail-page-completed-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in completedItems" :key="index" :class="utilGetProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="utilGetProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
             <div class="product" :data-product-id="item.productId">
               <div class="product-info">
                 <ion-item lines="none">
@@ -335,9 +335,9 @@
                     <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
                   </ion-thumbnail>
                   <ion-label class="ion-text-wrap">
-                    <h2>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
-                    <p>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
-                    <p>{{ commonUtil.getFeatures(getProduct(item.productId).productFeatures) }}</p>
+                    <h2>{{ utilGetProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? utilGetProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
+                    <p>{{ utilGetProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                    <p>{{ utilGetFeatures(getProduct(item.productId).productFeatures) }}</p>
                   </ion-label>
                 </ion-item>
               </div>
@@ -392,18 +392,23 @@
 </template>
 
 <script setup lang="ts">
+import { getFeatures as utilGetFeatures, getProductIdentificationValue as utilGetProductIdentificationValue } from '@common/utils/product';
+import { hasError as utilHasError, hasWebcamAccess as utilHasWebcamAccess, isAppEmbedded as utilIsAppEmbedded, showToast as utilShowToast } from '@common/utils/core';
 import { IonBackButton, IonButton, IonButtons, IonCard, IonChip, IonContent, IonHeader, IonFooter, IonIcon, IonItem, IonInput, IonLabel, IonPage, IonNote, IonProgressBar, IonSegment, IonSegmentButton, IonText, IonThumbnail, IonTitle, IonToast, IonToolbar, alertController, modalController, onIonViewWillEnter, onIonViewDidLeave } from '@ionic/vue';
 import { nextTick, ref, shallowRef, computed, watch } from 'vue';
 import { ensureReceivingOrder, receivingDb, resolveReceipt } from '@/db/receivingClient';
 import { addOutline, cameraOutline, checkmarkDone, cubeOutline, informationCircleOutline, openOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
-import { DxpShopifyImg, translate, commonUtil, emitter, useEmbeddedAppStore, useShopify } from '@common';
+import { default as DxpShopifyImg } from '@common/components/DxpShopifyImg.vue';
+import { translate } from '@common/core/i18n';
+import { default as emitter } from '@common/core/emitter';
+import { useEmbeddedAppStore } from '@common/store/embeddedApp';
+import { useShopify } from '@common/composables/useShopify';
 import { useProductStore } from '@/store/productStore';
 import { useTransferOrderStore } from '@/store/transferorder';
 import { useUserStore } from '@/store/user';
 import { useProductStore as useProduct } from '@/store/product';
 import { useUtilStore } from '@/store/util';
-import Scanner from "@/components/Scanner.vue"
 import ImageModal from '@/components/ImageModal.vue';
 import TransferItemProgress from '@/components/TransferItemProgress.vue';
 import { buildBoxAllocations } from '@/db/receivingShipments';
@@ -414,12 +419,13 @@ import { DateTime } from 'luxon';
 import ReceivingInstructions from '@/components/ReceivingInstructions.vue';
 import ReceiveTransferOrder from '@/components/ReceiveTransferOrder.vue';
 import ReceiptReviewModal from '@/components/ReceiptReviewModal.vue';
-import router from '@/router';
+import { useRouter } from 'vue-router';
 import { useReceiveFlowState } from '@/composables/useReceiveFlowState';
 import { runTransferOrderDetailReceiveWorkflow } from '@/views/transferOrderDetailReceiveWorkflow';
 import { markItemsAsReceived, scanAllQuantity } from '@/views/transferOrderBulkReceive';
 import Actions from "@/authorization/actions";
 
+const router = useRouter();
 const transferOrderStore = useTransferOrderStore();
 const product = useProduct();
 const utilStore = useUtilStore();
@@ -434,12 +440,12 @@ const {
 
 const queryString = ref('');
 const scanInput = ref();
-const scanInputMode = ref<'none' | 'text'>(commonUtil.isAppEmbedded() ? 'none' : 'text');
+const scanInputMode = ref<'none' | 'text'>(utilIsAppEmbedded() ? 'none' : 'text');
 const enableManualScanning = (event: Event) => {
   scanInputMode.value = 'text';
   const input = (event.composedPath().find(node => node instanceof HTMLInputElement) ||
     scanInput.value?.$el?.querySelector('input')) as HTMLInputElement | undefined;
-  if (!commonUtil.isAppEmbedded() || !input || input.inputMode !== 'none') return;
+  if (!utilIsAppEmbedded() || !input || input.inputMode !== 'none') return;
   // iOS reevaluates keyboard mode on focus. Keep this in the user's pointer gesture.
   input.inputMode = 'text';
   if (input.matches(':focus')) input.blur();
@@ -506,7 +512,7 @@ const focusScanner = async () => {
   const input = await scanInput.value?.$el?.getInputElement();
   if (!detailActive.value || !input) return;
   // Background hydration must not hide a keyboard the user opened for manual entry.
-  if (commonUtil.isAppEmbedded() && !input.matches(':focus')) {
+  if (utilIsAppEmbedded() && !input.matches(':focus')) {
     scanInputMode.value = 'none';
     await nextTick();
   }
@@ -616,10 +622,11 @@ const scan = async () => {
       console.error("POS Scanner error:", err);
     }
   } else {
-  if (!(await commonUtil.hasWebcamAccess())) {
-    commonUtil.showToast(translate("Camera access not allowed, please check permissions."));
+  if (!(await utilHasWebcamAccess())) {
+    utilShowToast(translate("Camera access not allowed, please check permissions."));
     return;
   }
+  const { default: Scanner } = await import('@/components/Scanner.vue');
   const modal = await modalController.create({
     component: Scanner,
   });
@@ -636,7 +643,7 @@ const updateProductCount = async (payload: any) => {
   if (queryString.value) payload = queryString.value;
 
   if (!payload) {
-    commonUtil.showToast(translate("Please provide a valid barcode identifier."));
+    utilShowToast(translate("Please provide a valid barcode identifier."));
     return;
   }
 
@@ -668,9 +675,9 @@ const updateProductCount = async (payload: any) => {
   } else if (result.isAmbiguous) {
     scanErrorText.value = translate('This barcode matches multiple lines. Enter the quantity on the correct line.');
   } else if (result.isCompleted) {
-    commonUtil.showToast(translate("Product is already received:", { itemName: payload }));
+    utilShowToast(translate("Product is already received:", { itemName: payload }));
   } else if (result.isProductFound) {
-    commonUtil.showToast(translate("Scanned successfully.", { itemName: payload }));
+    utilShowToast(translate("Scanned successfully.", { itemName: payload }));
     lastScannedId.value = payload;
 
     const item = result.item;
@@ -689,7 +696,7 @@ const updateProductCount = async (payload: any) => {
       lastScannedId.value = '';
     }, 3000);
   } else {
-    commonUtil.showToast(translate("Scanned item is not present within the shipment:", { itemName: payload }), {
+    utilShowToast(translate("Scanned item is not present within the shipment:", { itemName: payload }), {
       buttons: [{
         text: translate('Add'),
         handler: async () => {
@@ -943,16 +950,16 @@ const receiveTransferOrder = async (isClosingTO: boolean, receipt: { orderId: st
 const submitTransferReceipt = async (orderId: string, payload: any, options?: { baseline: any[]; preserveOtherDrafts: boolean }) => {
   try {
     const resp = await transferOrderStore.receiveTransferOrder(orderId, payload, options);
-    if (!commonUtil.hasError(resp)) {
+    if (!utilHasError(resp)) {
       productQoh.value = {};
       attemptedQoh.clear(); pendingQoh.clear();
       qohGeneration++;
-      commonUtil.showToast(translate("Transfer order received successfully", { orderId }));
-      if (!resp.refreshed) commonUtil.showToast(translate('Receipt saved. Refresh to load the latest quantities.'));
+      utilShowToast(translate("Transfer order received successfully", { orderId }));
+      if (!resp.refreshed) utilShowToast(translate('Receipt saved. Refresh to load the latest quantities.'));
       return true;
     }
   } catch (error: any) {
-    commonUtil.showToast(error?.message || translate("Error in receiving transfer order", { orderId: order.value.orderId }));
+    utilShowToast(error?.message || translate("Error in receiving transfer order", { orderId: order.value.orderId }));
   }
   return false;
 };
@@ -1022,7 +1029,7 @@ const reviewReceipt = async () => {
     delete transferOrderStore.draftsByScope[transferOrderStore.draftScope];
     for (const item of order.value.items || []) { delete item.quantityAccepted; delete item._draftBaseline; }
     transferOrderStore.acknowledgeLocalChanges();
-  } catch { commonUtil.showToast(translate('Unable to resolve receipt. Refresh and review it again.')); }
+  } catch { utilShowToast(translate('Unable to resolve receipt. Refresh and review it again.')); }
 };
 
 const refreshLocalOrder = async () => {
@@ -1031,7 +1038,7 @@ const refreshLocalOrder = async () => {
   if (!order.value.ready) return loadLocalDetail();
   refreshingDetail.value = true;
   try { await ensureReceivingOrder(String(router.currentRoute.value.params.slug), true); }
-  catch { commonUtil.showToast(translate('Unable to refresh transfer data.')); }
+  catch { utilShowToast(translate('Unable to refresh transfer data.')); }
   finally { refreshingDetail.value = false; }
 };
 

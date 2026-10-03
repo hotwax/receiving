@@ -2,11 +2,11 @@ import { beforeEach, expect, it, vi } from 'vitest';
 import { createPinia, setActivePinia } from 'pinia';
 import { watch } from 'vue';
 const api = vi.hoisted(() => vi.fn());
-vi.mock('@common', () => ({
-  api, commonUtil: { isAppEmbedded: vi.fn(), hasError: () => false },
-  logger: { error: vi.fn() }, translate: (text: string) => text,
-  useEmbeddedAppStore: vi.fn(), useSolrSearch: vi.fn(),
-}));
+vi.mock('@common/core/remoteApi', () => ({ default: api }));
+vi.mock('@common/core/logger', () => ({ default: {error: vi.fn()} }));
+vi.mock('@common/core/i18n', () => ({ translate: (text: string) => text }));
+vi.mock('@common/store/embeddedApp', () => ({ useEmbeddedAppStore: vi.fn() }));
+vi.mock('@common/composables/useSolrSearch', () => ({ useSolrSearch: vi.fn() }));
 vi.mock('@/store/user', () => ({ useUserStore: vi.fn() }));
 import { useProductStore } from './productStore';
 beforeEach(() => { setActivePinia(createPinia()); vi.clearAllMocks(); api.mockReset(); });

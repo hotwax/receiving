@@ -21,9 +21,9 @@
           </ion-thumbnail>
           <ion-label>
             <!-- Honouring the identifications set by the user on the settings page -->
-            <h2>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(product.productId)) ? commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(product.productId)) : getProduct(product.productId).productName }}</h2>
-            <p>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(product.productId)) ? commonUtil.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(product.productId)) : '' }}</p>
-            <p>{{ commonUtil.getFeatures(getProduct(product.productId).productFeatures) }}</p>
+            <h2>{{ utilGetProductIdentificationValue(productIdentificationPref.primaryId, getProduct(product.productId)) ? utilGetProductIdentificationValue(productIdentificationPref.primaryId, getProduct(product.productId)) : getProduct(product.productId).productName }}</h2>
+            <p>{{ utilGetProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(product.productId)) ? utilGetProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(product.productId)) : '' }}</p>
+            <p>{{ utilGetFeatures(getProduct(product.productId).productFeatures) }}</p>
           </ion-label>
           <ion-icon v-if="isProductAvailableInOrder(product.productId)" :data-testid="`purchase-order-add-product-added-icon-${product.productId}`" color="success" :icon="checkmarkCircle" />
           <ion-button v-else :data-testid="`purchase-order-add-product-add-btn-${product.productId}`" fill="outline" @click="addToOrder(product)">{{ translate("Add to Purchase Order") }}</ion-button>
@@ -45,14 +45,17 @@
 </template>
 
 <script setup lang="ts">
+import { getFeatures as utilGetFeatures, getProductIdentificationValue as utilGetProductIdentificationValue } from '@common/utils/product';
+import { showToast as utilShowToast } from '@common/utils/core';
 import { IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonInfiniteScroll, IonInfiniteScrollContent, IonItem, IonLabel, IonList, IonSearchbar, IonThumbnail, IonTitle, IonToolbar, modalController } from '@ionic/vue';
 import { ref, computed, onMounted } from 'vue';
 import { closeOutline, checkmarkCircle } from 'ionicons/icons';
-import { useProductStore as useProduct } from '@/store/product'
-import { useOrderStore } from '@/store/order'
-import { useUserStore } from '@/store/user'
+import { useProductStore as useProduct } from '@/store/product';
+import { useOrderStore } from '@/store/order';
+import { useUserStore } from '@/store/user';
 import { useProductStore } from '@/store/productStore';
-import { DxpShopifyImg, translate, commonUtil } from '@common';
+import { default as DxpShopifyImg } from '@common/components/DxpShopifyImg.vue';
+import { translate } from '@common/core/i18n';
 
 const props = defineProps(["selectedSKU"]);
 
@@ -98,7 +101,7 @@ const getProducts = async (vSize?: any, vIndex?: any) => {
 
 const handleSearch = async () => {    
   if (!queryString.value.trim()){
-    commonUtil.showToast(translate("Enter product sku to search"))
+    utilShowToast(translate("Enter product sku to search"))
     isSearching.value = false
     await product.clearSearchedProducts()
     return

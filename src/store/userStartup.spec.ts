@@ -12,14 +12,15 @@ const fixtures = vi.hoisted(() => ({
   finishLogin: vi.fn(),
   api: vi.fn(),
 }));
-vi.mock('@common', () => ({
-  api: fixtures.api,
-  commonUtil: { isAppEmbedded: () => fixtures.embedded, hasError: () => false },
-  cookieHelper: vi.fn(), logger: { error: vi.fn() }, translate: (text: string) => text,
-  useNotificationStore: () => fixtures.notification,
-  useEmbeddedAppStore: () => ({ getPosLocationId: fixtures.location }), useAuth: vi.fn(),
-}));
-vi.mock('@/router', () => ({ default: { currentRoute: { value: { query: {} } } } }));
+vi.mock('@common/core/remoteApi', () => ({ default: fixtures.api }));
+vi.mock('@common/utils/core', () => ({ isAppEmbedded: () => fixtures.embedded, hasError: () => false }));
+vi.mock('@common/helpers/cookieHelper', () => ({ cookieHelper: vi.fn() }));
+vi.mock('@common/core/logger', () => ({ default: { error: vi.fn() } }));
+vi.mock('@common/core/i18n', () => ({ translate: (text: string) => text }));
+vi.mock('@common/store/notification', () => ({ useNotificationStore: () => fixtures.notification }));
+vi.mock('@common/store/embeddedApp', () => ({ useEmbeddedAppStore: () => ({ getPosLocationId: fixtures.location }) }));
+vi.mock('@common/composables/useAuth', () => ({ useAuth: vi.fn() }));
+vi.mock('@common/core/configRegistry', () => ({ accxuiConfig: { value: { router: { currentRoute: { query: {} } } } } }));
 vi.mock('@/store/productStore', () => ({ useProductStore: () => fixtures.productStore }));
 vi.mock('@/store/order', () => ({ useOrderStore: vi.fn() }));
 vi.mock('@/store/party', () => ({ usePartyStore: vi.fn() }));

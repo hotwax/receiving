@@ -224,7 +224,8 @@ expose({
     db = receivingCache.get(connection.scope);
     api = new ReceivingApi({ ...connection, token: payload.token, maargUrl: payload.maargUrl }, fence);
     // Open saved data before the first full-store sync; warm navigation never waits for it.
-    await harness.start({ ...payload, domains: [] });
+    // Keep the declared sync intervals; discover newly due work within one second.
+    await harness.start({ ...payload, domains: [], baseTickMs: 1000 });
     harness.setDomains(payload.domains!);
     void harness.syncDomainNow('receivingMembership').catch(() => undefined); // The harness reports domain errors.
   },

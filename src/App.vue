@@ -29,7 +29,11 @@ import { IonApp, IonContent, IonHeader, IonIcon, IonItem, IonLabel, IonList, Ion
 import { ref, computed, onBeforeMount, onMounted, onUnmounted, watch } from 'vue';
 import router from '@/router'
 import { Settings } from 'luxon';
-import { translate, emitter, useNotificationStore, logger, useAuth } from "@common";
+import { translate } from '@common/core/i18n';
+import { default as emitter } from '@common/core/emitter';
+import { useNotificationStore } from '@common/store/notification';
+import { default as logger } from '@common/core/logger';
+import { useAuth } from '@common/composables/useAuth';
 import { configureReceiving, refreshReceiving } from '@/db/receivingClient';
 import { receivingLoginReady, syncReceivingSession } from '@/db/receivingSession';
 import { firebaseUtil } from '@/utils/firebaseUtil';

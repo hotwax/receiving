@@ -1,5 +1,7 @@
+import { hasError as utilHasError } from '@common/utils/core';
 import { defineStore } from "pinia";
-import { api, commonUtil, logger } from "@common";
+import { default as api } from '@common/core/remoteApi';
+import { default as logger } from '@common/core/logger';
 
 export const useUtilStore = defineStore("util", {
   state: () => ({
@@ -34,7 +36,7 @@ export const useUtilStore = defineStore("util", {
             statusId_op: "in",
           },
         });
-        if (resp.status === 200 && !commonUtil.hasError(resp) && resp.data.length > 0) {
+        if (resp.status === 200 && !utilHasError(resp) && resp.data.length > 0) {
           const statuses = resp.data;
           statuses.reduce((cached: any, status: any) => {
             cached[status.statusId] = status.description;
@@ -116,7 +118,7 @@ export const useUtilStore = defineStore("util", {
           },
         });
 
-        if (!commonUtil.hasError(resp)) {
+        if (!utilHasError(resp)) {
           shipmentMethodsByCarrier = resp.data.entityValueList.reduce((result: Record<string, any[]>, storeCarrierAndMethod: any) => {
             const { partyId, shipmentMethodTypeId, description } = storeCarrierAndMethod;
 
@@ -149,7 +151,7 @@ export const useUtilStore = defineStore("util", {
           },
         });
 
-        if (!commonUtil.hasError(resp)) {
+        if (!utilHasError(resp)) {
           resp.data.forEach((carrier: any) => {
             carrierDesc[carrier.partyId] = carrier.groupName || [carrier.firstName, carrier.lastName].filter(Boolean).join(" ") || carrier.partyId;
           });

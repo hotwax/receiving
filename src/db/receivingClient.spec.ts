@@ -7,7 +7,7 @@ const state = vi.hoisted(() => ({
   onStatus: undefined as ((status: Record<string, any>) => void) | undefined,
 }));
 vi.mock('@common/core/remoteApi', () => ({ default: state.api }));
-vi.mock('@common/utils/commonUtil', () => ({ commonUtil: { hasError: (response: any) => !!response?.data?.errors } }));
+vi.mock('@common/utils/core', () => ({ hasError: (response: any) => !!response?.data?.errors }));
 vi.mock('@common/db/sync/syncService', () => ({
   serviceState: state.serviceState,
   createSyncService: (options: any) => {

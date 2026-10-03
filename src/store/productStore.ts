@@ -1,7 +1,12 @@
+import { hasError as utilHasError, isAppEmbedded as utilIsAppEmbedded, showToast as utilShowToast } from '@common/utils/core';
+import { defineStore } from 'pinia';
 import { reactive } from 'vue';
-import { defineStore } from 'pinia'
-import { api, commonUtil, logger, translate, useEmbeddedAppStore, useSolrSearch } from '@common'
-import { useUserStore } from '@/store/user'
+import { default as api } from '@common/core/remoteApi';
+import { default as logger } from '@common/core/logger';
+import { translate } from '@common/core/i18n';
+import { useEmbeddedAppStore } from '@common/store/embeddedApp';
+import { useSolrSearch } from '@common/composables/useSolrSearch';
+import { useUserStore } from '@/store/user';
 import Actions from "@/authorization/actions"
 const defaultProductStoreSettings = JSON.parse(import.meta.env.VITE_DEFAULT_PRODUCT_STORE_SETTINGS as string || '{}')
 
@@ -114,7 +119,7 @@ export const useProductStore = defineStore('productStore', {
 
         // Only Location's facility for Shopify POS Users.
         const shopifyLocationId = useEmbeddedAppStore().getPosLocationId
-        if (commonUtil.isAppEmbedded() && shopifyLocationId) {
+        if (utilIsAppEmbedded() && shopifyLocationId) {
           const locationFacilityId = await this.fetchShopifyShopLocation({
             shopifyLocationId,
             pageSize: 1
@@ -187,7 +192,7 @@ export const useProductStore = defineStore('productStore', {
       let facilityId: string | undefined;
       try {
         const locationId = useEmbeddedAppStore().getPosLocationId;
-        if (commonUtil.isAppEmbedded() && locationId) {
+        if (utilIsAppEmbedded() && locationId) {
           facilityId = await this.fetchShopifyShopLocation({
             shopifyLocationId: locationId,
             pageSize: 1,
@@ -210,7 +215,7 @@ export const useProductStore = defineStore('productStore', {
 
         if (facilityId) {
           const facility = this.userFacilities.find((f: any) => f.facilityId === facilityId);
-          if (!facility && commonUtil.isAppEmbedded() && locationId) {
+          if (!facility && utilIsAppEmbedded() && locationId) {
             throw new Error("User is not associated with this location. Please contact the administrator.");
           }
           if (facility) {
@@ -303,7 +308,7 @@ export const useProductStore = defineStore('productStore', {
           }
         });
 
-        if (!commonUtil.hasError(resp)) {
+        if (!utilHasError(resp)) {
           facilities = resp.data;
         } else {
           throw resp.data;
@@ -381,7 +386,7 @@ export const useProductStore = defineStore('productStore', {
             }
           }) as any
 
-          if (commonUtil.hasError(resp) || !Array.isArray(resp.data)) {
+          if (utilHasError(resp) || !Array.isArray(resp.data)) {
             throw new Error("Unable to load product store settings")
           }
           resp.data.forEach((productSetting: any) => {
@@ -434,7 +439,7 @@ export const useProductStore = defineStore('productStore', {
             settingValue: payloadSettingValue
           }
         })
-        if (!commonUtil.hasError(resp)) {
+        if (!utilHasError(resp)) {
           const defaultSetting = defaultProductStoreSettings[settingTypeEnumId]
           const { stateKey } = defaultSetting
           const keys = stateKey.split('.');
@@ -453,12 +458,12 @@ export const useProductStore = defineStore('productStore', {
               current = current[key];
             }
           }
-          commonUtil.showToast(translate('Product Store setting updated successfully.'))
+          utilShowToast(translate('Product Store setting updated successfully.'))
         } else {
           throw resp
         }
       } catch (err) {
-        commonUtil.showToast(translate('Failed to update Product Store setting.'))
+        utilShowToast(translate('Failed to update Product Store setting.'))
         logger.error(err)
       }
     },
@@ -535,7 +540,7 @@ export const useProductStore = defineStore('productStore', {
           }
         }) as any;
 
-        if (resp.status === 200 && !commonUtil.hasError(resp)) {
+        if (resp.status === 200 && !utilHasError(resp)) {
           this.facilityLocationsByFacilityId[facilityId] = resp.data;
         }
       } catch (err) {

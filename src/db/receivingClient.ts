@@ -1,7 +1,8 @@
+import { hasError as utilHasError } from '@common/utils/core';
 import { computed, reactive, shallowRef } from 'vue';
 import { liveQuery } from 'dexie';
 import api from '@common/core/remoteApi';
-import { commonUtil } from '@common/utils/commonUtil';
+
 import { setupAppDbSync, type AppDbSync } from '@common/db/sync/setupAppDbSync';
 import { createSyncService, serviceState } from '@common/db/sync/syncService';
 import receivingWorkerUrl from './receiving.worker.ts?worker&url';
@@ -187,7 +188,7 @@ export async function submitReceipt(orderId: string, payload: ReceiptPayload, ba
     if (await current.operations.receipts.get(orderId)) throw new Error('Review the previous receipt before receiving again.');
     const latest: any = await api({ url: `oms/transferOrders/${encodeURIComponent(orderId)}`, method: 'get', baseURL: current.connection.maargUrl });
     current.check();
-    if (commonUtil.hasError(latest) || !Array.isArray(latest.data?.order?.items)) throw new Error('Unable to validate current transfer quantities.');
+    if (utilHasError(latest) || !Array.isArray(latest.data?.order?.items)) throw new Error('Unable to validate current transfer quantities.');
     validateReceipt(operation.payload, operation.baseline, latest.data.order);
     await current.operations.receipts.put(operation);
     try {
@@ -200,7 +201,7 @@ export async function submitReceipt(orderId: string, payload: ReceiptPayload, ba
       }
       throw new Error('Receipt could not be confirmed. Check receiving history before trying again.');
     }
-    if (commonUtil.hasError(response)) {
+    if (utilHasError(response)) {
       await clearReceiptOperation(current.operations, orderId, operation.operationId);
       throw new Error('Receiving server rejected the receipt.');
     }
