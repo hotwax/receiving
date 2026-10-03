@@ -109,6 +109,15 @@ describe('Receiving login bootstrap', () => {
     await user.postLogin();
     expect(fixtures.productStore.fetchFacilityPreference).toHaveBeenCalledOnce();
   });
+  it('does not finish login when receiving settings cannot be loaded', async () => {
+    const user = useUserStore(), failure = new Error('Settings unavailable');
+    vi.spyOn(user, 'fetchUserProfile').mockResolvedValue(undefined);
+    vi.spyOn(user, 'fetchPermissions').mockResolvedValue(undefined);
+    fixtures.productStore.fetchProductStores.mockRejectedValueOnce(failure);
+
+    await expect(user.postLogin()).rejects.toBe(failure);
+    expect(fixtures.finishLogin).not.toHaveBeenCalled();
+  });
   it('starts notification setup while facility discovery is pending and waits for both', async () => {
     const user = useUserStore(), facilities = deferred(), notifications = deferred();
     vi.spyOn(user, 'fetchUserProfile').mockResolvedValue(undefined);
