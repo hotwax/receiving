@@ -1,0 +1,45 @@
+import { beforeEach, expect, it, vi } from 'vitest';
+import { createPinia, setActivePinia } from 'pinia';
+import { watch } from 'vue';
+const api = vi.hoisted(() => vi.fn());
+vi.mock('@common', () => ({
+  api, commonUtil: { isAppEmbedded: vi.fn(), hasError: () => false },
+  logger: { error: vi.fn() }, translate: (text: string) => text,
+  useEmbeddedAppStore: vi.fn(), useSolrSearch: vi.fn(),
+}));
+vi.mock('@/store/user', () => ({ useUserStore: vi.fn() }));
+import { useProductStore } from './productStore';
+beforeEach(() => { setActivePinia(createPinia()); vi.clearAllMocks(); });
+it('waits for the selected product store settings before returning its product stores', async () => {
+  const store = useProductStore(); store.currentFacility = {facilityId: 'BROADWAY', productStores: []};
+  api.mockResolvedValueOnce({data:[{productStoreId:'STORE'}]}).mockResolvedValueOnce({data:[{productStoreId:'STORE',storeName:'Demo'}]});
+  let resolve!: () => void;
+  const settings = new Promise<void>(done => {resolve=done;});
+  const dependencies = vi.spyOn(store, 'fetchProductStoreDependencies').mockReturnValue(settings);
+  let settled = false;
+  const fetch = store.fetchProductStores().then(() => {settled=true;});
+  await vi.waitFor(() => expect(dependencies).toHaveBeenCalledWith('STORE'));
+  expect(settled).toBe(false);
+  resolve(); await fetch;
+  expect(dependencies).toHaveBeenCalledOnce();
+  expect(store.getCurrentProductStore.productStoreId).toBe('STORE');
+});
+
+it('starts receiving settings before store names finish and waits for both', async () => {
+  const store = useProductStore(); store.currentFacility = {facilityId:'BROADWAY',productStores:[]};
+  let namesReady!: (value: any) => void;
+  const names = new Promise(done => { namesReady = done; });
+  api.mockResolvedValueOnce({data:[{productStoreId:'STORE'}]}).mockReturnValueOnce(names);
+  const dependencies = vi.spyOn(store, 'fetchProductStoreDependencies').mockResolvedValue(undefined);
+  let settled = false;
+  const fetch = store.fetchProductStores().then(() => { settled = true; });
+  await vi.waitFor(() => expect(dependencies).toHaveBeenCalledWith('STORE'));
+  expect(settled).toBe(false);
+  const nameChanged = vi.fn();
+  const stop = watch(() => store.getCurrentProductStore.storeName, nameChanged, {flush:'sync'});
+  namesReady({data:[{productStoreId:'STORE',storeName:'Demo'}]});
+  await fetch;
+  expect(store.getCurrentProductStore.storeName).toBe('Demo');
+  expect(nameChanged).toHaveBeenCalledWith('Demo', undefined, expect.any(Function));
+  stop();
+});
