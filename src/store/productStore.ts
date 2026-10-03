@@ -1,3 +1,4 @@
+import { reactive } from 'vue';
 import { defineStore } from 'pinia'
 import { api, commonUtil, logger, translate, useEmbeddedAppStore, useSolrSearch } from '@common'
 import { useUserStore } from '@/store/user'
@@ -61,8 +62,8 @@ export const useProductStore = defineStore('productStore', {
       this.currentFacility = facility
     },
     async setCurrentProductStore(store: any) {
-      this.currentProductStore = store
       await this.fetchProductStoreDependencies(store.productStoreId)
+      this.currentProductStore = store
     },
     async fetchUserFacilities() {
       const userStore = useUserStore();
@@ -239,9 +240,10 @@ export const useProductStore = defineStore('productStore', {
           }
         }) as any;
 
-        const stores = resp.data.filter((store: any) => !store.thruDate)
+        const stores = reactive(resp.data.filter((store: any) => !store.thruDate))
 
-        if (stores.length) {
+        const enrichNames = async () => {
+          if (!stores.length) return;
           // Fetching all stores for the store name
           try {
             const productStoresResp = await api({
@@ -258,7 +260,7 @@ export const useProductStore = defineStore('productStore', {
           } catch (error) {
             console.error(error);
           }
-        }
+        };
 
         const productStores = [...stores]
 
@@ -266,15 +268,19 @@ export const useProductStore = defineStore('productStore', {
           ...this.currentFacility,
           productStores
         }
-        this.setCurrentProductStore(productStores[0])
+        // Names and receiving settings depend on the store IDs, not each other.
+        // Keep both settled before publishing login/facility-switch completion.
+        const results = await Promise.allSettled([
+          this.setCurrentProductStore(productStores[0]), enrichNames()
+        ]);
+        for (const result of results) if (result.status === 'rejected') throw result.reason;
       } catch (error: any) {
         logger.error("error", error);
         return Promise.reject(new Error(error));
       }
     },
     async fetchProductStoreDependencies(productStoreId: string) {
-      await useProductStore().fetchProductStoreSettings(productStoreId)
-        .catch((error) => logger.error(error))
+      await this.fetchProductStoreSettings(productStoreId)
     },
 
     async fetchProductStoreFacilities(productStoreId: string) {
@@ -375,13 +381,15 @@ export const useProductStore = defineStore('productStore', {
             }
           }) as any
 
-          if (!commonUtil.hasError(resp) && resp.data) {
-            resp.data.forEach((productSetting: any) => {
-              productStoreSettings[productSetting.settingTypeEnumId] = productSetting.settingValue
-            })
+          if (commonUtil.hasError(resp) || !Array.isArray(resp.data)) {
+            throw new Error("Unable to load product store settings")
           }
+          resp.data.forEach((productSetting: any) => {
+            productStoreSettings[productSetting.settingTypeEnumId] = productSetting.settingValue
+          })
         } catch (error) {
           logger.error("Failed to fetch settings", error)
+          throw error
         }
       }
 

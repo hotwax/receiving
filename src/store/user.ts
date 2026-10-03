@@ -135,6 +135,9 @@ export const useUserStore = defineStore("user", {
 
           if (resp.status === 200 && resp.data.docs?.length && !commonUtil.hasError(resp)) {
             serverPermissions.push(...resp.data.docs.map((permission: any) => permission.permissionId))
+            // Maarg returns the authoritative total; it can return more than
+            // viewSize. Do not fetch an extra empty page once all rows arrived.
+            if (Number.isSafeInteger(resp.data.count) && resp.data.count >= 0 && serverPermissions.length >= resp.data.count) break
             viewIndex++
           } else {
             resp = null
@@ -195,23 +198,34 @@ export const useUserStore = defineStore("user", {
       beginReceivingLogin();
       try {
         const productStore = useProductStore();
-        await this.fetchUserProfile()
-        await this.fetchPermissions()
-        await productStore.fetchUserFacilities()
-        await productStore.fetchFacilityPreference();
-        await productStore.fetchProductStores()
-        await productStore.fetchProductStoreDependencies(productStore.getCurrentProductStore.productStoreId)
-
+        // Both depend on the authenticated session; facility access needs both results.
+        const account = await Promise.allSettled([this.fetchUserProfile(), this.fetchPermissions()]);
+        for (const result of account) if (result.status === 'rejected') throw result.reason;
         const notificationStore = useNotificationStore();
-        await notificationStore.fetchAllNotificationPrefs(import.meta.env.VITE_NOTIF_APP_ID as any, this.current.userId)
-        await firebaseUtil.initialiseFirebaseMessaging();
+        // Notification setup needs the account, but not facility or store settings.
+        const setup = await Promise.allSettled([
+          (async () => {
+            await productStore.fetchUserFacilities();
+            // Embedded facility discovery already resolves and restricts the POS location.
+            if (!commonUtil.isAppEmbedded() || !useEmbeddedAppStore().getPosLocationId) {
+              await productStore.fetchFacilityPreference();
+            }
+            await productStore.fetchProductStores();
+          })(),
+          (async () => {
+            await notificationStore.fetchAllNotificationPrefs(import.meta.env.VITE_NOTIF_APP_ID as any, this.current.userId);
+            await firebaseUtil.initialiseFirebaseMessaging();
+          })(),
+        ]);
+        for (const result of setup) if (result.status === 'rejected') throw result.reason;
 
-        const facilityId = router.currentRoute.value.query.facilityId
+        const launchQuery = router.currentRoute.value.query;
+        const facilityId = launchQuery.facilityId
         if (facilityId) {
           const facility = productStore.getFacilities.find((facility: any) => facility.facilityId === facilityId);
           if (facility) {
             productStore.currentFacility = facility
-            const orderId = router.currentRoute.value.query.orderId
+            const orderId = launchQuery.orderId
             if (orderId) {
               localStorage.setItem("requestedPagePath", `/transfer-order-detail/${orderId}`)
             }
