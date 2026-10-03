@@ -67,8 +67,8 @@ export const useProductStore = defineStore('productStore', {
       this.currentFacility = facility
     },
     async setCurrentProductStore(store: any) {
-      this.currentProductStore = store
       await this.fetchProductStoreDependencies(store.productStoreId)
+      this.currentProductStore = store
     },
     async fetchUserFacilities() {
       const userStore = useUserStore();
@@ -285,8 +285,7 @@ export const useProductStore = defineStore('productStore', {
       }
     },
     async fetchProductStoreDependencies(productStoreId: string) {
-      await useProductStore().fetchProductStoreSettings(productStoreId)
-        .catch((error) => logger.error(error))
+      await this.fetchProductStoreSettings(productStoreId)
     },
 
     async fetchProductStoreFacilities(productStoreId: string) {
@@ -387,13 +386,15 @@ export const useProductStore = defineStore('productStore', {
             }
           }) as any
 
-          if (!utilHasError(resp) && resp.data) {
-            resp.data.forEach((productSetting: any) => {
-              productStoreSettings[productSetting.settingTypeEnumId] = productSetting.settingValue
-            })
+          if (utilHasError(resp) || !Array.isArray(resp.data)) {
+            throw new Error("Unable to load product store settings")
           }
+          resp.data.forEach((productSetting: any) => {
+            productStoreSettings[productSetting.settingTypeEnumId] = productSetting.settingValue
+          })
         } catch (error) {
           logger.error("Failed to fetch settings", error)
+          throw error
         }
       }
 
