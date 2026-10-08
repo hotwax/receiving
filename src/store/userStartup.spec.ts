@@ -14,8 +14,7 @@ const fixtures = vi.hoisted(() => ({
   api: vi.fn(),
 }));
 vi.mock('@common/core/remoteApi', () => ({ default: fixtures.api }));
-vi.mock('@common/utils/core', () => ({ isAppEmbedded: () => fixtures.embedded, hasError: () => false }));
-vi.mock('@common/utils/ui', () => ({ showToast: vi.fn() }));
+vi.mock('@common/utils/core', () => ({ isAppEmbedded: () => fixtures.embedded, hasError: () => false, showToast: vi.fn() }));
 vi.mock('@common/helpers/cookieHelper', () => ({ cookieHelper: vi.fn() }));
 vi.mock('@common/core/logger', () => ({ default: { error: vi.fn() } }));
 vi.mock('@common/core/i18n', () => ({ translate: (text: string) => text }));
