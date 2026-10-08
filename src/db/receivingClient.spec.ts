@@ -5,7 +5,10 @@ const state = vi.hoisted(() => ({
   journals: new Map<string, Map<string, any>>(), dbs: new Map<string, any>(),
   serviceState: { running: false, written: {} as Record<string, number>, errors: {} as Record<string, string> },
   onStatus: undefined as ((status: Record<string, any>) => void) | undefined,
+  logout: vi.fn(),
+  receivingChannel: undefined as any,
 }));
+vi.mock('@common/composables/useAuth', () => ({ useAuth: () => ({ logout: state.logout }) }));
 vi.mock('@common/core/remoteApi', () => ({ default: state.api }));
 vi.mock('@common/utils/core', () => ({ hasError: (response: any) => !!response?.data?.errors }));
 vi.mock('@common/db/sync/syncService', () => ({
@@ -63,11 +66,41 @@ beforeEach(async () => {
   state.clear.mockImplementation(async db => { if (db.closed) throw new Error('DatabaseClosedError'); });
   state.api.mockImplementation(async (request: any) => request.method === 'get' ? { data: { order: { items: [line] } } } : { status: 200, data: {} });
   vi.stubGlobal('navigator', { locks: { request: async (_name: string, run: () => unknown) => run() } });
-  vi.stubGlobal('BroadcastChannel', class { onmessage: unknown; postMessage() {} close() {} });
+  vi.stubGlobal('BroadcastChannel', class {
+    onmessage: any;
+    constructor(name: string) { if (name === 'receiving-session') state.receivingChannel = this; }
+    postMessage() {} close() {}
+  });
   client = await import('./receivingClient');
   await client.configureReceiving(connection);
 });
 const postCount = () => state.api.mock.calls.filter(([request]) => request.method === 'post').length;
+
+it('clears receiving immediately and runs shared auth teardown once after same-scope cross-tab logout', async () => {
+  const db = await client.getReceivingDb();
+  const event = { data: { type: 'logout', scope: connection.scope } };
+  state.receivingChannel.onmessage(event);
+  state.receivingChannel.onmessage(event);
+  expect(client.receivingDb.value).toBeUndefined();
+  expect(db.closed).toBe(true);
+  await vi.waitFor(() => expect(state.logout).toHaveBeenCalledOnce());
+  expect(state.logout).toHaveBeenCalledWith({ isUserUnauthorised: true });
+  expect(postCount()).toBe(0);
+  await client.configureReceiving(connection);
+  expect(client.receivingDb.value).toBeUndefined();
+  client.enableReceivingSession();
+  await client.configureReceiving(connection);
+  await expect(client.getReceivingDb()).resolves.toBe(db);
+});
+
+it('does not end this session for another tenant or user logout', async () => {
+  const db = await client.getReceivingDb();
+  state.receivingChannel.onmessage({ data: { type: 'logout', scope: 'other-tenant/user' } });
+  await Promise.resolve();
+  expect(client.receivingDb.value).toBe(db);
+  expect(db.closed).toBe(false);
+  expect(state.logout).not.toHaveBeenCalled();
+});
 
 it('reopens the captured cache for shared logout cleanup and closes it afterward', async () => {
   const db = await client.getReceivingDb();
