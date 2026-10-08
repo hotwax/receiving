@@ -1,5 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createPinia, setActivePinia } from 'pinia';
+import { DateTime, Settings } from 'luxon';
 
 const fixtures = vi.hoisted(() => ({
   embedded: false,
@@ -14,7 +15,7 @@ const fixtures = vi.hoisted(() => ({
 }));
 vi.mock('@common', () => ({
   api: fixtures.api,
-  commonUtil: { isAppEmbedded: () => fixtures.embedded, hasError: () => false },
+  commonUtil: { isAppEmbedded: () => fixtures.embedded, hasError: () => false, showToast: vi.fn() },
   cookieHelper: vi.fn(), logger: { error: vi.fn() }, translate: (text: string) => text,
   useNotificationStore: () => fixtures.notification,
   useEmbeddedAppStore: () => ({ getPosLocationId: fixtures.location }), useAuth: vi.fn(),
@@ -37,6 +38,39 @@ const deferred = () => {
   const promise = new Promise<void>(done => { resolve = done; });
   return { promise, resolve };
 };
+
+describe('Saved receiving timezone', () => {
+  const originalZone = Settings.defaultZone;
+  beforeEach(() => {
+    setActivePinia(createPinia()); vi.clearAllMocks();
+    Settings.defaultZone = 'America/New_York';
+  });
+  afterEach(() => { Settings.defaultZone = originalZone; });
+
+  it('formats receipt timestamps in the saved zone without reloading the profile', async () => {
+    const user = useUserStore();
+    user.current = { userId: 'U1', timeZone: 'America/New_York' };
+    fixtures.api.mockResolvedValueOnce({ status: 200, data: {} });
+    const receipt = Date.UTC(2026, 9, 8, 14, 4);
+    expect(DateTime.fromMillis(receipt).toFormat('H:mm')).toBe('10:04');
+
+    await user.setUserTimeZone('America/Los_Angeles');
+
+    expect(user.getCurrentTimeZone).toBe('America/Los_Angeles');
+    expect(DateTime.fromMillis(receipt).toFormat('H:mm')).toBe('7:04');
+  });
+
+  it('keeps the previous timezone when saving the preference fails', async () => {
+    const user = useUserStore();
+    user.current = { userId: 'U1', timeZone: 'America/New_York' };
+    fixtures.api.mockRejectedValueOnce(new Error('Preference save failed'));
+
+    await user.setUserTimeZone('America/Los_Angeles');
+
+    expect(user.getCurrentTimeZone).toBe('America/New_York');
+    expect(DateTime.fromMillis(Date.UTC(2026, 9, 8, 14, 4)).toFormat('H:mm')).toBe('10:04');
+  });
+});
 
 describe('Receiving login bootstrap', () => {
   beforeEach(() => {

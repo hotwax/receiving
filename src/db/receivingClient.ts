@@ -41,6 +41,9 @@ channel.onmessage = event => {
   if (event.data?.type === 'logout' && event.data.scope === active?.scope) {
     sessionEnabled = false;
     void configureReceiving();
+    void import('@common/composables/useAuth').then(({ useAuth }) =>
+      useAuth().logout({ isUserUnauthorised: true })
+    );
   }
 };
 

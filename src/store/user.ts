@@ -169,6 +169,7 @@ export const useUserStore = defineStore("user", {
         });
         this.updateUserInfo({ userTimeZone: tzId })
         this.current.timeZone = tzId
+        Settings.defaultZone = tzId;
       } catch (error: any) {
         console.error("Failed to set user time zone", error);
         commonUtil.showToast(translate("Failed to set user time zone"));
