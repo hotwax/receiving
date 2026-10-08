@@ -86,7 +86,7 @@ const getReturns = async (vSize?: any, vIndex?: any) => {
   const viewIndex = vIndex ? vIndex : 0;
   const payload = {
     destinationFacilityId: (currentFacility.value as any)?.facilityId,
-    statusId: selectedSegment.value === "open" ? returnStore.getReceivableStatusIds : "PURCH_SHIP_RECEIVED",
+    statusId: selectedSegment.value === "open" ? returnStore.getReceivableStatusIds.join(",") : "PURCH_SHIP_RECEIVED",
     statusId_op: selectedSegment.value === "open" ? "in" : "equals",
     fieldsToSelect: "shipmentId,externalId,statusId,shopifyOrderName,hcOrderId,trackingCode,destinationFacilityId",
     pageSize: viewSize,
