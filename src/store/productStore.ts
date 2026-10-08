@@ -1,6 +1,12 @@
-import { defineStore } from 'pinia'
-import { api, commonUtil, logger, translate, useEmbeddedAppStore, useSolrSearch } from '@common'
-import { useUserStore } from '@/store/user'
+import { hasError as utilHasError, isAppEmbedded as utilIsAppEmbedded, showToast as utilShowToast } from '@common/utils/core';
+import { defineStore } from 'pinia';
+import { reactive } from 'vue';
+import { default as api } from '@common/core/remoteApi';
+import { default as logger } from '@common/core/logger';
+import { translate } from '@common/core/i18n';
+import { useEmbeddedAppStore } from '@common/store/embeddedApp';
+import { useSolrSearch } from '@common/composables/useSolrSearch';
+import { useUserStore } from '@/store/user';
 import Actions from "@/authorization/actions"
 const defaultProductStoreSettings = JSON.parse(import.meta.env.VITE_DEFAULT_PRODUCT_STORE_SETTINGS as string || '{}')
 
@@ -61,8 +67,8 @@ export const useProductStore = defineStore('productStore', {
       this.currentFacility = facility
     },
     async setCurrentProductStore(store: any) {
-      this.currentProductStore = store
       await this.fetchProductStoreDependencies(store.productStoreId)
+      this.currentProductStore = store
     },
     async fetchUserFacilities() {
       const userStore = useUserStore();
@@ -113,7 +119,7 @@ export const useProductStore = defineStore('productStore', {
 
         // Only Location's facility for Shopify POS Users.
         const shopifyLocationId = useEmbeddedAppStore().getPosLocationId
-        if (commonUtil.isAppEmbedded() && shopifyLocationId) {
+        if (utilIsAppEmbedded() && shopifyLocationId) {
           const locationFacilityId = await this.fetchShopifyShopLocation({
             shopifyLocationId,
             pageSize: 1
@@ -186,7 +192,7 @@ export const useProductStore = defineStore('productStore', {
       let facilityId: string | undefined;
       try {
         const locationId = useEmbeddedAppStore().getPosLocationId;
-        if (commonUtil.isAppEmbedded() && locationId) {
+        if (utilIsAppEmbedded() && locationId) {
           facilityId = await this.fetchShopifyShopLocation({
             shopifyLocationId: locationId,
             pageSize: 1,
@@ -209,7 +215,7 @@ export const useProductStore = defineStore('productStore', {
 
         if (facilityId) {
           const facility = this.userFacilities.find((f: any) => f.facilityId === facilityId);
-          if (!facility && commonUtil.isAppEmbedded() && locationId) {
+          if (!facility && utilIsAppEmbedded() && locationId) {
             throw new Error("User is not associated with this location. Please contact the administrator.");
           }
           if (facility) {
@@ -239,9 +245,10 @@ export const useProductStore = defineStore('productStore', {
           }
         }) as any;
 
-        const stores = resp.data.filter((store: any) => !store.thruDate)
+        const stores = reactive(resp.data.filter((store: any) => !store.thruDate))
 
-        if (stores.length) {
+        const enrichNames = async () => {
+          if (!stores.length) return;
           // Fetching all stores for the store name
           try {
             const productStoresResp = await api({
@@ -258,7 +265,7 @@ export const useProductStore = defineStore('productStore', {
           } catch (error) {
             console.error(error);
           }
-        }
+        };
 
         const productStores = [...stores]
 
@@ -266,15 +273,19 @@ export const useProductStore = defineStore('productStore', {
           ...this.currentFacility,
           productStores
         }
-        this.setCurrentProductStore(productStores[0])
+        // Names and receiving settings depend on the store IDs, not each other.
+        // Keep both settled before publishing login/facility-switch completion.
+        const results = await Promise.allSettled([
+          this.setCurrentProductStore(productStores[0]), enrichNames()
+        ]);
+        for (const result of results) if (result.status === 'rejected') throw result.reason;
       } catch (error: any) {
         logger.error("error", error);
         return Promise.reject(new Error(error));
       }
     },
     async fetchProductStoreDependencies(productStoreId: string) {
-      await useProductStore().fetchProductStoreSettings(productStoreId)
-        .catch((error) => logger.error(error))
+      await this.fetchProductStoreSettings(productStoreId)
     },
 
     async fetchProductStoreFacilities(productStoreId: string) {
@@ -297,7 +308,7 @@ export const useProductStore = defineStore('productStore', {
           }
         });
 
-        if (!commonUtil.hasError(resp)) {
+        if (!utilHasError(resp)) {
           facilities = resp.data;
         } else {
           throw resp.data;
@@ -375,13 +386,15 @@ export const useProductStore = defineStore('productStore', {
             }
           }) as any
 
-          if (!commonUtil.hasError(resp) && resp.data) {
-            resp.data.forEach((productSetting: any) => {
-              productStoreSettings[productSetting.settingTypeEnumId] = productSetting.settingValue
-            })
+          if (utilHasError(resp) || !Array.isArray(resp.data)) {
+            throw new Error("Unable to load product store settings")
           }
+          resp.data.forEach((productSetting: any) => {
+            productStoreSettings[productSetting.settingTypeEnumId] = productSetting.settingValue
+          })
         } catch (error) {
           logger.error("Failed to fetch settings", error)
+          throw error
         }
       }
 
@@ -426,7 +439,7 @@ export const useProductStore = defineStore('productStore', {
             settingValue: payloadSettingValue
           }
         })
-        if (!commonUtil.hasError(resp)) {
+        if (!utilHasError(resp)) {
           const defaultSetting = defaultProductStoreSettings[settingTypeEnumId]
           const { stateKey } = defaultSetting
           const keys = stateKey.split('.');
@@ -445,12 +458,12 @@ export const useProductStore = defineStore('productStore', {
               current = current[key];
             }
           }
-          commonUtil.showToast(translate('Product Store setting updated successfully.'))
+          utilShowToast(translate('Product Store setting updated successfully.'))
         } else {
           throw resp
         }
       } catch (err) {
-        commonUtil.showToast(translate('Failed to update Product Store setting.'))
+        utilShowToast(translate('Failed to update Product Store setting.'))
         logger.error(err)
       }
     },
@@ -527,7 +540,7 @@ export const useProductStore = defineStore('productStore', {
           }
         }) as any;
 
-        if (resp.status === 200 && !commonUtil.hasError(resp)) {
+        if (resp.status === 200 && !utilHasError(resp)) {
           this.facilityLocationsByFacilityId[facilityId] = resp.data;
         }
       } catch (err) {

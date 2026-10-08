@@ -9,6 +9,8 @@ import { commonEnvPlugin } from '../../common/vite/commonEnvPlugin'
 import pkg from './package.json'
 import { VitePWA } from 'vite-plugin-pwa'
 import manifest from './manifest.json'
+import { receivingStartupBudget } from './build/startupBudget'
+import { embeddedStartupPreload } from './build/embeddedStartupPreload'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -21,6 +23,8 @@ export default defineConfig(({ mode }) => {
     outDir: appBuild ? `dist/${appBuild}` : 'dist'
   },
   plugins: [
+    receivingStartupBudget(),
+    embeddedStartupPreload(),
     commonEnvPlugin(),
     vue(),
     legacy(),
@@ -41,7 +45,8 @@ export default defineConfig(({ mode }) => {
     alias: {
       '@': path.resolve(__dirname, 'src'),
       '@common': path.resolve(__dirname, '../../common'),
-      'vue': 'vue/dist/vue.esm-bundler.js'
+      'vue': mode === 'test' ? 'vue/dist/vue.esm-bundler.js' : 'vue/dist/vue.runtime.esm-bundler.js',
+      luxon: path.resolve(__dirname, 'node_modules/luxon/build/es6/luxon.mjs')
     },
   },
   server: {

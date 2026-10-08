@@ -72,7 +72,7 @@ import { closeOutline, saveOutline } from "ionicons/icons";
 import { useUserStore } from '@/store/user';
 import { useProductStore } from '@/store/productStore';
 import { computed, ref } from 'vue';
-import { translate } from '@common';
+import { translate } from '@common/core/i18n';
 
 const userStore = useUserStore();
 const productStore = useProductStore();

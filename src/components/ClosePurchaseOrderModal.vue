@@ -23,9 +23,9 @@
           <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
         </ion-thumbnail>
         <ion-label>
-          <h2>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
-          <p>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
-          <p>{{ commonUtil.getFeatures(getProduct(item.productId).productFeatures) }}</p>
+          <h2>{{ utilGetProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? utilGetProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
+          <p>{{ utilGetProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+          <p>{{ utilGetFeatures(getProduct(item.productId).productFeatures) }}</p>
         </ion-label>
         <ion-buttons>
           <ion-checkbox aria-label="itemStatus" slot="end" :data-testid="`purchase-order-close-items-select-checkbox-${item.orderItemSeqId || item.productId}`" :modelValue="isPOItemStatusPending(item) ? item.isChecked : true" :disabled="isPOItemStatusPending(item) ? false : true" />
@@ -42,13 +42,17 @@
 </template>
 
 <script setup lang="ts">
+import { copyToClipboard as utilCopyToClipboard } from '@common/utils/core';
+import { getFeatures as utilGetFeatures, getProductIdentificationValue as utilGetProductIdentificationValue } from '@common/utils/product';
 import { IonButton, IonButtons, IonCheckbox, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonItem, IonLabel, IonList, IonListHeader, IonTitle, IonToolbar, IonThumbnail, alertController, modalController } from '@ionic/vue';
-import { useUserStore } from '@/store/user'
+import { useUserStore } from '@/store/user';
 import { arrowBackOutline, saveOutline } from 'ionicons/icons';
 import { computed, onMounted } from 'vue';
 import { useOrderStore } from '@/store/order';
 import { useProductStore as useProduct } from '@/store/product';
-import { DxpShopifyImg, translate, commonUtil, emitter } from '@common';
+import { default as DxpShopifyImg } from '@common/components/DxpShopifyImg.vue';
+import { translate } from '@common/core/i18n';
+import { default as emitter } from '@common/core/emitter';
 import { useProductStore } from '@/store/productStore';
 import router from '@/router';
 import Actions from "@/authorization/actions";
@@ -78,7 +82,7 @@ const itemStatusChangeErrorAlert = async (error: any) => {
     buttons: [{
       text: translate('Copy & Dismiss'),
       handler: async() => {
-        commonUtil.copyToClipboard(message)
+        utilCopyToClipboard(message)
         return;
       }
     },

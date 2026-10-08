@@ -13,9 +13,10 @@
 </template>
 
 <script setup lang="ts">
+import { formatUtcDate as utilFormatUtcDate } from '@common/utils/date';
 import { IonBadge, IonItem, IonLabel } from '@ionic/vue';
 import router from '@/router';
-import { commonUtil } from '@common';
+
 import { useUserStore } from '@/store/user';
 
 const props = defineProps(["purchaseOrder"]);
@@ -28,7 +29,7 @@ const orderStatusColor = {
 } as any;
 
 const formatDate = (value: string) => {
-  return commonUtil.formatUtcDate(value, useUserStore().current.timeZone);
+  return utilFormatUtcDate(value, useUserStore().current.timeZone);
 }
 
 const goToOrderDetail = (orderId: string) => {

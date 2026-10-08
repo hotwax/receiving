@@ -1,5 +1,8 @@
+import { hasError as utilHasError } from '@common/utils/core';
 import { defineStore } from "pinia";
-import { api, commonUtil, emitter, useSolrSearch } from "@common";
+import { default as api } from '@common/core/remoteApi';
+import { default as emitter } from '@common/core/emitter';
+import { useSolrSearch } from '@common/composables/useSolrSearch';
 import { useProductStore as useFacilityStore } from "@/store/productStore";
 
 export const useProductStore = defineStore("product", {
@@ -81,7 +84,7 @@ export const useProductStore = defineStore("product", {
           params: payload,
         });
 
-        if (!commonUtil.hasError(resp)) {
+        if (!utilHasError(resp)) {
           const value = resp?.data.qoh == null ? undefined : Number(resp.data.qoh);
           productQoh = Number.isFinite(value) ? value : undefined;
         } else {

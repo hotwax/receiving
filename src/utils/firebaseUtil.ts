@@ -1,4 +1,5 @@
-import { firebaseMessaging, useNotificationStore } from "@common";
+import { firebaseMessaging } from '@common/core/firebaseMessaging';
+import { useNotificationStore } from '@common/store/notification';
 import { DateTime } from "luxon";
 
 const initialiseFirebaseMessaging = async () => {

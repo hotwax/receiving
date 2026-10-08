@@ -19,8 +19,8 @@
             <Image :src="product.mainImageUrl" />
           </ion-thumbnail>
           <ion-label>
-            <h2>{{ commonUtil.getProductIdentificationValue(useProductStore().getProductIdentificationPref.primaryId, product) || getProduct(product.productId).productName }}</h2>
-            <p>{{ commonUtil.getProductIdentificationValue(useProductStore().getProductIdentificationPref.secondaryId, product) }}</p>
+            <h2>{{ utilGetProductIdentificationValue(useProductStore().getProductIdentificationPref.primaryId, product) || getProduct(product.productId).productName }}</h2>
+            <p>{{ utilGetProductIdentificationValue(useProductStore().getProductIdentificationPref.secondaryId, product) }}</p>
           </ion-label>
           <ion-icon v-if="isProductInOrder(product.productId)" color="success" :icon="checkmarkCircle" data-testid="add-product-in-order-${product.productId}" />
           <ion-button v-else data-testid="add-product-btn-${product.productId}" fill="outline" @click="addItemToOrder(product)" :disabled="pendingProductIds.has(product.productId)">
@@ -45,27 +45,14 @@
 </template>
 
 <script setup lang="ts">
-import {
-  IonButton,
-  IonButtons,
-  IonContent,
-  IonHeader,
-  IonIcon,
-  IonInfiniteScroll,
-  IonInfiniteScrollContent,
-  IonItem,
-  IonLabel,
-  IonList,
-  IonSearchbar,
-  IonThumbnail,
-  IonTitle,
-  IonToolbar,
-  modalController,
-} from "@ionic/vue";
+import { getProductIdentificationValue as utilGetProductIdentificationValue } from '@common/utils/product';
+import { IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonInfiniteScroll, IonInfiniteScrollContent, IonItem, IonLabel, IonList, IonSearchbar, IonThumbnail, IonTitle, IonToolbar, modalController,  } from "@ionic/vue";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { closeOutline, checkmarkCircle } from "ionicons/icons";
 import Image from "@/components/Image.vue"
-import { commonUtil, logger, translate, useSolrSearch } from "@common";
+import { default as logger } from '@common/core/logger';
+import { translate } from '@common/core/i18n';
+import { useSolrSearch } from '@common/composables/useSolrSearch';
 import { useProductStore } from "@/store/productStore";
 import { useProductStore as useProduct } from "@/store/product";
 

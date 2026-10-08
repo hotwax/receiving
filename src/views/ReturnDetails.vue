@@ -32,7 +32,7 @@
           </ion-button>
         </div>
 
-        <ion-card :data-testid="`return-detail-page-item-card-${item.productId}`" v-for="item in current.items" :key="item.id" :class="commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : ''" :id="commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+        <ion-card :data-testid="`return-detail-page-item-card-${item.productId}`" v-for="item in current.items" :key="item.id" :class="utilGetProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : ''" :id="utilGetProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
           <div class="product" :data-product-id="item.productId">
             <div class="product-info">
               <ion-item lines="none">
@@ -40,9 +40,9 @@
                   <DxpShopifyImg :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
-                  <h2>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
-                  <p>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
-                  <p>{{ commonUtil.getFeatures(getProduct(item.productId).productFeatures) }}</p>
+                  <h2>{{ utilGetProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? utilGetProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
+                  <p>{{ utilGetProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                  <p>{{ utilGetFeatures(getProduct(item.productId).productFeatures) }}</p>
                 </ion-label>
               </ion-item>
             </div>
@@ -87,17 +87,22 @@
 </template>
 
 <script setup lang="ts">
+import { getFeatures as utilGetFeatures, getProductIdentificationValue as utilGetProductIdentificationValue } from '@common/utils/product';
+import { hasWebcamAccess as utilHasWebcamAccess, showToast as utilShowToast } from '@common/utils/core';
 import { IonBackButton, IonBadge, IonButton, IonCard, IonChip, IonContent, IonHeader, IonFab, IonFabButton, IonIcon, IonItem, IonInput, IonLabel, IonPage, IonProgressBar, IonThumbnail, IonTitle, IonToolbar, modalController, alertController, onIonViewWillEnter, onIonViewDidLeave } from '@ionic/vue';
 import { ref, computed, nextTick } from 'vue';
 import { checkmarkDone, cubeOutline, barcodeOutline } from 'ionicons/icons';
-import { DxpShopifyImg, translate, commonUtil, useEmbeddedAppStore, useShopify } from '@common';
+import { default as DxpShopifyImg } from '@common/components/DxpShopifyImg.vue';
+import { translate } from '@common/core/i18n';
+import { useEmbeddedAppStore } from '@common/store/embeddedApp';
+import { useShopify } from '@common/composables/useShopify';
 import { useProductStore } from '@/store/productStore';
 import { useReturnStore } from '@/store/return';
 import { useProductStore as useProduct } from '@/store/product';
 import { useShipmentStore } from '@/store/shipment';
 import Scanner from "@/components/Scanner.vue";
 import ImageModal from '@/components/ImageModal.vue';
-import { useUserStore } from '@/store/user'
+import { useUserStore } from '@/store/user';
 import router from '@/router';
 import Actions from "@/authorization/actions";
 
@@ -198,10 +203,10 @@ const receiveReturn = async () => {
   const shipmentId = current.value.shipment ? current.value.shipment.shipmentId : current.value.shipmentId 
   let isReturnReceived = await shipmentStore.receiveReturnShipment({ items: eligibleItems, shipmentId });
   if (isReturnReceived) {
-    commonUtil.showToast(translate("Return received successfully", { shipmentId: shipmentId }))
+    utilShowToast(translate("Return received successfully", { shipmentId: shipmentId }))
     router.push('/returns');
   } else {
-    commonUtil.showToast(translate('Something went wrong'));
+    utilShowToast(translate('Something went wrong'));
     await returnStore.setCurrent({ shipmentId: route.params.id })
   }
 };
@@ -225,7 +230,7 @@ const updateProductCount = async (payload?: any) => {
   const result = await returnStore.updateReturnProductCount(payload);
 
   if (result.isProductFound) {
-    commonUtil.showToast(translate("Scanned successfully.", { itemName: payload }))
+    utilShowToast(translate("Scanned successfully.", { itemName: payload }))
     lastScannedId.value = payload
     const scannedElement = document.getElementById(payload);
     scannedElement && (scannedElement.scrollIntoView());
@@ -234,7 +239,7 @@ const updateProductCount = async (payload?: any) => {
       lastScannedId.value = ''
     }, 3000)
   } else {
-    commonUtil.showToast(translate("Scanned item is not present within the shipment:", { itemName: payload }))
+    utilShowToast(translate("Scanned item is not present within the shipment:", { itemName: payload }))
   }
   queryString.value = ''
 };
@@ -248,8 +253,8 @@ const scanCode = async () => {
       console.error("POS Scanner error:", err);
     }
   } else {
-  if (!(await commonUtil.hasWebcamAccess())) {
-    commonUtil.showToast(translate("Camera access not allowed, please check permissions."));
+  if (!(await utilHasWebcamAccess())) {
+    utilShowToast(translate("Camera access not allowed, please check permissions."));
     return;
   } 
   const modal = await modalController.create({
@@ -266,7 +271,7 @@ const scanCode = async () => {
 
 const searchProduct = () => {
   if (!queryString.value) {
-    commonUtil.showToast(translate("Please provide a valid barcode identifier."))
+    utilShowToast(translate("Please provide a valid barcode identifier."))
     return;
   }
   const scannedElement = document.getElementById(queryString.value);
@@ -277,7 +282,7 @@ const searchProduct = () => {
       lastScannedId.value = ''
     }, 3000)
   } else {
-    commonUtil.showToast(translate("Searched item is not present within the shipment:", { itemName: queryString.value }));
+    utilShowToast(translate("Searched item is not present within the shipment:", { itemName: queryString.value }));
   }
   queryString.value = ''
 };
