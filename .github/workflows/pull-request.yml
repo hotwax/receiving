@@ -7,12 +7,51 @@ on:
     # The branches below must be a subset of the branches above
     branches: [main]
 
+# Build the exact shared revision used by the release workflow.
 jobs:
-  call-workflow-in-another-repo:
-    uses: hotwax/accxui/.github/workflows/common-pull-request.yml@main
-    with:
-      config-path: .github/labeler.yml
-      app: hotwax/receiving
-      appDir: receiving
-    secrets:
-      envPAT: ${{ secrets.envPAT }}
+  reusable_workflow_job:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x]
+
+    steps:
+    - name: Checkout accxui
+      uses: actions/checkout@v4
+      with:
+        repository: hotwax/accxui
+        path: .
+        ref: 69dc97e9988d35e0c0e87f4091a17360d3d5de13
+
+    - name: Checkout app in apps/
+      uses: actions/checkout@v4
+      with:
+        repository: hotwax/receiving
+        path: apps/receiving
+        ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 9
+        run_install: false
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'pnpm'
+
+    - name: Install Dependencies
+      run: pnpm install
+
+    - name: Generate .env file
+      run: cp .env.example .env
+      working-directory: apps/receiving
+
+    - name: Build
+      run: pnpm --filter receiving build
+
+    - name: Receiving regression tests
+      run: pnpm --filter receiving test:unit --run

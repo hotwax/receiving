@@ -24,6 +24,7 @@ export const useReturnStore = defineStore("return", {
     getReturns: (state) => state.returns.list,
     getReturnsTotal: (state) => state.returns.total,
     getCurrent: (state) => state.current,
+    getReceivableStatusIds: (state) => Object.keys(state.validStatusChange).filter(statusId => state.validStatusChange[statusId]?.includes("PURCH_SHIP_RECEIVED")),
     isReturnReceivable: (state) => (statusId: string) => state.validStatusChange[statusId]?.includes("PURCH_SHIP_RECEIVED"),
   },
   actions: {
@@ -81,6 +82,7 @@ export const useReturnStore = defineStore("return", {
     async setCurrent(payload: any) {
       let resp: any;
       try {
+        await this.fetchValidReturnStatuses();
         let returnShipment = this.returns.list.find((shipment: any) => shipment.shipmentId === payload.shipmentId);
 
         if (!returnShipment) {
@@ -156,6 +158,7 @@ export const useReturnStore = defineStore("return", {
     },
 
     async fetchValidReturnStatuses() {
+      if (this.getReceivableStatusIds.length) return;
       let resp: any;
       try {
         resp = await api({

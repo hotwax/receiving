@@ -6,16 +6,74 @@ name: Deploy to Firebase Hosting on merge
   push:
     branches:
       - main
+# Keep the merge deployment on the same immutable shared revision as release/CI.
 jobs:
-  call-workflow-in-another-repo:
-    uses: hotwax/accxui/.github/workflows/common-firebase-hosting-merge.yml@main
-    with:
-      config-path: .github/labeler.yml
-      app: hotwax/receiving
-      appDir: receiving
-    secrets:
-      envPAT: ${{ secrets.envPAT }}
-      HOTWAX_PUBLIC_SECRET: ${{ secrets.HOTWAX_PUBLIC_SECRET }}
-      VITE_FIREBASE_CONFIG: ${{ secrets.DEV_VUE_APP_FIREBASE_CONFIG }}
-      VITE_FIREBASE_VAPID_KEY: ${{ secrets.DEV_VUE_APP_FIREBASE_VAPID_KEY }}
-      SHOPIFY_SHOP_CONFIG: ${{ secrets.SHOPIFY_SHOP_CONFIG }}
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    environment: development
+    steps:
+      - name: Checkout accxui
+        uses: actions/checkout@v4
+        with:
+          repository: hotwax/accxui
+          path: .
+          ref: 69dc97e9988d35e0c0e87f4091a17360d3d5de13
+
+      - name: Checkout app in apps/
+        uses: actions/checkout@v4
+        with:
+          repository: hotwax/receiving
+          path: apps/receiving
+          ref: ${{ github.sha }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Use Node.js v22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Generate .env file
+        run: cp .env.example .env
+        working-directory: apps/receiving
+
+      - name: Set Firebase and VAPID Config
+        run: |
+          if [[ -n "$VITE_FIREBASE_CONFIG" ]]; then
+            sed -i "s|^VITE_FIREBASE_CONFIG=.*|VITE_FIREBASE_CONFIG=$VITE_FIREBASE_CONFIG|g" .env
+            sed -i "s|^VITE_FIREBASE_VAPID_KEY=.*|VITE_FIREBASE_VAPID_KEY='$VITE_FIREBASE_VAPID_KEY'|g" .env
+            sed -i "s|const firebaseConfig =.*|const firebaseConfig = $VITE_FIREBASE_CONFIG|g" public/firebase-messaging-sw.js
+          fi
+        env:
+          VITE_FIREBASE_CONFIG: ${{ secrets.DEV_VUE_APP_FIREBASE_CONFIG }}
+          VITE_FIREBASE_VAPID_KEY: ${{ secrets.DEV_VUE_APP_FIREBASE_VAPID_KEY }}
+        working-directory: apps/receiving
+
+      - name: Set Shopify Shop Config
+        run: |
+          if [[ -n "$SHOPIFY_SHOP_CONFIG" ]]; then
+            sed -i "s|^VITE_SHOPIFY_SHOP_CONFIG=.*|VITE_SHOPIFY_SHOP_CONFIG=$SHOPIFY_SHOP_CONFIG|g" .env
+          fi
+        env:
+          SHOPIFY_SHOP_CONFIG: ${{ secrets.SHOPIFY_SHOP_CONFIG }}
+        working-directory: apps/receiving
+
+      - name: Build
+        run: pnpm --filter receiving build
+
+      - name: Firebase Install and Deploy
+        run: |
+          npm install -g firebase-tools
+          firebase use dev --token "$HOTWAX_PUBLIC_SECRET"
+          firebase deploy --token "$HOTWAX_PUBLIC_SECRET" -m "Deploying via GitHub actions"  --only hosting:dev
+        env:
+            HOTWAX_PUBLIC_SECRET: ${{ secrets.HOTWAX_PUBLIC_SECRET }}
+        working-directory: apps/receiving
