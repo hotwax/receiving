@@ -17,6 +17,17 @@
 
     <ion-content data-testid="transfer-order-detail-page-content">
       <main>
+        <ion-item v-if="order.cacheError || order.needsReadback" lines="none">
+          <ion-label>{{ order.cacheError || translate('Receipt saved. Refresh to load the latest quantities.') }}</ion-label>
+          <ion-button slot="end" fill="clear" @click="refreshLocalOrder">{{ translate('Refresh') }}</ion-button>
+        </ion-item>
+        <ion-item v-if="order.cacheConflict" lines="none">
+          <ion-label>
+            {{ translate('Transfer quantities changed. Review them before receiving.') }}
+            <p v-for="draft in order.missingDrafts" :key="draft.itemKey">{{ translate('Line removed') }}: {{ draft.productId }} ({{ draft.quantityAccepted }})</p>
+          </ion-label>
+          <ion-button slot="end" fill="clear" @click="transferOrderStore.acknowledgeLocalChanges()">{{ translate("I've reviewed") }}</ion-button>
+        </ion-item>
         <div class="doc-id">
           <div class="ion-padding">
             <ion-label>
@@ -25,12 +36,23 @@
               <p>{{ translate("Item count") }}: {{ order.items?.length }}</p>
               <p v-if="isReceivingByFulfillment && !isTOReceived()">{{ translate("Unfulfilled items") }}: {{ order.items?.length - fulfilledItems }}</p>
             </ion-label>
-            <ion-row>
-              <ion-chip v-for="(pkg, index) in trackedPackages" :key="index" @click="commonUtil.copyToClipboard(pkg.trackingCode, 'Tracking code copied to clipboard')">
-                {{ pkg.trackingCode }}
-                <ion-icon :icon="copyOutline"/>
+            <div v-if="!isTOReceived()" class="shipment-filters" role="group" :aria-label="translate('Filter by shipment box')">
+              <ion-chip data-testid="shipment-filter-all" role="button" tabindex="0" :aria-pressed="!selectedPackageKey"
+                :outline="!!selectedPackageKey" :color="!selectedPackageKey ? 'primary' : undefined"
+                @click="selectPackage('')" @keydown.enter.prevent="selectPackage('')" @keydown.space.prevent="selectPackage('')">
+                {{ translate('All shipments') }}
               </ion-chip>
-            </ion-row>
+              <ion-chip v-for="pkg in shipmentBoxes" :key="pkg.packageKey" :data-testid="`shipment-filter-${pkg.shipmentId}-${pkg.shipmentPackageSeqId}`"
+                role="button" tabindex="0" :aria-pressed="selectedPackageKey === pkg.packageKey"
+                :outline="selectedPackageKey !== pkg.packageKey" :color="selectedPackageKey === pkg.packageKey ? 'primary' : undefined"
+                @click="selectPackage(pkg.packageKey)" @keydown.enter.prevent="selectPackage(pkg.packageKey)" @keydown.space.prevent="selectPackage(pkg.packageKey)">
+                {{ pkg.trackingCode || pkg.shipmentId }} / {{ translate('Box') }} {{ pkg.shipmentPackageSeqId }}
+              </ion-chip>
+            </div>
+            <ion-note v-if="order.shipmentError">{{ order.shipmentError }}</ion-note>
+            <ion-note v-else-if="!order.shipmentsReady && !isTOReceived()">{{ translate('Loading shipment contents…') }}</ion-note>
+            <ion-note v-if="selectedPackageKey">{{ translate('Showing pending items in this box. Entered quantities are totals across all boxes for this receipt.') }}</ion-note>
+            <ion-note v-if="unshippedTrackingMatch">{{ translate('This tracking code belongs to a shipment that has not shipped yet.') }}</ion-note>
           </div>
 
           <div class="doc-meta" v-if="!isTOReceived()">
@@ -47,7 +69,7 @@
 
         <div class="scanner">
           <ion-item :lines="scanErrorText ? 'none' : 'full'">
-            <ion-input data-testid="transfer-order-detail-page-scan-input" :class="{ 'ion-invalid ion-touched': scanErrorText }" :error-text="scanErrorText" :label="translate('Scan items')" label-placement="fixed" autofocus v-model="queryString" @keyup.enter="updateProductCount(null)" @ionInput="scanErrorText = ''"/>
+            <ion-input ref="scanInput" data-testid="transfer-order-detail-page-scan-input" :class="{ 'ion-invalid ion-touched': scanErrorText }" :error-text="scanErrorText" :label="translate('Scan items')" label-placement="fixed" autofocus v-model="queryString" @keyup.enter="updateProductCount(null)" @ionInput="scanErrorText = ''"/>
           </ion-item>
           <ion-button data-testid="transfer-order-detail-page-scan-btn" expand="block" fill="outline" @click="scan">
             <ion-icon slot="start" :icon="cameraOutline" />
@@ -66,6 +88,15 @@
             <ion-label>{{ getTOItems("received")?.length }} {{ translate("Received and completed") }}</ion-label>
           </ion-segment-button>
         </ion-segment>
+
+        <ion-toolbar v-if="!isTOReceived() && selectedSegment !== 'received' && !isForceScanEnabled">
+          <ion-buttons slot="start">
+            <ion-button data-testid="transfer-order-detail-page-receive-all-btn" fill="outline"
+              :disabled="!canBulkReceive" @click="markAllAsReceived">
+              {{ translate('Auto scan all') }}
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
 
         <!-- TODO: create a common component for the item card -->
         <div v-if="!isTOReceived()">
@@ -129,13 +160,14 @@
                 <div class="action border-top" v-if="item.orderItemSeqId">
                   <div class="receive-all-qty">
                     <ion-button :data-testid="`transfer-order-detail-page-receive-all-btn-${item.orderItemSeqId || item.productId}`" @click="receiveAll(item)" :disabled="isForceScanEnabled || isItemReceivedInFull(item)" slot="start" size="small" fill="outline">
-                      {{ translate("Receive All") }}
+                      {{ translate("Scan all") }}
                     </ion-button>
                   </div>
 
                   <div class="qty-progress">
                     <!-- TODO: improve the handling of quantityAccepted -->
-                    <ion-progress-bar :color="getRcvdToOrderedFraction(item) === 1 ? 'success' : getRcvdToOrderedFraction(item) > 1 ? 'danger' : 'primary'" :value="getRcvdToOrderedFraction(item)" />
+                    <TransferItemProgress :item="item" :value="getRcvdToOrderedFraction(item)" :total="getItemQty(item)"
+                      :allocations="getBoxAllocations(item)" :selected-package-key="selectedPackageKey" />
                   </div>
 
                   <div class="to-item-history">
@@ -167,7 +199,7 @@
                 {{ translate("Back to open items") }}
               </ion-button>
             </ion-item>
-            <ion-card :data-testid="`transfer-order-detail-page-open-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in openItems" :key="index" :class="commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+            <ion-card :data-testid="`transfer-order-detail-page-open-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in visibleOpenItems" :key="index" :class="commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
               <div class="product" :data-product-id="item.productId">
                 <div class="product-info">
                   <ion-item lines="none">
@@ -200,13 +232,14 @@
               <div class="action border-top" v-if="item.orderItemSeqId">
                 <div class="receive-all-qty">
                   <ion-button :data-testid="`transfer-order-detail-page-open-receive-all-btn-${item.orderItemSeqId || item.productId}`" @click="receiveAll(item)" :disabled="isForceScanEnabled || isItemReceivedInFull(item)" size="small" fill="outline">
-                    {{ translate("Receive All") }}
+                    {{ translate("Scan all") }}
                   </ion-button>
                 </div>
 
                 <div class="qty-progress">
                   <!-- TODO: improve the handling of quantityAccepted -->
-                  <ion-progress-bar :color="getRcvdToOrderedFraction(item) === 1 ? 'success' : getRcvdToOrderedFraction(item) > 1 ? 'danger' : 'primary'" :value="getRcvdToOrderedFraction(item)" />
+                  <TransferItemProgress :item="item" :value="getRcvdToOrderedFraction(item)" :total="getItemQty(item)"
+                      :allocations="getBoxAllocations(item)" :selected-package-key="selectedPackageKey" />
                 </div>
 
                 <div class="to-item-history">
@@ -222,9 +255,9 @@
                 </div>
               </div>
             </ion-card>
-            <div data-testid="transfer-order-detail-page-open-empty-state" v-if="!openItems?.length" class="empty-state">
+            <div data-testid="transfer-order-detail-page-open-empty-state" v-if="!visibleOpenItems.length" class="empty-state">
               <ion-label>
-                {{ "No items available for receiving, check completed tab" }}
+                {{ selectedPackageKey ? translate('No pending items in this box') : translate('No items available for receiving, check completed tab') }}
               </ion-label>
               <ion-button data-testid="transfer-order-detail-page-open-empty-received-btn" fill="clear" @click="segmentChanged('received')">
                 <ion-icon slot="icon-only" :icon="openOutline" />
@@ -345,8 +378,8 @@
     <ion-footer data-testid="transfer-order-detail-page-footer" id="footer" ref="footer" v-if="!isTOReceived() && selectedSegment !== 'received'">
       <ion-toolbar>
         <ion-buttons slot="end">
-          <ion-button data-testid="transfer-order-detail-page-save-progress-btn" :disabled="!areAllItemsHaveQty || isReceiveFlowBusy" class="ion-margin-end" fill="outline" size="small" color="primary" @click="receiveTO">{{ translate("Save Progress") }}{{ ":" }} {{ getReceivedUnits() }}</ion-button>
-          <ion-button data-testid="transfer-order-detail-page-receive-complete-btn" :disabled="!areAllItemsHaveQty || isReceiveFlowBusy" fill="solid" size="small" color="primary" @click="receiveAndCloseTO">{{ translate("Receive and complete") }}</ion-button>
+          <ion-button data-testid="transfer-order-detail-page-save-progress-btn" :disabled="!areAllItemsHaveQty || isReceiveFlowBusy || order.cacheConflict || order.needsReadback || !order.ready" class="ion-margin-end" fill="outline" size="small" color="primary" @click="receiveTO">{{ translate("Save Progress") }}{{ ":" }} {{ getReceivedUnits() }}</ion-button>
+          <ion-button data-testid="transfer-order-detail-page-receive-complete-btn" :disabled="!areAllItemsHaveQty || isReceiveFlowBusy || order.cacheConflict || order.needsReadback || !order.ready" fill="solid" size="small" color="primary" @click="receiveAndCloseTO">{{ translate("Receive and complete") }}</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-footer>
@@ -354,9 +387,10 @@
 </template>
 
 <script setup lang="ts">
-import { IonBackButton, IonButton, IonButtons, IonCard, IonChip, IonContent, IonHeader, IonFooter, IonIcon, IonItem, IonInput, IonLabel, IonPage, IonProgressBar, IonRow, IonSegment, IonSegmentButton, IonText, IonThumbnail, IonTitle, IonToast, IonToolbar, alertController, modalController, onIonViewWillEnter, onIonViewDidLeave } from '@ionic/vue';
-import { nextTick, ref, computed } from 'vue';
-import { addOutline, cameraOutline, checkmarkDone, copyOutline, cubeOutline, informationCircleOutline, openOutline, timeOutline } from 'ionicons/icons';
+import { IonBackButton, IonButton, IonButtons, IonCard, IonChip, IonContent, IonHeader, IonFooter, IonIcon, IonItem, IonInput, IonLabel, IonPage, IonNote, IonSegment, IonSegmentButton, IonText, IonThumbnail, IonTitle, IonToast, IonToolbar, alertController, modalController, onIonViewWillEnter, onIonViewDidLeave } from '@ionic/vue';
+import { nextTick, ref, computed, watch } from 'vue';
+import { ensureReceivingOrder, receivingDb } from '@/db/receivingClient';
+import { addOutline, cameraOutline, checkmarkDone, cubeOutline, informationCircleOutline, openOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
 import { DxpShopifyImg, translate, commonUtil, emitter, useEmbeddedAppStore, useShopify } from '@common';
 import { useProductStore } from '@/store/productStore';
@@ -366,6 +400,9 @@ import { useProductStore as useProduct } from '@/store/product';
 import { useUtilStore } from '@/store/util';
 import Scanner from "@/components/Scanner.vue"
 import ImageModal from '@/components/ImageModal.vue';
+import TransferItemProgress from '@/components/TransferItemProgress.vue';
+import { buildBoxAllocations } from '@/db/receivingShipments';
+import { tuple } from '@/db/receivingDatabase';
 
 import AddProductToTOModal from '@/components/AddProductToTOModal.vue';
 import { DateTime } from 'luxon';
@@ -374,6 +411,7 @@ import ReceiveTransferOrder from '@/components/ReceiveTransferOrder.vue';
 import router from '@/router';
 import { useReceiveFlowState } from '@/composables/useReceiveFlowState';
 import { runTransferOrderDetailReceiveWorkflow } from '@/views/transferOrderDetailReceiveWorkflow';
+import { markItemsAsReceived, remainingIssuedQuantity } from '@/views/transferOrderBulkReceive';
 import Actions from "@/authorization/actions";
 
 const transferOrderStore = useTransferOrderStore();
@@ -389,9 +427,17 @@ const {
 } = useReceiveFlowState();
 
 const queryString = ref('');
+const scanInput = ref();
+const selectedPackageKey = ref('');
+let trackingSelectionApplied = false;
 const showCompletedItems = ref(false);
 const lastScannedId = ref('');
 const productQoh = ref({} as any);
+const pendingQoh = new Set<string>();
+const attemptedQoh = new Set<string>();
+let qohGeneration = 0;
+const detailActive = ref(false);
+let detailLoadGeneration = 0;
 const observer = ref(null as IntersectionObserver | null);
 const selectedSegment = ref("open");
 const filteredItems = ref([] as any);
@@ -416,11 +462,40 @@ const toastButtons = [
   }
 ];
 
-const trackedPackages = computed(() => order.value?.shipmentPackages?.filter((pkg: any) => pkg.trackingCode) || []);
+const boxAllocations = computed(() => buildBoxAllocations(order.value.shipmentPackages || [], order.value.shipmentPackageItems || []));
+const getBoxAllocations = (item: any) => boxAllocations.value.get(tuple(item.orderItemSeqId, item.productId)) || [];
+const shipmentBoxes = computed(() => (order.value.shipmentPackages || []).filter((pkg: any) =>
+  pkg.shipmentStatusId === 'SHIPMENT_SHIPPED' && (order.value.shipmentPackageItems || []).some((row: any) => row.packageKey === pkg.packageKey)));
+const inSelectedPackage = (item: any) => !selectedPackageKey.value || getBoxAllocations(item).some(box => box.packageKey === selectedPackageKey.value);
+const visibleOpenItems = computed(() => openItems.value.filter(inSelectedPackage));
+const unshippedTrackingMatch = computed(() => (order.value.shipmentPackages || []).some((pkg: any) =>
+  pkg.trackingCode === router.currentRoute.value.query.tracking && pkg.shipmentStatusId !== 'SHIPMENT_SHIPPED'));
+const focusScanner = async () => {
+  await nextTick();
+  const input = await scanInput.value?.$el?.getInputElement();
+  if (detailActive.value) input?.focus({ preventScroll: true });
+};
+const selectPackage = (packageKey: string) => {
+  showAllOpenItems();
+  selectedPackageKey.value = packageKey;
+  selectedSegment.value = 'open';
+  scanErrorText.value = '';
+  void focusScanner();
+};
+watch([() => order.value.shipmentsReady, shipmentBoxes], () => {
+  if (!detailActive.value || !order.value.shipmentsReady) return;
+  if (selectedPackageKey.value && !shipmentBoxes.value.some((pkg: any) => pkg.packageKey === selectedPackageKey.value)) selectedPackageKey.value = '';
+  if (trackingSelectionApplied) return;
+  trackingSelectionApplied = true;
+  const tracking = router.currentRoute.value.query.tracking;
+  const matches = shipmentBoxes.value.filter((pkg: any) => pkg.trackingCode === tracking);
+  if (matches.length === 1) selectedPackageKey.value = matches[0].packageKey;
+  void focusScanner();
+});
 
 const areAllItemsHaveQty = computed(() => {
   if (openItemsTemp.value.length) {
-    const isAllItemsReceived = openItems.value.every((item: any) => (item.quantityAccepted && Number(item.quantityAccepted) >= 0))
+    const isAllItemsReceived = visibleOpenItems.value.every((item: any) => (item.quantityAccepted && Number(item.quantityAccepted) >= 0))
     if (isAllItemsReceived) {
       displayToast();
     } else {
@@ -445,7 +520,15 @@ const getTOItems = (orderType: string) => {
   return items;
 };
 
-const getAllItems = computed(() => openItemsTemp.value.length ? openItems.value : filteredItems.value);
+const getAllItems = computed(() => (openItemsTemp.value.length ? openItems.value : filteredItems.value).filter((item: any) =>
+  inSelectedPackage(item) && (!selectedPackageKey.value || !['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId))));
+
+const receiptItems = computed(() => [...openItems.value, ...openItemsTemp.value].filter(inSelectedPackage));
+const bulkReceiptItems = computed(() => selectedSegment.value === 'all' ? getAllItems.value : visibleOpenItems.value);
+const canBulkReceive = computed(() => bulkReceiptItems.value.some((item: any) => remainingIssuedQuantity(item) > 0) &&
+  userStore.hasPermission(Actions.APP_SHIPMENT_UPDATE) && !isForceScanEnabled.value &&
+  !isReceiveFlowBusy.value && !order.value.cacheConflict && !order.value.needsReadback && order.value.ready &&
+  (!selectedPackageKey.value || order.value.shipmentsReady && !order.value.shipmentError));
 
 const displayToast = () => {
   isToastOpen.value = true;
@@ -460,7 +543,7 @@ const getItemQty = (item: any) => {
 };
 
 const getReceivedUnits = () => {
-  const items = [...openItems.value, ...openItemsTemp.value];
+  const items = receiptItems.value;
   const totalReceived = items.reduce((qty: any, item: any) => qty + (Number(item.quantityAccepted) || 0), 0);
   const totalUnits = items.reduce((qty: any, item: any) => qty + ((isReceivingByFulfillment.value ? item.totalIssuedQuantity : item.quantity) - item.totalReceivedQuantity || 0), 0);
   return `${totalReceived} / ${totalUnits >= 0 ? totalUnits : 0} units`;
@@ -524,7 +607,8 @@ const updateProductCount = async (payload: any) => {
   }
 
   if (openItemsTemp.value.length) {
-    const item = openItems.value.find((item: any) => commonUtil.getProductIdentificationValue(barcodeIdentifier.value, getProduct.value(item.productId)) === payload);
+    const matches = await transferOrderStore.matchingBarcodeItems(payload);
+    const item = openItems.value.find((item: any) => matches.includes(item));
 
     if (!item) {
       queryString.value = "";
@@ -533,16 +617,30 @@ const updateProductCount = async (payload: any) => {
     }
   }
 
-  const result = await transferOrderStore.updateProductCount(payload);
+  if (selectedPackageKey.value && !order.value.shipmentsReady) {
+    scanErrorText.value = translate('Shipment contents are still downloading.');
+    return;
+  }
+  const allowedItemKeys = selectedPackageKey.value ? visibleOpenItems.value.map((item: any) => item.itemKey) : undefined;
+  const result = await transferOrderStore.updateProductCount(payload, allowedItemKeys);
+  if (selectedPackageKey.value && !result.isProductFound && !result.identifiersUnavailable && !result.isAmbiguous) {
+    scanErrorText.value = translate('This item is not pending receipt in the selected box. Select another shipment and scan again.');
+    queryString.value = '';
+    return;
+  }
 
-  if (result.isCompleted) {
+  if (result.identifiersUnavailable) {
+    scanErrorText.value = translate('Product identifiers are still downloading. Wait for the download or refresh this transfer.');
+  } else if (result.isAmbiguous) {
+    scanErrorText.value = translate('This barcode matches multiple lines. Enter the quantity on the correct line.');
+  } else if (result.isCompleted) {
     commonUtil.showToast(translate("Product is already received:", { itemName: payload }));
   } else if (result.isProductFound) {
     commonUtil.showToast(translate("Scanned successfully.", { itemName: payload }));
     lastScannedId.value = payload;
 
-    const item = filteredItems.value.find((item: any) => commonUtil.getProductIdentificationValue(barcodeIdentifier.value, getProduct.value(item.productId)) === payload);
-    if (item.statusId === "ITEM_COMPLETED") {
+    const item = result.item;
+    if (item?.statusId === "ITEM_COMPLETED") {
       segmentChanged("received");
     } else {
       segmentChanged("open");
@@ -566,11 +664,8 @@ const updateProductCount = async (payload: any) => {
             componentProps: { selectedSKU: payload }
           });
 
-          modal.onDidDismiss().then((value: any) => {
-            if (value.data.product?.productId) {
-              openItems.value.push(value.data.product);
-              filteredItems.value.push(value.data.product);
-            }
+          modal.onDidDismiss().then(() => {
+            updateVisibleItems();
             product.clearSearchedProducts();
           });
 
@@ -586,15 +681,10 @@ const addProduct = async () => {
   const modal = await modalController.create({
     component: AddProductToTOModal
   });
-  modal.onDidDismiss().then((value: any) => {
+  modal.onDidDismiss().then(() => {
     product.clearSearchedProducts();
 
-    if (value.data.product?.productId) {
-      openItems.value.push(value.data.product);
-      filteredItems.value.push(value.data.product);
-    }
-
-    observeProductVisibility();
+    updateVisibleItems();
   });
   return modal.present();
 };
@@ -634,7 +724,7 @@ const receivingAlert = async () => {
 const confirmComplete = async () => {
   const alert = await alertController.create({
     header: translate("Close transfer order items"),
-    message: translate("All the TO items will be marked as completed"),
+    message: selectedPackageKey.value ? translate("Only the visible items will be received and completed. Hidden items will stay open.") : translate("All the TO items will be marked as completed"),
     buttons: [{
       text: translate("Cancel"),
       role: "cancel"
@@ -650,7 +740,7 @@ const confirmComplete = async () => {
 };
 
 const isAnyItemOverReceived = () => {
-  return [...openItems.value, ...openItemsTemp.value].some((item: any) => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) > getItemQty(item));
+  return receiptItems.value.some((item: any) => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) > getItemQty(item));
 };
 
 const confirmSaveProgress = async () => {
@@ -681,7 +771,7 @@ const confirmSaveProgress = async () => {
   const modal = await modalController.create({
     component: ReceiveTransferOrder,
     componentProps: {
-      items: filteredItems.value,
+      items: receiptItems.value,
       receivedUnitsFraction: getReceivedUnits()
     }
   });
@@ -704,23 +794,20 @@ const confirmReceiveAndClose = async () => {
     return false;
   }
 
-  const itemsReceived = [] as any;
   const itemsNotReceived = [] as any;
-  openItems.value.map((item: any) => {
+  receiptItems.value.forEach((item: any) => {
     if (!(item.quantityAccepted && item.quantityAccepted >= 0)) {
       itemsNotReceived.push(item);
-    } else {
-      itemsReceived.push(item);
     }
   });
   if (itemsNotReceived.length) {
-    openItemsTemp.value = itemsReceived;
+    openItemsTemp.value = [...openItems.value, ...openItemsTemp.value].filter((item: any) => !itemsNotReceived.includes(item));
     openItems.value = itemsNotReceived;
     document.querySelector("ion-segment")?.scrollIntoView();
     return false;
   }
 
-  const items = [...openItems.value, ...openItemsTemp.value];
+  const items = receiptItems.value;
   const isAnyItemUnderReceived = items.some((item: any) => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) != getItemQty(item));
   if (!isAnyItemOverReceived() && !isAnyItemUnderReceived) {
     return confirmComplete();
@@ -730,7 +817,7 @@ const confirmReceiveAndClose = async () => {
     component: ReceiveTransferOrder,
     componentProps: {
       closeTO: true,
-      items: filteredItems.value,
+      items: receiptItems.value,
       receivedUnitsFraction: getReceivedUnits()
     }
   });
@@ -761,11 +848,18 @@ const runReceiveWorkflow = (isClosingTO: boolean, confirm: () => Promise<boolean
 };
 
 const receiveTO = () => runReceiveWorkflow(false, confirmSaveProgress);
-const receiveAndCloseTO = () => runReceiveWorkflow(true, confirmReceiveAndClose);
+const receiveAndCloseTO = () => {
+  return runReceiveWorkflow(true, confirmReceiveAndClose);
+};
+
+const markAllAsReceived = () => {
+  if (!canBulkReceive.value) return;
+  markItemsAsReceived(bulkReceiptItems.value);
+};
 
 const receiveTransferOrder = async (isClosingTO = false) => {
   let eligibleItems: any = [];
-  const itemsToReceive = JSON.parse(JSON.stringify([...openItems.value, ...openItemsTemp.value]));
+  const itemsToReceive = JSON.parse(JSON.stringify(receiptItems.value));
   if (!isClosingTO) {
     itemsToReceive.forEach((item: any) => {
       const isItemFullyReceived = item.quantityAccepted >= 0 && ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) >= getItemQty(item);
@@ -795,20 +889,30 @@ const receiveTransferOrder = async (isClosingTO = false) => {
     }))
   };
 
+  return submitTransferReceipt(order.value.orderId, payload, selectedPackageKey.value ? {
+    baseline: transferOrderStore.baseline.filter(inSelectedPackage), preserveOtherDrafts: true,
+  } : undefined);
+};
+
+const submitTransferReceipt = async (orderId: string, payload: any, options?: { baseline: any[]; preserveOtherDrafts: boolean }) => {
   try {
-    const resp = await transferOrderStore.receiveTransferOrder(order.value.orderId, payload);
+    const resp = await transferOrderStore.receiveTransferOrder(orderId, payload, options);
     if (!commonUtil.hasError(resp)) {
-      commonUtil.showToast(translate("Transfer order received successfully", { orderId: order.value.orderId }));
+      productQoh.value = {};
+      attemptedQoh.clear(); pendingQoh.clear();
+      qohGeneration++;
+      commonUtil.showToast(translate("Transfer order received successfully", { orderId }));
+      if (!resp.refreshed) commonUtil.showToast(translate('Receipt saved. Refresh to load the latest quantities.'));
       return true;
     }
-  } catch (error) {
-    commonUtil.showToast(translate("Error in receiving transfer order", { orderId: order.value.orderId }));
+  } catch (error: any) {
+    commonUtil.showToast(error?.message || translate("Error in receiving transfer order", { orderId: order.value.orderId }));
   }
   return false;
 };
 
 const isEligibleForCreatingShipment = (isClosingTO = false) => {
-  return [...openItems.value, ...openItemsTemp.value]?.some((item: any) => !isClosingTO ? (item.quantityAccepted && Number(item.quantityAccepted) > 0) : (item.quantityAccepted && Number(item.quantityAccepted) >= 0));
+  return receiptItems.value.some((item: any) => !isClosingTO ? (item.quantityAccepted && Number(item.quantityAccepted) > 0) : (item.quantityAccepted && Number(item.quantityAccepted) >= 0));
 };
 
 const receiveAll = (item: any) => {
@@ -829,7 +933,7 @@ const observeProductVisibility = () => {
     entries.forEach((entry: any) => {
       if (entry.isIntersecting) {
         const productId = entry.target.getAttribute('data-product-id');
-        if (productId && (!productQoh.value[productId] && productQoh.value[productId] !== 0)) {
+        if (productId && !attemptedQoh.has(productId)) {
           fetchQuantityOnHand(productId);
         }
       }
@@ -850,7 +954,19 @@ const observeProductVisibility = () => {
 };
 
 const fetchQuantityOnHand = async (productId: any) => {
-  productQoh.value[productId] = await product.getInventoryAvailableByFacility(productId);
+  if (pendingQoh.has(productId)) return;
+  const generation = qohGeneration;
+  pendingQoh.add(productId);
+  attemptedQoh.add(productId);
+  try {
+    const value = await product.getInventoryAvailableByFacility(productId);
+    if (generation === qohGeneration) productQoh.value[productId] = value;
+  } finally { if (generation === qohGeneration) pendingQoh.delete(productId); }
+};
+
+const refreshLocalOrder = async () => {
+  try { await ensureReceivingOrder(order.value.orderId, true); }
+  catch { commonUtil.showToast(translate('Unable to refresh transfer data.')); }
 };
 
 const openTOReceivingInstructions = async () => {
@@ -864,40 +980,62 @@ const openTOReceivingInstructions = async () => {
   return modal.present();
 };
 
-onIonViewWillEnter(async () => {
-  emitter.emit('presentLoader', { backdropDismiss: false, message: translate("Fetching details...") });
-  transferOrderStore.clearTransferOrderDetail();
-
-  await transferOrderStore.fetchMisShippedItems({ orderId: router.currentRoute.value.params.slug });
-  await transferOrderStore.fetchTransferOrderDetail({ orderId: router.currentRoute.value.params.slug });
-  await transferOrderStore.fetchTOHistory({
-    payload: {
-      orderId: order.value.orderId,
-      orderByField: "-datetimeReceived"
-    }
-  });
-  if (isTOReceived()) {
-    showCompletedItems.value = true;
-  }
-
+const updateVisibleItems = () => {
   filteredItems.value = order.value.items ? [...order.value.items] : [];
   completedItems.value = filteredItems.value.filter((item: any) => item.statusId === 'ITEM_COMPLETED');
-  openItems.value = filteredItems.value.filter((item: any) => !['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId));
+  const parkedIds = new Set(openItemsTemp.value.map((item: any) => item.itemKey || item.productId));
+  const allOpen = filteredItems.value.filter((item: any) => !['ITEM_COMPLETED', 'ITEM_REJECTED', 'ITEM_CANCELLED'].includes(item.statusId));
+  openItemsTemp.value = allOpen.filter((item: any) => parkedIds.has(item.itemKey || item.productId));
+  openItems.value = allOpen.filter((item: any) => !parkedIds.has(item.itemKey || item.productId));
   fulfilledItems.value = filteredItems.value.filter((item: any) => item.totalIssuedQuantity)?.length;
+  showCompletedItems.value = isTOReceived();
+  if (detailActive.value) observeProductVisibility();
+};
+watch(() => order.value.items, updateVisibleItems);
 
-  observeProductVisibility();
-  emitter.emit('dismissLoader');
+const loadLocalDetail = async () => {
+  const generation = ++detailLoadGeneration;
+  productQoh.value = {};
+  pendingQoh.clear(); attemptedQoh.clear(); qohGeneration++;
+  openItemsTemp.value = [];
+  selectedPackageKey.value = '';
+  trackingSelectionApplied = false;
+  selectedSegment.value = 'open';
+  try {
+    await transferOrderStore.openLocalDetail(String(router.currentRoute.value.params.slug), (productStore.getCurrentFacility as any)?.facilityId);
+    if (generation === detailLoadGeneration) updateVisibleItems();
+  } catch {
+    if (generation === detailLoadGeneration) transferOrderStore.current.cacheError = 'Unable to load transfer details. Refresh to retry.';
+  }
+};
+watch(receivingDb, db => {
+  if (!detailActive.value) return;
+  if (db) void loadLocalDetail();
+  else { detailLoadGeneration++; transferOrderStore.clearTransferOrderDetail(); }
+});
+
+onIonViewWillEnter(async () => {
+  detailActive.value = true;
+  await loadLocalDetail();
 });
 
 onIonViewDidLeave(() => {
+  detailLoadGeneration++;
+  detailActive.value = false;
+  transferOrderStore.closeLocalDetail();
   productQoh.value = {};
-  if (observer.value) {
-    observer.value.disconnect();
-  }
+  qohGeneration++;
+  pendingQoh.clear(); attemptedQoh.clear();
+  observer.value?.disconnect();
 });
 </script>
 
 <style scoped>
+.shipment-filters {
+  display: flex;
+  flex-wrap: wrap;
+}
+
 .doc-meta {
   flex-basis: 60%;
 }

@@ -10,6 +10,8 @@ import { useReturnStore } from "@/store/return";
 import { useTransferOrderStore } from "@/store/transferorder";
 import { useUtilStore } from "@/store/util";
 import { firebaseUtil } from "@/utils/firebaseUtil";
+import { clearReceivingSession } from '@/db/receivingClient';
+import { beginReceivingLogin, finishReceivingLogin } from '@/db/receivingSession';
 
 interface UserState {
   permissions: any[]
@@ -190,6 +192,7 @@ export const useUserStore = defineStore("user", {
       }
     },
     async postLogin() {
+      beginReceivingLogin();
       try {
         const productStore = useProductStore();
         await this.fetchUserProfile()
@@ -216,11 +219,13 @@ export const useUserStore = defineStore("user", {
             commonUtil.showToast(translate("Redirecting to home page due to incorrect information being passed."))
           }
         }
+        finishReceivingLogin();
       } catch (error: any) {
         return Promise.reject(error);
       }
     },
     async preLogout() {
+      await clearReceivingSession();
       try {
         const notificationStore = useNotificationStore();
         if (notificationStore.getFirebaseDeviceId) await notificationStore.removeClientRegistrationToken(notificationStore.getFirebaseDeviceId, import.meta.env.VITE_NOTIF_APP_ID as any);
@@ -236,6 +241,7 @@ export const useUserStore = defineStore("user", {
       }
     },
     async postLogout() {
+      useTransferOrderStore().closeLocalDetail();
       useNotificationStore().clearNotificationState();
       useOrderStore().$reset();
       usePartyStore().$reset();

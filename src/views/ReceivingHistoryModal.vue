@@ -10,6 +10,9 @@
     </ion-toolbar>
   </ion-header>
   <ion-content data-testid="receiving-history-modal-content">
+    <ion-item v-if="orderType === 'transferOrder' && (!toHistory?.ready || toHistory?.error)" lines="none">
+      <ion-label>{{ toHistory?.error || translate('Loading receiving history…') }}</ion-label>
+    </ion-item>
     <ion-list v-for="(item, index) in items" :key="index" :data-testid="`receiving-history-modal-list-${item.orderItemSeqId || item.productId || item.shipmentId || item.datetimeReceived || 'entry'}`">
       <ion-item :data-testid="`receiving-history-modal-row-${item.orderItemSeqId || item.productId || item.shipmentId || item.datetimeReceived || 'entry'}`">
         <ion-thumbnail slot="start">
@@ -29,7 +32,7 @@
     </ion-list>
 
     <!-- Empty state -->
-    <div data-testid="receiving-history-modal-empty-state" class="empty-state" v-if="!items.length">
+    <div data-testid="receiving-history-modal-empty-state" class="empty-state" v-if="!items.length && (orderType !== 'transferOrder' || toHistory?.ready)">
       <img src="../assets/images/empty-state-history-modal.png" alt="empty state">
       <p v-html="emptyStateMessage"></p>
     </div>
@@ -38,7 +41,7 @@
 
 <script setup lang="ts">
 import { IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonItem, IonLabel, IonList, IonNote, IonThumbnail, IonTitle, IonToolbar, modalController } from '@ionic/vue';
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import { closeOutline } from 'ionicons/icons';
 import { DxpShopifyImg, translate, commonUtil } from '@common';
 import { useProductStore as useProduct } from '@/store/product';
@@ -61,6 +64,13 @@ const orderStore = useOrderStore();
 const transferOrderStore = useTransferOrderStore();
 const product = useProduct();
 const productStore = useProductStore();
+
+onMounted(() => {
+  if (props.orderType === 'transferOrder' && transferOrderStore.current.orderId) {
+    // Keep cached receipts visible while the worker checks their freshness.
+    void transferOrderStore.fetchTOHistory({ payload: { orderId: transferOrderStore.current.orderId } }).catch(() => undefined);
+  }
+});
 
 const poHistory = computed(() => orderStore.getPOHistory);
 const toHistory = computed(() => transferOrderStore.getTOHistory);

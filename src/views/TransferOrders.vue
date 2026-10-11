@@ -11,7 +11,7 @@
         </ion-buttons> -->
       </ion-toolbar>
       <div>
-        <ion-searchbar data-testid="transfer-orders-page-search-input" :placeholder="translate('Search transfer orders')" v-model="queryString" @keyup.enter="queryString = $event.target.value; getTransferOrders()" />
+        <ion-searchbar data-testid="transfer-orders-page-search-input" :placeholder="translate('Search orders, products or tracking codes')" v-model="queryString" @keyup.enter="submitSearch" />
 
         <ion-segment data-testid="transfer-orders-page-segment" v-model="selectedSegment" @ionChange="segmentChanged()">
           <ion-segment-button data-testid="transfer-orders-page-open-tab" value="open">
@@ -25,7 +25,10 @@
     </ion-header>
     <ion-content data-testid="transfer-orders-page-content">
       <main>
-        <TransferOrderItem v-for="(order, index) in orders.list" :key="index" :transferOrder="order" />
+        <ion-item v-if="selectedSegment === 'open' && localSyncMessage" lines="none">
+          <ion-label>{{ localSyncMessage }}</ion-label>
+        </ion-item>
+        <TransferOrderItem v-for="order in visibleOrders" :key="order.orderId" :transferOrder="order" />
         <div data-testid="transfer-orders-page-load-more-section" v-if="orders.list.length < orders.total" class="load-more-action ion-text-center">
           <ion-button data-testid="transfer-orders-page-load-more-btn" fill="outline" color="dark" @click="loadMoreOrders()">
             <ion-icon :icon="cloudDownloadOutline" slot="start" />
@@ -34,10 +37,10 @@
         </div>
 
         <!-- Empty state -->
-        <div data-testid="transfer-orders-page-empty-state" class="empty-state" v-if="!orders.total && !fetchingOrders">
-          <p v-if="showErrorMessage">{{ translate("No results found")}}</p>
+        <div data-testid="transfer-orders-page-empty-state" class="empty-state" v-if="!orders.total && !fetchingOrders && (selectedSegment !== 'open' || receivingList.sync?.complete)">
+          <p v-if="queryString.trim() || showErrorMessage">{{ translate("No results found")}}</p>
           <img src="../assets/images/empty-state.png" alt="empty state">
-          <p>{{ translate("There are no transfer orders to receive")}}</p>
+          <p v-if="!queryString.trim()">{{ translate("There are no transfer orders to receive")}}</p>
           <ion-button data-testid="transfer-orders-page-refresh-btn" fill="outline" color="dark" @click="refreshTransferOrders()">
             <ion-icon :icon="reload" slot="start" />
             {{ translate("Refresh") }}
@@ -59,9 +62,10 @@
 </template>
 
 <script setup lang="ts">
-import { IonButton, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonLabel, IonMenuButton, IonPage, IonRefresher, IonRefresherContent, IonSearchbar, IonSegment, IonSegmentButton, IonTitle, IonToolbar, onIonViewWillEnter } from '@ionic/vue';
+import { IonButton, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonItem, IonLabel, IonMenuButton, IonPage, IonRefresher, IonRefresherContent, IonSearchbar, IonSegment, IonSegmentButton, IonTitle, IonToolbar, onIonViewWillEnter } from '@ionic/vue';
 import { addOutline, cloudDownloadOutline, reload } from 'ionicons/icons'
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
+import { receivingList, receivingError, searchReceiving, refreshReceiving, resolveReceivingTracking } from '@/db/receivingClient';
 import router from '@/router';
 import { useTransferOrderStore } from '@/store/transferorder';
 import { useUserStore } from '@/store/user';
@@ -79,10 +83,45 @@ const fetchingOrders = ref(false);
 const showErrorMessage = ref(false);
 const selectedSegment = ref("open");
 
-const orders = computed(() => transferOrderStore.getTransferOrders);
+const localLimit = ref(Number(import.meta.env.VITE_VIEW_SIZE) || 20);
+const orders = computed(() => selectedSegment.value === 'open' ? receivingList.value : transferOrderStore.getTransferOrders);
+// The archive API can repeat an order for different origins. Keep raw rows for
+// pagination, but render one keyed row per order.
+const visibleOrders = computed(() => [...new Map<string, any>(orders.value.list.map((order: any) => [order.orderId, order] as const)).values()]);
+const localSyncMessage = computed(() => {
+  const sync = receivingList.value.sync;
+  return receivingError.value || sync?.error || (!sync ? 'Loading saved transfers…' : sync.downloading
+    ? `Downloading transfers (${sync.readyOrders} of ${sync.totalOrders})…` : sync.syncing ? 'Refreshing transfers…' : '');
+});
 const currentFacility: any = computed(() => productStore.getCurrentFacility);
+let openingTracking = false;
+const submitSearch = async () => {
+  if (selectedSegment.value === 'completed') return getTransferOrders();
+  if (openingTracking) return;
+  const query = queryString.value.trim(), facilityId = currentFacility.value?.facilityId;
+  if (!query) return;
+  openingTracking = true;
+  try {
+    const matches = await resolveReceivingTracking(query);
+    if (matches.length === 1 && queryString.value.trim() === query &&
+        currentFacility.value?.facilityId === facilityId && selectedSegment.value === 'open') {
+      await router.push({ path: `/transfer-order-detail/${matches[0]!.orderId}`, query: { tracking: query } });
+    }
+  } catch { commonUtil.showToast(translate('Unable to look up this tracking code. Refresh to retry.')); }
+  finally { openingTracking = false; }
+};
+watch([queryString, selectedSegment], ([query, segment], [previousQuery]) => {
+  localLimit.value = Number(import.meta.env.VITE_VIEW_SIZE) || 20;
+  if (!query.trim()) showErrorMessage.value = false;
+  if (segment === 'open') void searchReceiving(query, localLimit.value).catch(() => undefined);
+  else if (!query.trim() && previousQuery.trim()) void getTransferOrders();
+});
 
 const getTransferOrders = async (vSize?: any, vIndex?: any) => {
+  if (selectedSegment.value === 'open') {
+    await searchReceiving(queryString.value, localLimit.value);
+    return;
+  }
   queryString.value ? showErrorMessage.value = true : showErrorMessage.value = false;
   fetchingOrders.value = true;
   const limit = vSize ? vSize : import.meta.env.VITE_VIEW_SIZE;
@@ -102,7 +141,6 @@ const getTransferOrders = async (vSize?: any, vIndex?: any) => {
     statusFlowId: ["TO_Fulfill_And_Receive", "TO_Receive_Only"],
     limit,
     pageIndex,
-    orderName: queryString.value?.trim() || undefined,
     keyword: queryString.value?.trim() || undefined,
     fieldsToSelect: "orderId,orderName,orderExternalId,orderStatusId,orderStatusDesc,facilityId,orderFacilityId,orderDate"
   };
@@ -114,15 +152,21 @@ const getTransferOrders = async (vSize?: any, vIndex?: any) => {
 };
 
 const loadMoreOrders = async () => {
+  if (selectedSegment.value === 'open') {
+    localLimit.value += Number(import.meta.env.VITE_VIEW_SIZE) || 20;
+    await searchReceiving(queryString.value, localLimit.value);
+    return;
+  }
   const limit = import.meta.env.VITE_VIEW_SIZE;
   const pageIndex = Math.ceil(orders.value.list.length / limit);
   await getTransferOrders(limit, pageIndex);
 };
 
 const refreshTransferOrders = async (event?: any) => {
-  getTransferOrders().then(() => {
-    if (event) event.target.complete();
-  })
+  try {
+    if (selectedSegment.value === 'open') await refreshReceiving();
+    else await getTransferOrders();
+  } finally { event?.target.complete(); }
 };
 
 const segmentChanged = () => {
