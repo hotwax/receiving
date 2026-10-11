@@ -8,7 +8,7 @@
           <ion-button data-testid="transfer-order-detail-page-history-btn" :disabled="openingDetail || !order.ready" @click="receivingHistory()">
             <ion-icon slot="icon-only" :icon="timeOutline"/>
           </ion-button>
-          <ion-button data-testid="transfer-order-detail-page-add-product-btn" :disabled="openingDetail || !order.ready || !userStore.hasPermission(Actions.APP_SHIPMENT_UPDATE) || isTOReceived()" @click="addProduct">
+          <ion-button data-testid="transfer-order-detail-page-add-product-btn" :aria-label="translate('Add product')" :disabled="openingDetail || !order.ready || !userStore.hasPermission(Actions.APP_SHIPMENT_UPDATE) || isTOReceived()" @click="addProduct">
             <ion-icon slot="icon-only" :icon="addOutline"/>
           </ion-button>
         </ion-buttons>
