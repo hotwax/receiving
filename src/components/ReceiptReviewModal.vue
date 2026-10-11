@@ -32,7 +32,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonContent, IonList, IonItem, IonLabel, IonNote, IonCheckbox, IonFooter, modalController } from '@ionic/vue';
-import { translate } from '@common';
+import { translate } from '@common/core/i18n';
 import { DateTime } from 'luxon';
 import type { ReceiptOperation } from '@/db/receiptOperations';
 

@@ -54,7 +54,8 @@ import { IonButton, IonContent, IonHeader, IonIcon, IonLabel, IonMenuButton, Ion
 import { cloudDownloadOutline, reload } from 'ionicons/icons'
 import { computed, onMounted, ref } from 'vue'
 import ReturnListItem from '@/components/ReturnListItem.vue'
-import { translate } from "@common"
+import { translate } from '@common/core/i18n';
+import { showToast } from '@common/utils/core';
 import { useProductStore } from '@/store/productStore';
 import { useReturnStore } from '@/store/return';
 import router from '@/router';
@@ -74,12 +75,19 @@ const currentFacility = computed(() => productStore.getCurrentFacility);
 const getReturns = async (vSize?: any, vIndex?: any) => {
   queryString.value ? (showErrorMessage.value = true) : (showErrorMessage.value = false);
   fetchingReturns.value = true;
+  await returnStore.fetchValidReturnStatuses();
+  if (selectedSegment.value === "open" && !returnStore.getReceivableStatusIds.length) {
+    returnStore.clearReturns();
+    fetchingReturns.value = false;
+    showToast(translate("Something went wrong"));
+    return;
+  }
   const viewSize = vSize ? vSize : import.meta.env.VITE_VIEW_SIZE;
   const viewIndex = vIndex ? vIndex : 0;
   const payload = {
     destinationFacilityId: (currentFacility.value as any)?.facilityId,
-    statusId: "PURCH_SHIP_RECEIVED",
-    statusId_not: selectedSegment.value === "open" ? "Y" : "N",
+    statusId: selectedSegment.value === "open" ? returnStore.getReceivableStatusIds.join(",") : "PURCH_SHIP_RECEIVED",
+    statusId_op: selectedSegment.value === "open" ? "in" : "equals",
     fieldsToSelect: "shipmentId,externalId,statusId,shopifyOrderName,hcOrderId,trackingCode,destinationFacilityId",
     pageSize: viewSize,
     pageIndex: viewIndex,

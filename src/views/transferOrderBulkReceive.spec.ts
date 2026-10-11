@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { markItemsAsReceived, remainingIssuedQuantity } from './transferOrderBulkReceive';
+import { markItemsAsReceived, remainingIssuedQuantity, scanAllQuantity } from './transferOrderBulkReceive';
 
 const line = (orderItemSeqId: string, extra = {}) => ({
   orderItemSeqId, productId: `P${orderItemSeqId}`, statusId: 'ITEM_PENDING_RECEIPT',
@@ -47,5 +47,40 @@ describe('Marking visible transfer lines as received', () => {
     markItemsAsReceived([item]);
     markItemsAsReceived([item]);
     expect(item.quantityAccepted).toBe(5);
+  });
+
+  it('fills the selected two-unit box instead of the ten-unit remaining order balance', () => {
+    const item = line('01', { totalIssuedQuantity: 12, totalReceivedQuantity: 2, quantityAccepted: 10 });
+    const fillBox = () => markItemsAsReceived([item], row => scanAllQuantity(row, { packageQuantity: 2 }));
+    fillBox();
+    fillBox();
+    expect(item.quantityAccepted).toBe(2);
+    expect(item.totalReceivedQuantity).toBe(2);
+  });
+
+  it('caps box contents by the remaining issued balance without allocating earlier receipts to a box', () => {
+    const item = line('01', { totalIssuedQuantity: 12, totalReceivedQuantity: 11 });
+    expect(scanAllQuantity(item, { packageQuantity: 2 })).toBe(1);
+    expect(scanAllQuantity({ ...item, totalReceivedQuantity: 12 }, { packageQuantity: 2 })).toBe(0);
+  });
+
+  it('applies each visible line allocation and leaves a hidden draft untouched', () => {
+    const items = [line('01'), line('02', { quantityAccepted: 4 }), line('03')];
+    const quantities = new Map([['01', 2], ['03', 3]]);
+    markItemsAsReceived([items[0], items[2]], item => scanAllQuantity(item, { packageQuantity: quantities.get(item.orderItemSeqId!) ?? 0 }));
+    expect(items.map(item => item.quantityAccepted)).toEqual([2, 4, 3]);
+  });
+
+  it('does not suggest quantities for missing or invalid box contents or closed lines', () => {
+    for (const packageQuantity of [0, -1, NaN, Infinity]) {
+      expect(scanAllQuantity(line('01'), { packageQuantity })).toBe(0);
+    }
+    expect(scanAllQuantity(line('01', { statusId: 'ITEM_COMPLETED' }), { packageQuantity: 2 })).toBe(0);
+  });
+
+  it('preserves unfiltered ordered-quantity receiving while boxes stay bounded by issued quantity', () => {
+    const item = line('01');
+    expect(scanAllQuantity(item, { issuedOnly: false })).toBe(17);
+    expect(scanAllQuantity(item, { issuedOnly: false, packageQuantity: 10 })).toBe(5);
   });
 });

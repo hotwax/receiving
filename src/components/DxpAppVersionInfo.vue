@@ -14,7 +14,7 @@
 <script setup lang="ts">
 import { IonButton } from '@ionic/vue';
 import { DateTime } from 'luxon';
-import { translate } from '@common';
+import { translate } from '@common/core/i18n';
 import { computed } from 'vue';
 import { useUserStore } from '@/store/user';
 

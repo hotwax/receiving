@@ -1,5 +1,10 @@
+import { getProductIdentificationValue as utilGetProductIdentificationValue } from '@common/utils/product';
+import { hasError as utilHasError, showToast as utilShowToast } from '@common/utils/core';
 import { defineStore } from "pinia";
-import { api, commonUtil, emitter, translate, useSolrSearch } from "@common";
+import { default as api } from '@common/core/remoteApi';
+import { default as emitter } from '@common/core/emitter';
+import { translate } from '@common/core/i18n';
+import { useSolrSearch } from '@common/composables/useSolrSearch';
 import { useProductStore as useProduct } from "@/store/product";
 import { useProductStore } from "@/store/productStore";
 import { usePartyStore } from "@/store/party";
@@ -59,12 +64,12 @@ export const useOrderStore = defineStore("order", {
           };
         } else {
           start
-            ? commonUtil.showToast(translate("Purchase orders not found"))
+            ? utilShowToast(translate("Purchase orders not found"))
             : (this.purchaseOrders = { list: [], total: 0 });
         }
       } catch (error) {
         console.error(error);
-        commonUtil.showToast(translate("Something went wrong"));
+        utilShowToast(translate("Something went wrong"));
       }
       if (start == 0) emitter.emit("dismissLoader");
       return resp;
@@ -78,7 +83,7 @@ export const useOrderStore = defineStore("order", {
 
       const item = this.current.items.find((item: any) => {
         const itemVal = barcodeIdentifier
-          ? commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))
+          ? utilGetProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))
           : item.internalName;
         return itemVal === payload;
       });
@@ -111,7 +116,7 @@ export const useOrderStore = defineStore("order", {
           method: "GET"
         })
 
-        if (resp.status === 200 && !commonUtil.hasError(resp) && resp.data?.order) {
+        if (resp.status === 200 && !utilHasError(resp) && resp.data?.order) {
           const order = resp.data.order
           order.items.forEach((product: any) => {
             product.quantityAccepted = 0;
@@ -127,7 +132,7 @@ export const useOrderStore = defineStore("order", {
             poHistory: { items: [] },
           };
         } else {
-          commonUtil.showToast(translate("Something went wrong"));
+          utilShowToast(translate("Something went wrong"));
           this.current = {
             orderId,
             externalOrderId: "",
@@ -138,7 +143,7 @@ export const useOrderStore = defineStore("order", {
           };
         }
       } catch (error) {
-        commonUtil.showToast(translate("Something went wrong"));
+        utilShowToast(translate("Something went wrong"));
         this.current = {
           orderId,
           externalOrderId: "",
@@ -172,7 +177,7 @@ export const useOrderStore = defineStore("order", {
         }
       } catch (error) {
         console.error(error);
-        commonUtil.showToast(translate("Something went wrong"));
+        utilShowToast(translate("Something went wrong"));
         return Promise.reject(error);
       }
     },
@@ -199,7 +204,7 @@ export const useOrderStore = defineStore("order", {
               orderByField: "datetimeReceived DESC"
             },
           });
-          if (resp.status === 200 && !commonUtil.hasError(resp) && resp.data.length > 0) {
+          if (resp.status === 200 && !utilHasError(resp) && resp.data.length > 0) {
             currentPOHistory = [...currentPOHistory, ...resp.data];
           }
           pageIndex++;

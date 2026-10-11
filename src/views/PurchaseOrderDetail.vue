@@ -24,7 +24,7 @@
           </ion-label>
 
           <div class="doc-meta">
-            <ion-chip data-testid="purchase-order-detail-page-order-id-chip" @click="commonUtil.copyToClipboard(order.orderId, 'Internal ID saved to clipboard')">{{ order.orderId }}<ion-icon :icon="copyOutline"/></ion-chip>
+            <ion-chip data-testid="purchase-order-detail-page-order-id-chip" @click="utilCopyToClipboard(order.orderId, 'Internal ID saved to clipboard')">{{ order.orderId }}<ion-icon :icon="copyOutline"/></ion-chip>
             <ion-badge :color="order.orderStatusId === 'ORDER_CREATED' ? 'medium' : 'primary'">{{ order.orderStatusDesc }}</ion-badge>
           </div>
         </div>
@@ -49,7 +49,7 @@
         </ion-item>
 
         <template v-if="!isPOReceived()">
-          <ion-card :data-testid="`purchase-order-detail-page-pending-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in pendingItems" v-show="item.statusId !== 'ITEM_COMPLETED' && item.statusId !== 'ITEM_REJECTED'" :key="index" :class="commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+          <ion-card :data-testid="`purchase-order-detail-page-pending-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in pendingItems" v-show="item.statusId !== 'ITEM_COMPLETED' && item.statusId !== 'ITEM_REJECTED'" :key="index" :class="utilGetProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="utilGetProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
             <div  class="product">
               <div class="product-info">
                 <ion-item lines="none">
@@ -57,9 +57,9 @@
                     <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
                   </ion-thumbnail>
                   <ion-label class="ion-text-wrap">
-                    <h2>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
-                    <p>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
-                    <p>{{ commonUtil.getFeatures(getProduct(item.productId).productFeatures) }}</p>
+                    <h2>{{ utilGetProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? utilGetProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
+                    <p>{{ utilGetProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                    <p>{{ utilGetFeatures(getProduct(item.productId).productFeatures) }}</p>
                   </ion-label>
                 </ion-item>
               </div>
@@ -113,7 +113,7 @@
           </ion-button>
         </ion-item>
         
-        <ion-card :data-testid="`purchase-order-detail-page-completed-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in completedItems" v-show="showCompletedItems && item.statusId === 'ITEM_COMPLETED'" :key="index" :class="commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="commonUtil.getProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
+        <ion-card :data-testid="`purchase-order-detail-page-completed-item-card-${item.orderItemSeqId || item.productId}`" v-for="(item, index) in completedItems" v-show="showCompletedItems && item.statusId === 'ITEM_COMPLETED'" :key="index" :class="utilGetProductIdentificationValue(barcodeIdentifier, getProduct(item.productId)) === lastScannedId ? 'scanned-item' : '' " :id="utilGetProductIdentificationValue(barcodeIdentifier, getProduct(item.productId))">
           <div class="product">
             <div class="product-info">
               <ion-item lines="none">
@@ -121,9 +121,9 @@
                   <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
                 </ion-thumbnail>
                 <ion-label class="ion-text-wrap">
-                  <h2>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
-                  <p>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
-                  <p>{{ commonUtil.getFeatures(getProduct(item.productId).productFeatures) }}</p>
+                  <h2>{{ utilGetProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? utilGetProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
+                  <p>{{ utilGetProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+                  <p>{{ utilGetFeatures(getProduct(item.productId).productFeatures) }}</p>
                 </ion-label>
               </ion-item>
             </div>
@@ -158,11 +158,16 @@
 </template>
 
 <script setup lang="ts">
+import { copyToClipboard as utilCopyToClipboard, hasWebcamAccess as utilHasWebcamAccess, showToast as utilShowToast } from '@common/utils/core';
+import { getFeatures as utilGetFeatures, getProductIdentificationValue as utilGetProductIdentificationValue } from '@common/utils/product';
 import { IonBackButton, IonBadge, IonButton, IonButtons, IonCard, IonChip, IonContent, IonHeader, IonFooter, IonIcon, IonItem, IonInput, IonLabel, IonPage, IonProgressBar, IonText, IonThumbnail, IonTitle, IonToolbar, alertController, modalController, onIonViewWillEnter } from '@ionic/vue';
 import { computed, ref } from 'vue';
 import { addOutline, cameraOutline, checkmarkDone, checkmarkDoneCircleOutline, copyOutline, eyeOffOutline, eyeOutline, locationOutline, saveOutline, timeOutline, warningOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
-import { DxpShopifyImg, translate, commonUtil, useEmbeddedAppStore, useShopify } from '@common';
+import { default as DxpShopifyImg } from '@common/components/DxpShopifyImg.vue';
+import { translate } from '@common/core/i18n';
+import { useEmbeddedAppStore } from '@common/store/embeddedApp';
+import { useShopify } from '@common/composables/useShopify';
 import Scanner from "@/components/Scanner.vue"
 import AddProductToPOModal from '@/views/AddProductToPOModal.vue'
 import ClosePurchaseOrderModal from '@/components/ClosePurchaseOrderModal.vue'
@@ -222,8 +227,8 @@ const scan = async () => {
       console.error("POS Scanner error:", err);
     }
   } else {
-  if (!(await commonUtil.hasWebcamAccess())) {
-    commonUtil.showToast(translate("Camera access not allowed, please check permissions."));
+  if (!(await utilHasWebcamAccess())) {
+    utilShowToast(translate("Camera access not allowed, please check permissions."));
     return;
   }
   const modal = await modalController.create({
@@ -242,15 +247,15 @@ const updateProductCount = async (payload?: any) => {
   if (queryString.value) payload = queryString.value
 
   if (!payload) {
-    commonUtil.showToast(translate("Please provide a valid barcode identifier."))
+    utilShowToast(translate("Please provide a valid barcode identifier."))
     return;
   }
   const result = await orderStore.updateProductCount(payload)
 
   if (result.isCompleted) {
-    commonUtil.showToast(translate("Product is already received:", { itemName: payload }))
+    utilShowToast(translate("Product is already received:", { itemName: payload }))
   } else if (result.isProductFound) {
-    commonUtil.showToast(translate("Scanned successfully.", { itemName: payload }))
+    utilShowToast(translate("Scanned successfully.", { itemName: payload }))
     lastScannedId.value = payload
     const scannedElement = document.getElementById(payload);
     scannedElement && (scannedElement.scrollIntoView());
@@ -258,7 +263,7 @@ const updateProductCount = async (payload?: any) => {
       lastScannedId.value = ''
     }, 3000)
   } else {
-    commonUtil.showToast(translate("Scanned item is not present within the shipment:", { itemName: payload }), {
+    utilShowToast(translate("Scanned item is not present within the shipment:", { itemName: payload }), {
       buttons: [{
         text: translate('Add'),
         handler: async () => {
@@ -279,7 +284,7 @@ const updateProductCount = async (payload?: any) => {
 
 const searchProduct = () => {
   if (!queryString.value) {
-    commonUtil.showToast(translate("Please provide a valid barcode identifier."))
+    utilShowToast(translate("Please provide a valid barcode identifier."))
     return;
   }
   const scannedElement = document.getElementById(queryString.value);
@@ -290,7 +295,7 @@ const searchProduct = () => {
       lastScannedId.value = ''
     }, 3000)
   } else {
-    commonUtil.showToast(translate("Searched item is not present within the shipment:", { itemName: queryString.value }));
+    utilShowToast(translate("Searched item is not present within the shipment:", { itemName: queryString.value }));
   }
   queryString.value = ''
 };
@@ -300,8 +305,8 @@ const sortItems = (items: any[]) => {
     const productA = getProduct.value(a.productId);
     const productB = getProduct.value(b.productId);
     // primary identifier can not be null
-    const primaryIdA = commonUtil.getProductIdentificationValue(productIdentificationPref.value.primaryId, productA) || productA.productName || '';
-    const primaryIdB = commonUtil.getProductIdentificationValue(productIdentificationPref.value.primaryId, productB) || productB.productName || '';
+    const primaryIdA = utilGetProductIdentificationValue(productIdentificationPref.value.primaryId, productA) || productA.productName || '';
+    const primaryIdB = utilGetProductIdentificationValue(productIdentificationPref.value.primaryId, productB) || productB.productName || '';
 
     if (primaryIdA === primaryIdB) {
       const positionA = productA.position ? parseInt(productA.position) : 0;
@@ -373,7 +378,7 @@ const createShipment = async () => {
   const eligibleItems = order.value.items.filter((item: any) => item.quantityAccepted > 0)
   const isShipmentReceived = await orderStore.createAndReceiveIncomingShipment({ items: eligibleItems, orderId: order.value.orderId })
   if (isShipmentReceived) {
-    commonUtil.showToast(translate("Purchase order received successfully", { orderId: order.value.orderId }))
+    utilShowToast(translate("Purchase order received successfully", { orderId: order.value.orderId }))
     router.push('/purchase-orders')
   } else {
     orderStore.getOrderDetail({ orderId: route.params.slug as string }).then(() => {

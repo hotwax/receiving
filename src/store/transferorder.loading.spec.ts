@@ -1,8 +1,9 @@
 // Rendering/lifecycle ordering only; real OMS loading is checked separately in browser QA.
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createPinia, setActivePinia } from 'pinia';
-
-vi.mock('@common', () => ({ api: vi.fn(), commonUtil: { hasError: (response: any) => !!response.data.errors, showToast: vi.fn() }, translate: (text: string) => text }));
+vi.mock('@common/core/remoteApi', () => ({ default: vi.fn() }));
+vi.mock('@common/utils/core', () => ({ hasError: (response: any) => !!response.data.errors, showToast: vi.fn() }));
+vi.mock('@common/core/i18n', () => ({ translate: (text: string) => text }));
 vi.mock('@/store/user', () => ({ useUserStore: vi.fn() }));
 vi.mock('@/store/productStore', () => ({ useProductStore: vi.fn() }));
 vi.mock('@/store/product', () => ({ useProductStore: () => ({ cached: {} }) }));
@@ -13,7 +14,7 @@ vi.mock('@/db/receivingClient', () => ({
 }));
 vi.mock('@/db/receivingQueries', () => ({ readDetail: vi.fn(), readHistory: vi.fn() }));
 
-import { api } from '@common';
+import { default as api } from '@common/core/remoteApi';
 import { ensureReceivingOrder, loadReceivingTracking } from '@/db/receivingClient';
 import { readDetail } from '@/db/receivingQueries';
 import { useTransferOrderStore } from './transferorder';

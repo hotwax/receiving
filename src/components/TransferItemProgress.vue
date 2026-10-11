@@ -17,7 +17,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { IonNote, IonProgressBar } from '@ionic/vue';
-import { translate } from '@common';
+import { translate } from '@common/core/i18n';
 import { boxBoundaries } from '@/db/receivingShipments';
 const props = defineProps<{
   item: Record<string, any>;

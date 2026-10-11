@@ -69,18 +69,20 @@
 </template>
 
 <script setup lang="ts">
+import { showToast as utilShowToast } from '@common/utils/core';
 import { IonButton, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonItem, IonLabel, IonMenuButton, IonPage, IonProgressBar, IonRefresher, IonRefresherContent, IonSearchbar, IonSegment, IonSegmentButton, IonTitle, IonToolbar, onIonViewWillEnter } from '@ionic/vue';
-import { addOutline, cloudDownloadOutline, reload } from 'ionicons/icons'
+import { addOutline, cloudDownloadOutline, reload } from 'ionicons/icons';
 import { ref, computed, watch } from 'vue';
 import { receivingList, receivingError, searchReceiving, refreshReceiving, resolveReceivingTracking } from '@/db/receivingClient';
-import router from '@/router';
+import { useRouter } from 'vue-router';
 import { useTransferOrderStore } from '@/store/transferorder';
 import { useUserStore } from '@/store/user';
 import TransferOrderItem from '@/components/TransferOrderItem.vue'
-import { translate, commonUtil } from "@common"
+import { translate } from '@common/core/i18n';
 import { useProductStore } from '@/store/productStore';
 import Actions from "@/authorization/actions"
 
+const router = useRouter();
 const transferOrderStore = useTransferOrderStore();
 const productStore = useProductStore();
 const userStore = useUserStore();
@@ -118,7 +120,7 @@ const submitSearch = async () => {
         currentFacility.value?.facilityId === facilityId && selectedSegment.value === 'open') {
       await router.push({ path: `/transfer-order-detail/${matches[0]!.orderId}`, query: { tracking: query } });
     }
-  } catch { commonUtil.showToast(translate('Unable to look up this tracking code. Refresh to retry.')); }
+  } catch { utilShowToast(translate('Unable to look up this tracking code. Refresh to retry.')); }
   finally { openingTracking = false; }
 };
 watch([queryString, selectedSegment], ([query, segment], [previousQuery]) => {
