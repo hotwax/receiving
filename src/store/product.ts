@@ -22,20 +22,32 @@ export const useProductStore = defineStore("product", {
       const viewSize = productIdFilter.length;
       if (!viewSize) return;
 
-      const resp = await useSolrSearch().searchProducts({
-        filters: {
-          productId: {
-            value: productIdFilter,
-            op: "OR",
+      let viewIndex = 0;
+      let resp;
+      do {
+        resp = await useSolrSearch().searchProducts({
+          filters: {
+            productId: {
+              value: productIdFilter,
+              op: "OR",
+            },
+            // Transfers can contain standalone products as well as variants.
+            isVariant: {
+              value: [true, false],
+              op: "OR",
+            },
           },
-        },
-        viewSize,
-      });
-      if (resp.total) {
-        resp.products.forEach((product: any) => {
-          this.cached[product.productId] = product;
+          viewSize,
+          viewIndex,
         });
-      }
+        if (resp.total) {
+          resp.products.forEach((product: any) => {
+            this.cached[product.productId] = product;
+          });
+        }
+        viewIndex++;
+        // Multiple Solr documents can share a product ID and fill the first page.
+      } while (viewIndex * viewSize < resp.total && productIdFilter.some((productId) => !this.cached[productId]));
       return resp;
     },
     async findProduct(payload: any) {
