@@ -1,7 +1,5 @@
 import { createRouter, createWebHistory } from '@ionic/vue-router';
 import { RouteRecordRaw } from 'vue-router';
-import Shipments from '@/views/Shipments.vue'
-import ShipmentDetails from '@/views/ShipmentDetails.vue'
 import Settings from "@/views/Settings.vue"
 import PurchaseOrders from "@/views/PurchaseOrders.vue"
 import PurchaseOrderDetail from "@/views/PurchaseOrderDetail.vue"
@@ -9,10 +7,12 @@ import Returns from '@/views/Returns.vue'
 import ReturnDetails from '@/views/ReturnDetails.vue'
 import TransferOrders from '@/views/TransferOrders.vue';
 import TransferOrderDetail from '@/views/TransferOrderDetail.vue';
+import CreateOrder from '@/views/CreateOrder.vue';
 import { useUserStore } from '@/store/user';
+import Actions from '@/authorization/actions';
 import { translate, commonUtil, useAuth, ShopifyLogin, ShopifyAppInstall, Login } from '@common'
 
-import { businessOutline, calendar, download, gitPullRequestOutline, settingsOutline } from "ionicons/icons";
+import { businessOutline, calendarOutline, gitPullRequestOutline, settingsOutline } from "ionicons/icons";
 
 // Defining types for the meta values
 declare module 'vue-router' {
@@ -41,29 +41,7 @@ const authGuard = async (to: any, from: any, next: any) => {
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    redirect: '/shipments'
-  },
-  {
-    path: '/shipments',
-    name: 'Shipments',
-    component: Shipments,
-    beforeEnter: authGuard,
-    meta: {
-      permissionId: "FULFILLMENT_LEGACY_APP_VIEW",
-      title: "Shipments",
-      icon: download,
-      menuIndex: 1,
-      childRoutes: ["/shipment/"]
-    }
-  },
-  {
-    path: '/shipment/:id',
-    name: 'ShipmentDetails',
-    component: ShipmentDetails,
-    beforeEnter: authGuard,
-    meta: {
-      permissionId: "APP_SHIPMENTS_VIEW"
-    }
+    redirect: '/transfer-orders'
   },
   {
     path: '/login',
@@ -92,9 +70,9 @@ const routes: Array<RouteRecordRaw> = [
     component: PurchaseOrders,
     beforeEnter: authGuard,
     meta: {
-      permissionId: "",
+      permissionId: Actions.APP_PURCHASEORDERS_VIEW,
       title: "Purchase Orders",
-      icon: calendar,
+      icon: calendarOutline,
       menuIndex: 4,
       childRoutes: ["/purchase-order-detail/"]
     }
@@ -105,7 +83,7 @@ const routes: Array<RouteRecordRaw> = [
     component: PurchaseOrderDetail,
     beforeEnter: authGuard,
     meta: {
-      permissionId: ""
+      permissionId: Actions.APP_PURCHASEORDER_DETAIL_VIEW
     }
   },
   {
@@ -119,7 +97,7 @@ const routes: Array<RouteRecordRaw> = [
     component: Returns,
     beforeEnter: authGuard,
     meta: {
-      permissionId: "",
+      permissionId: Actions.APP_RETURNS_VIEW,
       title: "Returns",
       icon: gitPullRequestOutline,
       menuIndex: 3,
@@ -132,7 +110,7 @@ const routes: Array<RouteRecordRaw> = [
     component: ReturnDetails,
     beforeEnter: authGuard,
     meta: {
-      permissionId: ""
+      permissionId: Actions.APP_RETURN_DETAIL_VIEW
     }
   },
   {
@@ -141,11 +119,20 @@ const routes: Array<RouteRecordRaw> = [
     component: TransferOrders,
     beforeEnter: authGuard,
     meta: {
-      permissionId: "FULFILLMENT_APP_VIEW",
+      permissionId: Actions.APP_TRANSFERORDERS_VIEW,
       title: "Transfer Orders",
       icon: businessOutline,
       menuIndex: 2,
       childRoutes: ["/transfer-order-detail/"]
+    }
+  },
+  {
+    path: '/create-order',
+    name: 'CreateOrder',
+    component: CreateOrder,
+    beforeEnter: authGuard,
+    meta: {
+      permissionId: Actions.APP_TRANSFERORDER_CREATE
     }
   },
   {
@@ -154,7 +141,7 @@ const routes: Array<RouteRecordRaw> = [
     component: TransferOrderDetail,
     beforeEnter: authGuard,
     meta: {
-      permissionId: "FULFILLMENT_APP_VIEW"
+      permissionId: Actions.APP_TRANSFERORDER_DETAIL_VIEW
     }
   },
   // {
@@ -172,27 +159,11 @@ const router = createRouter({
 
 
 router.beforeEach((to, from) => {
-  const userStore = useUserStore();
-  // Handling the case to hide TO or shipment page dynamically and not added generic code,
-  // as this is not something that needs to be handled for all the pages and this might need to be removed in future
-  if (userStore.hasPermission("FULFILLMENT_LEGACY_APP_VIEW") && userStore.hasPermission("FULFILLMENT_APP_VIEW") && (to.name === "TransferOrders" || to.name === "TransferOrderDetail")) {
-    let redirectToPath = from.path;
-    // If the user has navigated from Login page or if it is page load, redirect user to settings page without showing any toast
-    if (redirectToPath == "/login" || redirectToPath == "/") redirectToPath = "/settings";
-    else {
-      commonUtil.showToast(translate('You do not have permission to access this page'));
-    }
-    return {
-      path: redirectToPath,
-    }
-  } else if (!userStore.hasPermission("FULFILLMENT_LEGACY_APP_VIEW") && !userStore.hasPermission("FULFILLMENT_APP_VIEW") && (to.name === "Shipments" || to.name === "ShipmentDetails")) {
-    return true;
-  } else if (!userStore.hasPermission("FULFILLMENT_LEGACY_APP_VIEW") && userStore.hasPermission("FULFILLMENT_APP_VIEW") && (to.name === "Shipments" || to.name === "ShipmentDetails")) {
-    return {
-      path: "/transfer-orders",
-    };
-  }
+  // Enforce the canonical version URL on every navigation (no-op until the version is resolved, or if
+  // already canonical). Redirect cancels this navigation. Logic lives in useAuth so it's shared.
+  if (useAuth().checkAppVersionRedirect()) return false;
 
+  const userStore = useUserStore();
   if (to.meta.permissionId && !userStore.hasPermission(to.meta.permissionId)) {
     let redirectToPath = from.path;
     // If the user has navigated from Login page or if it is page load, redirect user to settings page without showing any toast

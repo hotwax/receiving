@@ -1,7 +1,7 @@
 <template>
   <ion-app>
     <ion-split-pane content-id="main-content" when="lg">
-      <ion-menu content-id="main-content" type="overlay" :disabled="!isAuthenticated || (router.currentRoute.value.name as string) === 'Login'">
+      <ion-menu content-id="main-content" type="overlay" :disabled="!useAuth().isAuthenticated || (router.currentRoute.value.name as string) === 'Login'">
         <ion-header>
           <ion-toolbar>
             <ion-title>{{ currentFacility.facilityName }}</ion-title>
@@ -26,10 +26,12 @@
 
 <script setup lang="ts">
 import { IonApp, IonContent, IonHeader, IonIcon, IonItem, IonLabel, IonList, IonMenu, IonMenuToggle, IonRouterOutlet, IonSplitPane, IonTitle, IonToolbar, loadingController } from '@ionic/vue';
-import { ref, computed, onBeforeMount, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onBeforeMount, onMounted, onUnmounted, watch } from 'vue';
 import router from '@/router'
 import { Settings } from 'luxon';
 import { translate, emitter, useNotificationStore, logger, useAuth } from "@common";
+import { configureReceiving, refreshReceiving } from '@/db/receivingClient';
+import { receivingLoginReady, syncReceivingSession } from '@/db/receivingSession';
 import { firebaseUtil } from '@/utils/firebaseUtil';
 import { useUserStore } from '@/store/user';
 import { useProductStore } from '@/store/productStore';
@@ -41,17 +43,24 @@ const { isAuthenticated } = useAuth();
 
 const currentFacility = computed(() => productStore.getCurrentFacility);
 
+const configureLocalTransfers = () => {
+  void syncReceivingSession(currentFacility.value?.facilityId, userStore.current?.userId);
+};
+watch([receivingLoginReady, isAuthenticated, () => currentFacility.value?.facilityId, () => userStore.current?.userId, () => userStore.oms], configureLocalTransfers, { immediate: true });
+// Auth cookies can be renewed by another tab. Keep tokens in worker memory current.
+const receivingSessionTimer = setInterval(configureLocalTransfers, 15000);
+const resumeReceiving = () => {
+  if (document.visibilityState !== 'visible' || !navigator.onLine) return;
+  configureLocalTransfers();
+  void refreshReceiving().catch(() => undefined); // Existing cache status reports refresh failures.
+};
+window.addEventListener('online', resumeReceiving);
+document.addEventListener('visibilitychange', resumeReceiving);
+
 const menuItems = computed(() => {
   return router.getRoutes()
     .filter(route => route.meta && route.meta.menuIndex)
-    .filter(route => {
-      if(userStore.hasPermission("FULFILLMENT_LEGACY_APP_VIEW") && userStore.hasPermission("FULFILLMENT_APP_VIEW") && route.meta.title === "Transfer Orders") {
-        return false;
-      } else if(!userStore.hasPermission("FULFILLMENT_LEGACY_APP_VIEW") && !userStore.hasPermission("FULFILLMENT_APP_VIEW") && route.meta.title === "Shipments") {
-        return true;
-      }
-      return !route.meta.permissionId || userStore.hasPermission(route.meta.permissionId as string);
-    })
+    .filter(route => !route.meta.permissionId || userStore.hasPermission(route.meta.permissionId as string))
     .sort((a, b) => (a.meta!.menuIndex as number) - (b.meta!.menuIndex as number))
     .map(route => ({
       title: route.meta!.title as string,
@@ -129,6 +138,10 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
+  clearInterval(receivingSessionTimer);
+  window.removeEventListener('online', resumeReceiving);
+  document.removeEventListener('visibilitychange', resumeReceiving);
+  void configureReceiving();
   emitter.off('presentLoader', (options: any) => {
     presentLoader(options);
   });

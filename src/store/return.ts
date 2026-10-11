@@ -37,7 +37,7 @@ export const useReturnStore = defineStore("return", {
           const statusIds = [...new Set(returns.map((returnShipment: any) => returnShipment.statusId))] as Array<string>;
           const utilStore = useUtilStore();
           const statuses = await utilStore.fetchStatus(statusIds);
-          returns.map((shipment: any) => {
+          returns.forEach((shipment: any) => {
             shipment.statusDesc = statuses[shipment.statusId];
           });
           if (payload.pageSize && payload.pageIndex > 0) returns = this.returns.list.concat(returns);

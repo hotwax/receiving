@@ -1,6 +1,5 @@
 import { defineStore } from "pinia";
 import { api, commonUtil, emitter, useSolrSearch } from "@common";
-import { useShipmentStore } from "@/store/shipment";
 import { useProductStore as useFacilityStore } from "@/store/productStore";
 
 export const useProductStore = defineStore("product", {
@@ -15,16 +14,12 @@ export const useProductStore = defineStore("product", {
     getProduct: (state) => (productId: string) => state.cached[productId] ? state.cached[productId] : {},
     getProducts: (state) => state.list.items,
     isScrollable: (state) => state.list.items.length > 0 && state.list.items.length < state.list.total,
-    isProductAvailableInShipment: (state) => (productId: string) => {
-      const shipmentStore = useShipmentStore();
-      return shipmentStore.getCurrent.items.some((item: any) => item.productId === productId);
-    },
   },
   actions: {
     async fetchProducts({ productIds }: { productIds: Array<string> }) {
       const cachedProductIds = Object.keys(this.cached);
       const productIdFilter = productIds.filter((productId: any) => !cachedProductIds.includes(productId));
-      const viewSize = productIdFilter.length;
+      const viewSize = productIdFilter.length * 3;
       if (!viewSize) return;
 
       const resp = await useSolrSearch().searchProducts({
@@ -72,7 +67,8 @@ export const useProductStore = defineStore("product", {
       return resp;
     },
     async getInventoryAvailableByFacility(productId: string) {
-      let productQoh = "";
+      // Inventory remains a live view value. A failed request must never appear as zero stock.
+      let productQoh: number | undefined;
       const payload = {
         productId,
         facilityId: useFacilityStore().getCurrentFacility.facilityId,
@@ -86,15 +82,31 @@ export const useProductStore = defineStore("product", {
         });
 
         if (!commonUtil.hasError(resp)) {
-          productQoh = resp?.data.qoh;
+          const value = resp?.data.qoh == null ? undefined : Number(resp.data.qoh);
+          productQoh = Number.isFinite(value) ? value : undefined;
         } else {
           throw resp.data;
         }
-      } catch (err) {
-        console.error(err);
+      } catch {
+        console.warn('Live inventory could not be loaded.');
       }
 
       return productQoh;
+    },
+    async fetchBarcodeIdentificationDesc(params: any): Promise<any> {
+      return api({
+        url: "oms/goodIdentificationTypes",
+        method: "GET",
+        params,
+      });
+    },
+    addProductToCached(payload: any) {
+      this.cached[payload.productId] = payload;
+    },
+    addProductToCachedMultiple(payload: { products?: Array<any> }) {
+      payload.products?.forEach((product: any) => {
+        this.cached[product.productId] = product;
+      });
     },
     async fetchProductInformation(payload: any) {
       let productIds: any = new Set();
@@ -110,5 +122,5 @@ export const useProductStore = defineStore("product", {
       this.list = { items: [], total: 0 };
     },
   },
-  persist: true,
+
 });
