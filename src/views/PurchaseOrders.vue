@@ -80,7 +80,8 @@ const getPurchaseOrders = async (vSize?: any, vIndex?: any) => {
     pageIndex: viewIndex,
     orderStatusId: selectedSegment.value === 'open' ? 'ORDER_APPROVED,ORDER_CREATED' : 'ORDER_COMPLETED',
     facilityId: currentFacility.value?.facilityId,
-    keyword: queryString.value
+    keyword: queryString.value,
+    orderBy: "orderDate desc"
   }
 
   await orderStore.findPurchaseOrders(payload);

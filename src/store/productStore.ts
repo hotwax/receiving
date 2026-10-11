@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { api, commonUtil, logger, translate, useEmbeddedAppStore, useSolrSearch } from '@common'
 import { useUserStore } from '@/store/user'
+import Actions from "@/authorization/actions"
 const defaultProductStoreSettings = JSON.parse(import.meta.env.VITE_DEFAULT_PRODUCT_STORE_SETTINGS as string || '{}')
 
 export const useProductStore = defineStore('productStore', {
@@ -30,6 +31,7 @@ export const useProductStore = defineStore('productStore', {
     } as any,
     userFacilities: [] as any,
     facilityLocationsByFacilityId: {} as any,
+    facilityAddresses: {} as any,
   }),
 
   getters: {
@@ -45,9 +47,13 @@ export const useProductStore = defineStore('productStore', {
     getCurrentSampleProduct: (state) => state.settings.productIdentifier.currentSampleProduct,
     isProductStoreSettingEnabled: (state) => (settingTypeEnumId: string) => {
       const stateKey = defaultProductStoreSettings[settingTypeEnumId]?.stateKey || settingTypeEnumId
-      return state.settings[stateKey] === "Y"
+      const value = state.settings[stateKey]
+      
+      return value === true || value === "Y" || value === "true"
     },
-    getFacilityLocationsByFacilityId: (state) => (facilityId: string) => state.facilityLocationsByFacilityId[facilityId] ? state.facilityLocationsByFacilityId[facilityId] : []
+
+    getFacilityLocationsByFacilityId: (state) => (facilityId: string) => state.facilityLocationsByFacilityId[facilityId] ? state.facilityLocationsByFacilityId[facilityId] : [],
+    getProductStoreFacilities: (state) => state.currentProductStore.facilities || []
   },
 
   actions: {
@@ -65,7 +71,7 @@ export const useProductStore = defineStore('productStore', {
       let resp = {} as any
 
       const partyId = userStore.getUserProfile?.partyId;
-      const isAdminUser = userStore.hasPermission("COMMON_ADMIN");
+      const isAdminUser = userStore.hasPermission(Actions.APP_RECVG_ADMIN);
 
       try {
         this.currentFacility = {
@@ -255,10 +261,6 @@ export const useProductStore = defineStore('productStore', {
         }
 
         const productStores = [...stores]
-        productStores.push({
-          productStoreId: "",
-          storeName: "None",
-        });
 
         this.currentFacility = {
           ...this.currentFacility,
@@ -275,30 +277,109 @@ export const useProductStore = defineStore('productStore', {
         .catch((error) => logger.error(error))
     },
 
+    async fetchProductStoreFacilities(productStoreId: string) {
+      let facilities = [] as any[];
+
+      try {
+        const resp = await api({
+          url: `admin/productStores/${productStoreId}/facilities`,
+          method: "GET",
+          params: {
+            productStoreId,
+            facilityTypeId: "VIRTUAL_FACILITY",
+            facilityTypeId_op: "equals",
+            facilityTypeId_not: "Y",
+            parentFacilityTypeId: "VIRTUAL_FACILITY",
+            parentFacilityTypeId_op: "equals",
+            parentFacilityTypeId_not: "Y",
+            fieldsToSelect: ["facilityId", "facilityName"],
+            pageSize: 200
+          }
+        });
+
+        if (!commonUtil.hasError(resp)) {
+          facilities = resp.data;
+        } else {
+          throw resp.data;
+        }
+      } catch (error) {
+        logger.error("Failed to fetch product store facilities", error);
+      }
+
+      this.currentProductStore.facilities = facilities;
+    },
+
+    async fetchProductStoreDetails(payload: any): Promise<any> {
+      return api({
+        url: `admin/productStores/${payload.productStoreId}`,
+        method: "GET"
+      });
+    },
+
+    async fetchFacilityAddresses(facilityIds: string[]) {
+      const facilityAddresses = this.facilityAddresses ? JSON.parse(JSON.stringify(this.facilityAddresses)) : {};
+      const addresses = [] as any[];
+      const remainingFacilityIds = [] as string[];
+
+      facilityIds.forEach((facilityId) => {
+        facilityAddresses[facilityId] ? addresses.push(facilityAddresses[facilityId]) : remainingFacilityIds.push(facilityId);
+      });
+
+      if (!remainingFacilityIds.length) return addresses;
+
+      try {
+        const responses = await Promise.allSettled(
+          remainingFacilityIds.map((facilityId) => api({
+            url: "oms/facilityContactMechs",
+            method: "GET",
+            params: {
+              contactMechPurposeTypeId: "PRIMARY_LOCATION",
+              contactMechTypeId: "POSTAL_ADDRESS",
+              facilityId
+            }
+          }))
+        );
+
+        if (responses.some((response: any) => response.status === "rejected")) {
+          throw responses;
+        }
+
+        responses.forEach((response: any) => {
+          if ((response.value as any).data?.facilityContactMechs?.length) {
+            (response.value as any).data.facilityContactMechs.forEach((facilityAddress: any) => {
+              facilityAddresses[facilityAddress.facilityId] = facilityAddress;
+              addresses.push(facilityAddress);
+            });
+          }
+        });
+      } catch (error) {
+        logger.error("Failed to fetch facility addresses", error);
+      }
+
+      this.facilityAddresses = facilityAddresses;
+      return addresses;
+    },
+
     async fetchProductStoreSettings(productStoreId: string) {
       const productStoreSettings = {} as any
 
       if (productStoreId) {
-        const payload = {
-          productStoreId,
-          settingTypeEnumId: Object.keys(defaultProductStoreSettings),
-          settingTypeEnumId_op: "in",
-          pageIndex: 0,
-          pageSize: 50
-        }
         try {
           const resp = await api({
-            url: `/oms/dataDocumentView`,
-            method: "POST",
-            data: {
-              dataDocumentId: "ProductStoreSetting",
-              customParametersMap: payload
+            url: `/admin/productStores/${productStoreId}/settings`,
+            method: "GET",
+            params: {
+              settingTypeEnumId: Object.keys(defaultProductStoreSettings),
+              settingTypeEnumId_op: "in",
+              pageSize: 50
             }
           }) as any
 
-          resp?.data?.entityValueList?.forEach((productSetting: any) => {
-            productStoreSettings[productSetting.settingTypeEnumId] = productSetting.settingValue
-          })
+          if (!commonUtil.hasError(resp) && resp.data) {
+            resp.data.forEach((productSetting: any) => {
+              productStoreSettings[productSetting.settingTypeEnumId] = productSetting.settingValue
+            })
+          }
         } catch (error) {
           logger.error("Failed to fetch settings", error)
         }
