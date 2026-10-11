@@ -7,10 +7,12 @@ import Returns from '@/views/Returns.vue'
 import ReturnDetails from '@/views/ReturnDetails.vue'
 import TransferOrders from '@/views/TransferOrders.vue';
 import TransferOrderDetail from '@/views/TransferOrderDetail.vue';
+import CreateOrder from '@/views/CreateOrder.vue';
 import { useUserStore } from '@/store/user';
+import Actions from '@/authorization/actions';
 import { translate, commonUtil, useAuth, ShopifyLogin, ShopifyAppInstall, Login } from '@common'
 
-import { businessOutline, calendar, gitPullRequestOutline, settingsOutline } from "ionicons/icons";
+import { businessOutline, calendarOutline, gitPullRequestOutline, settingsOutline } from "ionicons/icons";
 
 // Defining types for the meta values
 declare module 'vue-router' {
@@ -68,9 +70,9 @@ const routes: Array<RouteRecordRaw> = [
     component: PurchaseOrders,
     beforeEnter: authGuard,
     meta: {
-      permissionId: "",
+      permissionId: Actions.APP_PURCHASEORDERS_VIEW,
       title: "Purchase Orders",
-      icon: calendar,
+      icon: calendarOutline,
       menuIndex: 4,
       childRoutes: ["/purchase-order-detail/"]
     }
@@ -81,7 +83,7 @@ const routes: Array<RouteRecordRaw> = [
     component: PurchaseOrderDetail,
     beforeEnter: authGuard,
     meta: {
-      permissionId: ""
+      permissionId: Actions.APP_PURCHASEORDER_DETAIL_VIEW
     }
   },
   {
@@ -95,7 +97,7 @@ const routes: Array<RouteRecordRaw> = [
     component: Returns,
     beforeEnter: authGuard,
     meta: {
-      permissionId: "",
+      permissionId: Actions.APP_RETURNS_VIEW,
       title: "Returns",
       icon: gitPullRequestOutline,
       menuIndex: 3,
@@ -108,7 +110,7 @@ const routes: Array<RouteRecordRaw> = [
     component: ReturnDetails,
     beforeEnter: authGuard,
     meta: {
-      permissionId: ""
+      permissionId: Actions.APP_RETURN_DETAIL_VIEW
     }
   },
   {
@@ -117,11 +119,20 @@ const routes: Array<RouteRecordRaw> = [
     component: TransferOrders,
     beforeEnter: authGuard,
     meta: {
-      permissionId: "",
+      permissionId: Actions.APP_TRANSFERORDERS_VIEW,
       title: "Transfer Orders",
       icon: businessOutline,
       menuIndex: 2,
       childRoutes: ["/transfer-order-detail/"]
+    }
+  },
+  {
+    path: '/create-order',
+    name: 'CreateOrder',
+    component: CreateOrder,
+    beforeEnter: authGuard,
+    meta: {
+      permissionId: Actions.APP_TRANSFERORDER_CREATE
     }
   },
   {
@@ -130,7 +141,7 @@ const routes: Array<RouteRecordRaw> = [
     component: TransferOrderDetail,
     beforeEnter: authGuard,
     meta: {
-      permissionId: ""
+      permissionId: Actions.APP_TRANSFERORDER_DETAIL_VIEW
     }
   },
   // {
@@ -148,6 +159,10 @@ const router = createRouter({
 
 
 router.beforeEach((to, from) => {
+  // Enforce the canonical version URL on every navigation (no-op until the version is resolved, or if
+  // already canonical). Redirect cancels this navigation. Logic lives in useAuth so it's shared.
+  if (useAuth().checkAppVersionRedirect()) return false;
+
   const userStore = useUserStore();
   if (to.meta.permissionId && !userStore.hasPermission(to.meta.permissionId)) {
     let redirectToPath = from.path;

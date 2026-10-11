@@ -1,0 +1,123 @@
+orderId,orderName,shipmentId,packageSeqId,trackingCode,orderItemSeqId,productId,sku,scanCode,description,quantityInBox
+M103571,Brooklyn - October Replenishment,M102879,01,1Z8R42A90374273237,00001,10001,MH09-XS-Blue,MH09XSBlue,Abominable Hoodie - XS / Blue,2
+M103571,Brooklyn - October Replenishment,M102879,01,1Z8R42A90374273237,00002,10002,MH09-XS-Green,MH09XSGreen,Abominable Hoodie - XS / Green,2
+M103571,Brooklyn - October Replenishment,M102879,01,1Z8R42A90374273237,00003,10003,MH09-XS-Red,MH09XSRed,Abominable Hoodie - XS / Red,2
+M103571,Brooklyn - October Replenishment,M102879,01,1Z8R42A90374273237,00004,10004,MH09-S-Blue,MH09SBlue,Abominable Hoodie - S / Blue,3
+M103571,Brooklyn - October Replenishment,M102879,01,1Z8R42A90374273237,00005,10069,MH12-XS-Blue,MH12XSBlue,Ajax Full-Zip Sweatshirt - XS / Blue,2
+M103571,Brooklyn - October Replenishment,M102879,01,1Z8R42A90374273237,00006,10070,MH12-XS-Green,MH12XSGreen,Ajax Full-Zip Sweatshirt - XS / Green,2
+M103571,Brooklyn - October Replenishment,M102879,01,1Z8R42A90374273237,00007,10071,MH12-XS-Red,MH12XSRed,Ajax Full-Zip Sweatshirt - XS / Red,4
+M103571,Brooklyn - October Replenishment,M102879,01,1Z8R42A90374273237,00009,10125,WH09-XS-Green,WH09XSGreen,Ariel Roll Sleeve Sweatshirt - XS / Green,2
+M103571,Brooklyn - October Replenishment,M102879,01,1Z8R42A90374273237,00011,10127,WH09-XS-Red,WH09XSRed,Ariel Roll Sleeve Sweatshirt - XS / Red,4
+M103571,Brooklyn - October Replenishment,M102879,01,1Z8R42A90374273237,00013,10179,WJ03-XS-Blue,WJ03XSBlue,Augusta Pullover Jacket - XS / Blue,2
+M103571,Brooklyn - October Replenishment,M102879,01,1Z8R42A90374273237,00015,10181,WJ03-XS-Red,WJ03XSRed,Augusta Pullover Jacket - XS / Red,4
+M103571,Brooklyn - October Replenishment,M102879,01,1Z8R42A90374273237,00017,10196,WH03-XS-Purple,WH03XSPurple,Autumn Pullie - XS / Purple,2
+M103571,Brooklyn - October Replenishment,M102879,01,1Z8R42A90374273237,00019,10198,WH03-S-Green,WH03SGreen,Autumn Pullie - S / Green,4
+M103571,Brooklyn - October Replenishment,M102879,01,1Z8R42A90374273237,00021,10017,WJ08-XS-Gray,WJ08XSGray,Adrienne Trek Jacket - XS / Gray,2
+M103571,Brooklyn - October Replenishment,M102879,01,1Z8R42A90374273237,00023,10022,WJ08-S-Purple,WJ08SPurple,Adrienne Trek Jacket - S / Purple,4
+M103571,Brooklyn - October Replenishment,M102880,01,1Z8R42A90374273374,00002,10002,MH09-XS-Green,MH09XSGreen,Abominable Hoodie - XS / Green,2
+M103571,Brooklyn - October Replenishment,M102880,01,1Z8R42A90374273374,00003,10003,MH09-XS-Red,MH09XSRed,Abominable Hoodie - XS / Red,2
+M103571,Brooklyn - October Replenishment,M102880,01,1Z8R42A90374273374,00004,10004,MH09-S-Blue,MH09SBlue,Abominable Hoodie - S / Blue,3
+M103571,Brooklyn - October Replenishment,M102880,01,1Z8R42A90374273374,00006,10070,MH12-XS-Green,MH12XSGreen,Ajax Full-Zip Sweatshirt - XS / Green,2
+M103571,Brooklyn - October Replenishment,M102880,01,1Z8R42A90374273374,00008,10072,MH12-S-Blue,MH12SBlue,Ajax Full-Zip Sweatshirt - S / Blue,6
+M103571,Brooklyn - October Replenishment,M102880,01,1Z8R42A90374273374,00010,10126,WH09-XS-Purple,WH09XSPurple,Ariel Roll Sleeve Sweatshirt - XS / Purple,4
+M103571,Brooklyn - October Replenishment,M102880,01,1Z8R42A90374273374,00012,10128,WH09-S-Green,WH09SGreen,Ariel Roll Sleeve Sweatshirt - S / Green,6
+M103571,Brooklyn - October Replenishment,M102880,01,1Z8R42A90374273374,00014,10180,WJ03-XS-Orange,WJ03XSOrange,Augusta Pullover Jacket - XS / Orange,4
+M103571,Brooklyn - October Replenishment,M102880,01,1Z8R42A90374273374,00016,10182,WJ03-S-Blue,WJ03SBlue,Augusta Pullover Jacket - S / Blue,6
+M103571,Brooklyn - October Replenishment,M102880,01,1Z8R42A90374273374,00018,10197,WH03-XS-Red,WH03XSRed,Autumn Pullie - XS / Red,4
+M103571,Brooklyn - October Replenishment,M102880,01,1Z8R42A90374273374,00020,10199,WH03-S-Purple,WH03SPurple,Autumn Pullie - S / Purple,6
+M103571,Brooklyn - October Replenishment,M102880,01,1Z8R42A90374273374,00022,10021,WJ08-S-Orange,WJ08SOrange,Adrienne Trek Jacket - S / Orange,4
+M103571,Brooklyn - October Replenishment,M102880,01,1Z8R42A90374273374,00024,10023,WJ08-M-Gray,WJ08MGray,Adrienne Trek Jacket - M / Gray,6
+M103572,Brooklyn - Weekend Floor Set,M102881,01,1Z8R42A90374273511,00001,10044,MS01-S-Brown,MS01SBrown,Aero Daily Fitness Tee - S / Brown,2
+M103572,Brooklyn - Weekend Floor Set,M102881,01,1Z8R42A90374273511,00003,10046,MS01-M-Black,MS01MBlack,Aero Daily Fitness Tee - M / Black,2
+M103572,Brooklyn - Weekend Floor Set,M102881,01,1Z8R42A90374273511,00004,10047,MS01-M-Brown,MS01MBrown,Aero Daily Fitness Tee - M / Brown,2
+M103572,Brooklyn - Weekend Floor Set,M102881,01,1Z8R42A90374273511,00006,10091,WT08-M-Black,WT08MBlack,Antonia Racer Tank - M / Black,2
+M103572,Brooklyn - Weekend Floor Set,M102881,01,1Z8R42A90374273511,00007,10092,WT08-M-Purple,WT08MPurple,Antonia Racer Tank - M / Purple,4
+M103572,Brooklyn - Weekend Floor Set,M102881,01,1Z8R42A90374273511,00010,10152,MS12-S-Red,MS12SRed,Atomic Endurance Running Tee (Crew-Neck) - S / Red,4
+M103572,Brooklyn - Weekend Floor Set,M102881,01,1Z8R42A90374273511,00013,10167,MS11-S-Green,MS11SGreen,Atomic Endurance Running Tee (V-neck) - S / Green,2
+M103572,Brooklyn - Weekend Floor Set,M102881,01,1Z8R42A90374273511,00016,10170,MS11-M-Green,MS11MGreen,Atomic Endurance Running Tee (V-neck) - M / Green,6
+M103572,Brooklyn - Weekend Floor Set,M102881,01,1Z8R42A90374273511,00019,10218,MS03-M-Green,MS03MGreen,Balboa Persistence Tee - M / Green,4
+M103572,Brooklyn - Weekend Floor Set,M102881,01,1Z8R42A90374273511,00022,10268,WT01-S-Orange,WT01SOrange,Bella Tank - S / Orange,4
+M103572,Brooklyn - Weekend Floor Set,M102881,01,1Z8R42A90374273511,00025,10060,MP11-33-Brown,MP1133Brown,Aether Gym Pant - 33 / Brown,2
+M103572,Brooklyn - Weekend Floor Set,M102881,01,1Z8R42A90374273511,00028,10063,MP11-34-Brown,MP1134Brown,Aether Gym Pant - 34 / Brown,6
+M103572,Brooklyn - Weekend Floor Set,M102881,01,1Z8R42A90374273511,00031,10112,MSH11-34-Black,MSH1134Black,Arcadio Gym Short - 34 / Black,4
+M103572,Brooklyn - Weekend Floor Set,M102881,01,1Z8R42A90374273511,00034,10239,MJ01-S-Yellow,MJ01SYellow,Beaumont Summit Kit - S / Yellow,4
+M103572,Brooklyn - Weekend Floor Set,M102881,02,1Z8R42A90374273648,00002,10045,MS01-S-Yellow,MS01SYellow,Aero Daily Fitness Tee - S / Yellow,2
+M103572,Brooklyn - Weekend Floor Set,M102881,02,1Z8R42A90374273648,00004,10047,MS01-M-Brown,MS01MBrown,Aero Daily Fitness Tee - M / Brown,2
+M103572,Brooklyn - Weekend Floor Set,M102881,02,1Z8R42A90374273648,00005,10090,WT08-S-Yellow,WT08SYellow,Antonia Racer Tank - S / Yellow,2
+M103572,Brooklyn - Weekend Floor Set,M102881,02,1Z8R42A90374273648,00008,10093,WT08-M-Yellow,WT08MYellow,Antonia Racer Tank - M / Yellow,6
+M103572,Brooklyn - Weekend Floor Set,M102881,02,1Z8R42A90374273648,00011,10153,MS12-M-Black,MS12MBlack,Atomic Endurance Running Tee (Crew-Neck) - M / Black,4
+M103572,Brooklyn - Weekend Floor Set,M102881,02,1Z8R42A90374273648,00014,10168,MS11-S-Yellow,MS11SYellow,Atomic Endurance Running Tee (V-neck) - S / Yellow,4
+M103572,Brooklyn - Weekend Floor Set,M102881,02,1Z8R42A90374273648,00017,10216,MS03-S-Orange,MS03SOrange,Balboa Persistence Tee - S / Orange,2
+M103572,Brooklyn - Weekend Floor Set,M102881,02,1Z8R42A90374273648,00020,10219,MS03-M-Orange,MS03MOrange,Balboa Persistence Tee - M / Orange,6
+M103572,Brooklyn - Weekend Floor Set,M102881,02,1Z8R42A90374273648,00023,10269,WT01-M-Black,WT01MBlack,Bella Tank - M / Black,4
+M103572,Brooklyn - Weekend Floor Set,M102881,02,1Z8R42A90374273648,00026,10061,MP11-33-Green,MP1133Green,Aether Gym Pant - 33 / Green,4
+M103572,Brooklyn - Weekend Floor Set,M102881,02,1Z8R42A90374273648,00029,10110,MSH11-33-Blue,MSH1133Blue,Arcadio Gym Short - 33 / Blue,2
+M103572,Brooklyn - Weekend Floor Set,M102881,02,1Z8R42A90374273648,00032,10113,MSH11-34-Blue,MSH1134Blue,Arcadio Gym Short - 34 / Blue,6
+M103572,Brooklyn - Weekend Floor Set,M102881,02,1Z8R42A90374273648,00035,10240,MJ01-M-Orange,MJ01MOrange,Beaumont Summit Kit - M / Orange,4
+M103572,Brooklyn - Weekend Floor Set,M102882,01,1Z8R42A90374273785,00002,10045,MS01-S-Yellow,MS01SYellow,Aero Daily Fitness Tee - S / Yellow,2
+M103572,Brooklyn - Weekend Floor Set,M102882,01,1Z8R42A90374273785,00003,10046,MS01-M-Black,MS01MBlack,Aero Daily Fitness Tee - M / Black,2
+M103572,Brooklyn - Weekend Floor Set,M102882,01,1Z8R42A90374273785,00004,10047,MS01-M-Brown,MS01MBrown,Aero Daily Fitness Tee - M / Brown,2
+M103572,Brooklyn - Weekend Floor Set,M102882,01,1Z8R42A90374273785,00006,10091,WT08-M-Black,WT08MBlack,Antonia Racer Tank - M / Black,2
+M103572,Brooklyn - Weekend Floor Set,M102882,01,1Z8R42A90374273785,00009,10151,MS12-S-Blue,MS12SBlue,Atomic Endurance Running Tee (Crew-Neck) - S / Blue,2
+M103572,Brooklyn - Weekend Floor Set,M102882,01,1Z8R42A90374273785,00012,10154,MS12-M-Blue,MS12MBlue,Atomic Endurance Running Tee (Crew-Neck) - M / Blue,6
+M103572,Brooklyn - Weekend Floor Set,M102882,01,1Z8R42A90374273785,00015,10169,MS11-M-Blue,MS11MBlue,Atomic Endurance Running Tee (V-neck) - M / Blue,4
+M103572,Brooklyn - Weekend Floor Set,M102882,01,1Z8R42A90374273785,00018,10217,MS03-M-Gray,MS03MGray,Balboa Persistence Tee - M / Gray,4
+M103572,Brooklyn - Weekend Floor Set,M102882,01,1Z8R42A90374273785,00021,10267,WT01-S-Blue,WT01SBlue,Bella Tank - S / Blue,2
+M103572,Brooklyn - Weekend Floor Set,M102882,01,1Z8R42A90374273785,00024,10270,WT01-M-Blue,WT01MBlue,Bella Tank - M / Blue,6
+M103572,Brooklyn - Weekend Floor Set,M102882,01,1Z8R42A90374273785,00027,10062,MP11-34-Blue,MP1134Blue,Aether Gym Pant - 34 / Blue,4
+M103572,Brooklyn - Weekend Floor Set,M102882,01,1Z8R42A90374273785,00030,10111,MSH11-33-Red,MSH1133Red,Arcadio Gym Short - 33 / Red,4
+M103572,Brooklyn - Weekend Floor Set,M102882,01,1Z8R42A90374273785,00033,10238,MJ01-S-Red,MJ01SRed,Beaumont Summit Kit - S / Red,2
+M103572,Brooklyn - Weekend Floor Set,M102882,01,1Z8R42A90374273785,00036,10241,MJ01-M-Red,MJ01MRed,Beaumont Summit Kit - M / Red,6
+M103573,Brooklyn - Autumn Assortment,M102883,01,1Z8R42A90374273922,00001,10009,MH09-M-Red,MH09MRed,Abominable Hoodie - M / Red,2
+M103573,Brooklyn - Autumn Assortment,M102883,01,1Z8R42A90374273922,00003,10011,MR09-L-Green,MR09LGreen,Abominable Hoodie - L / Green,2
+M103573,Brooklyn - Autumn Assortment,M102883,01,1Z8R42A90374273922,00004,10012,MH09-L-Red,MH09LRed,Abominable Hoodie - L / Red,2
+M103573,Brooklyn - Autumn Assortment,M102883,01,1Z8R42A90374273922,00006,10078,MH12-L-Blue,MH12LBlue,Ajax Full-Zip Sweatshirt - L / Blue,2
+M103573,Brooklyn - Autumn Assortment,M102883,01,1Z8R42A90374273922,00007,10079,MH12-L-Green,MH12LGreen,Ajax Full-Zip Sweatshirt - L / Green,4
+M103573,Brooklyn - Autumn Assortment,M102883,01,1Z8R42A90374273922,00010,10134,WH09-L-Green,WH09LGreen,Ariel Roll Sleeve Sweatshirt - L / Green,4
+M103573,Brooklyn - Autumn Assortment,M102883,01,1Z8R42A90374273922,00013,10187,WJ03-M-Red,WJ03MRed,Augusta Pullover Jacket - M / Red,2
+M103573,Brooklyn - Autumn Assortment,M102883,01,1Z8R42A90374273922,00016,10190,WJ03-L-Red,WJ03LRed,Augusta Pullover Jacket - L / Red,6
+M103573,Brooklyn - Autumn Assortment,M102883,01,1Z8R42A90374273922,00019,10206,WH03-L-Red,WH03LRed,Autumn Pullie - L / Red,4
+M103573,Brooklyn - Autumn Assortment,M102883,01,1Z8R42A90374273922,00022,10029,WJ08-XL-Gray,WJ08XLGray,Adrienne Trek Jacket - XL / Gray,4
+M103573,Brooklyn - Autumn Assortment,M102883,01,1Z8R42A90374273922,00025,10048,MS01-M-Yellow,MS01MYellow,Aero Daily Fitness Tee - M / Yellow,2
+M103573,Brooklyn - Autumn Assortment,M102883,01,1Z8R42A90374273922,00028,10051,MS01-L-Yellow,MS01LYellow,Aero Daily Fitness Tee - L / Yellow,6
+M103573,Brooklyn - Autumn Assortment,M102883,01,1Z8R42A90374273922,00031,10096,WT08-L-Yellow,WT08LYellow,Antonia Racer Tank - L / Yellow,4
+M103573,Brooklyn - Autumn Assortment,M102883,01,1Z8R42A90374273922,00034,10156,MS12-L-Black,MS12LBlack,Atomic Endurance Running Tee (Crew-Neck) - L / Black,4
+M103573,Brooklyn - Autumn Assortment,M102883,01,1Z8R42A90374273922,00037,10171,MS11-M-Yellow,MS11MYellow,Atomic Endurance Running Tee (V-neck) - M / Yellow,2
+M103573,Brooklyn - Autumn Assortment,M102883,01,1Z8R42A90374273922,00040,10174,MS11-L-Yellow,MS11LYellow,Atomic Endurance Running Tee (V-neck) - L / Yellow,6
+M103573,Brooklyn - Autumn Assortment,M102883,01,1Z8R42A90374273922,00043,10222,MS03-L-Orange,MS03LOrange,Balboa Persistence Tee - L / Orange,4
+M103573,Brooklyn - Autumn Assortment,M102883,01,1Z8R42A90374273922,00046,10272,WT01-L-Black,WT01LBlack,Bella Tank - L / Black,4
+M103573,Brooklyn - Autumn Assortment,M102884,01,1Z8R42A90374274059,00002,10010,MH09-L-Blue,MH09LBlue,Abominable Hoodie - L / Blue,2
+M103573,Brooklyn - Autumn Assortment,M102884,01,1Z8R42A90374274059,00004,10012,MH09-L-Red,MH09LRed,Abominable Hoodie - L / Red,2
+M103573,Brooklyn - Autumn Assortment,M102884,01,1Z8R42A90374274059,00005,10077,MH12-M-Red,MH12MRed,Ajax Full-Zip Sweatshirt - M / Red,2
+M103573,Brooklyn - Autumn Assortment,M102884,01,1Z8R42A90374274059,00008,10080,MH12-L-Red,MH12LRed,Ajax Full-Zip Sweatshirt - L / Red,6
+M103573,Brooklyn - Autumn Assortment,M102884,01,1Z8R42A90374274059,00011,10135,WH09-L-Purple,WH09LPurple,Ariel Roll Sleeve Sweatshirt - L / Purple,4
+M103573,Brooklyn - Autumn Assortment,M102884,01,1Z8R42A90374274059,00014,10188,WJ03-L-Blue,WJ03LBlue,Augusta Pullover Jacket - L / Blue,4
+M103573,Brooklyn - Autumn Assortment,M102884,01,1Z8R42A90374274059,00017,10204,WH03-L-Green,WH03LGreen,Autumn Pullie - L / Green,2
+M103573,Brooklyn - Autumn Assortment,M102884,01,1Z8R42A90374274059,00020,10207,WH03-XL-Green,WH03XLGreen,Autumn Pullie - XL / Green,6
+M103573,Brooklyn - Autumn Assortment,M102884,01,1Z8R42A90374274059,00023,10030,WJ08-XL-Orange,WJ08XLOrange,Adrienne Trek Jacket - XL / Orange,4
+M103573,Brooklyn - Autumn Assortment,M102884,01,1Z8R42A90374274059,00026,10049,MS01-L-Black,MS01LBlack,Aero Daily Fitness Tee - L / Black,4
+M103573,Brooklyn - Autumn Assortment,M102884,01,1Z8R42A90374274059,00029,10094,WT08-L-Black,WT08LBlack,Antonia Racer Tank - L / Black,2
+M103573,Brooklyn - Autumn Assortment,M102884,01,1Z8R42A90374274059,00032,10097,WT08-XL-Black,WT08XLBlack,Antonia Racer Tank - XL / Black,6
+M103573,Brooklyn - Autumn Assortment,M102884,01,1Z8R42A90374274059,00035,10157,MS12-L-Blue,MS12LBlue,Atomic Endurance Running Tee (Crew-Neck) - L / Blue,4
+M103573,Brooklyn - Autumn Assortment,M102884,01,1Z8R42A90374274059,00038,10172,MS11-L-Blue,MS11LBlue,Atomic Endurance Running Tee (V-neck) - L / Blue,4
+M103573,Brooklyn - Autumn Assortment,M102884,01,1Z8R42A90374274059,00041,10220,MS03-L-Gray,MS03LGray,Balboa Persistence Tee - L / Gray,2
+M103573,Brooklyn - Autumn Assortment,M102884,01,1Z8R42A90374274059,00044,10223,MS03-XL-Gray,MS03XLGray,Balboa Persistence Tee - XL / Gray,6
+M103573,Brooklyn - Autumn Assortment,M102884,01,1Z8R42A90374274059,00047,10273,WT01-L-Blue,WT01LBlue,Bella Tank - L / Blue,4
+M103573,Brooklyn - Autumn Assortment,M102885,01,1Z8R42A90374274196,00002,10010,MH09-L-Blue,MH09LBlue,Abominable Hoodie - L / Blue,2
+M103573,Brooklyn - Autumn Assortment,M102885,01,1Z8R42A90374274196,00003,10011,MR09-L-Green,MR09LGreen,Abominable Hoodie - L / Green,2
+M103573,Brooklyn - Autumn Assortment,M102885,01,1Z8R42A90374274196,00004,10012,MH09-L-Red,MH09LRed,Abominable Hoodie - L / Red,2
+M103573,Brooklyn - Autumn Assortment,M102885,01,1Z8R42A90374274196,00006,10078,MH12-L-Blue,MH12LBlue,Ajax Full-Zip Sweatshirt - L / Blue,2
+M103573,Brooklyn - Autumn Assortment,M102885,01,1Z8R42A90374274196,00009,10133,WH09-M-Red,WH09MRed,Ariel Roll Sleeve Sweatshirt - M / Red,2
+M103573,Brooklyn - Autumn Assortment,M102885,01,1Z8R42A90374274196,00012,10136,WH09-L-Red,WH09LRed,Ariel Roll Sleeve Sweatshirt - L / Red,6
+M103573,Brooklyn - Autumn Assortment,M102885,01,1Z8R42A90374274196,00015,10189,WJ03-L-Orange,WJ03LOrange,Augusta Pullover Jacket - L / Orange,4
+M103573,Brooklyn - Autumn Assortment,M102885,01,1Z8R42A90374274196,00018,10205,WH03-L-Purple,WH03LPurple,Autumn Pullie - L / Purple,4
+M103573,Brooklyn - Autumn Assortment,M102885,01,1Z8R42A90374274196,00021,10028,WJ08-L-Purple,WJ08LPurple,Adrienne Trek Jacket - L / Purple,2
+M103573,Brooklyn - Autumn Assortment,M102885,01,1Z8R42A90374274196,00024,10031,WJ08-XL-Purple,WJ08XLPurple,Adrienne Trek Jacket - XL / Purple,6
+M103573,Brooklyn - Autumn Assortment,M102885,01,1Z8R42A90374274196,00027,10050,MS01-L-Brown,MS01LBrown,Aero Daily Fitness Tee - L / Brown,4
+M103573,Brooklyn - Autumn Assortment,M102885,01,1Z8R42A90374274196,00030,10095,WT08-L-Purple,WT08LPurple,Antonia Racer Tank - L / Purple,4
+M103573,Brooklyn - Autumn Assortment,M102885,01,1Z8R42A90374274196,00033,10155,MS12-M-Red,MS12MRed,Atomic Endurance Running Tee (Crew-Neck) - M / Red,2
+M103573,Brooklyn - Autumn Assortment,M102885,01,1Z8R42A90374274196,00036,10158,MS12-L-Red,MS12LRed,Atomic Endurance Running Tee (Crew-Neck) - L / Red,6
+M103573,Brooklyn - Autumn Assortment,M102885,01,1Z8R42A90374274196,00039,10173,MS11-L-Green,MS11LGreen,Atomic Endurance Running Tee (V-neck) - L / Green,4
+M103573,Brooklyn - Autumn Assortment,M102885,01,1Z8R42A90374274196,00042,10221,MS03-L-Green,MS03LGreen,Balboa Persistence Tee - L / Green,4
+M103573,Brooklyn - Autumn Assortment,M102885,01,1Z8R42A90374274196,00045,10271,WT01-M-Orange,WT01MOrange,Bella Tank - M / Orange,2
+M103573,Brooklyn - Autumn Assortment,M102885,01,1Z8R42A90374274196,00048,10274,WT01-L-Orange,WT01LOrange,Bella Tank - L / Orange,6

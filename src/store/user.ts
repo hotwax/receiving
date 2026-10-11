@@ -10,6 +10,8 @@ import { useReturnStore } from "@/store/return";
 import { useTransferOrderStore } from "@/store/transferorder";
 import { useUtilStore } from "@/store/util";
 import { firebaseUtil } from "@/utils/firebaseUtil";
+import { clearReceivingSession } from '@/db/receivingClient';
+import { beginReceivingLogin, finishReceivingLogin } from '@/db/receivingSession';
 
 interface UserState {
   permissions: any[]
@@ -21,6 +23,7 @@ interface UserState {
   timeZones: any[],
   isEmbedded: boolean
   oms: any
+  appVersion: string | undefined
 }
 
 export const useUserStore = defineStore("user", {
@@ -33,7 +36,10 @@ export const useUserStore = defineStore("user", {
     },
     timeZones: [],
     isEmbedded: false,
-    oms: ""
+    oms: "",
+    // The app version this deployment is pinned to. undefined = not resolved yet, "" = no version
+    // configured, "vX.Y.Z" = pinned. Resolved from the OMS by useAuth().fetchAppVersion() on Login.
+    appVersion: undefined as string | undefined
   }),
   getters: {
     getTimeZones: (state) => state.timeZones,
@@ -43,6 +49,9 @@ export const useUserStore = defineStore("user", {
     },
     getUserProfile(state: UserState) {
       return state.current
+    },
+    getAppVersion(state: UserState) {
+      return state.appVersion
     },
     getPwaState(state: UserState) {
       return state.pwaState
@@ -112,7 +121,7 @@ export const useUserStore = defineStore("user", {
     async fetchPermissions() {
       const permissionId = import.meta.env.VITE_APP_PERMISSION_ID
       const serverPermissions = [] as string[]
-      const viewSize = 50
+      const viewSize = 200
       let viewIndex = 0
 
       try {
@@ -183,6 +192,7 @@ export const useUserStore = defineStore("user", {
       }
     },
     async postLogin() {
+      beginReceivingLogin();
       try {
         const productStore = useProductStore();
         await this.fetchUserProfile()
@@ -201,15 +211,21 @@ export const useUserStore = defineStore("user", {
           const facility = productStore.getFacilities.find((facility: any) => facility.facilityId === facilityId);
           if (facility) {
             productStore.currentFacility = facility
+            const orderId = router.currentRoute.value.query.orderId
+            if (orderId) {
+              localStorage.setItem("requestedPagePath", `/transfer-order-detail/${orderId}`)
+            }
           } else {
             commonUtil.showToast(translate("Redirecting to home page due to incorrect information being passed."))
           }
         }
+        finishReceivingLogin();
       } catch (error: any) {
         return Promise.reject(error);
       }
     },
     async preLogout() {
+      await clearReceivingSession();
       try {
         const notificationStore = useNotificationStore();
         if (notificationStore.getFirebaseDeviceId) await notificationStore.removeClientRegistrationToken(notificationStore.getFirebaseDeviceId, import.meta.env.VITE_NOTIF_APP_ID as any);
@@ -225,6 +241,10 @@ export const useUserStore = defineStore("user", {
       }
     },
     async postLogout() {
+      // AccxUI skips preLogout for expired/invalid sessions. Always clear the
+      // receiving cache before resetting stores; manual logout is idempotent.
+      await clearReceivingSession().catch(error => logger.error(error));
+      useTransferOrderStore().closeLocalDetail();
       useNotificationStore().clearNotificationState();
       useOrderStore().$reset();
       usePartyStore().$reset();
@@ -232,6 +252,8 @@ export const useUserStore = defineStore("user", {
       useProductStore().$reset();
       useReturnStore().$reset();
       useTransferOrderStore().$reset();
+      // appVersion is preserved across this reset by useAuth().logout() (it's deployment config, not
+      // session state), so a plain $reset() is fine here.
       this.$reset();
       useUtilStore().$reset();
     }
