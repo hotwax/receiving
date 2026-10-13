@@ -2,16 +2,25 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createPinia, setActivePinia } from 'pinia';
 
-vi.mock('@common', () => ({
-  api: vi.fn(),
-  commonUtil: {
-    hasError: (response: any) => !!response.data.errors,
-    showToast: vi.fn(),
-    getErrorMessage: vi.fn((err: any, fallback?: string) => fallback || "")
-  },
-  logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() },
-  translate: (text: string) => text
-}));
+vi.mock('@common', () => {
+  const getErrorMessage = (err: any, fallback = "") =>
+    err?.response?.data?._ERROR_MESSAGE_ ||
+    err?.response?.data?.errors ||
+    err?.data?._ERROR_MESSAGE_ ||
+    err?.data?.errors ||
+    err?.message ||
+    fallback;
+  return {
+    api: vi.fn(),
+    commonUtil: {
+      hasError: (response: any) => !!(response?.data?._ERROR_MESSAGE_ || response?.data?._ERROR_MESSAGE_LIST_ || response?.data?.errors),
+      showToast: vi.fn(),
+      getErrorMessage
+    },
+    logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() },
+    translate: (key: string, params?: any) => key.replace(/\{(\w+)\}/g, (_, k) => params?.[k] ?? `{${k}}`)
+  };
+});
 vi.mock('@/store/user', () => ({ useUserStore: vi.fn() }));
 vi.mock('@/store/productStore', () => ({ useProductStore: vi.fn() }));
 vi.mock('@/store/product', () => ({ useProductStore: () => ({ cached: {} }) }));
@@ -22,7 +31,7 @@ vi.mock('@/db/receivingClient', () => ({
 }));
 vi.mock('@/db/receivingQueries', () => ({ readDetail: vi.fn(), readHistory: vi.fn() }));
 
-import { api } from '@common';
+import { api, commonUtil } from '@common';
 import { ensureReceivingOrder, loadReceivingTracking } from '@/db/receivingClient';
 import { readDetail } from '@/db/receivingQueries';
 import { useTransferOrderStore } from './transferorder';
@@ -136,5 +145,16 @@ describe('Detail loading boundary', () => {
     await store.openLocalDetail('T1', 'F1');
     expect(store.current.orderId).toBe('T1');
     hydration.resolve(); store.closeLocalDetail();
+  });
+
+  it('displays extracted server error in toast when API returns an error message', async () => {
+    const store = useTransferOrderStore();
+    vi.mocked(api).mockResolvedValue({
+      data: { _ERROR_MESSAGE_: 'No access' }
+    } as any);
+
+    await store.fetchTransferOrders(params);
+
+    expect(commonUtil.showToast).toHaveBeenCalledWith('Failed to fetch transfer orders. No access');
   });
 });
