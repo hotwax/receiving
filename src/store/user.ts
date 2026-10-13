@@ -112,10 +112,11 @@ export const useUserStore = defineStore("user", {
         // TODO: This should be set from the Login Component
         this.oms = cookieHelper().get("oms");
       } catch (error: any) {
-        commonUtil.showToast(translate("Failed to fetch user profile information"));
-        console.error("error", error);
+        const serverError = commonUtil.getErrorMessage(error, translate("Please contact administrator."));
+        logger.error("Failed to fetch user profile information", serverError);
+        commonUtil.showToast(translate("Failed to fetch user profile information. {error}", { error: serverError }));
         useAuth().clearAuth();
-        return Promise.reject(new Error(error));
+        return Promise.reject(new Error(serverError));
       }
     },
     async fetchPermissions() {
@@ -146,7 +147,7 @@ export const useUserStore = defineStore("user", {
           if(!hasPermission) {
             const permissionError = "You do not have permission to access the app."
             await commonUtil.showToast(translate(permissionError))
-            logger.error("error", permissionError)
+            logger.error("Permission check failed", permissionError)
             return Promise.reject(new Error(permissionError))
           }
         }
@@ -167,8 +168,9 @@ export const useUserStore = defineStore("user", {
         this.updateUserInfo({ userTimeZone: tzId })
         this.current.timeZone = tzId
       } catch (error: any) {
-        console.error("Failed to set user time zone", error);
-        commonUtil.showToast(translate("Failed to set user time zone"));
+        const serverError = commonUtil.getErrorMessage(error, translate("Please contact administrator."));
+        logger.error("Failed to set user time zone", serverError);
+        commonUtil.showToast(translate("Failed to set user time zone. {error}", { error: serverError }));
       }
     },
 
@@ -188,7 +190,7 @@ export const useUserStore = defineStore("user", {
           this.timeZones = resp.data.timeZones.filter((timeZone: any) => DateTime.local().setZone(timeZone.id).isValid);
         }
       } catch (err) {
-        console.error('Error', err)
+        logger.error("Failed to fetch available time zones", commonUtil.getErrorMessage(err));
       }
     },
     async postLogin() {
@@ -230,7 +232,7 @@ export const useUserStore = defineStore("user", {
         const notificationStore = useNotificationStore();
         if (notificationStore.getFirebaseDeviceId) await notificationStore.removeClientRegistrationToken(notificationStore.getFirebaseDeviceId, import.meta.env.VITE_NOTIF_APP_ID as any);
       } catch (error) {
-        logger.error(error);
+        logger.error("Failed to remove client registration token", commonUtil.getErrorMessage(error));
       }
 
       if (commonUtil.isAppEmbedded()) {
@@ -243,7 +245,7 @@ export const useUserStore = defineStore("user", {
     async postLogout() {
       // AccxUI skips preLogout for expired/invalid sessions. Always clear the
       // receiving cache before resetting stores; manual logout is idempotent.
-      await clearReceivingSession().catch(error => logger.error(error));
+      await clearReceivingSession().catch(error => logger.error("Failed to clear receiving session", commonUtil.getErrorMessage(error)));
       useTransferOrderStore().closeLocalDetail();
       useNotificationStore().clearNotificationState();
       useOrderStore().$reset();

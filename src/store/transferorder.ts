@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { api, commonUtil, translate } from "@common";
+import { api, commonUtil, logger, translate } from "@common";
 import { useProductStore as useProduct } from "@/store/product";
 import { useProductStore } from "@/store/productStore";
 import { useUserStore } from "@/store/user";
@@ -177,8 +177,9 @@ export const useTransferOrderStore = defineStore("transferorder", {
         }
       } catch (err) {
         if (!isCurrent()) return resp;
-        console.error("No transfer orders found", err);
-        commonUtil.showToast(translate("Something went wrong"));
+        const serverError = commonUtil.getErrorMessage(err, translate("Please contact administrator."));
+        logger.error("Failed to fetch transfer orders", serverError);
+        commonUtil.showToast(translate("Failed to fetch transfer orders. {error}", { error: serverError }));
       }
       return resp;
     },

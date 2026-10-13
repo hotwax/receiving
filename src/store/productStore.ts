@@ -160,8 +160,8 @@ export const useProductStore = defineStore('productStore', {
         this.userFacilities = resp.data
         this.setCurrentFacility(resp.data[0])
       } catch (error: any) {
-        logger.error("error", error);
-        return Promise.reject(new Error(error));
+        logger.error("Failed to fetch user facilities", commonUtil.getErrorMessage(error));
+        return Promise.reject(new Error(commonUtil.getErrorMessage(error)));
       }
     },
     async setFacilityPreference(payload: any) {
@@ -177,7 +177,7 @@ export const useProductStore = defineStore('productStore', {
           }
         });
       } catch (error) {
-        console.error('error', error)
+        logger.error('Failed to update facility preference', commonUtil.getErrorMessage(error));
       }
       this.currentFacility = payload;
     },
@@ -218,7 +218,7 @@ export const useProductStore = defineStore('productStore', {
           }
         }
       } catch (err) {
-        logger.error('Failed to resolve facility preference:', err)
+        logger.error('Failed to resolve facility preference:', commonUtil.getErrorMessage(err))
       }
       // Fallback to first associated facility
       if (this.userFacilities?.length) {
@@ -256,7 +256,7 @@ export const useProductStore = defineStore('productStore', {
             productStores.map((store: any) => productStoresMap[store.productStoreId] = store.storeName)
             stores.map((store: any) => store.storeName = productStoresMap[store.productStoreId])
           } catch (error) {
-            console.error(error);
+            logger.error('Failed to fetch product stores', commonUtil.getErrorMessage(error));
           }
         }
 
@@ -268,13 +268,13 @@ export const useProductStore = defineStore('productStore', {
         }
         this.setCurrentProductStore(productStores[0])
       } catch (error: any) {
-        logger.error("error", error);
-        return Promise.reject(new Error(error));
+        logger.error("Failed to fetch product stores", commonUtil.getErrorMessage(error));
+        return Promise.reject(new Error(commonUtil.getErrorMessage(error)));
       }
     },
     async fetchProductStoreDependencies(productStoreId: string) {
       await useProductStore().fetchProductStoreSettings(productStoreId)
-        .catch((error) => logger.error(error))
+        .catch((error) => logger.error("Failed to fetch product store settings", commonUtil.getErrorMessage(error)))
     },
 
     async fetchProductStoreFacilities(productStoreId: string) {
@@ -303,7 +303,7 @@ export const useProductStore = defineStore('productStore', {
           throw resp.data;
         }
       } catch (error) {
-        logger.error("Failed to fetch product store facilities", error);
+        logger.error("Failed to fetch product store facilities", commonUtil.getErrorMessage(error));
       }
 
       this.currentProductStore.facilities = facilities;
@@ -353,7 +353,7 @@ export const useProductStore = defineStore('productStore', {
           }
         });
       } catch (error) {
-        logger.error("Failed to fetch facility addresses", error);
+        logger.error("Failed to fetch facility addresses", commonUtil.getErrorMessage(error));
       }
 
       this.facilityAddresses = facilityAddresses;
@@ -381,7 +381,7 @@ export const useProductStore = defineStore('productStore', {
             })
           }
         } catch (error) {
-          logger.error("Failed to fetch settings", error)
+          logger.error("Failed to fetch settings", commonUtil.getErrorMessage(error))
         }
       }
 
@@ -450,8 +450,9 @@ export const useProductStore = defineStore('productStore', {
           throw resp
         }
       } catch (err) {
-        commonUtil.showToast(translate('Failed to update Product Store setting.'))
-        logger.error(err)
+        const serverError = commonUtil.getErrorMessage(err, translate("Please contact administrator."));
+        logger.error("Failed to update Product Store setting", serverError);
+        commonUtil.showToast(translate("Failed to update Product Store setting. {error}", { error: serverError }));
       }
     },
 
@@ -480,7 +481,7 @@ export const useProductStore = defineStore('productStore', {
 
         fetchedGoodIdentificationOptions = resp.data
       } catch (error) {
-        console.error('Failed to fetch good identification types', error)
+        logger.error('Failed to fetch good identification types', commonUtil.getErrorMessage(error));
       }
 
       // Merge the arrays and remove duplicates
@@ -501,7 +502,7 @@ export const useProductStore = defineStore('productStore', {
           throw resp
         }
       } catch (error: any) {
-        console.error(error)
+        logger.error('Failed to fetch sample products', commonUtil.getErrorMessage(error));
       }
     },
     shuffleProduct() {
@@ -531,7 +532,7 @@ export const useProductStore = defineStore('productStore', {
           this.facilityLocationsByFacilityId[facilityId] = resp.data;
         }
       } catch (err) {
-        console.error('Error', err);
+        logger.error('Failed to fetch facility locations', commonUtil.getErrorMessage(err));
       }
       return resp.data;
     },

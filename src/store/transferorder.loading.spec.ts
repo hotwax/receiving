@@ -2,7 +2,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createPinia, setActivePinia } from 'pinia';
 
-vi.mock('@common', () => ({ api: vi.fn(), commonUtil: { hasError: (response: any) => !!response.data.errors, showToast: vi.fn() }, translate: (text: string) => text }));
+vi.mock('@common', () => ({
+  api: vi.fn(),
+  commonUtil: {
+    hasError: (response: any) => !!response.data.errors,
+    showToast: vi.fn(),
+    getErrorMessage: vi.fn((err: any, fallback?: string) => fallback || "")
+  },
+  logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() },
+  translate: (text: string) => text
+}));
 vi.mock('@/store/user', () => ({ useUserStore: vi.fn() }));
 vi.mock('@/store/productStore', () => ({ useProductStore: vi.fn() }));
 vi.mock('@/store/product', () => ({ useProductStore: () => ({ cached: {} }) }));

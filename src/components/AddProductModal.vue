@@ -128,7 +128,7 @@ async function getProducts( vSize?: any, vIndex?: any) {
       products.value = viewIndex ? products.value : [];
     }
   } catch(error) {
-    logger.error(error)
+    logger.error("Failed to fetch products", commonUtil.getErrorMessage(error));
   }
 }
 
@@ -152,7 +152,7 @@ function addItemToOrder(product: any) {
       props.onProductAdded?.();
     },
     onError: (product: any, error: any) => {
-      logger.error(`Failed to add product ${product.productId}:`, error);
+      logger.error(`Failed to add product ${product.productId}:`, commonUtil.getErrorMessage(error));
     }
   }
   props.addProductToQueue(itemToAdd);

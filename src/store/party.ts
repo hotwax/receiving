@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { api, commonUtil } from "@common";
+import { api, commonUtil, logger } from "@common";
 
 export const usePartyStore = defineStore("party", {
   state: () => ({
@@ -32,10 +32,10 @@ export const usePartyStore = defineStore("party", {
             this.namesByLoginId[receiverDetails.userLoginId] = receiverDetails;
           });
         } else {
-          console.error(resp);
+          logger.error("Failed to fetch receiver details", commonUtil.getErrorMessage(resp));
         }
       } catch (err) {
-        console.error(err);
+        logger.error("Failed to fetch receiver details", commonUtil.getErrorMessage(err));
       }
       return this.namesByLoginId;
     },

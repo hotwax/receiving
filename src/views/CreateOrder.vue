@@ -392,7 +392,7 @@ async function fetchProductStoreDetails(productStoreId: string) {
       throw resp.data;
     }
   } catch (err) {
-    logger.error(err);
+    logger.error("Failed to fetch product store currency", commonUtil.getErrorMessage(err));
   }
 }
 
@@ -409,7 +409,7 @@ async function fetchBarcodeIdentificationDesc() {
       throw resp.data;
     }
   } catch (err) {
-    logger.error("Failed to fetch product identification descriptions", err);
+    logger.error("Failed to fetch product identification descriptions", commonUtil.getErrorMessage(err));
   }
 }
 
@@ -466,7 +466,7 @@ async function addOrderItem(productToAdd: any, scannedId?: string) {
     }
   } catch (err) {
     searchedProduct.value = {};
-    logger.error(`Failed to add product ${productToAdd.productId}:`, err);
+    logger.error(`Failed to add product ${productToAdd.productId}:`, commonUtil.getErrorMessage(err));
   } finally {
     pendingProductIds.value.delete(productToAdd.productId);
   }
@@ -688,9 +688,10 @@ async function createOrder() {
       throw resp.data;
     }
   } catch(error: any) {
-    logger.error(error)
+    const serverError = commonUtil.getErrorMessage(error, translate("Please contact administrator."));
+    logger.error("Failed to create order", serverError);
     emitter.emit("dismissLoader")
-    commonUtil.showToast(translate("Failed to create order."), { position: 'top' })
+    commonUtil.showToast(translate("Failed to create order. {error}", { error: serverError }), { position: 'top' })
   }
 }
 
@@ -763,7 +764,7 @@ async function findProduct(value: string) {
       return null;
     }
   } catch (err) {
-    logger.error(err);
+    logger.error("Failed to find item", commonUtil.getErrorMessage(err));
     searchedProduct.value = {};
     isSearchingProduct.value = false;
   }
@@ -782,7 +783,7 @@ async function fetchStock(productId: string) {
       throw resp.data;
     }
   } catch (err) {
-    logger.error(err)
+    logger.error("Failed to fetch stock", commonUtil.getErrorMessage(err));
     return null;
   }
 }
