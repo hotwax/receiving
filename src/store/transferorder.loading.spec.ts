@@ -3,22 +3,28 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createPinia, setActivePinia } from 'pinia';
 
 vi.mock('@common', () => {
-  const getErrorMessage = (err: any, fallback = "") =>
-    err?.response?.data?._ERROR_MESSAGE_ ||
-    err?.response?.data?.errors ||
-    err?.data?._ERROR_MESSAGE_ ||
-    err?.data?.errors ||
-    err?.message ||
-    fallback;
+  const getErrorMessage = (err: any, fallback = "") => {
+    const list = err?.response?.data?.errors || err?.data?.errors;
+    const fromList = Array.isArray(list) ? list.filter(Boolean).join(", ") : "";
+    return (
+      err?.response?.data?._ERROR_MESSAGE_ ||
+      fromList ||
+      (typeof err?.response?.data?.errors === 'string' ? err.response.data.errors : "") ||
+      err?.data?._ERROR_MESSAGE_ ||
+      (typeof err?.data?.errors === 'string' ? err.data.errors : "") ||
+      err?.message ||
+      fallback
+    );
+  };
   return {
     api: vi.fn(),
     commonUtil: {
-      hasError: (response: any) => !!(response?.data?._ERROR_MESSAGE_ || response?.data?._ERROR_MESSAGE_LIST_ || response?.data?.errors),
+      hasError: (response: any) => !!(response?.data?._ERROR_MESSAGE_ || response?.data?._ERROR_MESSAGE_LIST_?.length || response?.data?.errors),
       showToast: vi.fn(),
       getErrorMessage
     },
     logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() },
-    translate: (key: string, params?: any) => key.replace(/\{(\w+)\}/g, (_, k) => params?.[k] ?? `{${k}}`)
+    translate: (key: string) => key
   };
 });
 vi.mock('@/store/user', () => ({ useUserStore: vi.fn() }));
@@ -156,5 +162,16 @@ describe('Detail loading boundary', () => {
     await store.fetchTransferOrders(params);
 
     expect(commonUtil.showToast).toHaveBeenCalledWith('Failed to fetch transfer orders. No access');
+  });
+
+  it('falls back to administrator message when API returns an empty error payload', async () => {
+    const store = useTransferOrderStore();
+    vi.mocked(api).mockResolvedValue({
+      data: { errors: [] }
+    } as any);
+
+    await store.fetchTransferOrders(params);
+
+    expect(commonUtil.showToast).toHaveBeenCalledWith('Failed to fetch transfer orders. Please contact administrator.');
   });
 });

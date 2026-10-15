@@ -48,7 +48,7 @@ export const useReturnStore = defineStore("return", {
       } catch (error) {
         const serverError = commonUtil.getErrorMessage(error, translate("Please contact administrator."));
         logger.error("Failed to fetch returns", serverError);
-        commonUtil.showToast(translate("Failed to fetch returns. {error}", { error: serverError }));
+        commonUtil.showToast(`${translate("Failed to fetch returns.")} ${serverError}`);
       }
       if (payload.pageIndex === 0) emitter.emit("dismissLoader");
       return resp;
@@ -100,7 +100,7 @@ export const useReturnStore = defineStore("return", {
           } else {
             const serverError = commonUtil.getErrorMessage(resp, translate("Please contact administrator."));
             logger.error("Failed to fetch return details", serverError);
-            commonUtil.showToast(translate("Failed to fetch return details. {error}", { error: serverError }));
+            commonUtil.showToast(`${translate("Failed to fetch return details.")} ${serverError}`);
             return;
           }
         }
@@ -139,13 +139,13 @@ export const useReturnStore = defineStore("return", {
         } else {
           const serverError = commonUtil.getErrorMessage(resp, translate("Please contact administrator."));
           logger.error("Failed to fetch return shipment items", serverError);
-          commonUtil.showToast(translate("Failed to fetch return shipment items. {error}", { error: serverError }));
+          commonUtil.showToast(`${translate("Failed to fetch return shipment items.")} ${serverError}`);
           return Promise.reject(new Error(serverError));
         }
       } catch (err: any) {
         const serverError = commonUtil.getErrorMessage(err, translate("Please contact administrator."));
         logger.error("Failed to fetch return shipment items", serverError);
-        commonUtil.showToast(translate("Failed to fetch return shipment items. {error}", { error: serverError }));
+        commonUtil.showToast(`${translate("Failed to fetch return shipment items.")} ${serverError}`);
         return Promise.reject(new Error(serverError));
       }
     },

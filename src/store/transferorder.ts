@@ -179,7 +179,7 @@ export const useTransferOrderStore = defineStore("transferorder", {
         if (!isCurrent()) return resp;
         const serverError = commonUtil.getErrorMessage(err, translate("Please contact administrator."));
         logger.error("Failed to fetch transfer orders", serverError);
-        commonUtil.showToast(translate("Failed to fetch transfer orders. {error}", { error: serverError }));
+        commonUtil.showToast(`${translate("Failed to fetch transfer orders.")} ${serverError}`);
       }
       return resp;
     },

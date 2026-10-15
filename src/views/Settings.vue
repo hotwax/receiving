@@ -195,7 +195,7 @@ const updateNotificationPref = async (enumId: string) => {
   } catch (error) {
     const serverError = commonUtil.getErrorMessage(error, translate("Please try again."));
     logger.error("Failed to update notification preferences", serverError);
-    commonUtil.showToast(translate("Notification preferences not updated. {error}", { error: serverError }));
+    commonUtil.showToast(`${translate("Notification preferences not updated.")} ${serverError}`);
   } finally {
     emitter.emit("dismissLoader");
   }

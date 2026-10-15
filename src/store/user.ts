@@ -114,7 +114,7 @@ export const useUserStore = defineStore("user", {
       } catch (error: any) {
         const serverError = commonUtil.getErrorMessage(error, translate("Please contact administrator."));
         logger.error("Failed to fetch user profile information", serverError);
-        commonUtil.showToast(translate("Failed to fetch user profile information. {error}", { error: serverError }));
+        commonUtil.showToast(`${translate("Failed to fetch user profile information.")} ${serverError}`);
         useAuth().clearAuth();
         return Promise.reject(new Error(serverError));
       }
@@ -170,7 +170,7 @@ export const useUserStore = defineStore("user", {
       } catch (error: any) {
         const serverError = commonUtil.getErrorMessage(error, translate("Please contact administrator."));
         logger.error("Failed to set user time zone", serverError);
-        commonUtil.showToast(translate("Failed to set user time zone. {error}", { error: serverError }));
+        commonUtil.showToast(`${translate("Failed to set user time zone.")} ${serverError}`);
       }
     },
 

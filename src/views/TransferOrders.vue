@@ -124,7 +124,7 @@ const submitSearch = async () => {
       ? commonUtil.getErrorMessage(err, translate('Refresh to retry.'))
       : translate('Refresh to retry.');
     logger.error('Failed to look up tracking code', isApiError ? serverError : err);
-    commonUtil.showToast(translate('Unable to look up this tracking code. {error}', { error: serverError }));
+    commonUtil.showToast(`${translate('Unable to look up this tracking code.')} ${serverError}`);
   }
   finally { openingTracking = false; }
 };

@@ -1010,7 +1010,7 @@ const reviewReceipt = async () => {
       ? commonUtil.getErrorMessage(err, translate('Refresh and review it again.'))
       : translate('Refresh and review it again.');
     logger.error('Failed to resolve receipt', isApiError ? serverError : err);
-    commonUtil.showToast(translate('Unable to resolve receipt. {error}', { error: serverError }));
+    commonUtil.showToast(`${translate('Unable to resolve receipt.')} ${serverError}`);
   }
 };
 
@@ -1026,7 +1026,7 @@ const refreshLocalOrder = async () => {
       ? commonUtil.getErrorMessage(err, translate('Please contact administrator.'))
       : translate('Please try again.');
     logger.error('Failed to refresh transfer data', isApiError ? serverError : err);
-    commonUtil.showToast(translate('Unable to refresh transfer data. {error}', { error: serverError }));
+    commonUtil.showToast(`${translate('Unable to refresh transfer data.')} ${serverError}`);
   }
   finally { refreshingDetail.value = false; }
 };

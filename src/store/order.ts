@@ -65,7 +65,7 @@ export const useOrderStore = defineStore("order", {
       } catch (error) {
         const serverError = commonUtil.getErrorMessage(error, translate("Please contact administrator."));
         logger.error("Failed to fetch purchase orders", serverError);
-        commonUtil.showToast(translate("Failed to fetch purchase orders. {error}", { error: serverError }));
+        commonUtil.showToast(`${translate("Failed to fetch purchase orders.")} ${serverError}`);
       }
       if (start == 0) emitter.emit("dismissLoader");
       return resp;
@@ -130,7 +130,7 @@ export const useOrderStore = defineStore("order", {
         } else {
           const serverError = commonUtil.getErrorMessage(resp, translate("Please contact administrator."));
           logger.error("Failed to fetch order details", serverError);
-          commonUtil.showToast(translate("Failed to fetch order details. {error}", { error: serverError }));
+          commonUtil.showToast(`${translate("Failed to fetch order details.")} ${serverError}`);
           this.current = {
             orderId,
             externalOrderId: "",
@@ -143,7 +143,7 @@ export const useOrderStore = defineStore("order", {
       } catch (error) {
         const serverError = commonUtil.getErrorMessage(error, translate("Please contact administrator."));
         logger.error("Failed to fetch order details", serverError);
-        commonUtil.showToast(translate("Failed to fetch order details. {error}", { error: serverError }));
+        commonUtil.showToast(`${translate("Failed to fetch order details.")} ${serverError}`);
         this.current = {
           orderId,
           externalOrderId: "",
@@ -178,7 +178,7 @@ export const useOrderStore = defineStore("order", {
       } catch (error) {
         const serverError = commonUtil.getErrorMessage(error, translate("Please contact administrator."));
         logger.error("Failed to receive order", serverError);
-        commonUtil.showToast(translate("Failed to receive order. {error}", { error: serverError }));
+        commonUtil.showToast(`${translate("Failed to receive order.")} ${serverError}`);
         return Promise.reject(error);
       }
     },

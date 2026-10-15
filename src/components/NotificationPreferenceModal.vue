@@ -96,7 +96,7 @@ const handleTopicSubscription = async () => {
     const failedReason = (responses.find((r: any) => r.status === "rejected") as any)?.reason;
     const serverError = commonUtil.getErrorMessage(failedReason, translate("Please try again."));
     logger.error("Failed to update notification preferences", serverError);
-    commonUtil.showToast(translate("Notification preferences not updated. {error}", { error: serverError }));
+    commonUtil.showToast(`${translate("Notification preferences not updated.")} ${serverError}`);
   } else {
     commonUtil.showToast(translate("Notification preferences updated."));
   }
