@@ -193,7 +193,9 @@ const updateNotificationPref = async (enumId: string) => {
     isToggledOn = notificationPref.isEnabled;
     commonUtil.showToast(translate("Notification preferences updated."));
   } catch (error) {
-    commonUtil.showToast(translate("Notification preferences not updated. Please try again."));
+    const serverError = commonUtil.getErrorMessage(error, translate("Please try again."));
+    logger.error("Failed to update notification preferences", serverError);
+    commonUtil.showToast(`${translate("Notification preferences not updated.")} ${serverError}`);
   } finally {
     emitter.emit("dismissLoader");
   }
@@ -205,7 +207,7 @@ const updateNotificationPref = async (enumId: string) => {
     }
     await notificationStore.fetchAllNotificationPrefs(import.meta.env.VITE_NOTIF_APP_ID, userProfile.value?.userId);
   } catch (error) {
-    logger.error(error);
+    logger.error("Failed to update notification preferences", commonUtil.getErrorMessage(error));
   }
 };
 

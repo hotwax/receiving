@@ -77,7 +77,7 @@ import router from '@/router';
 import { useTransferOrderStore } from '@/store/transferorder';
 import { useUserStore } from '@/store/user';
 import TransferOrderItem from '@/components/TransferOrderItem.vue'
-import { translate, commonUtil } from "@common"
+import { translate, commonUtil, logger } from "@common"
 import { useProductStore } from '@/store/productStore';
 import Actions from "@/authorization/actions"
 
@@ -118,7 +118,14 @@ const submitSearch = async () => {
         currentFacility.value?.facilityId === facilityId && selectedSegment.value === 'open') {
       await router.push({ path: `/transfer-order-detail/${matches[0]!.orderId}`, query: { tracking: query } });
     }
-  } catch { commonUtil.showToast(translate('Unable to look up this tracking code. Refresh to retry.')); }
+  } catch (err: any) {
+    const isApiError = !!(err?.response || err?.data);
+    const serverError = isApiError
+      ? commonUtil.getErrorMessage(err, translate('Refresh to retry.'))
+      : translate('Refresh to retry.');
+    logger.error('Failed to look up tracking code', isApiError ? serverError : err);
+    commonUtil.showToast(`${translate('Unable to look up this tracking code.')} ${serverError}`);
+  }
   finally { openingTracking = false; }
 };
 watch([queryString, selectedSegment], ([query, segment], [previousQuery]) => {

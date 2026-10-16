@@ -43,7 +43,8 @@ export const useUtilStore = defineStore("util", {
           this.status = cachedStatus;
         }
       } catch (err) {
-        console.error("Something went wrong while fetching status");
+        const serverError = commonUtil.getErrorMessage(err, "Please contact administrator.");
+        logger.error("Failed to fetch status", serverError);
       }
       return cachedStatus;
     },
@@ -128,7 +129,7 @@ export const useUtilStore = defineStore("util", {
           throw resp.data;
         }
       } catch (error) {
-        logger.error("Error fetching store carriers and shipment methods", error);
+        logger.error("Error fetching store carriers and shipment methods", commonUtil.getErrorMessage(error));
       }
 
       this.shipmentMethodsByCarrier = shipmentMethodsByCarrier;
@@ -157,7 +158,7 @@ export const useUtilStore = defineStore("util", {
           throw resp.data;
         }
       } catch (error) {
-        logger.error("Error fetching carriers detail", error);
+        logger.error("Error fetching carriers detail", commonUtil.getErrorMessage(error));
       }
 
       this.carrierDesc = carrierDesc;
