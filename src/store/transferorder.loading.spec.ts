@@ -4,22 +4,31 @@ import { createPinia, setActivePinia } from 'pinia';
 
 vi.mock('@common', () => {
   const getErrorMessage = (err: any, fallback = "") => {
-    const list = err?.response?.data?.errors || err?.data?.errors;
-    const fromList = Array.isArray(list) ? list.filter(Boolean).join(", ") : "";
-    return (
+    const raw =
       err?.response?.data?._ERROR_MESSAGE_ ||
-      fromList ||
-      (typeof err?.response?.data?.errors === 'string' ? err.response.data.errors : "") ||
+      err?.response?.data?.errors ||
       err?.data?._ERROR_MESSAGE_ ||
-      (typeof err?.data?.errors === 'string' ? err.data.errors : "") ||
-      err?.message ||
-      fallback
-    );
+      err?.data?.errors ||
+      err?.message;
+    if (typeof raw === 'string') {
+      const trimmed = raw.trim();
+      if (trimmed && !trimmed.startsWith('<')) {
+        return trimmed.split(/\r?\n/).map(l => l.trim()).filter(Boolean).join('; ');
+      }
+    }
+    return fallback;
   };
   return {
     api: vi.fn(),
     commonUtil: {
-      hasError: (response: any) => !!(response?.data?._ERROR_MESSAGE_ || response?.data?._ERROR_MESSAGE_LIST_?.length || response?.data?.errors),
+      hasError: (response: any) => {
+        const data = response?.data ?? response;
+        if (!data || typeof data !== 'object') return false;
+        if (typeof data._ERROR_MESSAGE_ === 'string' && data._ERROR_MESSAGE_.length) return true;
+        if (Array.isArray(data._ERROR_MESSAGE_LIST_) && data._ERROR_MESSAGE_LIST_.length > 0) return true;
+        if (data.error) return true;
+        return false;
+      },
       showToast: vi.fn(),
       getErrorMessage
     },
@@ -166,8 +175,8 @@ describe('Detail loading boundary', () => {
 
   it('falls back to administrator message when API returns an empty error payload', async () => {
     const store = useTransferOrderStore();
-    vi.mocked(api).mockResolvedValue({
-      data: { errors: [] }
+    vi.mocked(api).mockRejectedValue({
+      response: { data: { errors: '  ' } }
     } as any);
 
     await store.fetchTransferOrders(params);
