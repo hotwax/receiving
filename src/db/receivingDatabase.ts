@@ -1,5 +1,5 @@
 import { BaseDB, ensureDbReady, clearDatabaseTables } from '@common/db/storage/baseDb';
-import { defineAppDb } from '@common/db/schema/defineAppDb';
+import { defineAppDb } from '@common/db/model/defineAppDb';
 import { dbClient } from '@common/db/storage/dbClient';
 import { diffStaleKeys, projectRow, toMillis } from '@common/db/storage/projection';
 import { receivingSchema } from './receivingSchema';

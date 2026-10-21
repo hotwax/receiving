@@ -1,5 +1,5 @@
-import { defineEntity } from '@common/db/schema/defineEntity';
-import { defineSchema } from '@common/db/schema/defineSchema';
+import { defineEntity } from '@common/db/model/defineEntity';
+import { defineSchema } from '@common/db/model/defineSchema';
 
 // Each declaration projects an existing API response; no display/search rows are persisted.
 const receiptFields = {
