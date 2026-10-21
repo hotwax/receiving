@@ -1,5 +1,5 @@
 import { shallowRef } from 'vue';
-import { useAuth } from '@common/composables/useAuth';
+import { useAuth, isMoquiOmsRef } from '@common/composables/useAuth';
 import { commonUtil } from '@common/utils/commonUtil';
 import { configureReceiving, enableReceivingSession, receivingScope } from './receivingClient';
 
@@ -27,6 +27,6 @@ export function syncReceivingSession(facilityId?: string, userId?: string) {
   }
   return configureReceiving({
     scope: receivingScope(maargUrl, commonUtil.getOmsURL(), userId),
-    maargUrl, token, facilityId, moqui: commonUtil.isMoqui(),
+    maargUrl, token, facilityId, moqui: isMoquiOmsRef.value,
   });
 }
