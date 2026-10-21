@@ -40,7 +40,7 @@ export const useShipmentStore = defineStore("shipment", {
           throw resp;
         }
       } catch (err) {
-        const serverError = commonUtil.getErrorMessage(err, translate("Please contact administrator."));
+        const serverError = commonUtil.getErrorMessage(err);
         logger.error("Failed to receive return shipment", serverError);
         commonUtil.showToast(`${translate("Failed to receive return shipment.")} ${serverError}`);
       }

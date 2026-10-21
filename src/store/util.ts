@@ -43,7 +43,7 @@ export const useUtilStore = defineStore("util", {
           this.status = cachedStatus;
         }
       } catch (err) {
-        const serverError = commonUtil.getErrorMessage(err, "Please contact administrator.");
+        const serverError = commonUtil.getErrorMessage(err);
         logger.error("Failed to fetch status", serverError);
       }
       return cachedStatus;

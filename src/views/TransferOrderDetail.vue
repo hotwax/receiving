@@ -1005,11 +1005,8 @@ const reviewReceipt = async () => {
     for (const item of order.value.items || []) { delete item.quantityAccepted; delete item._draftBaseline; }
     transferOrderStore.acknowledgeLocalChanges();
   } catch (err: any) {
-    const isApiError = !!(err?.response || err?.data);
-    const serverError = isApiError
-      ? commonUtil.getErrorMessage(err, translate('Refresh and review it again.'))
-      : translate('Refresh and review it again.');
-    logger.error('Failed to resolve receipt', isApiError ? serverError : err);
+    const serverError = commonUtil.getErrorMessage(err);
+    logger.error('Failed to resolve receipt', serverError);
     commonUtil.showToast(`${translate('Unable to resolve receipt.')} ${serverError}`);
   }
 };
@@ -1021,11 +1018,8 @@ const refreshLocalOrder = async () => {
   refreshingDetail.value = true;
   try { await ensureReceivingOrder(String(router.currentRoute.value.params.slug), true); }
   catch (err: any) {
-    const isApiError = !!(err?.response || err?.data);
-    const serverError = isApiError
-      ? commonUtil.getErrorMessage(err, translate('Please contact administrator.'))
-      : translate('Please try again.');
-    logger.error('Failed to refresh transfer data', isApiError ? serverError : err);
+    const serverError = commonUtil.getErrorMessage(err);
+    logger.error('Failed to refresh transfer data', serverError);
     commonUtil.showToast(`${translate('Unable to refresh transfer data.')} ${serverError}`);
   }
   finally { refreshingDetail.value = false; }

@@ -46,7 +46,7 @@ export const useReturnStore = defineStore("return", {
           payload.pageIndex ? commonUtil.showToast(translate("Returns not found")) : (this.returns = { list: [], total: 0 });
         }
       } catch (error) {
-        const serverError = commonUtil.getErrorMessage(error, translate("Please contact administrator."));
+        const serverError = commonUtil.getErrorMessage(error);
         logger.error("Failed to fetch returns", serverError);
         commonUtil.showToast(`${translate("Failed to fetch returns.")} ${serverError}`);
       }
@@ -98,7 +98,7 @@ export const useReturnStore = defineStore("return", {
             const statuses = await utilStore.fetchStatus([returnShipment.statusId]);
             returnShipment.statusDesc = statuses[returnShipment.statusId];
           } else {
-            const serverError = commonUtil.getErrorMessage(resp, translate("Please contact administrator."));
+            const serverError = commonUtil.getErrorMessage(resp);
             logger.error("Failed to fetch return details", serverError);
             commonUtil.showToast(`${translate("Failed to fetch return details.")} ${serverError}`);
             return;
@@ -137,13 +137,13 @@ export const useReturnStore = defineStore("return", {
 
           return resp.data;
         } else {
-          const serverError = commonUtil.getErrorMessage(resp, translate("Please contact administrator."));
+          const serverError = commonUtil.getErrorMessage(resp);
           logger.error("Failed to fetch return shipment items", serverError);
           commonUtil.showToast(`${translate("Failed to fetch return shipment items.")} ${serverError}`);
           return Promise.reject(new Error(serverError));
         }
       } catch (err: any) {
-        const serverError = commonUtil.getErrorMessage(err, translate("Please contact administrator."));
+        const serverError = commonUtil.getErrorMessage(err);
         logger.error("Failed to fetch return shipment items", serverError);
         commonUtil.showToast(`${translate("Failed to fetch return shipment items.")} ${serverError}`);
         return Promise.reject(new Error(serverError));

@@ -63,7 +63,7 @@ export const useOrderStore = defineStore("order", {
             : (this.purchaseOrders = { list: [], total: 0 });
         }
       } catch (error) {
-        const serverError = commonUtil.getErrorMessage(error, translate("Please contact administrator."));
+        const serverError = commonUtil.getErrorMessage(error);
         logger.error("Failed to fetch purchase orders", serverError);
         commonUtil.showToast(`${translate("Failed to fetch purchase orders.")} ${serverError}`);
       }
@@ -128,7 +128,7 @@ export const useOrderStore = defineStore("order", {
             poHistory: { items: [] },
           };
         } else {
-          const serverError = commonUtil.getErrorMessage(resp, translate("Please contact administrator."));
+          const serverError = commonUtil.getErrorMessage(resp);
           logger.error("Failed to fetch order details", serverError);
           commonUtil.showToast(`${translate("Failed to fetch order details.")} ${serverError}`);
           this.current = {
@@ -141,7 +141,7 @@ export const useOrderStore = defineStore("order", {
           };
         }
       } catch (error) {
-        const serverError = commonUtil.getErrorMessage(error, translate("Please contact administrator."));
+        const serverError = commonUtil.getErrorMessage(error);
         logger.error("Failed to fetch order details", serverError);
         commonUtil.showToast(`${translate("Failed to fetch order details.")} ${serverError}`);
         this.current = {
@@ -176,7 +176,7 @@ export const useOrderStore = defineStore("order", {
           throw resp;
         }
       } catch (error) {
-        const serverError = commonUtil.getErrorMessage(error, translate("Please contact administrator."));
+        const serverError = commonUtil.getErrorMessage(error);
         logger.error("Failed to receive order", serverError);
         commonUtil.showToast(`${translate("Failed to receive order.")} ${serverError}`);
         return Promise.reject(error);

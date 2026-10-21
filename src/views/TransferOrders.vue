@@ -119,11 +119,8 @@ const submitSearch = async () => {
       await router.push({ path: `/transfer-order-detail/${matches[0]!.orderId}`, query: { tracking: query } });
     }
   } catch (err: any) {
-    const isApiError = !!(err?.response || err?.data);
-    const serverError = isApiError
-      ? commonUtil.getErrorMessage(err, translate('Refresh to retry.'))
-      : translate('Refresh to retry.');
-    logger.error('Failed to look up tracking code', isApiError ? serverError : err);
+    const serverError = commonUtil.getErrorMessage(err);
+    logger.error('Failed to look up tracking code', serverError);
     commonUtil.showToast(`${translate('Unable to look up this tracking code.')} ${serverError}`);
   }
   finally { openingTracking = false; }

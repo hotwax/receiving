@@ -173,7 +173,7 @@ describe('Detail loading boundary', () => {
     expect(commonUtil.showToast).toHaveBeenCalledWith('Failed to fetch transfer orders. No access');
   });
 
-  it('falls back to administrator message when API returns an empty error payload', async () => {
+  it('shows only the static message when API returns an empty error payload', async () => {
     const store = useTransferOrderStore();
     vi.mocked(api).mockRejectedValue({
       response: { data: { errors: '  ' } }
@@ -181,6 +181,6 @@ describe('Detail loading boundary', () => {
 
     await store.fetchTransferOrders(params);
 
-    expect(commonUtil.showToast).toHaveBeenCalledWith('Failed to fetch transfer orders. Please contact administrator.');
+    expect(commonUtil.showToast).toHaveBeenCalledWith('Failed to fetch transfer orders. ');
   });
 });
