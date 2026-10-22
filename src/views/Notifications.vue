@@ -37,8 +37,8 @@ import { computed } from "vue";
 import { cogOutline } from "ionicons/icons";
 import { DateTime } from "luxon";
 import NotificationPreferenceModal from "@/components/NotificationPreferenceModal.vue";
-import { translate } from "@common";
-import { useNotificationStore } from "@common";
+import { translate } from '@common/core/i18n';
+import { useNotificationStore } from '@common/store/notification';
 const notifications = computed(() => useNotificationStore().getNotifications);
 
 const openNotificationSettings = async () => {

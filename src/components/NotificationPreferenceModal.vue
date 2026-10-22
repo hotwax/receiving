@@ -28,10 +28,15 @@
 </template>
 
 <script setup lang="ts">
+import { getOMSInstanceName as utilGetOMSInstanceName, showToast as utilShowToast } from '@common/utils/core';
 import { IonButtons, IonButton, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonItem, IonList, IonTitle, IonToggle, IonToolbar, modalController, alertController } from "@ionic/vue";
 import { computed, onBeforeMount, ref } from "vue";
 import { closeOutline, save } from "ionicons/icons";
-import { commonUtil, emitter, firebaseMessaging, logger, translate, useNotificationStore } from "@common";
+import { default as emitter } from '@common/core/emitter';
+import { firebaseMessaging } from '@common/core/firebaseMessaging';
+import { default as logger } from '@common/core/logger';
+import { translate } from '@common/core/i18n';
+import { useNotificationStore } from '@common/store/notification';
 import { useUserStore as useDxpUserStore } from "@/store/user";
 import { useProductStore } from "@/store/productStore";
 const productStore = useProductStore();
@@ -50,7 +55,7 @@ const isButtonDisabled = computed(() => {
 onBeforeMount(async () => {
   const userStore = useDxpUserStore();
   const notificationStore = useNotificationStore();
-  const omsInstanceName = commonUtil.getOMSInstanceName();
+  const omsInstanceName = utilGetOMSInstanceName();
   await (notificationStore as any).fetchNotificationPreferences(import.meta.env.VITE_NOTIF_ENUM_TYPE_ID, import.meta.env.VITE_NOTIF_APP_ID, userStore.getUserProfile.userLoginId, (enumId: string) => firebaseMessaging.generateTopicName(omsInstanceName, productStore.getCurrentFacility.facilityId, enumId));
   notificationPrefState.value = notificationPrefs.value.reduce((prefs: any, pref: any) => {
     prefs[pref.enumId] = pref.isEnabled;
@@ -75,7 +80,7 @@ const toggleNotificationPref = (enumId: string, event: any) => {
 
 const handleTopicSubscription = async () => {
   const userStore = useDxpUserStore();
-  const omsInstanceName = commonUtil.getOMSInstanceName();
+  const omsInstanceName = utilGetOMSInstanceName();
   const facilityId = (currentFacility.value as any)?.facilityId;
   const subscribeRequests = [] as any;
   const notificationStore = useNotificationStore();
@@ -92,7 +97,7 @@ const handleTopicSubscription = async () => {
 
   const responses = await Promise.allSettled([...subscribeRequests, ...unsubscribeRequests]);
   const hasFailedResponse = responses.some((response: any) => response.status === "rejected");
-  commonUtil.showToast(hasFailedResponse ? translate("Notification preferences not updated. Please try again.") : translate("Notification preferences updated."));
+  utilShowToast(hasFailedResponse ? translate("Notification preferences not updated. Please try again.") : translate("Notification preferences updated."));
 };
 
 const updateNotificationPref = async () => {

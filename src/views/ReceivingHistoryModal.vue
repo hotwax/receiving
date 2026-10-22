@@ -21,9 +21,9 @@
           <DxpShopifyImg :src="getProduct(item.productId).mainImageUrl" />
         </ion-thumbnail>
         <ion-label>
-             <h2>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
-              <p>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
-              <p>{{ commonUtil.getFeatures(getProduct(item.productId).productFeatures) }}</p>
+             <h2>{{ utilGetProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? utilGetProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
+              <p>{{ utilGetProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+              <p>{{ utilGetFeatures(getProduct(item.productId).productFeatures) }}</p>
         </ion-label>
         <ion-label>
           <ion-note>{{ item.quantityAccepted }} {{ translate("received") }} | {{ item.quantityRejected }} {{ translate("rejected") }}</ion-note>
@@ -43,10 +43,12 @@
 </template>
 
 <script setup lang="ts">
+import { getFeatures as utilGetFeatures, getProductIdentificationValue as utilGetProductIdentificationValue } from '@common/utils/product';
 import { IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonItem, IonLabel, IonList, IonNote, IonProgressBar, IonThumbnail, IonTitle, IonToolbar, modalController } from '@ionic/vue';
 import { computed, onMounted } from 'vue';
 import { closeOutline } from 'ionicons/icons';
-import { DxpShopifyImg, translate, commonUtil } from '@common';
+import { default as DxpShopifyImg } from '@common/components/DxpShopifyImg.vue';
+import { translate } from '@common/core/i18n';
 import { useProductStore as useProduct } from '@/store/product';
 import { useProductStore } from '@/store/productStore';
 import { useOrderStore } from '@/store/order';
@@ -97,8 +99,8 @@ const emptyStateMessage = computed(() => {
   if (props.productId) {
     const product = getProduct.value(props.productId);
     const identifier =
-      commonUtil.getProductIdentificationValue(productIdentificationPref.value.primaryId, product) ||
-      commonUtil.getProductIdentificationValue(productIdentificationPref.value.secondaryId, product) ||
+      utilGetProductIdentificationValue(productIdentificationPref.value.primaryId, product) ||
+      utilGetProductIdentificationValue(productIdentificationPref.value.secondaryId, product) ||
       product?.productName ||
       product?.productId;
     return translate("No receipts have been created against yet", { lineBreak: '<br />', productIdentifier: identifier });

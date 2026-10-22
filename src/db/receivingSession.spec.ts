@@ -2,13 +2,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const session = vi.hoisted(() => ({ token: '' }));
-vi.mock('@common/utils/commonUtil', () => ({ commonUtil: {
-  isMoqui: () => true, isAppEmbedded: () => false,
-  getTokenExpiration: () => Date.now() + 3600000,
-  getToken: () => session.token,
-  getMaargURL: () => 'https://demo-test.invalid',
-  getOmsURL: () => 'https://demo-test.invalid',
-} }));
+vi.mock('@common/utils/core', () => ({ isMoqui: () => true, isAppEmbedded: () => false, getTokenExpiration: () => Date.now() + 3600000, getToken: () => session.token, getMaargURL: () => 'https://demo-test.invalid', getOmsURL: () => 'https://demo-test.invalid' }));
 vi.mock('@common/core/logger', () => ({ default: {} }));
 vi.mock('@common/core/i18n', () => ({ translate: (text: string) => text }));
 vi.mock('@common/core/remoteApi', () => ({ default: vi.fn() }));

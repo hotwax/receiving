@@ -26,7 +26,8 @@ import './theme/variables.css';
 
 import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
-import { createDxpI18n, initialiseConfig } from '@common';
+import { createDxpI18n } from '@common/core/i18n';
+import { initialiseConfig } from '@common/core/configRegistry';
 import localeMessages from './locales';
 import { useUserStore } from './store/user';
 

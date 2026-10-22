@@ -11,7 +11,7 @@
     <ion-card-content>
       {{ translate('This is the name of the OMS you are connected to right now. Make sure that you are connected to the right instance before proceeding.') }}
     </ion-card-content>
-    <ion-button v-if="!isEmbedded && !commonUtil.isMoqui()" :standalone-hidden="!hasStandAloneAccess" @click="commonUtil.goToOms" fill="clear" :disabled="!hasOmsAccess">
+    <ion-button v-if="!isEmbedded && !utilIsMoqui()" :standalone-hidden="!hasStandAloneAccess" @click="utilGoToOms" fill="clear" :disabled="!hasOmsAccess">
       {{ translate('Go to OMS') }}
       <ion-icon slot="end" :icon="openOutline" />
     </ion-button>
@@ -19,9 +19,11 @@
 </template>
 
 <script setup lang="ts">
+import { getOMSInstanceName as utilGetOMSInstanceName, goToOms as utilGoToOms, isMoqui as utilIsMoqui } from '@common/utils/core';
 import { IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonIcon } from '@ionic/vue';
-import { commonUtil, cookieHelper, translate } from "@common";
-import { openOutline } from 'ionicons/icons'
+import { cookieHelper } from '@common/helpers/cookieHelper';
+import { translate } from '@common/core/i18n';
+import { openOutline } from 'ionicons/icons';
 
 const props = defineProps({
   isEmbedded: {
@@ -38,7 +40,7 @@ const props = defineProps({
   }
 });
 
-const oms = commonUtil.getOMSInstanceName();
+const oms = utilGetOMSInstanceName();
 </script>
 
 <style scoped>

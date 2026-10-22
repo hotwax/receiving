@@ -11,7 +11,7 @@
 import { IonChip, IonIcon, IonSelect, IonSelectOption } from '@ionic/vue';
 import { ref, computed } from 'vue';
 import { locationOutline } from 'ionicons/icons'
-import { translate } from '@common';
+import { translate } from '@common/core/i18n';
 import { useUserStore } from '@/store/user';
 import { useProductStore } from '@/store/productStore';
 import { useReturnStore } from '@/store/return';

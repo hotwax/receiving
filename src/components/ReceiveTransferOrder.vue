@@ -25,9 +25,9 @@
           <DxpShopifyImg size="small" :src="getProduct(item.productId).mainImageUrl" />
         </ion-thumbnail>
         <ion-label>
-          <h2>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? commonUtil.getProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
-          <p>{{ commonUtil.getProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
-          <p>{{ commonUtil.getFeatures(getProduct(item.productId).productFeatures) }}</p>
+          <h2>{{ utilGetProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) ? utilGetProductIdentificationValue(productIdentificationPref.primaryId, getProduct(item.productId)) : getProduct(item.productId).productName }}</h2>
+          <p>{{ utilGetProductIdentificationValue(productIdentificationPref.secondaryId, getProduct(item.productId)) }}</p>
+          <p>{{ utilGetFeatures(getProduct(item.productId).productFeatures) }}</p>
           <template v-if="item.orderItemSeqId">
             <ion-note v-if="!closeTO" color="danger">{{ translate("Over received:") }} {{ getOverReceivedQtyForItem(item) }}</ion-note>
             <ion-note v-else color="danger">{{ getOverReceivedQtyForItem(item) > 0 ? translate("Over received:") : translate("Under received:") }} {{ getOverReceivedQtyForItem(item) }}</ion-note>
@@ -52,14 +52,16 @@
 </template>
 
 <script setup lang="ts">
+import { getFeatures as utilGetFeatures, getProductIdentificationValue as utilGetProductIdentificationValue } from '@common/utils/product';
 import { IonButton, IonButtons, IonCheckbox, IonContent, IonFooter, IonHeader, IonIcon, IonItem, IonLabel, IonList, IonListHeader, IonNote, IonTitle, IonToolbar, IonThumbnail, modalController } from '@ionic/vue';
-import { useUserStore } from '@/store/user'
+import { useUserStore } from '@/store/user';
 import { arrowBackOutline } from 'ionicons/icons';
 import { computed, onMounted, ref } from 'vue';
-import { useProductStore as useProduct } from '@/store/product'
-import { useUtilStore } from '@/store/util'
+import { useProductStore as useProduct } from '@/store/product';
+import { useUtilStore } from '@/store/util';
 import { useProductStore } from '@/store/productStore';
-import { commonUtil, DxpShopifyImg, translate } from '@common';
+import { default as DxpShopifyImg } from '@common/components/DxpShopifyImg.vue';
+import { translate } from '@common/core/i18n';
 import Actions from "@/authorization/actions";
 
 const props = defineProps(["closeTO", "items", "receivedUnitsFraction"])

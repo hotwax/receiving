@@ -1,5 +1,8 @@
+import { showToast as utilShowToast } from '@common/utils/core';
 import { defineStore } from "pinia";
-import { api, commonUtil, emitter, translate } from "@common";
+import { default as api } from '@common/core/remoteApi';
+import { default as emitter } from '@common/core/emitter';
+import { translate } from '@common/core/i18n';
 import { useProductStore } from "@/store/productStore";
 
 export const useShipmentStore = defineStore("shipment", {
@@ -38,7 +41,7 @@ export const useShipmentStore = defineStore("shipment", {
           return true;
         }
       } catch (err) {
-        commonUtil.showToast(translate("Something went wrong, please try again"));
+        utilShowToast(translate("Something went wrong, please try again"));
       }
       emitter.emit("dismissLoader");
       return false;

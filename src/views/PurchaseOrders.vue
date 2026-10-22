@@ -53,7 +53,7 @@ import { IonButton, IonContent, IonHeader, IonIcon, IonLabel, IonMenuButton, Ion
 import { cloudDownloadOutline, reload } from 'ionicons/icons'
 import { computed, ref } from 'vue';
 import PurchaseOrderItem from '@/components/PurchaseOrderItem.vue'
-import { translate } from "@common"
+import { translate } from '@common/core/i18n';
 import { useProductStore } from '@/store/productStore';
 import { useOrderStore } from '@/store/order';
 import router from '@/router';

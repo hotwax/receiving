@@ -17,13 +17,13 @@
 </template>
 
 <script setup lang="ts">
-import router from '@/router';
+import { useRouter } from 'vue-router';
 import { IonBadge, IonItem, IonLabel, IonNote } from '@ionic/vue';
-import { translate } from '@common';
+import { translate } from '@common/core/i18n';
 import { DateTime } from 'luxon';
 
 defineProps(["transferOrder"]);
-
+const router = useRouter();
 
 const getOrderDetail = (orderId: string) => {
   router.push({ path: `/transfer-order-detail/${orderId}` })
