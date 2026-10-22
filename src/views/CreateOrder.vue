@@ -392,7 +392,7 @@ async function fetchProductStoreDetails(productStoreId: string) {
       throw resp.data;
     }
   } catch (err) {
-    logger.error("Failed to fetch product store currency", commonUtil.getErrorMessage(err));
+    logger.error(err);
   }
 }
 
@@ -409,7 +409,7 @@ async function fetchBarcodeIdentificationDesc() {
       throw resp.data;
     }
   } catch (err) {
-    logger.error("Failed to fetch product identification descriptions", commonUtil.getErrorMessage(err));
+    logger.error("Failed to fetch product identification descriptions", err);
   }
 }
 
@@ -466,7 +466,7 @@ async function addOrderItem(productToAdd: any, scannedId?: string) {
     }
   } catch (err) {
     searchedProduct.value = {};
-    logger.error(`Failed to add product ${productToAdd.productId}:`, commonUtil.getErrorMessage(err));
+    logger.error(`Failed to add product ${productToAdd.productId}:`, err);
   } finally {
     pendingProductIds.value.delete(productToAdd.productId);
   }
@@ -689,9 +689,9 @@ async function createOrder() {
     }
   } catch(error: any) {
     const serverError = commonUtil.getErrorMessage(error);
-    logger.error("Failed to create order", serverError);
+    logger.error(error);
     emitter.emit("dismissLoader")
-    commonUtil.showToast(`${translate("Failed to create order.")} ${serverError}`, { position: 'top' })
+    commonUtil.showToast(`${translate("Failed to create order")}. ${serverError}`, { position: 'top' })
   }
 }
 
@@ -764,7 +764,7 @@ async function findProduct(value: string) {
       return null;
     }
   } catch (err) {
-    logger.error("Failed to find item", commonUtil.getErrorMessage(err));
+    logger.error(err);
     searchedProduct.value = {};
     isSearchingProduct.value = false;
   }
@@ -783,7 +783,7 @@ async function fetchStock(productId: string) {
       throw resp.data;
     }
   } catch (err) {
-    logger.error("Failed to fetch stock", commonUtil.getErrorMessage(err));
+    logger.error(err);
     return null;
   }
 }

@@ -32,10 +32,10 @@ export const usePartyStore = defineStore("party", {
             this.namesByLoginId[receiverDetails.userLoginId] = receiverDetails;
           });
         } else {
-          logger.error("Failed to fetch receiver details", commonUtil.getErrorMessage(resp));
+          logger.error(resp);
         }
       } catch (err) {
-        logger.error("Failed to fetch receiver details", commonUtil.getErrorMessage(err));
+        logger.error(err);
       }
       return this.namesByLoginId;
     },

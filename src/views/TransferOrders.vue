@@ -120,8 +120,8 @@ const submitSearch = async () => {
     }
   } catch (err: any) {
     const serverError = commonUtil.getErrorMessage(err);
-    logger.error('Failed to look up tracking code', serverError);
-    commonUtil.showToast(`${translate('Unable to look up this tracking code.')} ${serverError}`);
+    logger.error(err);
+    commonUtil.showToast(`${translate('Unable to look up this tracking code')}. ${serverError}`);
   }
   finally { openingTracking = false; }
 };

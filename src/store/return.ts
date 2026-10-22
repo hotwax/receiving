@@ -47,8 +47,8 @@ export const useReturnStore = defineStore("return", {
         }
       } catch (error) {
         const serverError = commonUtil.getErrorMessage(error);
-        logger.error("Failed to fetch returns", serverError);
-        commonUtil.showToast(`${translate("Failed to fetch returns.")} ${serverError}`);
+        logger.error(error);
+        commonUtil.showToast(`${translate("Failed to fetch returns")}. ${serverError}`);
       }
       if (payload.pageIndex === 0) emitter.emit("dismissLoader");
       return resp;
@@ -99,8 +99,8 @@ export const useReturnStore = defineStore("return", {
             returnShipment.statusDesc = statuses[returnShipment.statusId];
           } else {
             const serverError = commonUtil.getErrorMessage(resp);
-            logger.error("Failed to fetch return details", serverError);
-            commonUtil.showToast(`${translate("Failed to fetch return details.")} ${serverError}`);
+            logger.error(resp);
+            commonUtil.showToast(`${translate("Failed to fetch return details")}. ${serverError}`);
             return;
           }
         }
@@ -138,15 +138,15 @@ export const useReturnStore = defineStore("return", {
           return resp.data;
         } else {
           const serverError = commonUtil.getErrorMessage(resp);
-          logger.error("Failed to fetch return shipment items", serverError);
-          commonUtil.showToast(`${translate("Failed to fetch return shipment items.")} ${serverError}`);
-          return Promise.reject(new Error(serverError));
+          logger.error(resp);
+          commonUtil.showToast(`${translate("Failed to fetch return shipment items")}. ${serverError}`);
+          return Promise.reject(new Error(resp));
         }
       } catch (err: any) {
         const serverError = commonUtil.getErrorMessage(err);
-        logger.error("Failed to fetch return shipment items", serverError);
-        commonUtil.showToast(`${translate("Failed to fetch return shipment items.")} ${serverError}`);
-        return Promise.reject(new Error(serverError));
+        logger.error(err);
+        commonUtil.showToast(`${translate("Failed to fetch return shipment items")}. ${serverError}`);
+        return Promise.reject(new Error(err));
       }
     },
 
@@ -180,10 +180,10 @@ export const useReturnStore = defineStore("return", {
 
           this.validStatusChange = returnStatusValidChange;
         } else {
-          logger.error("Failed to fetch valid return status change options", commonUtil.getErrorMessage(resp));
+          logger.error("Failed to fetch valid return status change options", resp);
         }
       } catch (err) {
-        logger.error("Failed to fetch valid return status change options", commonUtil.getErrorMessage(err));
+        logger.error(err);
       }
     },
 

@@ -123,7 +123,7 @@ onBeforeMount(() => {
 onMounted(async () => {
   const currentProductStore: any = productStore.getCurrentProductStore;
   if (isAuthenticated.value && currentProductStore?.productStoreId) {
-    await productStore.fetchProductStoreSettings(currentProductStore.productStoreId).catch((error) => logger.error("Failed to fetch product store settings", commonUtil.getErrorMessage(error)));
+    await productStore.fetchProductStoreSettings(currentProductStore.productStoreId).catch((error) => logger.error(error));
 
     if (allNotificationPrefs.value?.length) {
       await firebaseUtil.initialiseFirebaseMessaging();

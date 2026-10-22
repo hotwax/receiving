@@ -64,8 +64,8 @@ export const useOrderStore = defineStore("order", {
         }
       } catch (error) {
         const serverError = commonUtil.getErrorMessage(error);
-        logger.error("Failed to fetch purchase orders", serverError);
-        commonUtil.showToast(`${translate("Failed to fetch purchase orders.")} ${serverError}`);
+        logger.error("Failed to fetch purchase orders", error);
+        commonUtil.showToast(`${translate("Failed to fetch purchase orders")}. ${serverError}`);
       }
       if (start == 0) emitter.emit("dismissLoader");
       return resp;
@@ -129,8 +129,8 @@ export const useOrderStore = defineStore("order", {
           };
         } else {
           const serverError = commonUtil.getErrorMessage(resp);
-          logger.error("Failed to fetch order details", serverError);
-          commonUtil.showToast(`${translate("Failed to fetch order details.")} ${serverError}`);
+          logger.error("Failed to fetch order details", resp);
+          commonUtil.showToast(`${translate("Failed to fetch order details")}. ${serverError}`);
           this.current = {
             orderId,
             externalOrderId: "",
@@ -142,8 +142,8 @@ export const useOrderStore = defineStore("order", {
         }
       } catch (error) {
         const serverError = commonUtil.getErrorMessage(error);
-        logger.error("Failed to fetch order details", serverError);
-        commonUtil.showToast(`${translate("Failed to fetch order details.")} ${serverError}`);
+        logger.error("Failed to fetch order details", error);
+        commonUtil.showToast(`${translate("Failed to fetch order details")}. ${serverError}`);
         this.current = {
           orderId,
           externalOrderId: "",
@@ -177,8 +177,8 @@ export const useOrderStore = defineStore("order", {
         }
       } catch (error) {
         const serverError = commonUtil.getErrorMessage(error);
-        logger.error("Failed to receive order", serverError);
-        commonUtil.showToast(`${translate("Failed to receive order.")} ${serverError}`);
+        logger.error("Failed to receive order", error);
+        commonUtil.showToast(`${translate("Failed to receive order")}. ${serverError}`);
         return Promise.reject(error);
       }
     },
@@ -211,7 +211,7 @@ export const useOrderStore = defineStore("order", {
           pageIndex++;
         } while (resp?.data?.length >= pageSize);
       } catch (error) {
-        logger.error("Failed to fetch purchase order history", commonUtil.getErrorMessage(error));
+        logger.error(error);
         currentPOHistory = [];
         this.current.poHistory.items = [];
       }

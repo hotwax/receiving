@@ -201,6 +201,7 @@ const receiveReturn = async () => {
     commonUtil.showToast(translate("Return received successfully", { shipmentId: shipmentId }))
     router.push('/returns');
   } else {
+    commonUtil.showToast(translate('Something went wrong'));
     await returnStore.setCurrent({ shipmentId: route.params.id })
   }
 };

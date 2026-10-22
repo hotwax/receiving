@@ -41,8 +41,8 @@ export const useShipmentStore = defineStore("shipment", {
         }
       } catch (err) {
         const serverError = commonUtil.getErrorMessage(err);
-        logger.error("Failed to receive return shipment", serverError);
-        commonUtil.showToast(`${translate("Failed to receive return shipment.")} ${serverError}`);
+        logger.error(err);
+        commonUtil.showToast(`${translate("Failed to receive return shipment")}. ${serverError}`);
       }
       emitter.emit("dismissLoader");
       return false;

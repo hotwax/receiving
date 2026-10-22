@@ -1006,8 +1006,8 @@ const reviewReceipt = async () => {
     transferOrderStore.acknowledgeLocalChanges();
   } catch (err: any) {
     const serverError = commonUtil.getErrorMessage(err);
-    logger.error('Failed to resolve receipt', serverError);
-    commonUtil.showToast(`${translate('Unable to resolve receipt.')} ${serverError}`);
+    logger.error(err);
+    commonUtil.showToast(`${translate('Unable to resolve receipt')}. ${serverError}`);
   }
 };
 
@@ -1019,8 +1019,8 @@ const refreshLocalOrder = async () => {
   try { await ensureReceivingOrder(String(router.currentRoute.value.params.slug), true); }
   catch (err: any) {
     const serverError = commonUtil.getErrorMessage(err);
-    logger.error('Failed to refresh transfer data', serverError);
-    commonUtil.showToast(`${translate('Unable to refresh transfer data.')} ${serverError}`);
+    logger.error(err);
+    commonUtil.showToast(`${translate('Unable to refresh transfer data')}. ${serverError}`);
   }
   finally { refreshingDetail.value = false; }
 };
