@@ -691,7 +691,7 @@ async function createOrder() {
     const serverError = commonUtil.getErrorMessage(error);
     logger.error(error);
     emitter.emit("dismissLoader")
-    commonUtil.showToast(`${translate("Failed to create order")}. ${serverError}`, { position: 'top' })
+    commonUtil.showToast(`${translate("Failed to create order.")} ${serverError}`, { position: 'top' })
   }
 }
 

@@ -22,7 +22,7 @@
   "Custom Qty": "Custom Qty",
   "Delivery Date": "Delivery Date",
   "Destination": "Destination",
-  "Failed to create order": "Failed to create order",
+  "Failed to create order.": "Failed to create order.",
   "Focus scanning": "Focus scanning",
   "Fulfill & Receive": "Fulfill & Receive",
   "Fulfill only": "Fulfill only",
@@ -302,7 +302,6 @@
   "Failed to fetch transfer orders": "Failed to fetch transfer orders",
   "Failed to receive return shipment": "Failed to receive return shipment",
   "Failed to update Product Store setting": "Failed to update Product Store setting",
-  "Notification preferences not updated": "Notification preferences not updated",
   "Unable to resolve receipt": "Unable to resolve receipt",
   "Unable to refresh transfer data": "Unable to refresh transfer data",
   "Unable to look up this tracking code": "Unable to look up this tracking code"
