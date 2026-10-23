@@ -26,7 +26,7 @@ import './theme/variables.css';
 
 import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
-import { createDxpI18n, initialiseConfig } from '@common';
+import { createDxpI18n, initialiseConfig, supportsIosKeyboardScroll } from '@common';
 import localeMessages from './locales';
 import { useUserStore } from './store/user';
 
@@ -38,6 +38,8 @@ export const i18n = createDxpI18n(localeMessages)
 const app = createApp(App)
   .use(IonicVue, {
     mode: 'md',
+    // useIosKeyboardScroll measures the actual viewport instead of Ionic's keyboard estimate.
+    scrollAssist: !supportsIosKeyboardScroll(),
     innerHTMLTemplatesEnabled: true // added this entry to enable html support inside alert, and toast
   })
   .use(i18n)
