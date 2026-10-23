@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router';
-import { IonicVue, isPlatform } from '@ionic/vue';
+import { IonicVue } from '@ionic/vue';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/vue/css/core.css';
@@ -26,7 +26,7 @@ import './theme/variables.css';
 
 import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
-import { createDxpI18n, initialiseConfig } from '@common';
+import { createDxpI18n, initialiseConfig, supportsIosKeyboardScroll } from '@common';
 import localeMessages from './locales';
 import { useUserStore } from './store/user';
 
@@ -39,7 +39,7 @@ const app = createApp(App)
   .use(IonicVue, {
     mode: 'md',
     // useIosKeyboardScroll measures the actual viewport instead of Ionic's keyboard estimate.
-    scrollAssist: !(isPlatform('ios') && window.visualViewport),
+    scrollAssist: !supportsIosKeyboardScroll(),
     innerHTMLTemplatesEnabled: true // added this entry to enable html support inside alert, and toast
   })
   .use(i18n)

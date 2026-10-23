@@ -29,15 +29,14 @@ import { IonApp, IonContent, IonHeader, IonIcon, IonItem, IonLabel, IonList, Ion
 import { ref, computed, onBeforeMount, onMounted, onUnmounted, watch } from 'vue';
 import router from '@/router'
 import { Settings } from 'luxon';
-import { translate, emitter, useNotificationStore, logger, useAuth } from "@common";
+import { translate, emitter, useNotificationStore, logger, useAuth, useIosKeyboardScroll } from "@common";
 import { configureReceiving, refreshReceiving } from '@/db/receivingClient';
 import { receivingLoginReady, syncReceivingSession } from '@/db/receivingSession';
 import { firebaseUtil } from '@/utils/firebaseUtil';
 import { useUserStore } from '@/store/user';
 import { useProductStore } from '@/store/productStore';
-import { useIosKeyboardScroll } from '@/composables/useIosKeyboardScroll';
 
-useIosKeyboardScroll();
+useIosKeyboardScroll({ pinnedElementSelector: '.scanner' });
 
 const userStore = useUserStore();
 const productStore = useProductStore();
