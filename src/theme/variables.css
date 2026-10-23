@@ -385,9 +385,8 @@ main {
     z-index: 1;
     background-color: var(--ion-background-color);
   }
-  main:has(.scanner) {
-    height: 100%;
-    overflow-y: scroll;
+  ion-content:has(.scanner)::part(scroll) {
+    /* Keep one scroll owner so Ionic can reveal inputs above the keyboard. */
     /* Keep the scrolled-to item clear of the sticky scanner */
     scroll-padding-top: var(--spacer-xl);
   }

@@ -35,6 +35,9 @@ import { receivingLoginReady, syncReceivingSession } from '@/db/receivingSession
 import { firebaseUtil } from '@/utils/firebaseUtil';
 import { useUserStore } from '@/store/user';
 import { useProductStore } from '@/store/productStore';
+import { useIosKeyboardScroll } from '@/composables/useIosKeyboardScroll';
+
+useIosKeyboardScroll();
 
 const userStore = useUserStore();
 const productStore = useProductStore();
