@@ -688,9 +688,10 @@ async function createOrder() {
       throw resp.data;
     }
   } catch(error: any) {
-    logger.error(error)
+    const serverError = commonUtil.getErrorMessage(error);
+    logger.error(error);
     emitter.emit("dismissLoader")
-    commonUtil.showToast(translate("Failed to create order."), { position: 'top' })
+    commonUtil.showToast(`${translate("Failed to create order.")} ${serverError}`, { position: 'top' })
   }
 }
 
@@ -782,7 +783,7 @@ async function fetchStock(productId: string) {
       throw resp.data;
     }
   } catch (err) {
-    logger.error(err)
+    logger.error(err);
     return null;
   }
 }

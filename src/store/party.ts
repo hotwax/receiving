@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { api, commonUtil } from "@common";
+import { api, commonUtil, logger } from "@common";
 
 export const usePartyStore = defineStore("party", {
   state: () => ({
@@ -32,10 +32,10 @@ export const usePartyStore = defineStore("party", {
             this.namesByLoginId[receiverDetails.userLoginId] = receiverDetails;
           });
         } else {
-          console.error(resp);
+          logger.error(resp);
         }
       } catch (err) {
-        console.error(err);
+        logger.error(err);
       }
       return this.namesByLoginId;
     },
