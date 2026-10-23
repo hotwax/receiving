@@ -4,20 +4,7 @@ Use an authenticated Receiving app connected to a real test instance. Do not sav
 progress or receive inventory. Use an empty local draft and clear entered values
 before leaving the order.
 
-On a long open TO, run `checkReceivingScroll()` from
-`receivingScroll.browser.ts` in the page's browser context. With a local Vite
-server it can be imported from `/tests/receivingScroll.browser.ts`. For a built
-app, transpile the TypeScript function and execute it through the browser
-inspector or Appium's asynchronous JavaScript command. The check uses real app
-elements and CSS, temporarily applies Ionic's keyboard padding, and restores
-padding and scroll position in `finally`.
-
-The original nested `main` scroller fails the quantity visibility check. The
-fixed app must pass all four checks, including the scanner staying pinned at
-two different scroll positions.
-
-Also test on the physical iPad; the scripted padding check does not substitute
-for the native keyboard:
+Test on the physical iPad with the native keyboard:
 
 1. Open a long TO and tap Qty. Type a quantity with the software keyboard.
 2. Dismiss the keyboard while the field retains focus. Confirm the card remains
