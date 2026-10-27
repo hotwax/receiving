@@ -593,7 +593,7 @@ const scan = async () => {
       const scannedCode = await useShopify().openPosScanner();
       if (scannedCode) updateProductCount(scannedCode);
     } catch (err) {
-      console.error("POS Scanner error:", err);
+      logger.error("POS Scanner error:", err);
     }
   } else {
   if (!(await commonUtil.hasWebcamAccess())) {
@@ -932,7 +932,9 @@ const submitTransferReceipt = async (orderId: string, payload: any, options?: { 
       return true;
     }
   } catch (error: any) {
-    commonUtil.showToast(error?.message || translate("Error in receiving transfer order", { orderId: order.value.orderId }));
+    const serverError = commonUtil.getErrorMessage(error);
+    logger.error("Error in receiving transfer order:", error);
+    commonUtil.showToast(`${translate("Error in receiving transfer order", { orderId: order.value.orderId })}. ${serverError}`);
   }
   return false;
 };

@@ -5,6 +5,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
 import defaultImage from "@/assets/images/defaultImage.png";
+import { logger } from '@common';
 
 const props = defineProps(['src', 'testId']);
 const resourceUrl = ref(import.meta.env.VITE_RESOURCE_URL || '');
@@ -39,14 +40,14 @@ function setImageUrl() {
       checkIfImageExists(props.src).then(() => {
         imageUrl.value = props.src;
       }).catch(() => {
-        console.error("Image doesn't exist");
+        logger.error("Image doesn't exist");
       })
     } else {
       const url = resourceUrl.value.concat(props.src)
       checkIfImageExists(url).then(() => {
         imageUrl.value = url;
       }).catch(() => {
-        console.error("Image doesn't exist");
+        logger.error("Image doesn't exist");
       })
     }
   }
