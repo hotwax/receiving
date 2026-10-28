@@ -19,13 +19,19 @@ export const useProductStore = defineStore("product", {
     async fetchProducts({ productIds }: { productIds: Array<string> }) {
       const cachedProductIds = Object.keys(this.cached);
       const productIdFilter = productIds.filter((productId: any) => !cachedProductIds.includes(productId));
-      const viewSize = productIdFilter.length;
+      const viewSize = productIdFilter.length * 3;
       if (!viewSize) return;
 
       const resp = await useSolrSearch().searchProducts({
         filters: {
           productId: {
             value: productIdFilter,
+            op: "OR",
+          },
+          // Transfer orders may contain standalone products as well as variants.
+          // Keep the shared search's default exclusion of virtual parent products.
+          isVariant: {
+            value: ["true", "false"],
             op: "OR",
           },
         },

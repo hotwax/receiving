@@ -47,8 +47,11 @@ export const useProductStore = defineStore('productStore', {
     getCurrentSampleProduct: (state) => state.settings.productIdentifier.currentSampleProduct,
     isProductStoreSettingEnabled: (state) => (settingTypeEnumId: string) => {
       const stateKey = defaultProductStoreSettings[settingTypeEnumId]?.stateKey || settingTypeEnumId
-      return state.settings[stateKey] === "Y"
+      const value = state.settings[stateKey]
+      
+      return value === true || value === "Y" || value === "true"
     },
+
     getFacilityLocationsByFacilityId: (state) => (facilityId: string) => state.facilityLocationsByFacilityId[facilityId] ? state.facilityLocationsByFacilityId[facilityId] : [],
     getProductStoreFacilities: (state) => state.currentProductStore.facilities || []
   },
