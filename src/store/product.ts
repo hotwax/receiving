@@ -28,6 +28,12 @@ export const useProductStore = defineStore("product", {
             value: productIdFilter,
             op: "OR",
           },
+          // Transfer orders may contain standalone products as well as variants.
+          // Keep the shared search's default exclusion of virtual parent products.
+          isVariant: {
+            value: ["true", "false"],
+            op: "OR",
+          },
         },
         viewSize,
       });
