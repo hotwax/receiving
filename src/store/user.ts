@@ -112,8 +112,9 @@ export const useUserStore = defineStore("user", {
         // TODO: This should be set from the Login Component
         this.oms = cookieHelper().get("oms");
       } catch (error: any) {
-        commonUtil.showToast(translate("Failed to fetch user profile information"));
-        console.error("error", error);
+        const serverError = commonUtil.getErrorMessage(error);
+        logger.error(error);
+        commonUtil.showToast(`${translate("Failed to fetch user profile information")}. ${serverError}`);
         useAuth().clearAuth();
         return Promise.reject(new Error(error));
       }
@@ -146,7 +147,7 @@ export const useUserStore = defineStore("user", {
           if(!hasPermission) {
             const permissionError = "You do not have permission to access the app."
             await commonUtil.showToast(translate(permissionError))
-            logger.error("error", permissionError)
+            logger.error("Permission check failed", permissionError)
             return Promise.reject(new Error(permissionError))
           }
         }
@@ -167,8 +168,9 @@ export const useUserStore = defineStore("user", {
         this.updateUserInfo({ userTimeZone: tzId })
         this.current.timeZone = tzId
       } catch (error: any) {
-        console.error("Failed to set user time zone", error);
-        commonUtil.showToast(translate("Failed to set user time zone"));
+        const serverError = commonUtil.getErrorMessage(error);
+        logger.error("Failed to set user time zone", error);
+        commonUtil.showToast(`${translate("Failed to set user time zone")}. ${serverError}`);
       }
     },
 
@@ -188,7 +190,7 @@ export const useUserStore = defineStore("user", {
           this.timeZones = resp.data.timeZones.filter((timeZone: any) => DateTime.local().setZone(timeZone.id).isValid);
         }
       } catch (err) {
-        console.error('Error', err)
+        logger.error("Failed to fetch available time zones", err);
       }
     },
     async postLogin() {

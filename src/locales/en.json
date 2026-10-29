@@ -291,5 +291,18 @@
   "I verified this receipt in receiving history or OMS.": "I verified this receipt in receiving history or OMS.",
   "Resolving this block does not submit inventory. Draft quantities will be cleared so you can scan from the refreshed totals.": "Resolving this block does not submit inventory. Draft quantities will be cleared so you can scan from the refreshed totals.",
   "Resolve reviewed receipt": "Resolve reviewed receipt",
-  "Unable to resolve receipt. Refresh and review it again.": "Unable to resolve receipt. Refresh and review it again."
+  "Failed to fetch user profile information": "Failed to fetch user profile information",
+  "Failed to set user time zone": "Failed to set user time zone",
+  "Failed to fetch purchase orders": "Failed to fetch purchase orders",
+  "Failed to fetch order details": "Failed to fetch order details",
+  "Failed to receive order": "Failed to receive order",
+  "Failed to fetch returns": "Failed to fetch returns",
+  "Failed to fetch return details": "Failed to fetch return details",
+  "Failed to fetch return shipment items": "Failed to fetch return shipment items",
+  "Failed to fetch transfer orders": "Failed to fetch transfer orders",
+  "Failed to receive return shipment": "Failed to receive return shipment",
+  "Failed to update Product Store setting": "Failed to update Product Store setting",
+  "Unable to resolve receipt": "Unable to resolve receipt",
+  "Unable to refresh transfer data": "Unable to refresh transfer data",
+  "Unable to look up this tracking code": "Unable to look up this tracking code"
 }

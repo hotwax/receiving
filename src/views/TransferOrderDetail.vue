@@ -397,7 +397,7 @@ import { nextTick, ref, shallowRef, computed, watch } from 'vue';
 import { ensureReceivingOrder, receivingDb, resolveReceipt } from '@/db/receivingClient';
 import { addOutline, cameraOutline, checkmarkDone, cubeOutline, informationCircleOutline, openOutline, timeOutline } from 'ionicons/icons';
 import ReceivingHistoryModal from '@/views/ReceivingHistoryModal.vue'
-import { DxpShopifyImg, translate, commonUtil, emitter, useEmbeddedAppStore, useShopify } from '@common';
+import { DxpShopifyImg, translate, commonUtil, emitter, logger, useEmbeddedAppStore, useShopify } from '@common';
 import { useProductStore } from '@/store/productStore';
 import { useTransferOrderStore } from '@/store/transferorder';
 import { useUserStore } from '@/store/user';
@@ -593,7 +593,7 @@ const scan = async () => {
       const scannedCode = await useShopify().openPosScanner();
       if (scannedCode) updateProductCount(scannedCode);
     } catch (err) {
-      console.error("POS Scanner error:", err);
+      logger.error("POS Scanner error:", err);
     }
   } else {
   if (!(await commonUtil.hasWebcamAccess())) {
@@ -932,7 +932,9 @@ const submitTransferReceipt = async (orderId: string, payload: any, options?: { 
       return true;
     }
   } catch (error: any) {
-    commonUtil.showToast(error?.message || translate("Error in receiving transfer order", { orderId: order.value.orderId }));
+    const serverError = commonUtil.getErrorMessage(error);
+    logger.error("Error in receiving transfer order:", error);
+    commonUtil.showToast(`${translate("Error in receiving transfer order", { orderId: order.value.orderId })}. ${serverError}`);
   }
   return false;
 };
@@ -1004,7 +1006,11 @@ const reviewReceipt = async () => {
     delete transferOrderStore.draftsByScope[transferOrderStore.draftScope];
     for (const item of order.value.items || []) { delete item.quantityAccepted; delete item._draftBaseline; }
     transferOrderStore.acknowledgeLocalChanges();
-  } catch { commonUtil.showToast(translate('Unable to resolve receipt. Refresh and review it again.')); }
+  } catch (err: any) {
+    const serverError = commonUtil.getErrorMessage(err);
+    logger.error(err);
+    commonUtil.showToast(`${translate('Unable to resolve receipt')}. ${serverError}`);
+  }
 };
 
 const refreshLocalOrder = async () => {
@@ -1013,7 +1019,11 @@ const refreshLocalOrder = async () => {
   if (!order.value.ready) return loadLocalDetail();
   refreshingDetail.value = true;
   try { await ensureReceivingOrder(String(router.currentRoute.value.params.slug), true); }
-  catch { commonUtil.showToast(translate('Unable to refresh transfer data.')); }
+  catch (err: any) {
+    const serverError = commonUtil.getErrorMessage(err);
+    logger.error(err);
+    commonUtil.showToast(`${translate('Unable to refresh transfer data')}. ${serverError}`);
+  }
   finally { refreshingDetail.value = false; }
 };
 

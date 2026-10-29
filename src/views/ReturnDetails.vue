@@ -90,7 +90,7 @@
 import { IonBackButton, IonBadge, IonButton, IonCard, IonChip, IonContent, IonHeader, IonFab, IonFabButton, IonIcon, IonItem, IonInput, IonLabel, IonPage, IonProgressBar, IonThumbnail, IonTitle, IonToolbar, modalController, alertController, onIonViewWillEnter, onIonViewDidLeave } from '@ionic/vue';
 import { ref, computed, nextTick } from 'vue';
 import { checkmarkDone, cubeOutline, barcodeOutline } from 'ionicons/icons';
-import { DxpShopifyImg, translate, commonUtil, useEmbeddedAppStore, useShopify } from '@common';
+import { DxpShopifyImg, translate, commonUtil, logger, useEmbeddedAppStore, useShopify } from '@common';
 import { useProductStore } from '@/store/productStore';
 import { useReturnStore } from '@/store/return';
 import { useProductStore as useProduct } from '@/store/product';
@@ -201,7 +201,6 @@ const receiveReturn = async () => {
     commonUtil.showToast(translate("Return received successfully", { shipmentId: shipmentId }))
     router.push('/returns');
   } else {
-    commonUtil.showToast(translate('Something went wrong'));
     await returnStore.setCurrent({ shipmentId: route.params.id })
   }
 };
@@ -245,7 +244,7 @@ const scanCode = async () => {
       const scannedCode = await useShopify().openPosScanner();
       if (scannedCode) updateProductCount(scannedCode);
     } catch (err) {
-      console.error("POS Scanner error:", err);
+      logger.error("POS Scanner error:", err);
     }
   } else {
   if (!(await commonUtil.hasWebcamAccess())) {

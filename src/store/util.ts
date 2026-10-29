@@ -43,7 +43,7 @@ export const useUtilStore = defineStore("util", {
           this.status = cachedStatus;
         }
       } catch (err) {
-        console.error("Something went wrong while fetching status");
+        logger.error("Failed to fetch status", err);
       }
       return cachedStatus;
     },

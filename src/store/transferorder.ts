@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { api, commonUtil, translate } from "@common";
+import { api, commonUtil, logger, translate } from "@common";
 import { useProductStore as useProduct } from "@/store/product";
 import { useProductStore } from "@/store/productStore";
 import { useUserStore } from "@/store/user";
@@ -142,14 +142,14 @@ export const useTransferOrderStore = defineStore("transferorder", {
           for (const orderId of trackingIds) {
             const result = await api({ url: 'oms/transferOrders/', method: 'get',
               params: { ...params, orderId, orderName: undefined, keyword: undefined, pageIndex: 0 } });
-            if (commonUtil.hasError(result)) throw new Error('Unable to search tracking');
+            if (commonUtil.hasError(result)) throw result;
             for (const order of result.data.orders) matched.set(order.orderId, order);
           }
           resp = { data: { orders: [...matched.values()], ordersCount: matched.size } };
         } else {
           resp = await api({ url: 'oms/transferOrders/', method: 'get', params });
         }
-        if (commonUtil.hasError(resp)) throw new Error('Unable to load transfer orders');
+        if (commonUtil.hasError(resp)) throw resp;
         if (resp.data.orders.length > 0) {
           total = resp.data.ordersCount;
           if (!isCurrent()) return resp;
@@ -177,8 +177,9 @@ export const useTransferOrderStore = defineStore("transferorder", {
         }
       } catch (err) {
         if (!isCurrent()) return resp;
-        console.error("No transfer orders found", err);
-        commonUtil.showToast(translate("Something went wrong"));
+        const serverError = commonUtil.getErrorMessage(err);
+        logger.error("Failed to fetch transfer orders", err);
+        commonUtil.showToast(`${translate("Failed to fetch transfer orders")}. ${serverError}`);
       }
       return resp;
     },

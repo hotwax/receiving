@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { api, commonUtil, emitter, translate } from "@common";
+import { api, commonUtil, emitter, logger, translate } from "@common";
 import { useProductStore } from "@/store/productStore";
 
 export const useShipmentStore = defineStore("shipment", {
@@ -33,12 +33,16 @@ export const useShipmentStore = defineStore("shipment", {
           }
         });
 
-        if (resp && resp?.status === 200) {
+        if (resp?.status === 200 && !commonUtil.hasError(resp)) {
           emitter.emit("dismissLoader");
           return true;
+        } else {
+          throw resp;
         }
       } catch (err) {
-        commonUtil.showToast(translate("Something went wrong, please try again"));
+        const serverError = commonUtil.getErrorMessage(err);
+        logger.error(err);
+        commonUtil.showToast(`${translate("Failed to receive return shipment")}. ${serverError}`);
       }
       emitter.emit("dismissLoader");
       return false;
