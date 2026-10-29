@@ -142,14 +142,14 @@ export const useTransferOrderStore = defineStore("transferorder", {
           for (const orderId of trackingIds) {
             const result = await api({ url: 'oms/transferOrders/', method: 'get',
               params: { ...params, orderId, orderName: undefined, keyword: undefined, pageIndex: 0 } });
-            if (commonUtil.hasError(result)) throw new Error(commonUtil.getErrorMessage(result));
+            if (commonUtil.hasError(result)) throw result;
             for (const order of result.data.orders) matched.set(order.orderId, order);
           }
           resp = { data: { orders: [...matched.values()], ordersCount: matched.size } };
         } else {
           resp = await api({ url: 'oms/transferOrders/', method: 'get', params });
         }
-        if (commonUtil.hasError(resp)) throw new Error(commonUtil.getErrorMessage(resp));
+        if (commonUtil.hasError(resp)) throw resp;
         if (resp.data.orders.length > 0) {
           total = resp.data.ordersCount;
           if (!isCurrent()) return resp;
