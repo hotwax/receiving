@@ -32,6 +32,7 @@ vi.mock('./receivingDatabase', () => ({
       return state.dbs.get(scope);
     },
     raw: () => ({}),
+    client: () => ({}),
   },
 }));
 vi.mock('./receiptOperations', async original => {
