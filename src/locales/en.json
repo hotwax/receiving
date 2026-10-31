@@ -304,5 +304,7 @@
   "Failed to update Product Store setting": "Failed to update Product Store setting",
   "Unable to resolve receipt": "Unable to resolve receipt",
   "Unable to refresh transfer data": "Unable to refresh transfer data",
-  "Unable to look up this tracking code": "Unable to look up this tracking code"
+  "Unable to look up this tracking code": "Unable to look up this tracking code",
+  "Unable to update this setting since no product store is linked to the selected facility.": "Unable to update this setting since no product store is linked to the selected facility.",
+  "A transfer order needs a product store, and none is linked to this facility.": "A transfer order needs a product store, and none is linked to this facility."
 }

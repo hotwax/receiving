@@ -33,7 +33,7 @@
 
       <section>
         <DxpOmsInstanceNavigator :is-embedded="commonUtil.isAppEmbedded()" />
-        <DxpFacilitySwitcher @updateFacility="fetchFacilityDependencies($event)" />
+        <DxpFacilitySwitcher @updateFacility="fetchFacilityDependencies()" />
       </section>
       <hr />
       <DxpAppVersionInfo />
@@ -135,9 +135,8 @@ const goToLaunchpad = () => {
   window.location.href = `${import.meta.env.VITE_LOGIN_URL}`
 };
 
-const fetchFacilityDependencies = async (facility: any) => {
-  await productStore.fetchProductStores(facility?.facilityId)
-  await productStore.fetchProductStoreDependencies(productStore.getCurrentProductStore.productStoreId)
+// The facility's receiving settings reload when the current facility changes (see App.vue).
+const fetchFacilityDependencies = async () => {
   await notificationStore.fetchNotificationPreferences(import.meta.env.VITE_NOTIF_ENUM_TYPE_ID, import.meta.env.VITE_NOTIF_APP_ID, userStore.getUserProfile.userLoginId, (enumId: string) => firebaseMessaging.generateTopicName(commonUtil.getOMSInstanceName(), productStore.getCurrentFacility.facilityId, enumId));
 };
 
@@ -243,7 +242,7 @@ const setBarcodeIdentificationPref = async (value: string) => {
 };
 
 onIonViewWillEnter(async () => {
-  await productStore.fetchProductStoreSettings(preferredStore.value.productStoreId);
+  await productStore.loadFacilitySettings();
   await notificationStore.fetchNotificationPreferences(import.meta.env.VITE_NOTIF_ENUM_TYPE_ID, import.meta.env.VITE_NOTIF_APP_ID, userStore.getUserProfile.userLoginId, (enumId: string) => firebaseMessaging.generateTopicName(commonUtil.getOMSInstanceName(), productStore.getCurrentFacility.facilityId, enumId));
 });
 </script>
