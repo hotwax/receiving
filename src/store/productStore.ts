@@ -8,9 +8,10 @@ export const useProductStore = defineStore('productStore', {
   state: () => ({
     currentFacility: {
       facilityId: "",
-      facilityName: "",
-      productStores: []
+      facilityName: ""
     } as any,
+    // Optional: the product store linked to the current facility, if any. It only supplies settings and transfer order creation
+    // and never decides what the user can see or whether they can log in. `{}` when the facility has no product store.
     currentProductStore: {} as any,
     settings: {
       forceScan: "",
@@ -37,7 +38,6 @@ export const useProductStore = defineStore('productStore', {
   getters: {
     getCurrentFacility: (state) => state.currentFacility,
     getCurrentProductStore: (state) => state.currentProductStore,
-    getProductStores: (state) => state.currentFacility.productStores || [],
     getFacilities: (state) => state.userFacilities || [],
     getSettings: (state) => state.settings,
     getProductIdentificationPref: (state) => state.settings.productIdentifier.productIdentificationPref,
@@ -60,10 +60,6 @@ export const useProductStore = defineStore('productStore', {
     setCurrentFacility(facility: any) {
       this.currentFacility = facility
     },
-    async setCurrentProductStore(store: any) {
-      this.currentProductStore = store
-      await this.fetchProductStoreDependencies(store.productStoreId)
-    },
     async fetchUserFacilities() {
       const userStore = useUserStore();
       let facilityIds: Array<string> = [];
@@ -74,11 +70,6 @@ export const useProductStore = defineStore('productStore', {
       const isAdminUser = userStore.hasPermission(Actions.APP_RECVG_ADMIN);
 
       try {
-        this.currentFacility = {
-          ...this.currentFacility,
-          productStores: []
-        }
-
         // Fetch the facilities associated with party
         if (partyId && !isAdminUser) {
           try {
@@ -225,23 +216,23 @@ export const useProductStore = defineStore('productStore', {
         this.currentFacility = this.userFacilities[0];
       }
     },
-    async fetchProductStores(currentFacilityId?: string) {
+    // Optional lookup of the product stores linked to a facility. Receiving never needs this to log in or to list facilities:
+    // it only supplies the settings of the facility's store and the store of a new transfer order. A failure or an empty
+    // result is a normal outcome (a facility need not have a product store), so this never rejects.
+    async fetchFacilityProductStores(facilityId: string, { includeNames = true } = {}): Promise<any[]> {
       try {
-        const facilityId = currentFacilityId ?? this.currentFacility.facilityId;
-        const pageSize = 200;
-
         const resp = await api({
           url: `oms/facilities/${facilityId}/productStores`,
           method: "GET",
           params: {
-            pageSize,
+            pageSize: 200,
             facilityId
           }
         }) as any;
 
         const stores = resp.data.filter((store: any) => !store.thruDate)
 
-        if (stores.length) {
+        if (stores.length && includeNames) {
           // Fetching all stores for the store name
           try {
             const productStoresResp = await api({
@@ -251,30 +242,43 @@ export const useProductStore = defineStore('productStore', {
                 pageSize: 200
               }
             }) as any;
-            const productStores = productStoresResp.data;
             const productStoresMap = {} as any;
-            productStores.map((store: any) => productStoresMap[store.productStoreId] = store.storeName)
+            productStoresResp.data.map((store: any) => productStoresMap[store.productStoreId] = store.storeName)
             stores.map((store: any) => store.storeName = productStoresMap[store.productStoreId])
           } catch (error) {
             logger.error(error);
           }
         }
 
-        const productStores = [...stores]
-
-        this.currentFacility = {
-          ...this.currentFacility,
-          productStores
-        }
-        this.setCurrentProductStore(productStores[0])
+        return stores
       } catch (error: any) {
-        logger.error(error);
-        return Promise.reject(new Error(error));
+        logger.error("Failed to fetch the product stores of the facility", error);
+        return []
       }
     },
-    async fetchProductStoreDependencies(productStoreId: string) {
-      await useProductStore().fetchProductStoreSettings(productStoreId)
-        .catch((error) => logger.error(error))
+
+    // Receiving settings (product identifier, barcode identifier, force scan, receive by fulfillment) are saved per product store.
+    // Load them for the facility's product store when it has one; otherwise the defaults apply. This is an optional enhancement:
+    // it never rejects, and it never changes the facility list or blocks login.
+    async loadFacilitySettings(facilityId?: string) {
+      const id = facilityId ?? this.currentFacility.facilityId
+      if (!id) return
+
+      // The user may switch facility while the lookups are running; a result for a facility they have left is dropped.
+      const isCurrentFacility = () => this.currentFacility.facilityId === id
+
+      try {
+        // Do not keep another facility's product store while this facility's is being resolved.
+        if (this.currentProductStore.facilityId !== id) this.currentProductStore = {}
+
+        const [store] = await this.fetchFacilityProductStores(id, { includeNames: false })
+        if (!isCurrentFacility()) return
+
+        this.currentProductStore = store ? { ...store, facilityId: id } : {}
+        await this.fetchProductStoreSettings(store?.productStoreId, isCurrentFacility)
+      } catch (error) {
+        logger.error("Failed to load the facility settings", error)
+      }
     },
 
     async fetchProductStoreFacilities(productStoreId: string) {
@@ -360,7 +364,7 @@ export const useProductStore = defineStore('productStore', {
       return addresses;
     },
 
-    async fetchProductStoreSettings(productStoreId: string) {
+    async fetchProductStoreSettings(productStoreId?: string, isStillWanted: () => boolean = () => true) {
       const productStoreSettings = {} as any
 
       if (productStoreId) {
@@ -384,6 +388,9 @@ export const useProductStore = defineStore('productStore', {
           logger.error("Failed to fetch settings", error)
         }
       }
+
+      // The caller moved on (for example, to another facility) while the settings were being fetched.
+      if (!isStillWanted()) return
 
       Object.entries(defaultProductStoreSettings).forEach(([settingTypeEnumId, setting]: any) => {
         const { stateKey, value } = setting;
@@ -415,6 +422,12 @@ export const useProductStore = defineStore('productStore', {
     },
 
     async setProductStoreSetting(productStoreId: string, settingTypeEnumId: string, settingValue: any) {
+      // Settings are saved on the facility's product store. Without one there is nothing to save to.
+      if (!productStoreId) {
+        commonUtil.showToast(translate("Unable to update this setting since no product store is linked to the selected facility."))
+        return
+      }
+
       try {
         const payloadSettingValue = typeof settingValue === 'object' ? JSON.stringify(settingValue) : settingValue;
         const resp = await api({

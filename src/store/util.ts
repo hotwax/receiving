@@ -97,6 +97,12 @@ export const useUtilStore = defineStore("util", {
     async fetchStoreCarrierAndMethods(productStoreId: string) {
       let shipmentMethodsByCarrier = {} as Record<string, any[]>;
 
+      // Without a product store there are no store carriers; do not query with an empty id or keep another store's methods.
+      if (!productStoreId) {
+        this.shipmentMethodsByCarrier = shipmentMethodsByCarrier;
+        return;
+      }
+
       try {
         const resp = await api({
           url: "oms/dataDocumentView",

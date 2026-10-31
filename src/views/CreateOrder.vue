@@ -27,7 +27,7 @@
               </ion-select>
               <template v-else>
                 <ion-label data-testid="create-order-store-label">{{ translate('Product Store') }}</ion-label>
-                <ion-label slot="end" data-testid="create-order-store-value">{{ stores[0].storeName ? stores[0].storeName : stores[0].productStoreId }}</ion-label>
+                <ion-label slot="end" data-testid="create-order-store-value">{{ stores.length ? (stores[0].storeName ? stores[0].storeName : stores[0].productStoreId) : translate('None') }}</ion-label>
               </template>
             </ion-item>
             <ion-item>
@@ -341,7 +341,8 @@ const productIdentificationPref = computed(() => productStore.getProductIdentifi
 const shipmentMethodsByCarrier = computed(() => utilStore.getShipmentMethodsByCarrier)
 const getCarrierDesc = computed(() => utilStore.getCarrierDesc)
 const facilities = computed(() => productStore.getProductStoreFacilities)
-const stores = computed(() => productStore.currentFacility.productStores)
+// A transfer order needs a product store, so this page looks up the stores linked to the facility itself; Receiving does not need them elsewhere.
+const stores = ref([]) as any
 // Implemented watcher to display the search spinner correctly. Mainly the watcher is needed to not make the findProduct call always and to create the debounce effect.
 // Previously we were using the `debounce` property of ion-input but it was updating the searchedString and making other related effects after the debounce effect thus the spinner is also displayed after the debounce
 // effect is completed.
@@ -365,14 +366,15 @@ watch(queryString, (value) => {
 
 onIonViewDidEnter(async () => {
   emitter.emit("presentLoader")
-  const currentProductStoreId = (productStore.getCurrentProductStore as any)?.productStoreId || "";
+  stores.value = await productStore.fetchFacilityProductStores(productStore.getCurrentFacility?.facilityId)
+  const currentProductStoreId = stores.value[0]?.productStoreId || "";
   currentOrder.value.productStoreId = currentProductStoreId
   await Promise.allSettled([
     currentProductStoreId ? productStore.fetchProductStoreFacilities(currentProductStoreId) : Promise.resolve(),
     utilStore.fetchStoreCarrierAndMethods(currentProductStoreId),
     utilStore.fetchCarriersDetail()
   ])
-  await fetchProductStoreDetails(currentProductStoreId);
+  if (currentProductStoreId) await fetchProductStoreDetails(currentProductStoreId);
   await fetchBarcodeIdentificationDesc();
   if(Object.keys(shipmentMethodsByCarrier.value)?.length) {
     currentOrder.value.carrierPartyId = Object.keys(shipmentMethodsByCarrier.value)[0]
@@ -588,7 +590,12 @@ async function createOrder() {
     return;
   }
 
-  if(!currentOrder.value.productStoreId || !currentOrder.value.originFacilityId || !currentOrder.value.destinationFacilityId || !currentOrder.value.carrierPartyId || !currentOrder.value.shipmentMethodTypeId) {
+  if(!currentOrder.value.productStoreId) {
+    commonUtil.showToast(translate("A transfer order needs a product store, and none is linked to this facility."), { position: 'top' })
+    return;
+  }
+
+  if(!currentOrder.value.originFacilityId || !currentOrder.value.destinationFacilityId || !currentOrder.value.carrierPartyId || !currentOrder.value.shipmentMethodTypeId) {
     commonUtil.showToast(translate("Please select all the required properties assigned to the order."), { position: 'top' })
     return;
   }
