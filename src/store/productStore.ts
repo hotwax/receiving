@@ -260,7 +260,10 @@ export const useProductStore = defineStore('productStore', {
           }
         }
 
-        const productStores = [...stores]
+        // A facility with no active product store link still has to load (as in v4.1.x): login, Settings and
+        // Create Order read currentProductStore and productStores[0] directly. Facilities that do have a
+        // product store get no None option.
+        const productStores = stores.length ? [...stores] : [{ productStoreId: "", storeName: "None" }]
 
         this.currentFacility = {
           ...this.currentFacility,
