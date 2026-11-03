@@ -71,7 +71,6 @@ const userStore = useUserStore();
 
 
 const getProduct = computed(() => product.getProduct);
-const isReceivingByFulfillment = computed(() => productStore.isProductStoreSettingEnabled('RECEIVE_BY_FULFILL'))
 const getOverReceivedQtyForItem = (item: any): number => ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0) - getItemQty(item))
 let productIdentificationPref = computed(() => productStore.getProductIdentificationPref)
 const saveButtonLabel = computed(() => props.closeTO ? translate("Complete transfer order") : canReceiveAndClose() ? translate("Receive and complete") : translate("Save progress"))
@@ -103,7 +102,7 @@ function canReceiveAndClose() {
 }
 
 function getItemQty(item: any) {
-  return (isReceivingByFulfillment.value ? item.totalIssuedQuantity : item.quantity) || 0
+  return Number(item.totalIssuedQuantity) || 0
 }
 
 function closeModal() {
