@@ -47,4 +47,8 @@ const getTime = (time: any) => {
   overflow-wrap: anywhere;
   text-align: start;
 }
+ion-note[slot="end"] {
+  align-self: center;
+  padding-block: 0;
+}
 </style>
