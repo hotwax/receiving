@@ -201,8 +201,6 @@ export const useUserStore = defineStore("user", {
         await this.fetchPermissions()
         await productStore.fetchUserFacilities()
         await productStore.fetchFacilityPreference();
-        await productStore.fetchProductStores()
-        await productStore.fetchProductStoreDependencies(productStore.getCurrentProductStore.productStoreId)
 
         const notificationStore = useNotificationStore();
         await notificationStore.fetchAllNotificationPrefs(import.meta.env.VITE_NOTIF_APP_ID as any, this.current.userId)
