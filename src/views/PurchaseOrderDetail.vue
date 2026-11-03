@@ -21,6 +21,7 @@
           <ion-label class="ion-padding">
             <h1>{{ translate("Purchase Order")}}: {{ order.externalOrderId }}</h1>
             <p>{{ translate("Item count") }}: {{ order.items.length }}</p>
+            <p>{{ translate("Total quantity") }}: {{ totalOrderedQuantity }}</p>
           </ion-label>
 
           <div class="doc-meta">
@@ -193,6 +194,11 @@ const isForceScanEnabled = computed(() => productStore.isProductStoreSettingEnab
 const barcodeIdentifier = computed(() => productStore.getBarcodeIdentifierPref);
 const productIdentificationPref = computed(() => productStore.getProductIdentificationPref);
 const currentFacility = computed(() => productStore.getCurrentFacility);
+const totalOrderedQuantity = computed(() =>
+  order.value.items
+    .filter((item: any) => item.statusId !== 'ITEM_CANCELLED')
+    .reduce((total: number, item: any) => total + (Number(item.quantity) || 0), 0)
+);
 
 const isPOReceived = () => order.value.orderStatusId === "ORDER_COMPLETED";
 
