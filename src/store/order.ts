@@ -240,7 +240,11 @@ export const useOrderStore = defineStore("order", {
       return resp;
     },
     setItemLocationSeqId(payload: any) {
-      const item = this.current.items.find((item: any) => item.orderItemSeqId === payload.item.orderItemSeqId);
+      // Products added from the "Add product" modal have no orderItemSeqId yet; match those by productId.
+      const { orderItemSeqId, productId } = payload.item;
+      const item = this.current.items.find((item: any) => orderItemSeqId
+        ? item.orderItemSeqId === orderItemSeqId
+        : !item.orderItemSeqId && item.productId === productId);
       if (item) {
         item.locationSeqId = payload.locationSeqId;
       }
