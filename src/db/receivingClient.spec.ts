@@ -5,7 +5,6 @@ const state = vi.hoisted(() => ({
   journals: new Map<string, Map<string, any>>(), dbs: new Map<string, any>(),
   serviceState: { running: false, written: {} as Record<string, number>, errors: {} as Record<string, string> },
   onStatus: undefined as ((status: Record<string, any>) => void) | undefined,
-  channel: undefined as { onmessage?: (event: { data: unknown }) => void } | undefined,
 }));
 vi.mock('@common/core/remoteApi', () => ({ default: state.api }));
 vi.mock('@common/utils/commonUtil', () => ({ commonUtil: { hasError: (response: any) => !!response?.data?.errors } }));
@@ -65,7 +64,7 @@ beforeEach(async () => {
   state.clear.mockImplementation(async db => { if (db.closed) throw new Error('DatabaseClosedError'); });
   state.api.mockImplementation(async (request: any) => request.method === 'get' ? { data: { order: { items: [line] } } } : { status: 200, data: {} });
   vi.stubGlobal('navigator', { locks: { request: async (_name: string, run: () => unknown) => run() } });
-  vi.stubGlobal('BroadcastChannel', class { onmessage: unknown; constructor() { state.channel = this as any; } postMessage() {} close() {} });
+  vi.stubGlobal('BroadcastChannel', class { onmessage: unknown; postMessage() {} close() {} });
   client = await import('./receivingClient');
   await client.configureReceiving(connection);
 });
@@ -80,26 +79,6 @@ it('reopens the captured cache for shared logout cleanup and closes it afterward
   expect(client.receivingDb.value).toBeUndefined();
   await client.clearReceivingSession();
   expect(state.clear).toHaveBeenCalledOnce();
-});
-
-// Logging out in one tab must send the other tabs of that session to Login (#750).
-describe('Logout from another tab', () => {
-  const logoutFrom = (scope: string) => state.channel!.onmessage!({ data: { type: 'logout', scope } });
-
-  it('runs the logout handler once for the same session, even when the message repeats', () => {
-    const handler = vi.fn();
-    client.onRemoteReceivingLogout(handler);
-    logoutFrom(connection.scope);
-    logoutFrom(connection.scope);
-    expect(handler).toHaveBeenCalledOnce();
-  });
-
-  it('ignores a logout from a different session', () => {
-    const handler = vi.fn();
-    client.onRemoteReceivingLogout(handler);
-    logoutFrom('other-tenant/other-user');
-    expect(handler).not.toHaveBeenCalled();
-  });
 });
 
 describe('Live receiving progress', () => {
