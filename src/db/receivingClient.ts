@@ -37,10 +37,15 @@ let subscriptions: Array<{ unsubscribe(): void }> = [];
 const domains = (connection: ReceivingConnection, activeOrder?: string) =>
   ['receivingMembership', 'receivingOrders', 'receivingHistory'].map(name => ({ name, args: { ...connection, token: undefined, activeOrder } }));
 const channel = new BroadcastChannel('receiving-session');
+// Called when another tab of the same session logs out, so this tab can leave the session too (App.vue sends it to Login).
+let remoteLogoutHandler: (() => unknown) | undefined;
+export function onRemoteReceivingLogout(handler: () => unknown) { remoteLogoutHandler = handler; }
 channel.onmessage = event => {
-  if (event.data?.type === 'logout' && event.data.scope === active?.scope) {
+  // Act on the first logout only: this tab's own teardown sends the message again.
+  if (event.data?.type === 'logout' && event.data.scope === active?.scope && sessionEnabled) {
     sessionEnabled = false;
     void configureReceiving();
+    void remoteLogoutHandler?.();
   }
 };
 
