@@ -35,7 +35,7 @@ vi.mock('@/store/order', () => ({
   }),
 }));
 
-import ClosePurchaseOrderModal from './ClosePurchaseOrderModal.vue';
+import ClosePurchaseOrderModal from '@/components/ClosePurchaseOrderModal.vue';
 
 const proceed = async () => {
   const wrapper = mount(ClosePurchaseOrderModal, { props: { isEligibileForCreatingShipment: true } });
