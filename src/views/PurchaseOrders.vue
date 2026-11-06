@@ -23,7 +23,7 @@
         <PurchaseOrderItem v-for="(order, index) in orders" :key="index" :purchaseOrder="order" />
         
         <div data-testid="purchase-orders-page-load-more-section" v-if="orders.length < ordersTotal" class="load-more-action ion-text-center">
-          <ion-button data-testid="purchase-orders-page-load-more-btn" fill="outline" color="dark" @click="loadMoreOrders()">
+          <ion-button data-testid="purchase-orders-page-load-more-btn" fill="outline" color="dark" :disabled="fetchingOrders" @click="loadMoreOrders()">
             <ion-icon :icon="cloudDownloadOutline" slot="start" />
             {{ translate("Load more purchase order") }}
           </ion-button>
@@ -89,6 +89,8 @@ const getPurchaseOrders = async (vSize?: any, vIndex?: any) => {
 };
 
 const loadMoreOrders = async () => {
+  // A quick second tap arrives before the button re-renders as disabled.
+  if (fetchingOrders.value) return;
   getPurchaseOrders(
     undefined,
     Math.ceil(orders.value.length / (import.meta.env.VITE_VIEW_SIZE as any))

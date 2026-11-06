@@ -24,7 +24,7 @@
         <ReturnListItem v-for="returnShipment in returns" :key="returnShipment.shipmentId" :returnShipment="returnShipment" />
 
         <div data-testid="returns-page-load-more-section" v-if="returns.length < returnsTotal" class="load-more-action ion-text-center">
-          <ion-button data-testid="returns-page-load-more-btn" fill="outline" color="dark" @click="loadMoreReturns()">
+          <ion-button data-testid="returns-page-load-more-btn" fill="outline" color="dark" :disabled="fetchingReturns" @click="loadMoreReturns()">
             <ion-icon :icon="cloudDownloadOutline" slot="start" />
             {{ translate("Load more returns") }}
           </ion-button>
@@ -95,6 +95,8 @@ const getReturns = async (vSize?: any, vIndex?: any) => {
 };
 
 const loadMoreReturns = () => {
+  // A quick second tap arrives before the button re-renders as disabled.
+  if (fetchingReturns.value) return;
   getReturns(import.meta.env.VITE_VIEW_SIZE, Math.ceil(returns.value.length / (import.meta.env.VITE_VIEW_SIZE as any)));
 };
 
