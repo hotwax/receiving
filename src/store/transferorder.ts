@@ -7,6 +7,7 @@ import { liveQuery } from 'dexie';
 import { setActiveReceivingOrder, ensureReceivingOrder, ensureReceivingHistory, getReceivingDb, receivingOperations, loadReceivingTracking, submitReceipt } from '@/db/receivingClient';
 import { findIdentifierProducts, readDetail, readHistory } from '@/db/receivingQueries';
 import { tuple } from '@/db/receivingDatabase';
+import { canCompleteTransferOrder, hasFulfilledQuantity } from "@/utils/transferOrderReceiving";
 
 let detailSubscription: { unsubscribe(): void } | undefined;
 let historySubscription: { unsubscribe(): void } | undefined;
@@ -243,6 +244,19 @@ export const useTransferOrderStore = defineStore("transferorder", {
     },
 
     async receiveTransferOrder(orderId: string, payload: any, options?: { baseline: any[]; preserveOtherDrafts: boolean }) {
+      const completingItems = payload.items?.filter((item: any) => item.statusId === "ITEM_COMPLETED") || [];
+
+      if(completingItems.length && (this.current.orderId !== orderId || completingItems.some((item: any) => {
+        if(!item.orderItemSeqId) {
+          return !canCompleteTransferOrder(this.current.items);
+        }
+
+        const orderItem = this.current.items.find((current: any) => current.orderItemSeqId === item.orderItemSeqId);
+
+        return !hasFulfilledQuantity(orderItem);
+      }))) {
+        throw new Error("Wait for warehouse fulfillment before completing this transfer order");
+      }
       if (this.current.cacheConflict) throw new Error('Review the refreshed transfer quantities before receiving.');
       if (this.current.needsReadback) throw new Error('The previous receipt still needs reconciliation. Check receiving history before receiving again.');
       const scope = this.draftScope;
