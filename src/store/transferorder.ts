@@ -5,6 +5,7 @@ import { useProductStore as useProduct } from "@/store/product";
 import { useProductStore } from "@/store/productStore";
 import { usePartyStore } from "@/store/party";
 import { useUserStore } from "@/store/user";
+import { canCompleteTransferOrder, hasFulfilledQuantity } from "@/utils/transferOrderReceiving";
 
 export const useTransferOrderStore = defineStore("transferorder", {
   state: () => ({
@@ -261,6 +262,19 @@ export const useTransferOrderStore = defineStore("transferorder", {
     },
 
     async receiveTransferOrder(orderId: string, payload: any) {
+      const completingItems = payload.items?.filter((item: any) => item.statusId === "ITEM_COMPLETED") || [];
+
+      if(completingItems.length && (this.current.orderId !== orderId || completingItems.some((item: any) => {
+        if(!item.orderItemSeqId) {
+          return !canCompleteTransferOrder(this.current.items);
+        }
+
+        const orderItem = this.current.items.find((current: any) => current.orderItemSeqId === item.orderItemSeqId);
+
+        return !hasFulfilledQuantity(orderItem);
+      }))) {
+        throw new Error("Wait for warehouse fulfillment before completing this transfer order");
+      }
       return api({
         url: `poorti/transferOrders/${orderId}/receipts`,
         method: "post",
