@@ -152,7 +152,7 @@ const getTransferOrders = async (vSize?: any, vIndex?: any) => {
     limit,
     pageIndex,
     keyword: queryString.value?.trim() || undefined,
-    fieldsToSelect: "orderId,orderName,orderExternalId,orderStatusId,orderStatusDesc,facilityId,orderFacilityId,orderDate"
+    fieldsToSelect: "orderId,orderName,orderExternalId,orderStatusId,orderStatusDesc,facilityId,orderFacilityId,orderDate,statusFlowId,productStoreId"
   };
 
   try {

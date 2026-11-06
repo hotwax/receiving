@@ -384,7 +384,7 @@
       <ion-toolbar>
         <ion-buttons slot="end">
           <ion-button data-testid="transfer-order-detail-page-save-progress-btn" :disabled="!areAllItemsHaveQty || isReceiveFlowBusy || order.cacheConflict || order.needsReadback || !order.ready" class="ion-margin-end" fill="outline" size="small" color="primary" @click="receiveTO">{{ translate("Save Progress") }}{{ ":" }} {{ getReceivedUnits() }}</ion-button>
-          <ion-button data-testid="transfer-order-detail-page-receive-complete-btn" :disabled="!areAllItemsHaveQty || isReceiveFlowBusy || order.cacheConflict || order.needsReadback || !order.ready" fill="solid" size="small" color="primary" @click="receiveAndCloseTO">{{ translate("Receive and complete") }}</ion-button>
+          <ion-button data-testid="transfer-order-detail-page-receive-complete-btn" :disabled="!canCompleteTO || !areAllItemsHaveQty || isReceiveFlowBusy || order.cacheConflict || order.needsReadback || !order.ready" fill="solid" size="small" color="primary" @click="receiveAndCloseTO">{{ translate("Receive and complete") }}</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-footer>
@@ -419,6 +419,7 @@ import { useReceiveFlowState } from '@/composables/useReceiveFlowState';
 import { runTransferOrderDetailReceiveWorkflow } from '@/views/transferOrderDetailReceiveWorkflow';
 import { markItemsAsReceived, remainingIssuedQuantity } from '@/views/transferOrderBulkReceive';
 import Actions from "@/authorization/actions";
+import { canCompleteTransferOrder, hasFulfilledQuantity } from "@/utils/transferOrderReceiving";
 
 const transferOrderStore = useTransferOrderStore();
 const product = useProduct();
@@ -459,6 +460,7 @@ const scanErrorText = ref("");
 const order = computed(() => transferOrderStore.getCurrent);
 const detailProgress = computed(() => openingDetail.value
   ? [order.value.shipmentsReady, order.value.ready, order.value.hydrated].filter(Boolean).length / 3 : 0);
+const canCompleteTO = computed(() => canCompleteTransferOrder(order.value.items));
 const getProduct = computed(() => product.getProduct);
 const isForceScanEnabled = computed(() => productStore.isProductStoreSettingEnabled('RECEIVE_FORCE_SCAN'));
 const isReceivingByFulfillment = computed(() => productStore.isProductStoreSettingEnabled('RECEIVE_BY_FULFILL'));
@@ -803,6 +805,10 @@ const showAllOpenItems = () => {
 
 const confirmReceiveAndClose = async () => {
   dismissToast();
+  if (!canCompleteTO.value) {
+    commonUtil.showToast(translate("Wait for warehouse fulfillment before completing this transfer order"));
+    return false;
+  }
   if (!isEligibleForCreatingShipment(true) || !userStore.hasPermission(Actions.APP_SHIPMENT_UPDATE)) {
     await receivingAlert();
     return false;
@@ -887,15 +893,18 @@ const markAllAsReceived = () => {
 
 const receiveTransferOrder = async (isClosingTO: boolean, receipt: { orderId: string; facilityId: string; baseline: any[]; preserveOtherDrafts: boolean }) => {
   let eligibleItems: any = [];
+  if(isClosingTO && !canCompleteTO.value) {
+    return false;
+  }
   const itemsToReceive = JSON.parse(JSON.stringify(receiptItems.value));
   if (!isClosingTO) {
     itemsToReceive.forEach((item: any) => {
-      const isItemFullyReceived = item.quantityAccepted >= 0 && ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) >= getItemQty(item);
+      const isItemFullyReceived = hasFulfilledQuantity(item) && item.quantityAccepted >= 0 && ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) >= getItemQty(item);
       if (isItemFullyReceived) {
         item.statusId = "ITEM_COMPLETED";
       }
 
-      if (item.quantityAccepted > 0) {
+      if (item.quantityAccepted > 0 && (!item.orderItemSeqId || hasFulfilledQuantity(item))) {
         eligibleItems.push(item);
       }
     });
@@ -904,6 +913,10 @@ const receiveTransferOrder = async (isClosingTO: boolean, receipt: { orderId: st
       ...item,
       statusId: "ITEM_COMPLETED"
     }));
+  }
+
+  if(!eligibleItems.length) {
+    return false;
   }
 
   const payload = {
@@ -940,7 +953,7 @@ const submitTransferReceipt = async (orderId: string, payload: any, options?: { 
 };
 
 const isEligibleForCreatingShipment = (isClosingTO = false) => {
-  return receiptItems.value.some((item: any) => !isClosingTO ? (item.quantityAccepted && Number(item.quantityAccepted) > 0) : (item.quantityAccepted && Number(item.quantityAccepted) >= 0));
+  return receiptItems.value.some((item: any) => (!item.orderItemSeqId || hasFulfilledQuantity(item)) && (!isClosingTO ? (item.quantityAccepted && Number(item.quantityAccepted) > 0) : (item.quantityAccepted && Number(item.quantityAccepted) >= 0)));
 };
 
 const receiveAll = (item: any) => {
