@@ -283,5 +283,7 @@
   "You do not have permission to access this page": "You do not have permission to access this page",
   "Your receiving progress will be saved and will be added to your inventory. Come back to this transfer order and finish receiving later. Fully received items auto close.": "Your receiving progress will be saved and {units} will be added to your inventory.{space}Come back to this transfer order and finish receiving later.{space}Fully received items auto close.",
   "Your scanner isn’t focused yet.": "Your scanner isn’t focused yet.",
-  "ZeroQuantity": "ZeroQuantity"
+  "ZeroQuantity": "ZeroQuantity",
+  "Unable to update this setting since no product store is linked to the selected facility.": "Unable to update this setting since no product store is linked to the selected facility.",
+  "A transfer order needs a product store, and none is linked to this facility.": "A transfer order needs a product store, and none is linked to this facility."
 }
