@@ -346,7 +346,7 @@
       <ion-toolbar>
         <ion-buttons slot="end">
           <ion-button data-testid="transfer-order-detail-page-save-progress-btn" :disabled="!areAllItemsHaveQty || isReceiveFlowBusy" class="ion-margin-end" fill="outline" size="small" color="primary" @click="receiveTO">{{ translate("Save Progress") }}{{ ":" }} {{ getReceivedUnits() }}</ion-button>
-          <ion-button data-testid="transfer-order-detail-page-receive-complete-btn" :disabled="!areAllItemsHaveQty || isReceiveFlowBusy" fill="solid" size="small" color="primary" @click="receiveAndCloseTO">{{ translate("Receive and complete") }}</ion-button>
+          <ion-button data-testid="transfer-order-detail-page-receive-complete-btn" :disabled="!canCompleteTO || !areAllItemsHaveQty || isReceiveFlowBusy" fill="solid" size="small" color="primary" @click="receiveAndCloseTO">{{ translate("Receive and complete") }}</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-footer>
@@ -375,6 +375,7 @@ import router from '@/router';
 import { useReceiveFlowState } from '@/composables/useReceiveFlowState';
 import { runTransferOrderDetailReceiveWorkflow } from '@/views/transferOrderDetailReceiveWorkflow';
 import Actions from "@/authorization/actions";
+import { canCompleteTransferOrder, hasFulfilledQuantity } from "@/utils/transferOrderReceiving";
 
 const transferOrderStore = useTransferOrderStore();
 const product = useProduct();
@@ -403,6 +404,7 @@ const isToastOpen = ref(false);
 const scanErrorText = ref("");
 
 const order = computed(() => transferOrderStore.getCurrent);
+const canCompleteTO = computed(() => canCompleteTransferOrder(order.value.items));
 const getProduct = computed(() => product.getProduct);
 const isForceScanEnabled = computed(() => productStore.isProductStoreSettingEnabled('RECEIVE_FORCE_SCAN'));
 const isReceivingByFulfillment = computed(() => productStore.isProductStoreSettingEnabled('RECEIVE_BY_FULFILL'));
@@ -699,6 +701,10 @@ const showAllOpenItems = () => {
 
 const confirmReceiveAndClose = async () => {
   dismissToast();
+  if (!canCompleteTO.value) {
+    commonUtil.showToast(translate("Wait for warehouse fulfillment before completing this transfer order"));
+    return false;
+  }
   if (!isEligibleForCreatingShipment(true) || !userStore.hasPermission(Actions.APP_SHIPMENT_UPDATE)) {
     await receivingAlert();
     return false;
@@ -764,16 +770,19 @@ const receiveTO = () => runReceiveWorkflow(false, confirmSaveProgress);
 const receiveAndCloseTO = () => runReceiveWorkflow(true, confirmReceiveAndClose);
 
 const receiveTransferOrder = async (isClosingTO = false) => {
+  if(isClosingTO && !canCompleteTO.value) {
+    return false;
+  }
   let eligibleItems: any = [];
   const itemsToReceive = JSON.parse(JSON.stringify([...openItems.value, ...openItemsTemp.value]));
   if (!isClosingTO) {
     itemsToReceive.forEach((item: any) => {
-      const isItemFullyReceived = item.quantityAccepted >= 0 && ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) >= getItemQty(item);
+      const isItemFullyReceived = hasFulfilledQuantity(item) && item.quantityAccepted >= 0 && ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) >= getItemQty(item);
       if (isItemFullyReceived) {
         item.statusId = "ITEM_COMPLETED";
       }
 
-      if (item.quantityAccepted > 0) {
+      if (item.quantityAccepted > 0 && (!item.orderItemSeqId || hasFulfilledQuantity(item))) {
         eligibleItems.push(item);
       }
     });
@@ -782,6 +791,10 @@ const receiveTransferOrder = async (isClosingTO = false) => {
       ...item,
       statusId: "ITEM_COMPLETED"
     }));
+  }
+
+  if(!eligibleItems.length) {
+    return false;
   }
 
   const payload = {
@@ -808,7 +821,7 @@ const receiveTransferOrder = async (isClosingTO = false) => {
 };
 
 const isEligibleForCreatingShipment = (isClosingTO = false) => {
-  return [...openItems.value, ...openItemsTemp.value]?.some((item: any) => !isClosingTO ? (item.quantityAccepted && Number(item.quantityAccepted) > 0) : (item.quantityAccepted && Number(item.quantityAccepted) >= 0));
+  return [...openItems.value, ...openItemsTemp.value]?.some((item: any) => (!item.orderItemSeqId || hasFulfilledQuantity(item)) && (!isClosingTO ? (item.quantityAccepted && Number(item.quantityAccepted) > 0) : (item.quantityAccepted && Number(item.quantityAccepted) >= 0)));
 };
 
 const receiveAll = (item: any) => {
