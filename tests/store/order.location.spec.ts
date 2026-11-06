@@ -6,7 +6,7 @@ vi.mock('@/store/product', () => ({ useProductStore: vi.fn() }));
 vi.mock('@/store/productStore', () => ({ useProductStore: vi.fn() }));
 vi.mock('@/store/party', () => ({ usePartyStore: vi.fn() }));
 
-import { useOrderStore } from './order';
+import { useOrderStore } from '@/store/order';
 
 describe('Changing the location of a purchase order item', () => {
   beforeEach(() => setActivePinia(createPinia()));
