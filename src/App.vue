@@ -29,8 +29,9 @@ import { IonApp, IonContent, IonHeader, IonIcon, IonItem, IonLabel, IonList, Ion
 import { ref, computed, onBeforeMount, onMounted, onUnmounted } from 'vue';
 import router from '@/router'
 import { Settings } from 'luxon';
-import { translate, emitter, useNotificationStore, logger, useAuth } from "@common";
+import { translate, emitter, useNotificationStore, useAuth } from "@common";
 import { firebaseUtil } from '@/utils/firebaseUtil';
+import { useFacilitySettingsLoader } from '@/composables/useFacilitySettingsLoader';
 import { useUserStore } from '@/store/user';
 import { useProductStore } from '@/store/productStore';
 
@@ -80,6 +81,9 @@ const presentLoader = async (options = { message: '', backdropDismiss: true }) =
   await loader.value.present();
 };
 
+// v4.2.4 has no local receiving cache and so no separate login-ready flag.
+useFacilitySettingsLoader(ref(true), isAuthenticated);
+
 const dismissLoader = () => {
   if (loader.value) {
     loader.value.dismiss();
@@ -105,13 +109,8 @@ onBeforeMount(() => {
 });
 
 onMounted(async () => {
-  const currentProductStore: any = productStore.getCurrentProductStore;
-  if (isAuthenticated.value && currentProductStore?.productStoreId) {
-    await productStore.fetchProductStoreSettings(currentProductStore.productStoreId).catch((error) => logger.error(error));
-
-    if (allNotificationPrefs.value?.length) {
-      await firebaseUtil.initialiseFirebaseMessaging();
-    }
+  if (isAuthenticated.value && allNotificationPrefs.value?.length) {
+    await firebaseUtil.initialiseFirebaseMessaging();
   }
 
   // Handles case when user resumes or reloads the app
