@@ -38,7 +38,7 @@
               <p class="overline">{{ order.orderId }}</p>
               <h1>{{ translate("Transfer Order")}}: {{ order.orderName ? order.orderName : order.externalId ? order.externalId : order.orderId }}</h1>
               <p>{{ translate("Item count") }}: {{ order.items?.length }}</p>
-              <p v-if="isReceivingByFulfillment && !isTOReceived()">{{ translate("Unfulfilled items") }}: {{ order.items?.length - fulfilledItems }}</p>
+              <p v-if="!isTOReceived()">{{ translate("Unfulfilled items") }}: {{ order.items?.length - fulfilledItems }}</p>
             </ion-label>
             <div v-if="!isTOReceived()" class="shipment-filters" role="group" :aria-label="translate('Filter by shipment box')">
               <ion-chip data-testid="shipment-filter-all" role="button" tabindex="0" :aria-pressed="!selectedPackageKey"
@@ -182,8 +182,7 @@
                   </div>
 
                   <div class="qty-ordered">
-                    <ion-label v-if="isReceivingByFulfillment">{{ item.totalIssuedQuantity || 0 }} {{ translate("fulfilled") }}</ion-label>
-                    <ion-label v-else>{{ item.quantity }} {{ translate("ordered") }}</ion-label>
+                    <ion-label>{{ item.totalIssuedQuantity || 0 }} {{ translate("fulfilled") }}</ion-label>
                   </div>
                 </div>
               </template>
@@ -254,8 +253,7 @@
                 </div>
 
                 <div class="qty-ordered">
-                  <ion-label v-if="isReceivingByFulfillment">{{ item.totalIssuedQuantity || 0 }} {{ translate("fulfilled") }}</ion-label>
-                  <ion-label v-else>{{ item.quantity }} {{ translate("ordered") }}</ion-label>
+                  <ion-label>{{ item.totalIssuedQuantity || 0 }} {{ translate("fulfilled") }}</ion-label>
                 </div>
               </div>
             </ion-card>
@@ -461,7 +459,6 @@ const detailProgress = computed(() => openingDetail.value
   ? [order.value.shipmentsReady, order.value.ready, order.value.hydrated].filter(Boolean).length / 3 : 0);
 const getProduct = computed(() => product.getProduct);
 const isForceScanEnabled = computed(() => productStore.isProductStoreSettingEnabled('RECEIVE_FORCE_SCAN'));
-const isReceivingByFulfillment = computed(() => productStore.isProductStoreSettingEnabled('RECEIVE_BY_FULFILL'));
 const barcodeIdentifier = computed(() => productStore.getBarcodeIdentifierPref);
 const productIdentificationPref = computed(() => productStore.getProductIdentificationPref);
 
@@ -553,7 +550,7 @@ const dismissToast = () => {
 };
 
 const getItemQty = (item: any) => {
-  return (isReceivingByFulfillment.value ? Number(item.totalIssuedQuantity) : Number(item.quantity)) || 0;
+  return Number(item.totalIssuedQuantity) || 0;
 };
 
 const getReceivedUnits = () => {
@@ -576,7 +573,7 @@ const getRcvdToOrderedFraction = (item: any) => {
   if (!totalQty) {
     return 0;
   }
-  return ((Number(item.totalReceivedQuantity) || 0) + (Number(item.quantityAccepted) || 0)) / ((isReceivingByFulfillment.value ? Number(item.totalIssuedQuantity) : Number(item.quantity)) || (isReceivingByFulfillment.value ? 0 : 1));
+  return totalQty / getItemQty(item);
 };
 
 const openImage = async (imageUrl: string, productName: string) => {
@@ -945,8 +942,7 @@ const isEligibleForCreatingShipment = (isClosingTO = false) => {
 
 const receiveAll = (item: any) => {
   const qtyAlreadyAccepted = Number(item.totalReceivedQuantity) || 0;
-  const qty = isReceivingByFulfillment.value ? item.totalIssuedQuantity : item.quantity;
-  item.quantityAccepted = Math.max(qty - qtyAlreadyAccepted, 0);
+  item.quantityAccepted = Math.max(getItemQty(item) - qtyAlreadyAccepted, 0);
 };
 
 const isTOReceived = () => order.value.statusId === "ORDER_COMPLETED";

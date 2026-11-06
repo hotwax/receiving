@@ -15,7 +15,6 @@ export const useProductStore = defineStore('productStore', {
     currentProductStore: {} as any,
     settings: {
       forceScan: "",
-      receiveByFulfillment: "",
       productIdentifier: {
         productIdentificationPref: {
           primaryId: '',

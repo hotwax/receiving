@@ -74,20 +74,6 @@
             </ion-item>
           </ion-list>
         </ion-card> -->
-
-        <ion-card>
-          <ion-card-header>
-            <ion-card-title>
-              {{ translate("Inventory receiving flow") }}
-            </ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            {{ translate("Inventory of the transferred items will be received by fulfillment app.") }}
-          </ion-card-content>
-          <ion-item lines="none" :disabled="!userStore.hasPermission(Actions.APP_UPDT_RECEIVE_FLOW_CONFIG)">
-            <ion-toggle label-placement="start" :checked="isProductStoreSettingEnabled('RECEIVE_BY_FULFILL')" @click.prevent="confirmReceiveByFulfillment($event)">{{ translate("Receive by fulfillment") }}</ion-toggle>
-          </ion-item>
-        </ion-card>
       </section>
     </ion-content>
   </ion-page>
@@ -147,35 +133,6 @@ const updateForceScanStatus = async (event: any) => {
     "RECEIVE_FORCE_SCAN",
     !isProductStoreSettingEnabled.value("RECEIVE_FORCE_SCAN") ? "Y" : "N"
   );
-};
-
-const confirmReceiveByFulfillment = async (event: any) => {
-  event.stopImmediatePropagation();
-  const isChecked = !isProductStoreSettingEnabled.value("RECEIVE_BY_FULFILL");
-  const message = translate("Are you sure you want to perform this action?");
-  const header = isChecked ? translate("Receive by fulfillment") : translate("Do not receive by fulfillment");
-
-  const alert = await alertController.create({
-    header,
-    message,
-    buttons: [
-      {
-        text: translate("Cancel"),
-        role: "cancel"
-      },
-      {
-        text: translate("Confirm"),
-        handler: async () => {
-          await productStore.setProductStoreSetting(
-            preferredStore.value.productStoreId,
-            "RECEIVE_BY_FULFILL",
-            isChecked ? "true" : "false"
-          );
-        }
-      }
-    ]
-  });
-  return alert.present();
 };
 
 const updateNotificationPref = async (enumId: string) => {
