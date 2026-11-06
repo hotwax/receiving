@@ -167,6 +167,8 @@ export const useUserStore = defineStore("user", {
         });
         this.updateUserInfo({ userTimeZone: tzId })
         this.current.timeZone = tzId
+        // Dates format through Luxon's default zone; apply the saved zone now rather than on the next reload.
+        Settings.defaultZone = tzId
       } catch (error: any) {
         const serverError = commonUtil.getErrorMessage(error);
         logger.error("Failed to set user time zone", error);

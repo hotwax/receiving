@@ -30,7 +30,7 @@ import { ref, computed, onBeforeMount, onMounted, onUnmounted, watch } from 'vue
 import router from '@/router'
 import { Settings } from 'luxon';
 import { translate, emitter, useNotificationStore, useAuth, useIosKeyboardScroll } from "@common";
-import { configureReceiving, refreshReceiving } from '@/db/receivingClient';
+import { configureReceiving, onRemoteReceivingLogout, refreshReceiving } from '@/db/receivingClient';
 import { receivingLoginReady, syncReceivingSession } from '@/db/receivingSession';
 import { firebaseUtil } from '@/utils/firebaseUtil';
 import { useFacilitySettingsLoader } from '@/composables/useFacilitySettingsLoader';
@@ -43,6 +43,8 @@ const userStore = useUserStore();
 const productStore = useProductStore();
 
 const { isAuthenticated } = useAuth();
+// Another tab of this session logged out: leave the session here too and go to Login (no second server logout).
+onRemoteReceivingLogout(() => useAuth().logout({ isUserUnauthorised: true }));
 
 const currentFacility = computed(() => productStore.getCurrentFacility);
 
