@@ -31,7 +31,7 @@ export const usePartyStore = defineStore("party", {
             receiverDetails.fullName = [receiverDetails.firstName, receiverDetails.lastName].filter(Boolean).join(" ");
             this.namesByLoginId[receiverDetails.userLoginId] = receiverDetails;
           });
-        } else {
+        } else if (commonUtil.hasError(resp)) {
           logger.error(resp);
         }
       } catch (err) {

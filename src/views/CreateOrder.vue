@@ -402,13 +402,14 @@ async function fetchBarcodeIdentificationDesc() {
   try {
     const resp = await product.fetchBarcodeIdentificationDesc({ parentTypeId: "HC_GOOD_ID_TYPE" });
 
-    if (!commonUtil.hasError(resp) && resp.data?.length) {
+    if (commonUtil.hasError(resp)) {
+      throw resp.data;
+    }
+    if (resp.data?.length) {
       barcodeIdentificationDesc.value = resp.data.reduce((identifierDesc: any, identifier: any) => {
         identifierDesc[identifier.goodIdentificationTypeId] = identifier.description;
         return identifierDesc;
       }, {});
-    } else {
-      throw resp.data;
     }
   } catch (err) {
     logger.error("Failed to fetch product identification descriptions", err);
