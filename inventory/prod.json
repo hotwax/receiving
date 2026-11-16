@@ -1,0 +1,17 @@
+{
+  "available": true,
+  "target": {
+    "project": "digital-commerce-71eb8",
+    "site": "hotwax-receiving",
+    "environment": "prod",
+    "origin": "https://hotwax-receiving.web.app"
+  },
+  "versions": [],
+  "defaultVersion": "v4.2.4",
+  "configuredEnvironment": "AppEnvProd",
+  "defaultSource": "Compiled build metadata",
+  "checkedAt": "2026-11-16T11:08:32.263Z",
+  "deployedAt": "2026-10-30T11:07:49.649Z",
+  "release": "sites/hotwax-receiving/channels/live/releases/1793358469649000",
+  "fileCount": 53
+}
