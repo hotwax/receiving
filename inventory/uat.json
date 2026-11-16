@@ -1,0 +1,17 @@
+{
+  "available": true,
+  "target": {
+    "project": "hotwax-digital-commerce",
+    "site": "receiving-uat",
+    "environment": "uat",
+    "origin": "https://receiving-uat.web.app"
+  },
+  "versions": [],
+  "defaultVersion": "v4.2.3",
+  "configuredEnvironment": "AppEnvUAT",
+  "defaultSource": "Compiled build metadata",
+  "checkedAt": "2026-11-16T11:04:17.890Z",
+  "deployedAt": "2026-10-29T07:13:08.561Z",
+  "release": "sites/receiving-uat/channels/live/releases/1793257988561000",
+  "fileCount": 53
+}
