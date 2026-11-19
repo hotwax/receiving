@@ -198,7 +198,8 @@ const productIdentificationPref = computed(() => productStore.getProductIdentifi
 const currentFacility = computed(() => productStore.getCurrentFacility);
 // Cancelled and rejected lines can't be received, so they are left out of the summary
 const activeItems = computed(() => order.value.items.filter((item: any) => !['ITEM_CANCELLED', 'ITEM_REJECTED'].includes(item.statusId)));
-const receivedItems = computed(() => (order.value.poHistory?.items || []).filter((received: any) => activeItems.value.some((item: any) => item.productId === received.productId)));
+// Match receipts to an active line; use the line sequence when the receipt has one, so a cancelled line of the same product is not counted
+const receivedItems = computed(() => (order.value.poHistory?.items || []).filter((received: any) => activeItems.value.some((item: any) => item.productId === received.productId && (!received.orderItemSeqId || item.orderItemSeqId === received.orderItemSeqId))));
 const sum = (items: any[], field: string) => items.reduce((total, item) => total + Math.max(Number(item[field]) || 0, 0), 0);
 
 const totalOrderedQuantity = computed(() => sum(activeItems.value, 'quantity'));
