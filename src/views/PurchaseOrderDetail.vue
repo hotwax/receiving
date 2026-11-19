@@ -21,6 +21,9 @@
           <ion-label class="ion-padding">
             <h1>{{ translate("Purchase Order")}}: {{ order.externalOrderId }}</h1>
             <p>{{ translate("Item count") }}: {{ order.items.length }}</p>
+            <p>{{ translate("Ordered") }}: {{ totalOrderedQuantity }}</p>
+            <p>{{ translate("Scanned") }}: {{ totalScannedQuantity }}</p>
+            <p>{{ translate("Unscanned") }}: {{ totalUnscannedQuantity }}</p>
           </ion-label>
 
           <div class="doc-meta">
@@ -193,6 +196,16 @@ const isForceScanEnabled = computed(() => productStore.isProductStoreSettingEnab
 const barcodeIdentifier = computed(() => productStore.getBarcodeIdentifierPref);
 const productIdentificationPref = computed(() => productStore.getProductIdentificationPref);
 const currentFacility = computed(() => productStore.getCurrentFacility);
+// Cancelled and rejected lines can't be received, so they are left out of the summary
+const activeItems = computed(() => order.value.items.filter((item: any) => !['ITEM_CANCELLED', 'ITEM_REJECTED'].includes(item.statusId)));
+// Match receipts to an active line; use the line sequence when the receipt has one, so a cancelled line of the same product is not counted
+const receivedItems = computed(() => (order.value.poHistory?.items || []).filter((received: any) => activeItems.value.some((item: any) => item.productId === received.productId && (!received.orderItemSeqId || item.orderItemSeqId === received.orderItemSeqId))));
+const sum = (items: any[], field: string) => items.reduce((total, item) => total + Math.max(Number(item[field]) || 0, 0), 0);
+
+const totalOrderedQuantity = computed(() => sum(activeItems.value, 'quantity'));
+// Already received (history) + scanned on this page but not yet saved
+const totalScannedQuantity = computed(() => sum(receivedItems.value, 'quantityAccepted') + sum(activeItems.value, 'quantityAccepted'));
+const totalUnscannedQuantity = computed(() => Math.max(totalOrderedQuantity.value - totalScannedQuantity.value, 0));
 
 const isPOReceived = () => order.value.orderStatusId === "ORDER_COMPLETED";
 
