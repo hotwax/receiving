@@ -66,6 +66,9 @@ const order = computed(() => orderStore.getCurrent);
 const purchaseOrders = computed(() => orderStore.getPurchaseOrders);
 const productIdentificationPref = computed(() => productStore.getProductIdentificationPref);
 
+// Ionic keeps an alert button active until its async handler finishes, so a second tap would receive again.
+let isClosingItems = false;
+
 const closeModal = () => {
   modalController.dismiss({ dismissed: true });
 };
@@ -128,10 +131,19 @@ const confirmSave = async () => {
       text: translate('Proceed'),
       role: 'proceed',
       handler: async() => {
+        if (isClosingItems) return false;
+        isClosingItems = true;
         emitter.emit("presentLoader", {message: translate('Receiving in progress...'), backdropDismiss: false});
-        await updatePOItemStatus()
+        try {
+          await updatePOItemStatus()
+        } catch {
+          // The store has already shown the failure; keep the modal open so the user can retry.
+          return;
+        } finally {
+          isClosingItems = false;
+          emitter.emit("dismissLoader");
+        }
         modalController.dismiss()
-        emitter.emit("dismissLoader");
         router.push('/purchase-orders');
       }
     }]
