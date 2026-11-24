@@ -306,5 +306,10 @@
   "Unable to refresh transfer data": "Unable to refresh transfer data",
   "Unable to look up this tracking code": "Unable to look up this tracking code",
   "Unable to update this setting since no product store is linked to the selected facility.": "Unable to update this setting since no product store is linked to the selected facility.",
-  "A transfer order needs a product store, and none is linked to this facility.": "A transfer order needs a product store, and none is linked to this facility."
+  "A transfer order needs a product store, and none is linked to this facility.": "A transfer order needs a product store, and none is linked to this facility.",
+  "Reload": "Reload",
+  "Session changed": "Session changed",
+  "Signed in to another instance": "Signed in to another instance",
+  "This browser is now signed in to a different session from another tab or app. Reload to continue.": "This browser is now signed in to a different session from another tab or app. Reload to continue.",
+  "This browser is now signed in to {instance} from another tab or app. Reload to continue.": "This browser is now signed in to {instance} from another tab or app. Reload to continue."
 }

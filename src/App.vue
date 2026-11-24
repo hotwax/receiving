@@ -29,7 +29,7 @@ import { IonApp, IonContent, IonHeader, IonIcon, IonItem, IonLabel, IonList, Ion
 import { ref, computed, onBeforeMount, onMounted, onUnmounted, watch } from 'vue';
 import router from '@/router'
 import { Settings } from 'luxon';
-import { translate, emitter, useNotificationStore, useAuth, useIosKeyboardScroll } from "@common";
+import { translate, emitter, useNotificationStore, useAuth, useIosKeyboardScroll, useSessionChangeAlert } from "@common";
 import { configureReceiving, refreshReceiving } from '@/db/receivingClient';
 import { receivingLoginReady, syncReceivingSession } from '@/db/receivingSession';
 import { firebaseUtil } from '@/utils/firebaseUtil';
@@ -43,6 +43,9 @@ const userStore = useUserStore();
 const productStore = useProductStore();
 
 const { isAuthenticated } = useAuth();
+
+// A login in another tab or app replaced the shared session cookies: ask the user to reload.
+useSessionChangeAlert();
 
 const currentFacility = computed(() => productStore.getCurrentFacility);
 
